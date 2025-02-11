@@ -140,3 +140,76 @@ rl.on("line", (line) => {
 - **二分探索** を使うと **O(N log K)** で高速に解ける
 - **判定関数** で「時間 T で K 枚印刷できるか？」を判定
 - **最小の時間** を求めるため、`right = mid` で狭めていく
+
+### **A13解法の概要**
+この問題を効率的に解くために、**二分探索（Binary Search）または双方向ポインタ（Two Pointers）** を活用します。  
+
+### **アプローチ**
+1. **ソート不要**  
+   既に小さい順に並んでいるため、ソート処理は不要です。
+2. **二分探索を使用する方法**  
+   各 `A[i]` について、`A[i] + K` 以下の最大の `j` を **二分探索** で求め、`i < j` となるペア数を加算する。
+3. **双方向ポインタを使用する方法**  
+   - `i` を左ポインタ、`j` を右ポインタとして探索  
+   - `A[j] - A[i] > K` なら `i` を進める  
+   - `A[j] - A[i] ≤ K` なら `j` を進め、ペア数を計算  
+
+### **実装**
+#### **1. 二分探索を使う方法**
+`O(N log N)` で解ける。
+
+```javascript
+function countPairsBinarySearch(N, K, A) {
+    let count = 0;
+
+    for (let i = 0; i < N; i++) {
+        let left = i, right = N - 1;
+        while (left <= right) {
+            let mid = Math.floor((left + right) / 2);
+            if (A[mid] - A[i] <= K) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        count += right - i;
+    }
+
+    console.log(count);
+}
+
+// 入力例
+const [N, K, ...A] = `5 3
+1 2 4 5 8`.split(/\s+/).map(Number);
+countPairsBinarySearch(N, K, A);
+```
+
+#### **2. 双方向ポインタ（Two Pointers）**
+こちらも `O(N)` で解ける。
+
+```javascript
+function countPairsTwoPointers(N, K, A) {
+    let count = 0;
+    let j = 0;
+
+    for (let i = 0; i < N; i++) {
+        while (j < N && A[j] - A[i] <= K) {
+            j++;
+        }
+        count += (j - i - 1);
+    }
+
+    console.log(count);
+}
+
+// 入力例
+const [N, K, ...A] = `5 3
+1 2 4 5 8`.split(/\s+/).map(Number);
+countPairsTwoPointers(N, K, A);
+```
+
+### **解説**
+- `二分探索`：各 `A[i]` に対し、`A[i] + K` 以下の最大の `j` を探し、`O(log N)`
+- `双方向ポインタ`：`j` を増やしながら `A[j] - A[i] <= K` を満たす最大の `j` を求め、`O(N)`
+
+**`O(N log N)` よりも `O(N)` の双方向ポインタの方が高速** なので、基本的には **双方向ポインタ** を推奨します。

@@ -1,4 +1,4 @@
-class ProprityQueue {
+class PriorityQueue {
 	constructor() {
 		this.values = [];
 	}
@@ -75,10 +75,10 @@ class Node {
 }
 
 let ER = new ProprityQueue();
-ER.enqueue('Patient 1', 1);
-ER.enqueue('Patient 4', 4);
-ER.enqueue('Patient 5', 3);
-ER.enqueue('Patient 2', 5);
-ER.enqueue('Patient 3', 2);
+ER.enqueue("Patient 1", 1);
+ER.enqueue("Patient 4", 4);
+ER.enqueue("Patient 5", 3);
+ER.enqueue("Patient 2", 5);
+ER.enqueue("Patient 3", 2);
 console.log(ER);
 console.log(ER.dequeue());

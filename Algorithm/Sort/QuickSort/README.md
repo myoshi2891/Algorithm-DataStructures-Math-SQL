@@ -88,3 +88,5 @@ console.log(arr); // [1, 1, 2, 3, 6, 8, 10]
 ✅ **最悪 O(n²) のケースを防ぐために Pivot の選び方を工夫することが重要**
 
 JavaScriptで実装する場合、`filter()` を使ったシンプルな方法と、`partition()` を用いた **in-place ソート** の両方を使い分けるのが良い。
+
+[Quicksort vs heapsort](https://stackoverflow.com/questions/2467751/quicksort-vs-heapsort)

@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Main {
+public class A35 {
     static int[][] memo;
     static int[] A;
     static int N;

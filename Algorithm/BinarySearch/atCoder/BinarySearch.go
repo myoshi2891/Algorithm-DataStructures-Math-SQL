@@ -20,12 +20,12 @@ func binarySearch(A []int, X int) int {
 }
 
 func main() {
-	var N, X int
-	fmt.Scan(&N, &X)
-	A := make([]int, N)
-	for i := 0; i < N; i++ {
-		fmt.Scan(&A[i])
-	}
+    var N, X int
+    fmt.Scan(&N, &X)
+    A := make([]int, N)
+    for i := 0; i < N; i++ {
+        fmt.Scan(&A[i])
+    }
 
-	fmt.Println(binarySearch(A, X))
+    fmt.Println(binarySearch(A, X))
 }

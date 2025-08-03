@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BIT構築の詳細解析</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            h2 {
+                color: #2d3748;
+                border-left: 5px solid #667eea;
+                padding-left: 15px;
+                margin-top: 40px;
+            }
+
+            .step {
+                background: #f7fafc;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                border: 2px solid #e2e8f0;
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            .array-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .array-element {
+                width: 60px;
+                height: 60px;
+                border: 2px solid #4299e1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 2px;
+                font-weight: bold;
+                border-radius: 8px;
+                background: linear-gradient(135deg, #90cdf4, #63b3ed);
+                color: white;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .index-label {
+                width: 60px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 2px;
+                font-size: 12px;
+                color: #666;
+                background: #e2e8f0;
+                border-radius: 4px;
+            }
+
+            .bit-tree {
+                margin: 30px 0;
+                text-align: center;
+            }
+
+            .tree-level {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                width: 50px;
+                height: 50px;
+                border: 2px solid #38a169;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 15px;
+                font-weight: bold;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #68d391, #48bb78);
+                color: white;
+                position: relative;
+            }
+
+            .calculation-box {
+                background: #fff5f5;
+                border: 2px solid #feb2b2;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .formula {
+                background: #f0fff4;
+                border: 2px solid #9ae6b4;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+                font-family: 'Courier New', monospace;
+                text-align: center;
+            }
+
+            .highlight {
+                background: #fef5e7;
+                border: 2px solid #f6ad55;
+                border-radius: 5px;
+                padding: 2px 6px;
+                font-weight: bold;
+            }
+
+            .complexity-analysis {
+                background: linear-gradient(135deg, #e6fffa, #b2f5ea);
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            th,
+            td {
+                padding: 12px;
+                text-align: center;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            th {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+            }
+
+            tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            .binary-representation {
+                font-family: 'Courier New', monospace;
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 15px 0;
+            }
+
+            .bit-operation {
+                background: #ebf8ff;
+                border: 2px solid #90cdf4;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .interactive-demo {
+                background: #f7fafc;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                text-align: center;
+            }
+
+            button {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .step-indicator {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                background: #667eea;
+                color: white;
+                border-radius: 50%;
+                line-height: 30px;
+                text-align: center;
+                margin-right: 10px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🌳 BIT構築の詳細解析</h1>
+
+            <h2>📊 1. 入力配列とBIT配列の関係</h2>
+            <div class="step">
+                <p><strong>例: A = [1, 5, 7, 9, 8, 6]</strong></p>
+
+                <div class="array-container">
+                    <div class="index-label">A[0]</div>
+                    <div class="index-label">A[1]</div>
+                    <div class="index-label">A[2]</div>
+                    <div class="index-label">A[3]</div>
+                    <div class="index-label">A[4]</div>
+                    <div class="index-label">A[5]</div>
+                </div>
+                <div class="array-container">
+                    <div class="array-element">1</div>
+                    <div class="array-element">5</div>
+                    <div class="array-element">7</div>
+                    <div class="array-element">9</div>
+                    <div class="array-element">8</div>
+                    <div class="array-element">6</div>
+                </div>
+
+                <div style="margin: 30px 0;"></div>
+
+                <div class="array-container">
+                    <div class="index-label">BIT[0]</div>
+                    <div class="index-label">BIT[1]</div>
+                    <div class="index-label">BIT[2]</div>
+                    <div class="index-label">BIT[3]</div>
+                    <div class="index-label">BIT[4]</div>
+                    <div class="index-label">BIT[5]</div>
+                    <div class="index-label">BIT[6]</div>
+                </div>
+                <div class="array-container">
+                    <div class="array-element" style="background: #718096;">0</div>
+                    <div class="array-element">1</div>
+                    <div class="array-element">6</div>
+                    <div class="array-element">7</div>
+                    <div class="array-element">22</div>
+                    <div class="array-element">8</div>
+                    <div class="array-element">14</div>
+                </div>
+            </div>
+
+            <h2>🔢 2. 各BIT[i]の計算過程</h2>
+
+            <div class="step">
+                <div class="step-indicator">1</div>
+                <strong>BIT[1]の計算</strong>
+                <div class="calculation-box">
+                    <p>i = 1 → 2進数: <span class="highlight">0001</span></p>
+                    <p>1を2で割ることができる最大回数 k = 0</p>
+                    <p>2^k = 2^0 = 1</p>
+                    <div class="formula">BIT[1] = A[1-1+1-1] = A[0] = 1</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-indicator">2</div>
+                <strong>BIT[2]の計算</strong>
+                <div class="calculation-box">
+                    <p>i = 2 → 2進数: <span class="highlight">0010</span></p>
+                    <p>2を2で割ることができる最大回数 k = 1</p>
+                    <p>2^k = 2^1 = 2</p>
+                    <div class="formula">BIT[2] = A[0] + A[1] = 1 + 5 = 6</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-indicator">3</div>
+                <strong>BIT[3]の計算</strong>
+                <div class="calculation-box">
+                    <p>i = 3 → 2進数: <span class="highlight">0011</span></p>
+                    <p>3を2で割ることができる最大回数 k = 0</p>
+                    <p>2^k = 2^0 = 1</p>
+                    <div class="formula">BIT[3] = A[2] = 7</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-indicator">4</div>
+                <strong>BIT[4]の計算</strong>
+                <div class="calculation-box">
+                    <p>i = 4 → 2進数: <span class="highlight">0100</span></p>
+                    <p>4を2で割ることができる最大回数 k = 2</p>
+                    <p>2^k = 2^2 = 4</p>
+                    <div class="formula">BIT[4] = A[0] + A[1] + A[2] + A[3] = 1 + 5 + 7 + 9 = 22</div>
+                </div>
+            </div>
+
+            <h2>⚡ 3. ビット演算による最適化</h2>
+
+            <div class="step">
+                <div class="bit-operation">
+                    <h3>i & -i による最下位ビット取得</h3>
+                    <div class="binary-representation">
+                        i = 6 (0110)
+                        -i = -6 (1010) // 2の補数
+                        i & -i = 0010 = 2
+
+                        i = 8 (1000)
+                        -i = -8 (1000)
+                        i & -i = 1000 = 8
+                    </div>
+                    <p>この演算により、2^kの値を直接取得できます！</p>
+                </div>
+            </div>
+
+            <h2>📈 4. 計算量解析</h2>
+
+            <div class="complexity-analysis">
+                <h3>時間計算量: O(n log n)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>k値</th>
+                            <th>該当するi の個数</th>
+                            <th>各iの計算コスト</th>
+                            <th>総コスト</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0</td>
+                            <td>n/2</td>
+                            <td>1</td>
+                            <td>n/2</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>n/4</td>
+                            <td>2</td>
+                            <td>n/2</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>n/8</td>
+                            <td>4</td>
+                            <td>n/2</td>
+                        </tr>
+                        <tr>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                        </tr>
+                        <tr style="background: #e6fffa;">
+                            <td>合計</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>O(n log n)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>🌲 5. BITの木構造</h2>
+
+            <div class="bit-tree">
+                <div class="tree-level">
+                    <div class="tree-node" style="background: linear-gradient(135deg, #718096, #4a5568);">0</div>
+                </div>
+                <div class="tree-level">
+                    <div class="tree-node">4</div>
+                    <div class="tree-node">6</div>
+                </div>
+                <div class="tree-level">
+                    <div class="tree-node">2</div>
+                    <div class="tree-node">3</div>
+                    <div class="tree-node">5</div>
+                </div>
+                <div class="tree-level">
+                    <div class="tree-node">1</div>
+                    <div class="tree-node">1</div>
+                    <div class="tree-node">1</div>
+                    <div class="tree-node">1</div>
+                    <div class="tree-node">1</div>
+                    <div class="tree-node">1</div>
+                </div>
+                <p><em>各ノードは対応するBITのインデックスを表します</em></p>
+            </div>
+
+            <h2>🚀 6. インタラクティブデモ</h2>
+
+            <div class="interactive-demo">
+                <p>配列の値を変更してBITの変化を確認できます：</p>
+                <div id="demo-container">
+                    <div class="array-container" id="input-array"></div>
+                    <div class="array-container" id="bit-array"></div>
+                </div>
+                <button onclick="updateDemo()">配列を更新</button>
+                <button onclick="stepByStep()">ステップ実行</button>
+            </div>
+
+            <h2>💡 7. 実装のポイント</h2>
+
+            <div class="step">
+                <ul>
+                    <li><strong>インデックス変換</strong>: 0-indexedの配列Aを1-indexedのBITに変換</li>
+                    <li><strong>ビット演算最適化</strong>: <code>i & -i</code> で2^kを直接計算</li>
+                    <li><strong>メモリ効率</strong>: 必要最小限のメモリ使用</li>
+                    <li><strong>型安全性</strong>: 厳密な型ヒントでバグ防止</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            let currentArray = [1, 5, 7, 9, 8, 6];
+            let currentStep = 0;
+
+            function getLSB(i) {
+                return i & -i;
+            }
+
+            function constructBIT(arr) {
+                const n = arr.length;
+                const BIT = new Array(n + 1).fill(0);
+
+                for (let i = 1; i <= n; i++) {
+                    const lsb = getLSB(i);
+                    const start = i - lsb;
+                    const end = i - 1;
+
+                    let sum = 0;
+                    for (let j = start; j <= end; j++) {
+                        sum += arr[j];
+                    }
+                    BIT[i] = sum;
+                }
+
+                return BIT;
+            }
+
+            function updateDemo() {
+                // ランダムに配列を生成
+                currentArray = Array.from({ length: 6 }, () => Math.floor(Math.random() * 10) + 1);
+                renderDemo();
+            }
+
+            function renderDemo() {
+                const inputContainer = document.getElementById('input-array');
+                const bitContainer = document.getElementById('bit-array');
+
+                // 入力配列を表示
+                inputContainer.innerHTML = currentArray.map((val, idx) =>
+                    `<div class="array-element">A[${idx}]<br>${val}</div>`
+                ).join('');
+
+                // BIT配列を計算・表示
+                const bit = constructBIT(currentArray);
+                bitContainer.innerHTML = bit.map((val, idx) =>
+                    `<div class="array-element" style="background: ${idx === 0 ? '#718096' : 'linear-gradient(135deg, #90cdf4, #63b3ed)'}">BIT[${idx}]<br>${val}</div>`
+                ).join('');
+            }
+
+            function stepByStep() {
+                // ステップバイステップの説明を表示
+                alert('ステップ実行機能は完全版で実装されます。各BIT[i]の計算過程を上記の解説を参照してください！');
+            }
+
+            // 初期表示
+            renderDemo();
+        </script>
+    </body>
+
+</html>

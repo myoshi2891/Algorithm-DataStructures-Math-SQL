@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BIT (Binary Indexed Tree) 詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                color: #34495e;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+                margin-top: 40px;
+            }
+
+            h3 {
+                color: #2980b9;
+                margin-top: 30px;
+            }
+
+            .array-visual {
+                display: flex;
+                gap: 5px;
+                margin: 20px 0;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .array-cell {
+                width: 50px;
+                height: 50px;
+                border: 2px solid #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #74b9ff, #0984e3);
+                color: white;
+                font-weight: bold;
+                border-radius: 8px;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .array-cell:hover {
+                transform: scale(1.1);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .array-cell .index {
+                position: absolute;
+                bottom: -25px;
+                font-size: 12px;
+                color: #666;
+            }
+
+            .bit-tree {
+                margin: 30px 0;
+                text-align: center;
+            }
+
+            .tree-level {
+                display: flex;
+                justify-content: center;
+                margin: 20px 0;
+                gap: 20px;
+            }
+
+            .tree-node {
+                width: 60px;
+                height: 60px;
+                border: 3px solid #e74c3c;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #fd79a8, #e84393);
+                color: white;
+                font-weight: bold;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .tree-node:hover {
+                transform: scale(1.2);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .tree-node .node-label {
+                position: absolute;
+                bottom: -30px;
+                font-size: 12px;
+                color: #333;
+                white-space: nowrap;
+            }
+
+            .step-by-step {
+                background: linear-gradient(135deg, #a8edea, #fed6e3);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                border-left: 5px solid #00b894;
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 8px;
+                font-family: 'Consolas', 'Monaco', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+            }
+
+            .highlight {
+                background: #fff3cd;
+                padding: 2px 6px;
+                border-radius: 4px;
+                border-left: 4px solid #ffc107;
+            }
+
+            .update-path {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 10px 0;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .path-node {
+                width: 40px;
+                height: 40px;
+                border: 2px solid #28a745;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #55efc4, #00b894);
+                color: white;
+                font-weight: bold;
+            }
+
+            .arrow {
+                font-size: 20px;
+                color: #e74c3c;
+                font-weight: bold;
+            }
+
+            .binary-representation {
+                font-family: 'Consolas', 'Monaco', monospace;
+                background: #f8f9fa;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+                border: 1px solid #dee2e6;
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+                border: 2px solid #e17055;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .example-section {
+                background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+                border-radius: 10px;
+                padding: 25px;
+                margin: 25px 0;
+                border: 2px solid #8b5cf6;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 12px;
+                text-align: center;
+            }
+
+            th {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+            }
+
+            tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            tr:hover {
+                background: #e3f2fd;
+                transform: scale(1.02);
+                transition: all 0.2s ease;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🌳 BIT (Binary Indexed Tree) 詳細解析</h1>
+
+            <h2>1. BITの基本概念</h2>
+            <p>Binary Indexed Tree (BIT) / Fenwick Treeは、配列の<strong>区間和クエリ</strong>と<strong>一点更新</strong>を効率的に行うデータ構造です。</p>
+
+            <div class="step-by-step">
+                <h3>🎯 主な特徴</h3>
+                <ul>
+                    <li><strong>時間計算量</strong>: 更新・クエリともにO(log n)</li>
+                    <li><strong>空間計算量</strong>: O(n)</li>
+                    <li><strong>実装</strong>: セグメント木より簡潔</li>
+                </ul>
+            </div>
+
+            <h2>2. 配列からBITへの変換</h2>
+            <h3>📊 元の配列 A = [1, 5, 7, 9, 8, 6]</h3>
+
+            <div class="array-visual">
+                <div class="array-cell">
+                    1
+                    <div class="index">A[1]</div>
+                </div>
+                <div class="array-cell">
+                    5
+                    <div class="index">A[2]</div>
+                </div>
+                <div class="array-cell">
+                    7
+                    <div class="index">A[3]</div>
+                </div>
+                <div class="array-cell">
+                    9
+                    <div class="index">A[4]</div>
+                </div>
+                <div class="array-cell">
+                    8
+                    <div class="index">A[5]</div>
+                </div>
+                <div class="array-cell">
+                    6
+                    <div class="index">A[6]</div>
+                </div>
+            </div>
+
+            <h3>🔄 BIT構築プロセス</h3>
+            <div class="step-by-step">
+                <p>各BIT[i]は、<span class="highlight">特定の範囲の要素の合計</span>を格納します。</p>
+
+                <table>
+                    <tr>
+                        <th>BIT Index</th>
+                        <th>バイナリ</th>
+                        <th>担当範囲</th>
+                        <th>計算</th>
+                        <th>値</th>
+                    </tr>
+                    <tr>
+                        <td>BIT[1]</td>
+                        <td>001</td>
+                        <td>A[1]</td>
+                        <td>1</td>
+                        <td>1</td>
+                    </tr>
+                    <tr>
+                        <td>BIT[2]</td>
+                        <td>010</td>
+                        <td>A[1] + A[2]</td>
+                        <td>1 + 5</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td>BIT[3]</td>
+                        <td>011</td>
+                        <td>A[3]</td>
+                        <td>7</td>
+                        <td>7</td>
+                    </tr>
+                    <tr>
+                        <td>BIT[4]</td>
+                        <td>100</td>
+                        <td>A[1] + A[2] + A[3] + A[4]</td>
+                        <td>1 + 5 + 7 + 9</td>
+                        <td>22</td>
+                    </tr>
+                    <tr>
+                        <td>BIT[5]</td>
+                        <td>101</td>
+                        <td>A[5]</td>
+                        <td>8</td>
+                        <td>8</td>
+                    </tr>
+                    <tr>
+                        <td>BIT[6]</td>
+                        <td>110</td>
+                        <td>A[5] + A[6]</td>
+                        <td>8 + 6</td>
+                        <td>14</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>🌲 BIT構造の可視化</h3>
+            <div class="bit-tree">
+                <div class="tree-level">
+                    <div class="tree-node">
+                        22
+                        <div class="node-label">BIT[4]</div>
+                    </div>
+                </div>
+                <div class="tree-level">
+                    <div class="tree-node">
+                        6
+                        <div class="node-label">BIT[2]</div>
+                    </div>
+                    <div class="tree-node">
+                        14
+                        <div class="node-label">BIT[6]</div>
+                    </div>
+                </div>
+                <div class="tree-level">
+                    <div class="tree-node">
+                        1
+                        <div class="node-label">BIT[1]</div>
+                    </div>
+                    <div class="tree-node">
+                        7
+                        <div class="node-label">BIT[3]</div>
+                    </div>
+                    <div class="tree-node">
+                        8
+                        <div class="node-label">BIT[5]</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>3. LSB (最下位ビット) の重要性</h2>
+            <div class="step-by-step">
+                <h3>🔧 LSB計算式: <code>idx & (-idx)</code></h3>
+
+                <div class="binary-representation">
+                    <strong>例：idx = 6 の場合</strong><br>
+                    6 (binary): 110<br>
+                    -6 (binary): ...11111010 (2の補数)<br>
+                    6 & (-6) = 110 & ...11111010 = 010 = 2
+                </div>
+
+                <p><span class="highlight">LSBは、そのインデックスが担当する範囲の大きさ</span>を示します。</p>
+            </div>
+
+            <h2>4. 一点更新の詳細プロセス</h2>
+            <div class="example-section">
+                <h3>📝 例：A[5]に10を加算する場合</h3>
+
+                <div class="step-by-step">
+                    <h4>🛤️ 更新パス計算</h4>
+                    <p>インデックス5から開始して、LSBを加算しながら進む：</p>
+
+                    <div class="update-path">
+                        <div class="path-node">5</div>
+                        <div class="arrow">→</div>
+                        <div class="path-node">6</div>
+                        <div class="arrow">→</div>
+                        <div class="path-node">8</div>
+                    </div>
+
+                    <div class="binary-representation">
+                        <strong>計算過程：</strong><br>
+                        5 (101) → 5 + (5 & -5) = 5 + 1 = 6<br>
+                        6 (110) → 6 + (6 & -6) = 6 + 2 = 8<br>
+                        8 > 6 なので終了
+                    </div>
+                </div>
+
+                <h4>📊 更新前後の比較</h4>
+                <table>
+                    <tr>
+                        <th>BITインデックス</th>
+                        <th>更新前</th>
+                        <th>更新後</th>
+                        <th>変化</th>
+                    </tr>
+                    <tr style="background: #ffebee;">
+                        <td>BIT[5]</td>
+                        <td>8</td>
+                        <td>18</td>
+                        <td>+10</td>
+                    </tr>
+                    <tr style="background: #ffebee;">
+                        <td>BIT[6]</td>
+                        <td>14</td>
+                        <td>24</td>
+                        <td>+10</td>
+                    </tr>
+                    <tr>
+                        <td>その他</td>
+                        <td>変更なし</td>
+                        <td>変更なし</td>
+                        <td>0</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2>5. アルゴリズムの実装解析</h2>
+
+            <h3>🏗️ BIT構築アルゴリズム</h3>
+            <div class="code-block">
+                function buildBIT(A) {
+                const n = A.length;
+                const BIT = new Array(n + 1).fill(0);
+
+                for (let i = 1; i <= n; i++) { let idx=i; while (idx <=n) { BIT[idx] +=A[i - 1]; idx +=idx & (-idx); // LSB加算 } } return BIT; } </div>
+
+                    <h3>🔄 一点更新アルゴリズム</h3>
+                    <div class="code-block">
+                        function updateBIT(BIT, pos, val) {
+                        let idx = pos;
+                        while (idx <= BIT.length - 1) { BIT[idx] +=val; idx +=idx & (-idx); // 次の更新位置 } } </div>
+
+                            <h2>6. 計算量分析</h2>
+                            <div class="complexity-box">
+                                <h3>⏱️ 時間計算量</h3>
+                                <ul>
+                                    <li><strong>BIT構築</strong>: O(n log n)</li>
+                                    <li><strong>一点更新</strong>: O(log n)</li>
+                                    <li><strong>総計算量</strong>: O(n log n + Q log n)</li>
+                                </ul>
+
+                                <h3>💾 空間計算量</h3>
+                                <ul>
+                                    <li><strong>BIT配列</strong>: O(n)</li>
+                                    <li><strong>補助変数</strong>: O(1)</li>
+                                </ul>
+                            </div>
+
+                            <h2>7. 具体例でのシミュレーション</h2>
+                            <div class="example-section">
+                                <h3>🎮 入力例：A = [1, 5, 7, 9, 8, 6]</h3>
+                                <h4>初期BIT: [0, 1, 6, 7, 22, 8, 14]</h4>
+
+                                <div class="step-by-step">
+                                    <h4>クエリ1: A[5] += 4</h4>
+                                    <p>更新パス: 5 → 6</p>
+                                    <p>結果: [0, 1, 6, 7, 22, 12, 18]</p>
+
+                                    <h4>クエリ2: A[1] += 10</h4>
+                                    <p>更新パス: 1 → 2 → 4</p>
+                                    <p>結果: [0, 11, 16, 7, 32, 12, 18]</p>
+                                </div>
+                            </div>
+
+                            <h2>8. まとめ</h2>
+                            <div class="step-by-step">
+                                <h3>🎯 BITの核心</h3>
+                                <ol>
+                                    <li><strong>LSB操作</strong>により効率的な木構造を実現</li>
+                                    <li><strong>バイナリ表現</strong>が更新パスを決定</li>
+                                    <li><strong>部分和の重複管理</strong>により高速化</li>
+                                    <li><strong>メモリ効率</strong>が良く実装が簡潔</li>
+                                </ol>
+                            </div>
+                    </div>
+    </body>
+
+</html>

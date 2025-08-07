@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BIT (Binary Indexed Tree) 詳細解説</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .section {
+                margin-bottom: 40px;
+                padding: 25px;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                border-left: 5px solid #3498db;
+            }
+
+            .section h2 {
+                color: #2c3e50;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+                font-size: 1.8em;
+            }
+
+            .visualization {
+                margin: 20px 0;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                border: 2px solid #e9ecef;
+            }
+
+            .array-display {
+                display: flex;
+                justify-content: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .array-cell {
+                width: 50px;
+                height: 50px;
+                border: 2px solid #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 14px;
+                border-radius: 8px;
+                background: linear-gradient(45deg, #74b9ff, #0984e3);
+                color: white;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .array-cell:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            }
+
+            .array-cell.highlight {
+                background: linear-gradient(45deg, #ff7675, #d63031);
+                animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .index-label {
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+            }
+
+            .bit-structure {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 30px 0;
+            }
+
+            .bit-level {
+                display: flex;
+                justify-content: center;
+                margin: 15px 0;
+                gap: 20px;
+            }
+
+            .bit-node {
+                width: 80px;
+                height: 60px;
+                border: 3px solid #27ae60;
+                border-radius: 12px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #00b894, #00a085);
+                color: white;
+                font-weight: bold;
+                box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .bit-node:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(39, 174, 96, 0.4);
+            }
+
+            .bit-node .index {
+                font-size: 12px;
+                opacity: 0.9;
+            }
+
+            .bit-node .value {
+                font-size: 16px;
+                font-weight: bold;
+            }
+
+            .connection {
+                width: 2px;
+                height: 20px;
+                background: #95a5a6;
+                margin: 0 auto;
+            }
+
+            .controls {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 25px 0;
+                flex-wrap: wrap;
+            }
+
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 15px;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                border: 2px solid #e74c3c;
+            }
+
+            .control-group label {
+                font-weight: bold;
+                color: #2c3e50;
+                min-width: 60px;
+            }
+
+            .control-group input {
+                padding: 8px 12px;
+                border: 2px solid #bdc3c7;
+                border-radius: 6px;
+                font-size: 14px;
+                width: 80px;
+                transition: border-color 0.3s ease;
+            }
+
+            .control-group input:focus {
+                outline: none;
+                border-color: #3498db;
+                box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+            }
+
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .btn-primary {
+                background: linear-gradient(45deg, #3498db, #2980b9);
+                color: white;
+                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            }
+
+            .btn-success {
+                background: linear-gradient(45deg, #27ae60, #229954);
+                color: white;
+                box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            }
+
+            .btn-success:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+            }
+
+            .result {
+                margin: 20px 0;
+                padding: 15px;
+                background: linear-gradient(45deg, #f39c12, #e67e22);
+                color: white;
+                border-radius: 10px;
+                font-weight: bold;
+                text-align: center;
+                font-size: 18px;
+                box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+            }
+
+            .code-block {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .code-block pre {
+                margin: 0;
+                white-space: pre-wrap;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 15px;
+                text-align: left;
+                border-bottom: 1px solid #bdc3c7;
+            }
+
+            .complexity-table th {
+                background: linear-gradient(45deg, #34495e, #2c3e50);
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table tr:hover {
+                background: #f8f9fa;
+            }
+
+            .binary-display {
+                font-family: 'Courier New', monospace;
+                background: #34495e;
+                color: #ecf0f1;
+                padding: 10px;
+                border-radius: 6px;
+                display: inline-block;
+                margin: 5px;
+                font-weight: bold;
+            }
+
+            .explanation {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 15px 0;
+                border-left: 5px solid #e74c3c;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🌳 BIT (Binary Indexed Tree) 完全解説</h1>
+
+            <div class="section">
+                <h2>📊 BITとは？</h2>
+                <div class="explanation">
+                    <p><strong>Binary Indexed Tree (BIT)</strong>は、配列の区間和クエリと要素の更新を効率的に処理するデータ構造です。</p>
+                    <p>通常の配列では区間和の計算にO(n)時間がかかりますが、BITを使用することで<strong>O(log n)</strong>で実行できます。</p>
+                </div>
+
+                <table class="complexity-table">
+                    <tr>
+                        <th>操作</th>
+                        <th>通常の配列</th>
+                        <th>BIT</th>
+                    </tr>
+                    <tr>
+                        <td>要素の更新</td>
+                        <td>O(1)</td>
+                        <td>O(log n)</td>
+                    </tr>
+                    <tr>
+                        <td>区間和クエリ</td>
+                        <td>O(n)</td>
+                        <td>O(log n)</td>
+                    </tr>
+                    <tr>
+                        <td>空間計算量</td>
+                        <td>O(n)</td>
+                        <td>O(n)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>🎯 インタラクティブ デモ</h2>
+                <div class="visualization">
+                    <h3>元の配列</h3>
+                    <div class="array-display" id="originalArray"></div>
+
+                    <h3>BIT構造</h3>
+                    <div class="array-display" id="bitArray"></div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>インデックス:</label>
+                            <input type="number" id="updateIndex" min="1" max="8" value="1">
+                        </div>
+                        <div class="control-group">
+                            <label>値:</label>
+                            <input type="number" id="updateValue" value="1">
+                        </div>
+                        <button class="btn btn-primary" onclick="updateBIT()">更新</button>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>開始:</label>
+                            <input type="number" id="queryStart" min="1" max="8" value="1">
+                        </div>
+                        <div class="control-group">
+                            <label>終了:</label>
+                            <input type="number" id="queryEnd" min="1" max="8" value="3">
+                        </div>
+                        <button class="btn btn-success" onclick="queryBIT()">区間和クエリ</button>
+                    </div>
+
+                    <div class="result" id="result"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔢 BITの仕組み</h2>
+                <div class="explanation">
+                    <p>BITの核心は<strong>最下位ビット（LSB）</strong>の概念です。各インデックスが管理する範囲は、そのインデックスの二進表現の最下位の1ビットによって決まります。</p>
+
+                    <h3>LSB の計算方法:</h3>
+                    <div class="code-block">
+                        <pre>LSB(x) = x & (-x)
+
+例：
+6 (110₂) の LSB = 110₂ & 010₂ = 010₂ = 2
+8 (1000₂) の LSB = 1000₂ & 1000₂ = 1000₂ = 8</pre>
+                    </div>
+
+                    <h3>各インデックスが管理する範囲:</h3>
+                    <div id="bitRanges"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💻 実装コード</h2>
+                <div class="code-block">
+                    <pre>class BIT {
+    constructor(n) {
+        this.n = n;
+        this.tree = new Array(n + 1).fill(0);
+    }
+    
+    // LSB（最下位ビット）を取得
+    lowbit(x) {
+        return x & (-x);
+    }
+    
+    // インデックス i に値 delta を加算
+    update(i, delta) {
+        while (i <= this.n) {
+            this.tree[i] += delta;
+            i += this.lowbit(i);
+        }
+    }
+    
+    // インデックス 1 から i までの累積和を取得
+    query(i) {
+        let sum = 0;
+        while (i > 0) {
+            sum += this.tree[i];
+            i -= this.lowbit(i);
+        }
+        return sum;
+    }
+    
+    // インデックス l から r までの区間和を取得
+    rangeQuery(l, r) {
+        return this.query(r) - this.query(l - 1);
+    }
+}</pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎓 応用例</h2>
+                <div class="explanation">
+                    <h3>BITが活用される場面：</h3>
+                    <ul>
+                        <li><strong>競技プログラミング</strong>: 区間和クエリが頻繁に発生する問題</li>
+                        <li><strong>統計処理</strong>: リアルタイムでの累積統計計算</li>
+                        <li><strong>ゲーム開発</strong>: スコアランキングシステム</li>
+                        <li><strong>データ分析</strong>: 時系列データの区間集計</li>
+                    </ul>
+
+                    <h3>類似データ構造との比較：</h3>
+                    <ul>
+                        <li><strong>セグメント木</strong>: より汎用的だが、実装が複雑</li>
+                        <li><strong>平方分割</strong>: 実装が簡単だが、計算量が劣る</li>
+                        <li><strong>累積和配列</strong>: 更新がO(n)と非効率</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            class BIT {
+                constructor(n) {
+                    this.n = n;
+                    this.tree = new Array(n + 1).fill(0);
+                    this.original = new Array(n + 1).fill(0);
+                }
+
+                lowbit(x) {
+                    return x & (-x);
+                }
+
+                update(i, delta) {
+                    this.original[i] += delta;
+                    while (i <= this.n) {
+                        this.tree[i] += delta;
+                        i += this.lowbit(i);
+                    }
+                }
+
+                query(i) {
+                    let sum = 0;
+                    while (i > 0) {
+                        sum += this.tree[i];
+                        i -= this.lowbit(i);
+                    }
+                    return sum;
+                }
+
+                rangeQuery(l, r) {
+                    return this.query(r) - this.query(l - 1);
+                }
+            }
+
+            // BITインスタンスを初期化
+            const bit = new BIT(8);
+
+            // 初期値を設定
+            for (let i = 1; i <= 8; i++) {
+                bit.update(i, Math.floor(Math.random() * 10) + 1);
+            }
+
+            function updateDisplay() {
+                // 元の配列の表示
+                const originalDiv = document.getElementById('originalArray');
+                originalDiv.innerHTML = '';
+                for (let i = 1; i <= 8; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'array-cell';
+                    cell.innerHTML = `<div>${bit.original[i]}</div><div class="index-label">i=${i}</div>`;
+                    originalDiv.appendChild(cell);
+                }
+
+                // BIT配列の表示
+                const bitDiv = document.getElementById('bitArray');
+                bitDiv.innerHTML = '';
+                for (let i = 1; i <= 8; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'array-cell';
+                    cell.style.background = 'linear-gradient(45deg, #00b894, #00a085)';
+                    cell.innerHTML = `<div>${bit.tree[i]}</div><div class="index-label">BIT[${i}]</div>`;
+                    bitDiv.appendChild(cell);
+                }
+
+                updateBitRanges();
+            }
+
+            function updateBitRanges() {
+                const rangesDiv = document.getElementById('bitRanges');
+                let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0;">';
+
+                for (let i = 1; i <= 8; i++) {
+                    const lsb = i & (-i);
+                    const start = i - lsb + 1;
+                    const binary = i.toString(2).padStart(4, '0');
+
+                    html += `
+                    <div style="padding: 15px; background: white; border-radius: 8px; border: 2px solid #3498db; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
+                            インデックス ${i} <span class="binary-display">${binary}</span>
+                        </div>
+                        <div style="color: #27ae60; font-weight: bold;">
+                            LSB = ${lsb}, 管理範囲: [${start}, ${i}]
+                        </div>
+                        <div style="color: #e74c3c; margin-top: 8px;">
+                            値: ${bit.tree[i]}
+                        </div>
+                    </div>
+                `;
+                }
+                html += '</div>';
+                rangesDiv.innerHTML = html;
+            }
+
+            function updateBIT() {
+                const index = parseInt(document.getElementById('updateIndex').value);
+                const value = parseInt(document.getElementById('updateValue').value);
+
+                if (index >= 1 && index <= 8) {
+                    const oldValue = bit.original[index];
+                    const delta = value - oldValue;
+                    bit.original[index] = value;
+
+                    // BIT更新
+                    let i = index;
+                    while (i <= 8) {
+                        bit.tree[i] += delta;
+                        i += bit.lowbit(i);
+                    }
+
+                    updateDisplay();
+                    document.getElementById('result').innerHTML = `インデックス ${index} を ${value} に更新しました`;
+
+                    // 更新されたセルをハイライト
+                    setTimeout(() => {
+                        const cells = document.querySelectorAll('.array-cell');
+                        cells[index - 1].classList.add('highlight');
+                        setTimeout(() => cells[index - 1].classList.remove('highlight'), 2000);
+                    }, 100);
+                }
+            }
+
+            function queryBIT() {
+                const start = parseInt(document.getElementById('queryStart').value);
+                const end = parseInt(document.getElementById('queryEnd').value);
+
+                if (start >= 1 && end <= 8 && start <= end) {
+                    const result = bit.rangeQuery(start, end);
+                    document.getElementById('result').innerHTML =
+                        `区間 [${start}, ${end}] の合計: <strong>${result}</strong>`;
+
+                    // クエリ範囲をハイライト
+                    const cells = document.querySelectorAll('.array-cell');
+                    for (let i = start - 1; i < end; i++) {
+                        cells[i].classList.add('highlight');
+                    }
+                    setTimeout(() => {
+                        for (let i = start - 1; i < end; i++) {
+                            cells[i].classList.remove('highlight');
+                        }
+                    }, 3000);
+                }
+            }
+
+            // 初期表示
+            updateDisplay();
+            document.getElementById('result').innerHTML = 'BITが初期化されました。操作を試してみてください！';
+        </script>
+    </body>
+
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>配列ペア数算出アルゴリズムの詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1,
+            h2,
+            h3 {
+                color: #2c3e50;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+            }
+
+            .step {
+                margin: 25px 0;
+                padding: 20px;
+                border-radius: 10px;
+                background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+                box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .array-container {
+                display: flex;
+                justify-content: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .array-item {
+                width: 60px;
+                height: 60px;
+                border: 3px solid #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 18px;
+                border-radius: 8px;
+                position: relative;
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                transition: all 0.3s ease;
+            }
+
+            .array-item:hover {
+                transform: scale(1.1);
+                box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            }
+
+            .index {
+                position: absolute;
+                top: -25px;
+                font-size: 12px;
+                color: #7f8c8d;
+                font-weight: normal;
+            }
+
+            .value-30 {
+                background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+                color: white;
+            }
+
+            .value-10 {
+                background: linear-gradient(145deg, #4ecdc4, #45b7b8);
+                color: white;
+            }
+
+            .value-20 {
+                background: linear-gradient(145deg, #feca57, #ff9ff3);
+                color: white;
+            }
+
+            .map-container {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .map-entry {
+                padding: 15px 25px;
+                border-radius: 10px;
+                text-align: center;
+                font-weight: bold;
+                min-width: 120px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s ease;
+            }
+
+            .map-entry:hover {
+                transform: translateY(-5px);
+            }
+
+            .map-30 {
+                background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+                color: white;
+            }
+
+            .map-10 {
+                background: linear-gradient(145deg, #4ecdc4, #45b7b8);
+                color: white;
+            }
+
+            .map-20 {
+                background: linear-gradient(145deg, #feca57, #ff9ff3);
+                color: white;
+            }
+
+            .calculation {
+                background: linear-gradient(145deg, #74b9ff, #6c5ce7);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 15px 0;
+                text-align: center;
+                font-weight: bold;
+                font-size: 18px;
+            }
+
+            .pair-visualization {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .pair-group {
+                background: linear-gradient(145deg, #a8edea, #fed6e3);
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .pair-list {
+                background: rgba(255, 255, 255, 0.8);
+                padding: 10px;
+                border-radius: 8px;
+                margin: 10px 0;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 15px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .complexity-table th {
+                background: linear-gradient(145deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table tr:hover {
+                background-color: #f5f5f5;
+            }
+
+            .code-block {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
+
+            .highlight {
+                background: #f39c12;
+                color: #2c3e50;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .animation {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .flowchart {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                margin: 30px 0;
+            }
+
+            .flow-step {
+                background: linear-gradient(145deg, #e17055, #d63031);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-weight: bold;
+                text-align: center;
+                min-width: 200px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .arrow {
+                font-size: 24px;
+                color: #2c3e50;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🔍 配列ペア数算出アルゴリズムの詳細解析</h1>
+
+            <div class="step">
+                <h2>📋 問題定義</h2>
+                <p><strong>目標:</strong> 配列内で <code>1 ≤ j < i ≤ N</code> かつ <code>Aj = Ai</code> を満たすペア(i, j)の数を求める</p>
+                <p><strong>制約:</strong> N ≤ 100,000、Ai ≤ 10^9、実行時間 ≤ 2秒、メモリ ≤ 1024MB</p>
+            </div>
+
+            <div class="step">
+                <h2>🎯 アルゴリズム概要</h2>
+                <div class="flowchart">
+                    <div class="flow-step">入力読み込み & 解析</div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">各値の出現回数をカウント</div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">組み合わせ数を計算</div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-step">結果出力</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <h2>📊 ステップ1: 入力データの処理</h2>
+                <p><strong>入力例:</strong></p>
+                <div class="code-block">
+                    6<br>
+                    30<br>
+                    10<br>
+                    30<br>
+                    20<br>
+                    10<br>
+                    30
+                </div>
+
+                <h3>配列表現</h3>
+                <div class="array-container">
+                    <div class="array-item value-30">
+                        <div class="index">0</div>
+                        30
+                    </div>
+                    <div class="array-item value-10">
+                        <div class="index">1</div>
+                        10
+                    </div>
+                    <div class="array-item value-30">
+                        <div class="index">2</div>
+                        30
+                    </div>
+                    <div class="array-item value-20">
+                        <div class="index">3</div>
+                        20
+                    </div>
+                    <div class="array-item value-10">
+                        <div class="index">4</div>
+                        10
+                    </div>
+                    <div class="array-item value-30">
+                        <div class="index">5</div>
+                        30
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <h2>🗂️ ステップ2: 出現回数のカウント</h2>
+                <p><strong>処理:</strong> Map&lt;値, 出現回数&gt;を構築</p>
+
+                <div class="code-block">
+                    for (const num of arr) {<br>
+                    &nbsp;&nbsp;const currentCount = countMap.get(num) ?? 0;<br>
+                    &nbsp;&nbsp;countMap.set(num, currentCount + 1);<br>
+                    }
+                </div>
+
+                <h3>処理後のMap状態</h3>
+                <div class="map-container">
+                    <div class="map-entry map-30">
+                        値: 30<br>
+                        出現: <span class="highlight">3回</span>
+                    </div>
+                    <div class="map-entry map-10">
+                        値: 10<br>
+                        出現: <span class="highlight">2回</span>
+                    </div>
+                    <div class="map-entry map-20">
+                        値: 20<br>
+                        出現: <span class="highlight">1回</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <h2>🔢 ステップ3: 組み合わせ数の計算</h2>
+                <p><strong>公式:</strong> k個の同じ値から2個を選ぶ組み合わせ = <code>C(k,2) = k × (k-1) / 2</code></p>
+
+                <div class="pair-visualization">
+                    <div class="pair-group">
+                        <h3>値 30 (3回出現)</h3>
+                        <div class="calculation">
+                            C(3,2) = 3 × 2 / 2 = 3
+                        </div>
+                        <div class="pair-list">
+                            <strong>具体的なペア:</strong><br>
+                            • (2,0): A₂=A₀=30<br>
+                            • (5,0): A₅=A₀=30<br>
+                            • (5,2): A₅=A₂=30
+                        </div>
+                    </div>
+
+                    <div class="pair-group">
+                        <h3>値 10 (2回出現)</h3>
+                        <div class="calculation">
+                            C(2,2) = 2 × 1 / 2 = 1
+                        </div>
+                        <div class="pair-list">
+                            <strong>具体的なペア:</strong><br>
+                            • (4,1): A₄=A₁=10
+                        </div>
+                    </div>
+
+                    <div class="pair-group">
+                        <h3>値 20 (1回出現)</h3>
+                        <div class="calculation">
+                            C(1,2) = 0
+                        </div>
+                        <div class="pair-list">
+                            <strong>具体的なペア:</strong><br>
+                            なし（1個だけなのでペアを作れない）
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calculation animation">
+                    総ペア数 = 3 + 1 + 0 = 4
+                </div>
+            </div>
+
+            <div class="step">
+                <h2>⚡ 計算量解析</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>処理フェーズ</th>
+                            <th>時間計算量</th>
+                            <th>空間計算量</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>入力読み込み</td>
+                            <td>O(N)</td>
+                            <td>O(N)</td>
+                            <td>配列全体を一度読み込み</td>
+                        </tr>
+                        <tr>
+                            <td>出現回数カウント</td>
+                            <td>O(N)</td>
+                            <td>O(K)</td>
+                            <td>Kは異なる値の数（最悪でO(N)）</td>
+                        </tr>
+                        <tr>
+                            <td>組み合わせ計算</td>
+                            <td>O(K)</td>
+                            <td>O(1)</td>
+                            <td>Map内の各エントリを1回処理</td>
+                        </tr>
+                        <tr>
+                            <td><strong>総合計算量</strong></td>
+                            <td><strong>O(N)</strong></td>
+                            <td><strong>O(N)</strong></td>
+                            <td>線形時間で効率的</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="step">
+                <h2>🚀 最適化のポイント</h2>
+
+                <h3>1. メモリ効率</h3>
+                <ul>
+                    <li><strong>Map使用:</strong> 配列全体のコピーではなく、値の出現回数のみ記録</li>
+                    <li><strong>型安全性:</strong> TypeScriptの型システムで予期しないメモリ使用を防止</li>
+                    <li><strong>ガベージコレクション:</strong> 適切なスコープ管理でメモリリークを防止</li>
+                </ul>
+
+                <h3>2. 処理時間</h3>
+                <ul>
+                    <li><strong>O(N)時間:</strong> 配列を一度だけスキャン、二重ループを回避</li>
+                    <li><strong>Map操作:</strong> 平均O(1)でアクセス・更新</li>
+                    <li><strong>数学公式:</strong> 組み合わせ数を直接計算、ネストしたループを回避</li>
+                </ul>
+
+                <h3>3. 精度と安全性</h3>
+                <ul>
+                    <li><strong>整数演算:</strong> Math.floor()で明示的な整数変換</li>
+                    <li><strong>オーバーフロー対策:</strong> JavaScriptのNumber型の安全範囲内で計算</li>
+                    <li><strong>エラーハンドリング:</strong> 入力制約の検証とtry-catch</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h2>🎯 実装の核心コード</h2>
+                <div class="code-block">
+                    <span style="color: #74b9ff;">function</span> <span style="color: #00b894;">countPairs</span>(arr: <span style="color: #fdcb6e;">number</span>[]): <span style="color: #fdcb6e;">number</span> {<br>
+                    &nbsp;&nbsp;<span style="color: #a29bfe;">// Step 1: 出現回数をカウント</span><br>
+                    &nbsp;&nbsp;<span style="color: #74b9ff;">const</span> countMap = <span style="color: #74b9ff;">new</span> <span style="color: #00b894;">Map</span>&lt;<span style="color: #fdcb6e;">number</span>, <span style="color: #fdcb6e;">number</span>&gt;();<br>
+                    &nbsp;&nbsp;<span style="color: #74b9ff;">for</span> (<span style="color: #74b9ff;">const</span> num <span style="color: #74b9ff;">of</span> arr) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #74b9ff;">const</span> currentCount = countMap.get(num) ?? <span style="color: #fd79a8;">0</span>;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;countMap.set(num, currentCount + <span style="color: #fd79a8;">1</span>);<br>
+                    &nbsp;&nbsp;}<br><br>
+                    &nbsp;&nbsp;<span style="color: #a29bfe;">// Step 2: 組み合わせ数を計算</span><br>
+                    &nbsp;&nbsp;<span style="color: #74b9ff;">let</span> totalPairs: <span style="color: #fdcb6e;">number</span> = <span style="color: #fd79a8;">0</span>;<br>
+                    &nbsp;&nbsp;<span style="color: #74b9ff;">for</span> (<span style="color: #74b9ff;">const</span> count <span style="color: #74b9ff;">of</span> countMap.values()) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #74b9ff;">if</span> (count >= <span style="color: #fd79a8;">2</span>) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;totalPairs += <span style="color: #00b894;">Math.floor</span>((count * (count - <span style="color: #fd79a8;">1</span>)) / <span style="color: #fd79a8;">2</span>);<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;<span style="color: #74b9ff;">return</span> totalPairs;<br>
+                    }
+                </div>
+            </div>
+
+            <div class="step">
+                <h2>✅ 制約チェック</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>制約項目</th>
+                            <th>制限値</th>
+                            <th>実装での対応</th>
+                            <th>安全マージン</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>配列サイズ N</td>
+                            <td>≤ 100,000</td>
+                            <td>O(N)の線形処理</td>
+                            <td>✅ 十分に高速</td>
+                        </tr>
+                        <tr>
+                            <td>実行時間</td>
+                            <td>≤ 2秒</td>
+                            <td>〜0.01秒 (推定)</td>
+                            <td>✅ 200倍のマージン</td>
+                        </tr>
+                        <tr>
+                            <td>メモリ使用量</td>
+                            <td>≤ 1024MB</td>
+                            <td>〜8MB (推定)</td>
+                            <td>✅ 128倍のマージン</td>
+                        </tr>
+                        <tr>
+                            <td>値の範囲 Ai</td>
+                            <td>≤ 10^9</td>
+                            <td>Number型で安全に処理</td>
+                            <td>✅ 完全対応</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BigInt + 二重ハッシュアルゴリズム詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 40px;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(15px);
+            }
+
+            h1,
+            h2,
+            h3 {
+                color: #2c3e50;
+                margin-top: 2rem;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 3rem;
+                margin-bottom: 2rem;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .algorithm-section {
+                margin: 40px 0;
+                padding: 25px;
+                border: 3px solid #e1e8ed;
+                border-radius: 15px;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s ease;
+            }
+
+            .algorithm-section:hover {
+                transform: translateY(-5px);
+            }
+
+            .visualization {
+                margin: 25px 0;
+                padding: 20px;
+                background: white;
+                border-radius: 12px;
+                border: 2px solid #ddd;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            .string-display {
+                font-family: 'Courier New', monospace;
+                font-size: 16px;
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+            }
+
+            .character {
+                display: inline-block;
+                width: 35px;
+                height: 35px;
+                line-height: 35px;
+                text-align: center;
+                margin: 3px;
+                border: 2px solid #ccc;
+                border-radius: 6px;
+                background: #fff;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .character:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .forward {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+                color: white;
+                border-color: #c0392b;
+            }
+
+            .backward {
+                background: linear-gradient(135deg, #4ecdc4, #44bd32) !important;
+                color: white;
+                border-color: #27ae60;
+            }
+
+            .hash1 {
+                background: linear-gradient(135deg, #a8e6cf, #7fcdcd) !important;
+                border-color: #16a085;
+            }
+
+            .hash2 {
+                background: linear-gradient(135deg, #ffd93d, #ff6b35) !important;
+                border-color: #f39c12;
+            }
+
+            .step {
+                margin: 25px 0;
+                padding: 20px;
+                border-left: 5px solid #667eea;
+                background: rgba(102, 126, 234, 0.1);
+                border-radius: 0 12px 12px 0;
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                background: rgba(102, 126, 234, 0.2);
+                transform: translateX(5px);
+            }
+
+            .complexity {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 25px;
+                border-radius: 15px;
+                margin: 25px 0;
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            }
+
+            .example {
+                background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                border: 3px solid #0ea5e9;
+                border-radius: 15px;
+                padding: 25px;
+                margin: 25px 0;
+            }
+
+            /* 改善されたコードスニペット */
+            .code-snippet {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                color: #e2e8f0;
+                padding: 25px;
+                border-radius: 12px;
+                font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+                font-size: 15px;
+                line-height: 1.6;
+                overflow-x: auto;
+                margin: 20px 0;
+                border: 2px solid #475569;
+                box-shadow: 0 10px 25px rgba(30, 41, 59, 0.4);
+                position: relative;
+            }
+
+            .code-snippet::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #f59e0b, #10b981, #3b82f6, #8b5cf6);
+                border-radius: 12px 12px 0 0;
+            }
+
+            /* シンタックスハイライト */
+            .keyword {
+                color: #c792ea;
+                font-weight: bold;
+            }
+
+            .string {
+                color: #c3e88d;
+            }
+
+            .number {
+                color: #f78c6c;
+            }
+
+            .comment {
+                color: #546e7a;
+                font-style: italic;
+            }
+
+            .function {
+                color: #82aaff;
+            }
+
+            .variable {
+                color: #ffcb6b;
+            }
+
+            .operator {
+                color: #89ddff;
+            }
+
+            .highlight {
+                background: linear-gradient(135deg, #ffd700, #ffed4e);
+                padding: 3px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                color: #333;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 25px 0;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            th,
+            td {
+                padding: 15px;
+                text-align: center;
+                border: 1px solid #ddd;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            }
+
+            th {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            /* 改善されたテーブルホバー効果 */
+            tbody tr:hover {
+                background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 10;
+                position: relative;
+            }
+
+            /* テーブル内のテキストの可視性向上 */
+            tbody tr:hover td {
+                color: #1a1a1a;
+                font-weight: 500;
+            }
+
+            .interactive-demo {
+                margin: 40px 0;
+                padding: 30px;
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                border-radius: 15px;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            }
+
+            .demo-input {
+                padding: 15px;
+                margin: 10px;
+                border: 3px solid #667eea;
+                border-radius: 8px;
+                font-size: 16px;
+                width: 200px;
+                transition: all 0.3s ease;
+            }
+
+            .demo-input:focus {
+                border-color: #764ba2;
+                box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+                outline: none;
+            }
+
+            .demo-button {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 15px;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+
+            .demo-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            }
+
+            .hash-visualization {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .hash-box {
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
+                font-family: 'Courier New', monospace;
+                font-weight: bold;
+            }
+
+            .hash-forward {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                color: white;
+            }
+
+            .hash-backward {
+                background: linear-gradient(135deg, #4ecdc4, #44bd32);
+                color: white;
+            }
+
+            .animation {
+                animation: fadeInUp 0.8s ease-out;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .comparison-table {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            /* 比較テーブル内のテーブルのホバー効果改善 */
+            .comparison-table table tbody tr:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+            }
+
+            .comparison-table table tbody tr:hover td {
+                color: white !important;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .formula {
+                background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                color: #63b3ed;
+                padding: 25px;
+                border-radius: 12px;
+                font-family: 'Monaco', 'Courier New', monospace;
+                font-size: 16px;
+                text-align: center;
+                margin: 20px 0;
+                border: 2px solid #63b3ed;
+                box-shadow: 0 8px 20px rgba(99, 179, 237, 0.3);
+            }
+
+            /* 改善されたbenfit-card */
+            .benefit-card {
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: 12px;
+                padding: 25px;
+                margin: 15px 0;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+                border-left: 5px solid #667eea;
+                transition: all 0.3s ease;
+                border: 1px solid #e2e8f0;
+            }
+
+            .benefit-card:hover {
+                transform: translateX(10px);
+                box-shadow: 0 12px 25px rgba(0, 0, 0, 0.18);
+            }
+
+            /* 単一ハッシュと二重ハッシュのカードの背景改善 */
+            .benefit-card h4 {
+                color: #2d3748;
+                margin-bottom: 15px;
+                font-size: 18px;
+            }
+
+            .benefit-card ul li {
+                color: #4a5568;
+                margin-bottom: 8px;
+                line-height: 1.5;
+            }
+
+            .benefit-card ul li strong {
+                color: #2d3748;
+            }
+
+            /* 特別な背景色のbenfit-cardの場合の文字色調整 */
+            .benefit-card[style*="background: linear-gradient(135deg, #a8e6cf"] h4,
+            .benefit-card[style*="background: linear-gradient(135deg, #a8e6cf"] ul li {
+                color: #1a202c;
+            }
+
+            .benefit-card[style*="background: linear-gradient(135deg, #a8e6cf"] ul li strong {
+                color: #2d3748;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🎯 BigInt + 二重ハッシュアルゴリズム詳細解析</h1>
+
+            <div class="algorithm-section animation">
+                <h2>🧠 アルゴリズム概要</h2>
+                <p><strong>二重ローリングハッシュ</strong>を使用して回文判定を行います。文字列を数値化し、前方向と後方向のハッシュ値を比較することで、<span class="highlight">O(1)時間での高速判定</span>を実現します。</p>
+
+                <div class="complexity">
+                    <h3>⚡ パフォーマンス比較</h3>
+                    <div class="comparison-table">
+                        <table style="background: transparent; color: white;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.2);">
+                                    <th>手法</th>
+                                    <th>前処理</th>
+                                    <th>クエリ処理</th>
+                                    <th>総時間</th>
+                                    <th>精度</th>
+                                    <th>実装難易度</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>単純判定</strong></td>
+                                    <td>O(1)</td>
+                                    <td>O(N)</td>
+                                    <td>O(Q×N)</td>
+                                    <td>100%</td>
+                                    <td>★☆☆</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Manacher</strong></td>
+                                    <td>O(N)</td>
+                                    <td>O(1)</td>
+                                    <td>O(N+Q)</td>
+                                    <td>100%</td>
+                                    <td>★★★</td>
+                                </tr>
+                                <tr style="background: rgba(255,255,255,0.3); font-weight: bold;">
+                                    <td><strong>二重ハッシュ</strong></td>
+                                    <td>O(N)</td>
+                                    <td>O(1)</td>
+                                    <td>O(N+Q)</td>
+                                    <td>99.999%</td>
+                                    <td>★★☆</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🔢 Step 1: ローリングハッシュの基本原理</h2>
+                <p>文字列を<strong>多項式として数値化</strong>し、効率的に部分文字列のハッシュ値を計算します。</p>
+
+                <div class="example">
+                    <h3>ハッシュ関数の定義</h3>
+                    <div class="formula">
+                        hash(s) = (s[0]×base^(n-1) + s[1]×base^(n-2) + ... + s[n-1]×base^0) mod p
+                    </div>
+
+                    <div class="visualization">
+                        <div class="step">
+                            <strong>例: "abba"のハッシュ計算</strong>
+                            <div class="string-display">
+                                <span class="character forward">a</span>
+                                <span class="character forward">b</span>
+                                <span class="character forward">b</span>
+                                <span class="character forward">a</span>
+                            </div>
+                            <div style="text-align: center; margin: 15px 0;">
+                                <div class="formula">
+                                    hash₁ = (97×257³ + 98×257² + 98×257¹ + 97×257⁰) mod 10⁹+7<br>
+                                    hash₂ = (97×263³ + 98×263² + 98×263¹ + 97×263⁰) mod 10⁹+9
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🎯 BigIntの利点</h4>
+                        <ul>
+                            <li><strong>精度保証:</strong> JavaScript標準のNumber(53bit)制限を回避</li>
+                            <li><strong>オーバーフロー防止:</strong> 任意精度演算</li>
+                            <li><strong>大きな法の使用:</strong> 10⁹+7, 10⁹+9レベルの素数を安全に使用</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🔄 Step 2: 前方向・後方向ハッシュの事前計算</h2>
+                <p>文字列を両方向からハッシュ化し、回文判定の準備を行います。</p>
+
+                <div class="example">
+                    <h3>例: "mississippi"の両方向ハッシュ</h3>
+                    <div class="visualization">
+                        <div class="step">
+                            <strong>前方向ハッシュ（左→右）:</strong>
+                            <div class="string-display">
+                                <span class="character forward">m</span>
+                                <span class="character forward">i</span>
+                                <span class="character forward">s</span>
+                                <span class="character forward">s</span>
+                                <span class="character forward">i</span>
+                                <span class="character forward">s</span>
+                                <span class="character forward">s</span>
+                                <span class="character forward">i</span>
+                                <span class="character forward">p</span>
+                                <span class="character forward">p</span>
+                                <span class="character forward">i</span>
+                            </div>
+                            <div style="margin: 15px 0;">
+                                <div class="hash-box hash-forward">
+                                    Forward Hash₁: h[0], h[1], h[2], ..., h[11]
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <strong>後方向ハッシュ（右→左）:</strong>
+                            <div class="string-display">
+                                <span class="character backward">i</span>
+                                <span class="character backward">p</span>
+                                <span class="character backward">p</span>
+                                <span class="character backward">i</span>
+                                <span class="character backward">s</span>
+                                <span class="character backward">s</span>
+                                <span class="character backward">i</span>
+                                <span class="character backward">s</span>
+                                <span class="character backward">s</span>
+                                <span class="character backward">i</span>
+                                <span class="character backward">m</span>
+                            </div>
+                            <div style="margin: 15px 0;">
+                                <div class="hash-box hash-backward">
+                                    Backward Hash₁: b[11], b[10], b[9], ..., b[0]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-snippet">
+                        <span class="comment">// 前方向ハッシュ計算</span>
+                        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">n</span>; <span class="variable">i</span><span class="operator">++</span>) {
+                        <span class="keyword">const</span> <span class="variable">charCode</span> <span class="operator">=</span> <span class="function">BigInt</span>(<span class="variable">s</span>.<span class="function">charCodeAt</span>(<span class="variable">i</span>));
+                        <span class="variable">forwardHash1</span>[<span class="variable">i</span> <span class="operator">+</span> <span class="number">1</span>] <span class="operator">=</span> (<span class="variable">forwardHash1</span>[<span class="variable">i</span>] <span class="operator">*</span> <span class="variable">BASE1</span> <span class="operator">+</span> <span class="variable">charCode</span>) <span class="operator">%</span> <span class="variable">MOD1</span>;
+                        <span class="variable">forwardHash2</span>[<span class="variable">i</span> <span class="operator">+</span> <span class="number">1</span>] <span class="operator">=</span> (<span class="variable">forwardHash2</span>[<span class="variable">i</span>] <span class="operator">*</span> <span class="variable">BASE2</span> <span class="operator">+</span> <span class="variable">charCode</span>) <span class="operator">%</span> <span class="variable">MOD2</span>;
+                        }
+
+                        <span class="comment">// 後方向ハッシュ計算</span>
+                        <span class="keyword">for</span> (<span class="keyword">let</span> <span class="variable">i</span> <span class="operator">=</span> <span class="variable">n</span> <span class="operator">-</span> <span class="number">1</span>; <span class="variable">i</span> <span class="operator">&gt;=</span> <span class="number">0</span>; <span class="variable">i</span><span class="operator">--</span>) {
+                        <span class="keyword">const</span> <span class="variable">charCode</span> <span class="operator">=</span> <span class="function">BigInt</span>(<span class="variable">s</span>.<span class="function">charCodeAt</span>(<span class="variable">i</span>));
+                        <span class="variable">backwardHash1</span>[<span class="variable">i</span>] <span class="operator">=</span> (<span class="variable">backwardHash1</span>[<span class="variable">i</span> <span class="operator">+</span> <span class="number">1</span>] <span class="operator">*</span> <span class="variable">BASE1</span> <span class="operator">+</span> <span class="variable">charCode</span>) <span class="operator">%</span> <span class="variable">MOD1</span>;
+                        <span class="variable">backwardHash2</span>[<span class="variable">i</span>] <span class="operator">=</span> (<span class="variable">backwardHash2</span>[<span class="variable">i</span> <span class="operator">+</span> <span class="number">1</span>] <span class="operator">*</span> <span class="variable">BASE2</span> <span class="operator">+</span> <span class="variable">charCode</span>) <span class="operator">%</span> <span class="variable">MOD2</span>;
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🎯 Step 3: 二重ハッシュによる回文判定</h2>
+                <p>前方向と後方向のハッシュ値を比較して回文を判定します。<strong>2つの異なるハッシュ関数</strong>を使用することで、衝突確率を劇的に減少させます。</p>
+
+                <div class="example">
+                    <h3>具体例: クエリ[5,8] → "issi"の判定</h3>
+                    <div class="visualization">
+                        <div class="step">
+                            <strong>1. 部分文字列の特定:</strong>
+                            <div class="string-display">
+                                <span class="character">m</span>
+                                <span class="character">i</span>
+                                <span class="character">s</span>
+                                <span class="character">s</span>
+                                <span class="character forward pulse">i</span>
+                                <span class="character forward pulse">s</span>
+                                <span class="character forward pulse">s</span>
+                                <span class="character forward pulse">i</span>
+                                <span class="character">p</span>
+                                <span class="character">p</span>
+                                <span class="character">i</span>
+                            </div>
+                            <p style="text-align: center; margin: 10px 0;">
+                                <strong>対象: "issi" (インデックス 4-7)</strong>
+                            </p>
+                        </div>
+
+                        <div class="step">
+                            <strong>2. ハッシュ値計算:</strong>
+                            <div class="hash-visualization">
+                                <div class="hash-box hash-forward">
+                                    <h4>前方向ハッシュ</h4>
+                                    <div>Hash₁: getForwardHash(4, 7)</div>
+                                    <div>Hash₂: getForwardHash(4, 7)</div>
+                                </div>
+                                <div class="hash-box hash-backward">
+                                    <h4>後方向ハッシュ</h4>
+                                    <div>Hash₁: getBackwardHash(4, 7)</div>
+                                    <div>Hash₂: getBackwardHash(4, 7)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <strong>3. 比較結果:</strong>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ハッシュ種類</th>
+                                        <th>前方向値</th>
+                                        <th>後方向値</th>
+                                        <th>一致</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Hash₁ (base=257)</td>
+                                        <td id="demo-forward1">計算中...</td>
+                                        <td id="demo-backward1">計算中...</td>
+                                        <td id="demo-match1">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Hash₂ (base=263)</td>
+                                        <td id="demo-forward2">計算中...</td>
+                                        <td id="demo-backward2">計算中...</td>
+                                        <td id="demo-match2">-</td>
+                                    </tr>
+                                    <tr style="background: #ffe6e6; font-weight: bold;">
+                                        <td>最終判定</td>
+                                        <td colspan="2">両方のハッシュが一致</td>
+                                        <td id="demo-final" style="color: #22c55e; font-weight: bold;">Yes</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="code-snippet">
+                        <span class="keyword">function</span> <span class="function">isPalindrome</span>(<span class="variable">data</span>: <span class="variable">PrecomputedData</span>, <span class="variable">l</span>: <span class="keyword">number</span>, <span class="variable">r</span>: <span class="keyword">number</span>): <span class="keyword">boolean</span> {
+                        <span class="comment">// 前方向と後方向のハッシュ値を計算</span>
+                        <span class="keyword">const</span> <span class="variable">forwardHash</span> <span class="operator">=</span> <span class="function">getForwardHash</span>(<span class="variable">data</span>, <span class="variable">l</span><span class="operator">-</span><span class="number">1</span>, <span class="variable">r</span><span class="operator">-</span><span class="number">1</span>);
+                        <span class="keyword">const</span> <span class="variable">backwardHash</span> <span class="operator">=</span> <span class="function">getBackwardHash</span>(<span class="variable">data</span>, <span class="variable">l</span><span class="operator">-</span><span class="number">1</span>, <span class="variable">r</span><span class="operator">-</span><span class="number">1</span>);
+
+                        <span class="comment">// 二重ハッシュで判定</span>
+                        <span class="keyword">return</span> <span class="variable">forwardHash</span>.<span class="variable">hash1</span> <span class="operator">===</span> <span class="variable">backwardHash</span>.<span class="variable">hash1</span> <span class="operator">&&</span>
+                        <span class="variable">forwardHash</span>.<span class="variable">hash2</span> <span class="operator">===</span> <span class="variable">backwardHash</span>.<span class="variable">hash2</span>;
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🔐 Step 4: 衝突確率の分析</h2>
+                <div class="complexity">
+                    <h3>ハッシュ衝突確率の理論分析</h3>
+                    <div class="hash-visualization">
+                        <div class="benefit-card">
+                            <h4>📊 単一ハッシュの場合</h4>
+                            <ul>
+                                <li><strong>衝突確率:</strong> 約 1/10⁹</li>
+                                <li><strong>信頼性:</strong> 99.9999999%</li>
+                                <li><strong>リスク:</strong> 大量データで稀に誤判定</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h4>🎯 二重ハッシュの場合</h4>
+                            <ul>
+                                <li><strong>衝突確率:</strong> 約 1/10¹⁸</li>
+                                <li><strong>信頼性:</strong> 99.999999999999999%</li>
+                                <li><strong>リスク:</strong> 実質的にゼロ</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        P(両方衝突) = P(Hash₁衝突) × P(Hash₂衝突)<br>
+                        ≈ (1/10⁹) × (1/10⁹) = 1/10¹⁸
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>📊 Step 5: メモリ使用量分析</h2>
+                <div class="example">
+                    <h3>メモリ効率の詳細</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>データ構造</th>
+                                <th>サイズ</th>
+                                <th>目的</th>
+                                <th>最大メモリ (N=10⁵)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>forwardHash1[]</td>
+                                <td>(N+1) × 8 bytes</td>
+                                <td>前方向第1ハッシュ</td>
+                                <td>808 KB</td>
+                            </tr>
+                            <tr>
+                                <td>forwardHash2[]</td>
+                                <td>(N+1) × 8 bytes</td>
+                                <td>前方向第2ハッシュ</td>
+                                <td>808 KB</td>
+                            </tr>
+                            <tr>
+                                <td>backwardHash1[]</td>
+                                <td>(N+1) × 8 bytes</td>
+                                <td>後方向第1ハッシュ</td>
+                                <td>808 KB</td>
+                            </tr>
+                            <tr>
+                                <td>backwardHash2[]</td>
+                                <td>(N+1) × 8 bytes</td>
+                                <td>後方向第2ハッシュ</td>
+                                <td>808 KB</td>
+                            </tr>
+                            <tr>
+                                <td>power1[], power2[]</td>
+                                <td>2 × (N+1) × 8 bytes</td>
+                                <td>累乗値キャッシュ</td>
+                                <td>1616 KB</td>
+                            </tr>
+                            <tr style="background: #ffe6e6; font-weight: bold;">
+                                <td><strong>合計</strong></td>
+                                <td><strong>6 × (N+1) × 8 bytes</strong></td>
+                                <td><strong>-</strong></td>
+                                <td><strong>約 4.8 MB</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="benefit-card">
+                        <h4>💡 メモリ最適化のポイント</h4>
+                        <ul>
+                            <li><strong>配列の事前確保:</strong> ガベージコレクション負荷軽減</li>
+                            <li><strong>BigInt効率化:</strong> 不要な中間値の生成回避</li>
+                            <li><strong>累乗キャッシュ:</strong> 重複計算の排除</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interactive-demo animation">
+                <h2>🎮 インタラクティブ二重ハッシュデモ</h2>
+                <p>実際の文字列で二重ハッシュアルゴリズムの動作を確認しましょう！</p>
+
+                <div style="text-align: center;">
+                    <input type="text" id="hashDemoString" class="demo-input" placeholder="文字列を入力" value="abba">
+                    <br>
+                    <input type="number" id="hashDemoL" class="demo-input" placeholder="開始位置" value="1" style="width: 120px;">
+                    <input type="number" id="hashDemoR" class="demo-input" placeholder="終了位置" value="4" style="width: 120px;">
+                    <br>
+                    <button onclick="runHashDemo()" class="demo-button">🔍 ハッシュ計算実行</button>
+                </div>
+
+                <div id="hashDemoResult" style="margin-top: 25px; padding: 20px; background: white; border-radius: 12px; display: none;">
+                    <h4>計算結果:</h4>
+                    <div id="hashResultContent"></div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>⚖️ Step 6: アルゴリズム比較分析</h2>
+                <div class="complexity">
+                    <h3>🎯 実装複雑性 vs パフォーマンス</h3>
+                    <table style="background: rgba(255,255,255,0.1); color: white;">
+                        <thead>
+                            <tr>
+                                <th>観点</th>
+                                <th>Manacher's Algorithm</th>
+                                <th>BigInt + 二重ハッシュ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>実装難易度</strong></td>
+                                <td>高（複雑な境界処理）</td>
+                                <td>中（直感的なハッシュ計算）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>デバッグ容易性</strong></td>
+                                <td>困難（インデックス計算複雑）</td>
+                                <td>容易（ハッシュ値で確認可能）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>メモリ使用量</strong></td>
+                                <td>O(N) - 1配列</td>
+                                <td>O(N) - 6配列</td>
+                            </tr>
+                            <tr>
+                                <td><strong>精度</strong></td>
+                                <td>100%（確定的）</td>
+                                <td>99.999%（確率的）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>拡張性</strong></td>
+                                <td>回文専用</td>
+                                <td>文字列照合汎用</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="example">
+                    <h3>🔧 実装の安定性比較</h3>
+                    <div class="hash-visualization">
+                        <div class="benefit-card">
+                            <h4>❌ Manacher's Algorithmの課題</h4>
+                            <ul>
+                                <li><strong>境界エラー:</strong> 複雑なインデックス計算</li>
+                                <li><strong>奇偶処理:</strong> 統一的でない処理</li>
+                                <li><strong>デバッグ困難:</strong> エラー原因の特定が難しい</li>
+                                <li><strong>実装ミス:</strong> 微細なバグが発生しやすい</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h4>✅ 二重ハッシュの利点</h4>
+                            <ul>
+                                <li><strong>実装安全性:</strong> 単純で理解しやすい</li>
+                                <li><strong>統一処理:</strong> 奇数長・偶数長を同様に処理</li>
+                                <li><strong>デバッグ容易:</strong> ハッシュ値で動作確認</li>
+                                <li><strong>拡張性:</strong> 他の文字列問題にも応用可能</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🚀 Step 7: 実装の詳細とコツ</h2>
+                <div class="example">
+                    <h3>💎 BigInt使用時の注意点</h3>
+                    <div class="code-snippet">
+                        <span class="comment">// ❌ 間違った使用法</span>
+                        <span class="keyword">const</span> <span class="variable">result</span> <span class="operator">=</span> <span class="variable">hash</span> <span class="operator">+</span> <span class="variable">charCode</span>; <span class="comment">// Number + BigInt エラー</span>
+
+                        <span class="comment">// ✅ 正しい使用法</span>
+                        <span class="keyword">const</span> <span class="variable">result</span> <span class="operator">=</span> <span class="variable">hash</span> <span class="operator">+</span> <span class="function">BigInt</span>(<span class="variable">charCode</span>); <span class="comment">// BigInt + BigInt</span>
+
+                        <span class="comment">// ❌ 効率の悪い書き方</span>
+                        <span class="keyword">const</span> <span class="variable">mod</span> <span class="operator">=</span> (((<span class="variable">a</span> <span class="operator">%</span> <span class="variable">MOD</span>) <span class="operator">+</span> <span class="variable">MOD</span>) <span class="operator">%</span> <span class="variable">MOD</span>); <span class="comment">// 冗長</span>
+
+                        <span class="comment">// ✅ 効率的な書き方</span>
+                        <span class="keyword">const</span> <span class="variable">mod</span> <span class="operator">=</span> (<span class="variable">a</span> <span class="operator">%</span> <span class="variable">MOD</span> <span class="operator">+</span> <span class="variable">MOD</span>) <span class="operator">%</span> <span class="variable">MOD</span>; <span class="comment">// 最適化済み</span>
+                    </div>
+
+                    <div class="step">
+                        <h4>🎯 パフォーマンス最適化テクニック</h4>
+                        <ul>
+                            <li><strong>累乗の事前計算:</strong> power[i] = base^i をO(N)で計算</li>
+                            <li><strong>モジュラ演算の最適化:</strong> 負数処理を効率化</li>
+                            <li><strong>BigInt変換の最小化:</strong> 必要な箇所のみでBigInt使用</li>
+                            <li><strong>配列アクセスパターン:</strong> キャッシュ効率を考慮</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>📈 Step 8: 全体クエリ処理の流れ</h2>
+                <div class="example">
+                    <h3>入力例の完全解析</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>クエリ</th>
+                                <th>範囲</th>
+                                <th>部分文字列</th>
+                                <th>前方向Hash₁</th>
+                                <th>後方向Hash₁</th>
+                                <th>Hash₁一致</th>
+                                <th>Hash₂一致</th>
+                                <th>最終結果</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>[5,8]</td>
+                                <td>"issi"</td>
+                                <td class="hash1">xxxxx1</td>
+                                <td class="hash1">xxxxx1</td>
+                                <td style="color: #22c55e;">✓</td>
+                                <td style="color: #22c55e;">✓</td>
+                                <td style="color: #22c55e; font-weight: bold;">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>[6,10]</td>
+                                <td>"ssipp"</td>
+                                <td class="hash1">xxxxx2</td>
+                                <td class="hash1">yyyyy2</td>
+                                <td style="color: #ef4444;">✗</td>
+                                <td style="color: #ef4444;">✗</td>
+                                <td style="color: #ef4444; font-weight: bold;">No</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>[2,8]</td>
+                                <td>"ississi"</td>
+                                <td class="hash1">xxxxx3</td>
+                                <td class="hash1">xxxxx3</td>
+                                <td style="color: #22c55e;">✓</td>
+                                <td style="color: #22c55e;">✓</td>
+                                <td style="color: #22c55e; font-weight: bold;">Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="interactive-demo animation">
+                <h2>🧪 高度なハッシュ計算デモ</h2>
+                <p>実際の数値でローリングハッシュの計算過程を可視化します！</p>
+
+                <div style="text-align: center;">
+                    <input type="text" id="advancedString" class="demo-input" placeholder="文字列 (例: abba)" value="abba">
+                    <br>
+                    <button onclick="runAdvancedDemo()" class="demo-button">🔬 詳細ハッシュ解析</button>
+                </div>
+
+                <div id="advancedResult" style="margin-top: 25px; padding: 20px; background: white; border-radius: 12px; display: none;">
+                    <div id="advancedContent"></div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🎖️ アルゴリズムの総合評価</h2>
+                <div class="complexity">
+                    <h3>🏆 BigInt + 二重ハッシュの優位性</h3>
+                    <div class="benefit-card" style="background: linear-gradient(135deg, #a8e6cf 0%, #7fcdcd 100%); border-left-color: #16a085;">
+                        <h4>✨ 主要なメリット</h4>
+                        <ul>
+                            <li><strong>実装の安全性:</strong> 境界エラーが発生しにくい</li>
+                            <li><strong>デバッグの容易さ:</strong> ハッシュ値で動作確認可能</li>
+                            <li><strong>高い信頼性:</strong> 99.999%の精度保証</li>
+                            <li><strong>実行速度:</strong> O(N+Q)の効率的な処理</li>
+                            <li><strong>スケーラビリティ:</strong> 大規模データにも対応</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        総合評価: 実用性 ★★★★★ | 実装難易度 ★★☆☆☆ | パフォーマンス ★★★★★
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 基本的なハッシュ計算デモ（JavaScript Number使用、表示用）
+            function runHashDemo() {
+                const str = document.getElementById('hashDemoString').value;
+                const l = parseInt(document.getElementById('hashDemoL').value);
+                const r = parseInt(document.getElementById('hashDemoR').value);
+
+                if (!str || !l || !r || l > r || l < 1 || r > str.length) {
+                    alert('有効な入力を行ってください');
+                    return;
+                }
+
+                const substring = str.substring(l - 1, r);
+                const reversed = substring.split('').reverse().join('');
+
+                // 簡易ハッシュ計算（表示用）
+                let forwardHash1 = 0, forwardHash2 = 0;
+                let backwardHash1 = 0, backwardHash2 = 0;
+
+                const base1 = 257, base2 = 263;
+                const mod1 = 1000000007, mod2 = 1000000009;
+
+                for (let i = 0; i < substring.length; i++) {
+                    const charCode = substring.charCodeAt(i);
+                    forwardHash1 = (forwardHash1 * base1 + charCode) % mod1;
+                    forwardHash2 = (forwardHash2 * base2 + charCode) % mod2;
+                }
+
+                for (let i = 0; i < reversed.length; i++) {
+                    const charCode = reversed.charCodeAt(i);
+                    backwardHash1 = (backwardHash1 * base1 + charCode) % mod1;
+                    backwardHash2 = (backwardHash2 * base2 + charCode) % mod2;
+                }
+
+                const match1 = forwardHash1 === backwardHash1;
+                const match2 = forwardHash2 === backwardHash2;
+                const isPalindrome = match1 && match2;
+
+                document.getElementById('demo-forward1').textContent = forwardHash1.toString();
+                document.getElementById('demo-backward1').textContent = backwardHash1.toString();
+                document.getElementById('demo-match1').textContent = match1 ? '✓' : '✗';
+                document.getElementById('demo-match1').style.color = match1 ? '#22c55e' : '#ef4444';
+
+                document.getElementById('demo-forward2').textContent = forwardHash2.toString();
+                document.getElementById('demo-backward2').textContent = backwardHash2.toString();
+                document.getElementById('demo-match2').textContent = match2 ? '✓' : '✗';
+                document.getElementById('demo-match2').style.color = match2 ? '#22c55e' : '#ef4444';
+
+                document.getElementById('demo-final').textContent = isPalindrome ? 'Yes' : 'No';
+                document.getElementById('demo-final').style.color = isPalindrome ? '#22c55e' : '#ef4444';
+            }
+
+            function runAdvancedDemo() {
+                const str = document.getElementById('advancedString').value;
+
+                if (!str) {
+                    alert('文字列を入力してください');
+                    return;
+                }
+
+                const resultDiv = document.getElementById('advancedResult');
+                const contentDiv = document.getElementById('advancedContent');
+
+                // 前方向・後方向ハッシュの段階的計算を表示
+                let content = `
+                <h4>📊 "${str}" の詳細ハッシュ解析</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>位置</th>
+                            <th>文字</th>
+                            <th>文字コード</th>
+                            <th>前方向Hash₁</th>
+                            <th>前方向Hash₂</th>
+                            <th>後方向Hash₁</th>
+                            <th>後方向Hash₂</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+                const base1 = 257, base2 = 263;
+                const mod1 = 1000000007, mod2 = 1000000009;
+
+                let forwardHash1 = 0, forwardHash2 = 0;
+                const forwardHashes1 = [0];
+                const forwardHashes2 = [0];
+
+                // 前方向ハッシュ計算
+                for (let i = 0; i < str.length; i++) {
+                    const charCode = str.charCodeAt(i);
+                    forwardHash1 = (forwardHash1 * base1 + charCode) % mod1;
+                    forwardHash2 = (forwardHash2 * base2 + charCode) % mod2;
+                    forwardHashes1.push(forwardHash1);
+                    forwardHashes2.push(forwardHash2);
+                }
+
+                let backwardHash1 = 0, backwardHash2 = 0;
+                const backwardHashes1 = new Array(str.length + 1);
+                const backwardHashes2 = new Array(str.length + 1);
+                backwardHashes1[str.length] = 0;
+                backwardHashes2[str.length] = 0;
+
+                // 後方向ハッシュ計算
+                for (let i = str.length - 1; i >= 0; i--) {
+                    const charCode = str.charCodeAt(i);
+                    backwardHash1 = (backwardHash1 * base1 + charCode) % mod1;
+                    backwardHash2 = (backwardHash2 * base2 + charCode) % mod2;
+                    backwardHashes1[i] = backwardHash1;
+                    backwardHashes2[i] = backwardHash2;
+                }
+
+                // テーブル行を生成
+                for (let i = 0; i < str.length; i++) {
+                    const char = str[i];
+                    const charCode = str.charCodeAt(i);
+                    content += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td style="font-weight: bold; font-size: 18px;">${char}</td>
+                        <td>${charCode}</td>
+                        <td class="hash1" style="font-family: monospace;">${forwardHashes1[i + 1]}</td>
+                        <td class="hash2" style="font-family: monospace;">${forwardHashes2[i + 1]}</td>
+                        <td class="hash1" style="font-family: monospace;">${backwardHashes1[i]}</td>
+                        <td class="hash2" style="font-family: monospace;">${backwardHashes2[i]}</td>
+                    </tr>
+                `;
+                }
+
+                content += '</tbody></table>';
+
+                // 回文判定例を追加
+                content += `
+                <h4>🔍 回文判定例</h4>
+                <div class="step">
+                    <strong>全体文字列 "${str}" の回文判定:</strong><br>
+                    前方向Hash₁: ${forwardHashes1[str.length]}<br>
+                    後方向Hash₁: ${backwardHashes1[0]}<br>
+                    前方向Hash₂: ${forwardHashes2[str.length]}<br>
+                    後方向Hash₂: ${backwardHashes2[0]}<br>
+                    <strong style="color: ${forwardHashes1[str.length] === backwardHashes1[0] && forwardHashes2[str.length] === backwardHashes2[0] ? '#22c55e' : '#ef4444'};">
+                        結果: ${forwardHashes1[str.length] === backwardHashes1[0] && forwardHashes2[str.length] === backwardHashes2[0] ? 'Yes (回文)' : 'No (非回文)'}
+                    </strong>
+                </div>
+            `;
+
+                contentDiv.innerHTML = content;
+                resultDiv.style.display = 'block';
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // スクロールアニメーション
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animation');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.algorithm-section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // 初期デモ実行
+            setTimeout(() => {
+                runHashDemo();
+            }, 1000);
+        </script>
+    </body>
+
+</html>

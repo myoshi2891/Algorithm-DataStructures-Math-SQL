@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>階段昇降DP問題の詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+                background: linear-gradient(45deg, #3498db, #2c3e50);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            h2 {
+                color: #34495e;
+                border-left: 5px solid #3498db;
+                padding-left: 15px;
+                margin-top: 40px;
+            }
+
+            h3 {
+                color: #2980b9;
+                margin-top: 25px;
+            }
+
+            .section {
+                margin-bottom: 40px;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                border: 1px solid #e9ecef;
+            }
+
+            .stairs-visual {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                margin: 30px 0;
+                padding: 20px;
+                background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+                border-radius: 10px;
+            }
+
+            .step {
+                width: 60px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                margin: 2px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateY(-5px);
+            }
+
+            .step-0 {
+                height: 30px;
+            }
+
+            .step-1 {
+                height: 60px;
+            }
+
+            .step-2 {
+                height: 90px;
+            }
+
+            .step-3 {
+                height: 120px;
+            }
+
+            .step-4 {
+                height: 150px;
+            }
+
+            .step-5 {
+                height: 180px;
+            }
+
+            .dp-table {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 10px;
+                margin: 20px 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+                border-radius: 10px;
+            }
+
+            .dp-cell {
+                background: white;
+                padding: 15px;
+                text-align: center;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            .dp-cell:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .dp-index {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 5px;
+            }
+
+            .dp-value {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .algorithm-step {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                padding: 20px;
+                margin: 15px 0;
+                border-radius: 10px;
+                border-left: 5px solid #e74c3c;
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .path-visualization {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: center;
+                margin: 30px 0;
+            }
+
+            .path {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
+                min-width: 120px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .complexity-analysis {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .interactive-demo {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                padding: 25px;
+                border-radius: 15px;
+                margin: 30px 0;
+                text-align: center;
+            }
+
+            .demo-controls {
+                margin: 20px 0;
+            }
+
+            input[type="range"] {
+                width: 300px;
+                margin: 10px;
+            }
+
+            button {
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 5px;
+                transition: transform 0.2s;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+            }
+
+            .memory-comparison {
+                display: flex;
+                justify-content: space-around;
+                margin: 30px 0;
+            }
+
+            .memory-box {
+                background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                flex: 1;
+                margin: 0 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .fibonacci-connection {
+                background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                padding: 25px;
+                border-radius: 15px;
+                margin: 30px 0;
+            }
+
+            @keyframes highlight {
+                0% {
+                    background-color: #fff3cd;
+                }
+
+                50% {
+                    background-color: #ffc107;
+                }
+
+                100% {
+                    background-color: #fff3cd;
+                }
+            }
+
+            .highlight {
+                animation: highlight 1s ease-in-out;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🏔️ 階段昇降DP問題の詳細解析</h1>
+
+            <div class="section">
+                <h2>📊 問題の概要と視覚化</h2>
+                <p>n段の階段を1段または2段ずつ上る方法の数を求める問題です。これは動的プログラミング（DP）の典型的な例題です。</p>
+
+                <h3>階段の視覚化（n=5の例）</h3>
+                <div class="stairs-visual">
+                    <div class="step step-0">地面</div>
+                    <div class="step step-1">1段</div>
+                    <div class="step step-2">2段</div>
+                    <div class="step step-3">3段</div>
+                    <div class="step step-4">4段</div>
+                    <div class="step step-5">5段</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🧮 漸化式の導出過程</h2>
+                <div class="algorithm-step">
+                    <h3>Step 1: 問題の分析</h3>
+                    <p>n段目に到達する方法は以下の2つに分類できます：</p>
+                    <ul>
+                        <li><strong>方法1:</strong> (n-1)段目から1段上る</li>
+                        <li><strong>方法2:</strong> (n-2)段目から2段上る</li>
+                    </ul>
+                </div>
+
+                <div class="algorithm-step">
+                    <h3>Step 2: 漸化式の構築</h3>
+                    <p>dp[i] = i段の階段を上る方法の数とすると：</p>
+                    <div class="code-block">
+                        dp[n] = dp[n-1] + dp[n-2]
+
+                        // 初期条件
+                        dp[0] = 1 // 何もしない方法が1通り
+                        dp[1] = 1 // 1段上る方法が1通り
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔍 具体例による計算過程（n=6）</h2>
+                <div class="interactive-demo">
+                    <h3>インタラクティブ計算デモ</h3>
+                    <div class="demo-controls">
+                        <label>階段の段数: <span id="nValue">6</span></label><br>
+                        <input type="range" id="nSlider" min="1" max="10" value="6" oninput="updateDemo()">
+                        <br>
+                        <button onclick="animateCalculation()">計算過程をアニメーション表示</button>
+                    </div>
+                </div>
+
+                <div id="dpVisualization">
+                    <h3>DP配列の状態</h3>
+                    <div class="dp-table" id="dpTable">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+
+                <div id="pathVisualization">
+                    <h3>各段への到達方法</h3>
+                    <div class="path-visualization" id="pathContainer">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💾 メモリ最適化の解析</h2>
+                <div class="memory-comparison">
+                    <div class="memory-box">
+                        <h3>通常版</h3>
+                        <p><strong>空間計算量:</strong> O(n)</p>
+                        <p>配列全体を保持</p>
+                        <p>メモリ使用量: n × 8バイト</p>
+                    </div>
+                    <div class="memory-box">
+                        <h3>最適化版</h3>
+                        <p><strong>空間計算量:</strong> O(1)</p>
+                        <p>前の2つの値のみ保持</p>
+                        <p>メモリ使用量: 2 × 8バイト</p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    // 最適化版のコード構造
+                    let prev2 = 1; // dp[i-2]
+                    let prev1 = 1; // dp[i-1]
+                    let current;
+
+                    for (let i = 2; i <= n; i++) { current=prev1 + prev2; // dp[i]=dp[i-1] + dp[i-2] prev2=prev1; // 値を更新 prev1=current; } </div>
+                </div>
+
+                <div class="section fibonacci-connection">
+                    <h2>🌀 フィボナッチ数列との関係</h2>
+                    <p>この問題の答えは実際にはフィボナッチ数列と密接な関係があります：</p>
+                    <div class="code-block">
+                        F(0) = 1, F(1) = 1, F(2) = 2, F(3) = 3, F(4) = 5, F(5) = 8, ...
+                        階段: 1, 1, 2, 3, 5, 8, ...
+
+                        dp[n] = F(n+1) // フィボナッチ数列のn+1番目
+                    </div>
+                    <p>これは偶然ではなく、問題の構造が本質的にフィボナッチ数列の定義と同じだからです。</p>
+                </div>
+
+                <div class="section">
+                    <h2>⚡ 計算量解析</h2>
+                    <div class="complexity-analysis">
+                        <div class="complexity-box">
+                            <h3>時間計算量</h3>
+                            <p><strong>O(n)</strong></p>
+                            <p>各段について1回ずつ計算</p>
+                            <p>n=40の場合: 40回の演算</p>
+                        </div>
+                        <div class="complexity-box">
+                            <h3>空間計算量</h3>
+                            <p><strong>O(1)</strong> (最適化版)</p>
+                            <p>定数個の変数のみ使用</p>
+                            <p>nに依存しない固定サイズ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 実装のポイント</h2>
+                    <div class="algorithm-step">
+                        <h3>1. エッジケースの処理</h3>
+                        <div class="code-block">
+                            if (n === 0) return 1; // 基底ケース
+                            if (n === 1) return 1; // 基底ケース
+                        </div>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3>2. 整数オーバーフローの考慮</h3>
+                        <p>JavaScriptでは数値が53ビット精度なので、n≤40では問題なし</p>
+                        <div class="code-block">
+                            // n=40の場合の答え: 165,580,141
+                            // JavaScript の Number.MAX_SAFE_INTEGER: 9,007,199,254,740,991
+                        </div>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3>3. パフォーマンス測定</h3>
+                        <div class="code-block">
+                            const startTime = process.hrtime.bigint();
+                            // 処理実行
+                            const endTime = process.hrtime.bigint();
+                            const executionTime = Number(endTime - startTime) / 1000000; // ms
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function updateDemo() {
+                    const n = parseInt(document.getElementById('nSlider').value);
+                    document.getElementById('nValue').textContent = n;
+
+                    // DP配列の計算と表示
+                    const dp = calculateDP(n);
+                    displayDPTable(dp, n);
+                    displayPaths(n);
+                }
+
+                function calculateDP(n) {
+                    const dp = new Array(n + 1);
+                    dp[0] = 1;
+                    if (n >= 1) dp[1] = 1;
+
+                    for (let i = 2; i <= n; i++) {
+                        dp[i] = dp[i - 1] + dp[i - 2];
+                    }
+                    return dp;
+                }
+
+                function displayDPTable(dp, n) {
+                    const table = document.getElementById('dpTable');
+                    table.innerHTML = '';
+
+                    for (let i = 0; i <= n; i++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'dp-cell';
+                        cell.innerHTML = `
+                    <div class="dp-index">dp[${i}]</div>
+                    <div class="dp-value">${dp[i]}</div>
+                `;
+                        table.appendChild(cell);
+                    }
+                }
+
+                function displayPaths(n) {
+                    const container = document.getElementById('pathContainer');
+                    container.innerHTML = '';
+
+                    const paths = generatePaths(n);
+                    paths.forEach((path, index) => {
+                        const pathDiv = document.createElement('div');
+                        pathDiv.className = 'path';
+                        pathDiv.innerHTML = `
+                    <div>方法 ${index + 1}</div>
+                    <div>${path}</div>
+                `;
+                        container.appendChild(pathDiv);
+                    });
+                }
+
+                function generatePaths(n) {
+                    if (n <= 3) {
+                        const pathsMap = {
+                            1: ['1段'],
+                            2: ['1+1段', '2段'],
+                            3: ['1+1+1段', '1+2段', '2+1段']
+                        };
+                        return pathsMap[n] || [];
+                    }
+                    return [`${calculateDP(n)[n]}通りの方法があります`];
+                }
+
+                function animateCalculation() {
+                    const n = parseInt(document.getElementById('nSlider').value);
+                    const cells = document.querySelectorAll('.dp-cell');
+
+                    cells.forEach((cell, index) => {
+                        if (index <= n) {
+                            setTimeout(() => {
+                                cell.classList.add('highlight');
+                                setTimeout(() => {
+                                    cell.classList.remove('highlight');
+                                }, 1000);
+                            }, index * 500);
+                        }
+                    });
+                }
+
+                // 初期化
+                updateDemo();
+            </script>
+    </body>
+
+</html>

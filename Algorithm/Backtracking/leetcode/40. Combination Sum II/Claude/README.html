@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Combination Sum II アルゴリズム解析</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .section {
+                margin-bottom: 40px;
+                padding: 25px;
+                background: linear-gradient(145deg, #f8f9ff, #e8ecf4);
+                border-radius: 15px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                border-left: 5px solid #667eea;
+            }
+
+            .section h2 {
+                color: #34495e;
+                margin-bottom: 20px;
+                font-size: 1.8em;
+                position: relative;
+            }
+
+            .section h2::before {
+                content: '';
+                position: absolute;
+                left: -30px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 20px;
+                height: 20px;
+                background: #667eea;
+                border-radius: 50%;
+            }
+
+            .step-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+
+            .step {
+                flex: 1;
+                min-width: 300px;
+                padding: 20px;
+                background: linear-gradient(135deg, #fff, #f1f3f8);
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                border: 2px solid #e3e8f0;
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                border-color: #667eea;
+            }
+
+            .step h3 {
+                color: #2980b9;
+                margin-bottom: 15px;
+                font-size: 1.3em;
+                display: flex;
+                align-items: center;
+            }
+
+            .step-number {
+                background: #667eea;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 10px;
+                font-weight: bold;
+                font-size: 0.9em;
+            }
+
+            .array-visual {
+                display: flex;
+                gap: 8px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+            }
+
+            .array-item {
+                padding: 8px 12px;
+                background: #3498db;
+                color: white;
+                border-radius: 8px;
+                font-weight: bold;
+                box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+                transition: all 0.3s ease;
+            }
+
+            .array-item.duplicate {
+                background: #e74c3c;
+            }
+
+            .array-item.selected {
+                background: #27ae60;
+                transform: scale(1.1);
+            }
+
+            .array-item.skipped {
+                background: #95a5a6;
+                opacity: 0.6;
+            }
+
+            .tree-container {
+                overflow-x: auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #f8f9ff, #e8ecf4);
+                border-radius: 12px;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                display: inline-block;
+                margin: 10px;
+                padding: 15px;
+                background: linear-gradient(135deg, #fff, #f1f3f8);
+                border: 2px solid #3498db;
+                border-radius: 12px;
+                text-align: center;
+                min-width: 120px;
+                position: relative;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .tree-node.success {
+                border-color: #27ae60;
+                background: linear-gradient(135deg, #d5f4e6, #a8e6cf);
+            }
+
+            .tree-node.pruned {
+                border-color: #e74c3c;
+                background: linear-gradient(135deg, #ffeaea, #ffcccc);
+            }
+
+            .tree-level {
+                margin: 30px 0;
+                text-align: center;
+            }
+
+            .connection-line {
+                position: relative;
+                height: 2px;
+                background: #bdc3c7;
+                margin: 10px 0;
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+                border: 2px solid #f39c12;
+                border-radius: 12px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-title {
+                font-weight: bold;
+                color: #d68910;
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+
+            .interactive-demo {
+                background: linear-gradient(135deg, #e8f5e8, #c3e6c3);
+                border-radius: 15px;
+                padding: 25px;
+                margin: 20px 0;
+            }
+
+            .demo-controls {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+
+            .demo-button {
+                padding: 12px 24px;
+                background: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+            }
+
+            .demo-button:hover {
+                background: #2ecc71;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+            }
+
+            .demo-button:disabled {
+                background: #95a5a6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .result-display {
+                background: #fff;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+                border-left: 4px solid #3498db;
+            }
+
+            .code-snippet {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                font-size: 0.9em;
+                line-height: 1.4;
+                overflow-x: auto;
+                margin: 15px 0;
+            }
+
+            .highlight {
+                background: rgba(241, 196, 15, 0.3);
+                padding: 2px 4px;
+                border-radius: 3px;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                }
+
+                .step {
+                    min-width: 100%;
+                }
+
+                h1 {
+                    font-size: 2em;
+                }
+            }
+
+            .animation {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🔍 Combination Sum II アルゴリズム詳細解析</h1>
+
+            <!-- アルゴリズム概要 -->
+            <div class="section">
+                <h2>📋 アルゴリズム概要</h2>
+                <p><strong>問題：</strong>重複要素を含む配列から、各要素を最大1回使用して目標値に達する全ての一意な組み合わせを見つける</p>
+                <p><strong>手法：</strong>バックトラッキング + ソート + 重複スキップ</p>
+
+                <div class="complexity-box">
+                    <div class="complexity-title">🎯 計算量分析</div>
+                    <p><strong>時間計算量：</strong> O(2^n) - 最悪の場合、各要素について選ぶ/選ばないの2択</p>
+                    <p><strong>空間計算量：</strong> O(target) - 再帰の深さは最大でtargetの値まで</p>
+                </div>
+            </div>
+
+            <!-- ステップ1: ソート処理 -->
+            <div class="section">
+                <h2>🔄 ステップ1: 配列のソート</h2>
+                <div class="step-container">
+                    <div class="step">
+                        <h3><span class="step-number">1</span>ソート前</h3>
+                        <p>元の配列: [10,1,2,7,6,1,5]</p>
+                        <div class="array-visual" id="unsorted-array">
+                            <div class="array-item">10</div>
+                            <div class="array-item">1</div>
+                            <div class="array-item">2</div>
+                            <div class="array-item">7</div>
+                            <div class="array-item">6</div>
+                            <div class="array-item duplicate">1</div>
+                            <div class="array-item">5</div>
+                        </div>
+                        <p>重複要素(1)が分散している状態</p>
+                    </div>
+
+                    <div class="step">
+                        <h3><span class="step-number">2</span>ソート後</h3>
+                        <p>ソート済み: [1,1,2,5,6,7,10]</p>
+                        <div class="array-visual">
+                            <div class="array-item duplicate">1</div>
+                            <div class="array-item duplicate">1</div>
+                            <div class="array-item">2</div>
+                            <div class="array-item">5</div>
+                            <div class="array-item">6</div>
+                            <div class="array-item">7</div>
+                            <div class="array-item">10</div>
+                        </div>
+                        <p>重複要素が隣接し、効率的な剪定が可能</p>
+                    </div>
+                </div>
+
+                <div class="code-snippet">
+                    // ソート処理のコード
+                    candidates.sort((a, b) => a - b);
+                    // 目的: 重複要素を隣接させ、後の重複スキップ処理を効率化
+                </div>
+            </div>
+
+            <!-- ステップ2: バックトラッキング探索 -->
+            <div class="section">
+                <h2>🌳 ステップ2: バックトラッキング探索ツリー</h2>
+                <p>Target = 8 の場合の探索ツリーを可視化:</p>
+
+                <div class="tree-container">
+                    <div class="tree-level">
+                        <div class="tree-node">開始<br />sum=0<br />[]</div>
+                    </div>
+
+                    <div class="connection-line"></div>
+
+                    <div class="tree-level">
+                        <div class="tree-node">1選択<br />sum=1<br />[1]</div>
+                        <div class="tree-node skipped">1スキップ<br />重複のため</div>
+                        <div class="tree-node">2選択<br />sum=2<br />[2]</div>
+                        <div class="tree-node">5選択<br />sum=5<br />[5]</div>
+                    </div>
+
+                    <div class="connection-line"></div>
+
+                    <div class="tree-level">
+                        <div class="tree-node">1,1選択<br />sum=2<br />[1,1]</div>
+                        <div class="tree-node">1,2選択<br />sum=3<br />[1,2]</div>
+                        <div class="tree-node">2,5選択<br />sum=7<br />[2,5]</div>
+                        <div class="tree-node">5,6選択<br />sum=11<br />剪定</div>
+                    </div>
+
+                    <div class="connection-line"></div>
+
+                    <div class="tree-level">
+                        <div class="tree-node success">1,1,6選択<br />sum=8<br />[1,1,6]✓</div>
+                        <div class="tree-node success">1,2,5選択<br />sum=8<br />[1,2,5]✓</div>
+                        <div class="tree-node success">1,7選択<br />sum=8<br />[1,7]✓</div>
+                        <div class="tree-node success">2,6選択<br />sum=8<br />[2,6]✓</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ3: 重複スキップロジック -->
+            <div class="section">
+                <h2>🚫 ステップ3: 重複スキップロジック</h2>
+                <div class="step-container">
+                    <div class="step">
+                        <h3><span class="step-number">3</span>重複検出条件</h3>
+                        <div class="code-snippet">
+                            if (i > startIndex && candidates[i] === candidates[i - 1]) {
+                            continue; // 同じレベルでの重複をスキップ
+                            }
+                        </div>
+                        <p><strong>条件解説：</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li><code>i > startIndex</code>: 最初の要素ではない</li>
+                            <li><code>candidates[i] === candidates[i - 1]</code>: 前の要素と同じ値</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <h3><span class="step-number">4</span>スキップの効果</h3>
+                        <p>配列 [1,1,2] で target=3 の場合:</p>
+                        <div class="result-display">
+                            <p><strong>スキップなし:</strong> [1,2], [1,2] → 重複!</p>
+                            <p><strong>スキップあり:</strong> [1,2] → 一意!</p>
+                        </div>
+                        <p>同じレベルでの重複要素使用を防ぎ、結果の一意性を保証</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- インタラクティブデモ -->
+            <div class="section">
+                <h2>🎮 インタラクティブデモ</h2>
+                <div class="interactive-demo">
+                    <p>実際にアルゴリズムの動作を体験してみましょう:</p>
+
+                    <div class="demo-controls">
+                        <button class="demo-button" onclick="runExample1()">例1実行: [10,1,2,7,6,1,5], target=8</button>
+                        <button class="demo-button" onclick="runExample2()">例2実行: [2,5,2,1,2], target=5</button>
+                        <button class="demo-button" onclick="showStepByStep()">ステップバイステップ表示</button>
+                        <button class="demo-button" onclick="resetDemo()">リセット</button>
+                    </div>
+
+                    <div class="result-display" id="demo-result">
+                        デモを実行するボタンをクリックしてください
+                    </div>
+
+                    <div id="step-by-step" style="display: none;">
+                        <h4>📊 ステップバイステップ実行:</h4>
+                        <div id="step-display"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最適化ポイント -->
+            <div class="section">
+                <h2>⚡ 最適化ポイント</h2>
+                <div class="step-container">
+                    <div class="step">
+                        <h3><span class="step-number">A</span>早期剪定</h3>
+                        <p>currentSum > target の場合、即座に探索を中断</p>
+                        <div class="complexity-box">
+                            <p>ソート済み配列により、以降の要素も必ず target を超えるため効果的</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3><span class="step-number">B</span>メモリ効率</h3>
+                        <p>バックトラッキングによる状態復元でメモリ使用量を最小化</p>
+                        <div class="code-snippet">
+                            currentCombination.push(candidates[i]); // 追加
+                            // 再帰呼び出し
+                            currentCombination.pop(); // 復元
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3><span class="step-number">C</span>重複排除効率</h3>
+                        <p>O(1) 時間での重複検出により、不要な計算を回避</p>
+                        <div class="highlight">
+                            ハッシュセットを使わず、配列の隣接要素比較で実現
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // TypeScriptアルゴリズムをJavaScriptで実装
+            function combinationSum2(candidates, target) {
+                const result = [];
+                candidates.sort((a, b) => a - b);
+
+                function backtrack(startIndex, currentSum, currentCombination) {
+                    if (currentSum === target) {
+                        result.push([...currentCombination]);
+                        return;
+                    }
+
+                    if (currentSum > target) {
+                        return;
+                    }
+
+                    for (let i = startIndex; i < candidates.length; i++) {
+                        if (i > startIndex && candidates[i] === candidates[i - 1]) {
+                            continue;
+                        }
+
+                        currentCombination.push(candidates[i]);
+                        backtrack(i + 1, currentSum + candidates[i], currentCombination);
+                        currentCombination.pop();
+                    }
+                }
+
+                backtrack(0, 0, []);
+                return result;
+            }
+
+            function runExample1() {
+                const candidates = [10, 1, 2, 7, 6, 1, 5];
+                const target = 8;
+                const result = combinationSum2(candidates, target);
+
+                document.getElementById('demo-result').innerHTML = `
+                <h4>🎯 例1の結果:</h4>
+                <p><strong>入力:</strong> candidates = [10,1,2,7,6,1,5], target = 8</p>
+                <p><strong>ソート後:</strong> [1,1,2,5,6,7,10]</p>
+                <p><strong>結果:</strong> ${JSON.stringify(result)}</p>
+                <p><strong>組み合わせ数:</strong> ${result.length}個</p>
+                <p><strong>実行時間:</strong> ${performance.now().toFixed(2)}ms (概算)</p>
+            `;
+            }
+
+            function runExample2() {
+                const candidates = [2, 5, 2, 1, 2];
+                const target = 5;
+                const result = combinationSum2(candidates, target);
+
+                document.getElementById('demo-result').innerHTML = `
+                <h4>🎯 例2の結果:</h4>
+                <p><strong>入力:</strong> candidates = [2,5,2,1,2], target = 5</p>
+                <p><strong>ソート後:</strong> [1,2,2,2,5]</p>
+                <p><strong>結果:</strong> ${JSON.stringify(result)}</p>
+                <p><strong>組み合わせ数:</strong> ${result.length}個</p>
+                <p><strong>実行時間:</strong> ${performance.now().toFixed(2)}ms (概算)</p>
+            `;
+            }
+
+            function showStepByStep() {
+                const stepDiv = document.getElementById('step-by-step');
+                const displayDiv = document.getElementById('step-display');
+
+                stepDiv.style.display = 'block';
+                displayDiv.innerHTML = `
+                <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h5>📝 ステップ1: ソート</h5>
+                    <p>[10,1,2,7,6,1,5] → [1,1,2,5,6,7,10]</p>
+                </div>
+                <div style="margin: 10px 0; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                    <h5>📝 ステップ2: バックトラッキング開始</h5>
+                    <p>startIndex=0, currentSum=0, currentCombination=[]</p>
+                </div>
+                <div style="margin: 10px 0; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                    <h5>📝 ステップ3: 探索と剪定</h5>
+                    <p>各要素を選択/スキップしながら target=8 を探索</p>
+                    <p>重複スキップ: i > startIndex && candidates[i] === candidates[i-1]</p>
+                </div>
+                <div style="margin: 10px 0; padding: 15px; background: #d1ecf1; border-radius: 8px;">
+                    <h5>📝 ステップ4: 結果収集</h5>
+                    <p>target に到達した組み合わせ: [1,1,6], [1,2,5], [1,7], [2,6]</p>
+                </div>
+            `;
+            }
+
+            function resetDemo() {
+                document.getElementById('demo-result').innerHTML = 'デモを実行するボタンをクリックしてください';
+                document.getElementById('step-by-step').style.display = 'none';
+            }
+
+            // 初期化時のアニメーション
+            window.addEventListener('load', function () {
+                const arrayItems = document.querySelectorAll('.array-item');
+                arrayItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.style.animation = 'pulse 1s ease-in-out';
+                    }, index * 200);
+                });
+            });
+        </script>
+    </body>
+
+</html>

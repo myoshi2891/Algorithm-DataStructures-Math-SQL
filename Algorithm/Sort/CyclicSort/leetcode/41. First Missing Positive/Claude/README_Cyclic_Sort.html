@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cyclic Sort - アルゴリズム解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            h1 {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                color: #2d3748;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-top: 40px;
+                font-size: 1.8em;
+            }
+
+            .step {
+                margin: 30px 0;
+                padding: 25px;
+                background: linear-gradient(135deg, #f7fafc, #edf2f7);
+                border-radius: 12px;
+                border-left: 6px solid #667eea;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+                transition: transform 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateY(-5px);
+            }
+
+            .array-container {
+                display: flex;
+                align-items: center;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .array-label {
+                font-weight: bold;
+                color: #4a5568;
+                min-width: 150px;
+                font-size: 1.1em;
+            }
+
+            .array-box {
+                width: 60px;
+                height: 60px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 1.2em;
+                border-radius: 10px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                position: relative;
+            }
+
+            .original {
+                background: linear-gradient(135deg, #4299e1, #2b77cb);
+                color: white;
+            }
+
+            .correct {
+                background: linear-gradient(135deg, #48bb78, #38a169);
+                color: white;
+            }
+
+            .swapping {
+                background: linear-gradient(135deg, #ed8936, #dd6b20);
+                color: white;
+                animation: pulse 0.8s infinite;
+            }
+
+            .misplaced {
+                background: linear-gradient(135deg, #e53e3e, #c53030);
+                color: white;
+            }
+
+            .current {
+                background: linear-gradient(135deg, #9f7aea, #805ad5);
+                color: white;
+                border: 3px solid #ffd700;
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+
+            .index {
+                font-size: 0.8em;
+                color: #666;
+                margin-top: 2px;
+            }
+
+            .value {
+                font-size: 1.2em;
+                font-weight: bold;
+            }
+
+            .explanation {
+                background: #f0fff4;
+                border: 2px solid #68d391;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                font-size: 1.05em;
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                overflow-x: auto;
+                margin: 15px 0;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            }
+
+            .highlight {
+                background: rgba(255, 235, 59, 0.3);
+                padding: 2px 4px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .complexity {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 20px;
+                border-radius: 12px;
+                margin: 25px 0;
+                text-align: center;
+                font-size: 1.1em;
+                font-weight: bold;
+            }
+
+            .arrow {
+                font-size: 2em;
+                color: #667eea;
+                text-align: center;
+                margin: 15px 0;
+            }
+
+            button {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                margin: 10px 5px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            }
+
+            .demo-controls {
+                text-align: center;
+                margin: 30px 0;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 10px;
+            }
+
+            .step-counter {
+                background: #667eea;
+                color: white;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 15px;
+                font-size: 1.2em;
+            }
+
+            .swap-animation {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 20px 0;
+                gap: 20px;
+            }
+
+            .swap-arrow {
+                font-size: 2em;
+                color: #e53e3e;
+                animation: bounce 1s infinite;
+            }
+
+            @keyframes bounce {
+
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+
+                50% {
+                    transform: translateY(-10px);
+                }
+            }
+
+            .comparison-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            .comparison-table th {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .comparison-table td {
+                padding: 12px;
+                text-align: center;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .comparison-table tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            .ideal-position {
+                background: #e6fffa;
+                border: 2px dashed #38b2ac;
+                border-radius: 8px;
+                padding: 5px;
+                margin: 5px 0;
+                font-size: 0.9em;
+                text-align: center;
+            }
+
+            .phase-indicator {
+                background: linear-gradient(135deg, #ffd89b, #19547b);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 20px;
+                font-weight: bold;
+                display: inline-block;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🔄 Cyclic Sort アルゴリズム解析</h1>
+
+            <div class="explanation">
+                <strong>Cyclic Sort（配置スワップ法）とは：</strong><br>
+                各要素を「理想的な位置」に配置するアルゴリズム。値xをインデックス(x-1)の位置に配置し、
+                配置後に正しくない位置の最初の要素から答えを導出します。
+            </div>
+
+            <div class="demo-controls">
+                <h3>📊 インタラクティブデモ</h3>
+                <button onclick="runCyclicSort([3, 4, -1, 1])">例1: [3, 4, -1, 1]</button>
+                <button onclick="runCyclicSort([1, 2, 0])">例2: [1, 2, 0]</button>
+                <button onclick="runCyclicSort([7, 8, 9, 11, 12])">例3: [7, 8, 9, 11, 12]</button>
+                <button onclick="runCyclicSort([2, 3, 4, 1])">例4: [2, 3, 4, 1]</button>
+                <button onclick="runCyclicSort([1, 3, 6, 4, 1, 2])">例5: [1, 3, 6, 4, 1, 2]</button>
+            </div>
+
+            <div id="demo-area"></div>
+
+            <h2>🔧 アルゴリズムの詳細解説</h2>
+
+            <div class="step">
+                <div class="step-counter">1</div>
+                <h3>Phase 1: Cyclic Placement（循環配置）</h3>
+                <div class="code-block">
+                    for (let i = 0; i < n; i++) { while (nums[i]>= 1 && nums[i] <= n && nums[nums[i] - 1] !==nums[i]) { swap(nums, i, nums[i] - 1); } } </div>
+                            <div class="explanation">
+                                <strong>目的：</strong>各要素を理想的な位置に配置<br>
+                                <strong>条件：</strong>値が範囲内（1≤値≤n）で、まだ正しい位置にない<br>
+                                <strong>動作：</strong>値xをインデックス(x-1)の位置にスワップ
+                            </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-counter">2</div>
+                    <h3>Phase 2: Missing Number Detection（欠番検出）</h3>
+                    <div class="code-block">
+                        for (let i = 0; i < n; i++) { if (nums[i] !==i + 1) { return i + 1; } } return n + 1; </div>
+                            <div class="explanation">
+                                <strong>目的：</strong>最初の不正な配置を見つける<br>
+                                <strong>論理：</strong>インデックスiで値が(i+1)でない → (i+1)が欠けている<br>
+                                <strong>特殊ケース：</strong>全て正しく配置されている場合、答えは(n+1)
+                            </div>
+                    </div>
+
+                    <h2>📈 時間複雑度の詳細分析</h2>
+
+                    <div class="complexity">
+                        <div>⏱️ 時間複雑度: <span class="highlight">O(n)</span></div>
+                        <div style="margin-top: 10px;">💾 空間複雑度: <span class="highlight">O(1)</span></div>
+                    </div>
+
+                    <div class="explanation">
+                        <strong>なぜO(n)なのか？</strong><br>
+                        • 各要素は最大1回だけ正しい位置に移動される<br>
+                        • 総スワップ回数は最大n回<br>
+                        • 外側のループ: O(n)<br>
+                        • 内側のwhile: 償却O(1)（各要素は最大1回移動）<br>
+                        • 検出フェーズ: O(n)<br>
+                        <strong>合計: O(n)</strong>
+                    </div>
+
+                    <h2>⚖️ Cyclic Sort vs 符号マーキング法</h2>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較項目</th>
+                                <th>Cyclic Sort</th>
+                                <th>符号マーキング法</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>直感的理解</strong></td>
+                                <td>⭐⭐⭐ 非常に直感的</td>
+                                <td>⭐⭐ やや複雑</td>
+                            </tr>
+                            <tr>
+                                <td><strong>実装の簡潔性</strong></td>
+                                <td>⭐⭐⭐ シンプル</td>
+                                <td>⭐⭐ 中程度</td>
+                            </tr>
+                            <tr>
+                                <td><strong>パフォーマンス</strong></td>
+                                <td>⭐⭐ 良好</td>
+                                <td>⭐⭐⭐ 優秀</td>
+                            </tr>
+                            <tr>
+                                <td><strong>デバッグしやすさ</strong></td>
+                                <td>⭐⭐⭐ 追跡しやすい</td>
+                                <td>⭐⭐ 中程度</td>
+                            </tr>
+                            <tr>
+                                <td><strong>教育的価値</strong></td>
+                                <td>⭐⭐⭐ 理解しやすい</td>
+                                <td>⭐⭐ テクニカル</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h2>🎯 核心アイデア</h2>
+
+                    <div class="step">
+                        <h3>🔑 Key Insight: 理想的配置の概念</h3>
+                        <div class="explanation">
+                            <strong>基本原理：</strong>値xは理想的にはインデックス(x-1)にあるべき<br>
+                            <strong>配置戦略：</strong>各要素を正しい位置にスワップで移動<br>
+                            <strong>検出方法：</strong>配置後の不整合から欠番を特定<br>
+                            <strong>効率性：</strong>各要素は最大1回だけ移動するため全体でO(n)
+                        </div>
+
+                        <div class="ideal-position">
+                            <strong>理想的配置の例：</strong><br>
+                            値1 → インデックス0 | 値2 → インデックス1 | 値3 → インデックス2 | ...
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3>💡 アルゴリズムの美しさ</h3>
+                        <div class="explanation">
+                            Cyclic Sortは「整理整頓」の概念をプログラミングに応用した美しいアルゴリズムです。<br>
+                            各要素を「あるべき場所」に配置することで、自然に欠けている要素が浮かび上がります。<br>
+                            この直感的なアプローチが、複雑な問題を elegantly に解決する典型例です。
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function runCyclicSort(inputArray) {
+                        const demoArea = document.getElementById('demo-area');
+                        const nums = [...inputArray];
+                        const n = nums.length;
+                        let swapSteps = [];
+
+                        let html = `
+                <div class="step">
+                    <h3>🚀 実行例: [${inputArray.join(', ')}]</h3>
+                    <div class="phase-indicator">Phase 1: Cyclic Placement（循環配置）</div>
+                    <div class="array-container">
+                        <div class="array-label">初期配列:</div>
+                        ${nums.map((num, i) => `
+                            <div>
+                                <div class="array-box original">
+                                    <div class="value">${num}</div>
+                                    <div class="index">i=${i}</div>
+                                </div>
+                                <div class="ideal-position">理想位置: ${num >= 1 && num <= n ? num - 1 : 'N/A'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+            `;
+
+                        // Cyclic Sort のシミュレーション
+                        const workingArray = [...nums];
+                        let stepCount = 0;
+
+                        for (let i = 0; i < n; i++) {
+                            let currentI = i;
+                            while (workingArray[currentI] >= 1 && workingArray[currentI] <= n &&
+                                workingArray[workingArray[currentI] - 1] !== workingArray[currentI]) {
+
+                                const targetIndex = workingArray[currentI] - 1;
+                                const beforeState = [...workingArray];
+
+                                // スワップ実行
+                                const temp = workingArray[currentI];
+                                workingArray[currentI] = workingArray[targetIndex];
+                                workingArray[targetIndex] = temp;
+
+                                stepCount++;
+                                swapSteps.push({
+                                    step: stepCount,
+                                    fromIndex: currentI,
+                                    toIndex: targetIndex,
+                                    fromValue: beforeState[currentI],
+                                    toValue: beforeState[targetIndex],
+                                    before: beforeState,
+                                    after: [...workingArray],
+                                    currentPosition: i
+                                });
+                            }
+                        }
+
+                        // スワップステップの表示
+                        if (swapSteps.length > 0) {
+                            html += `<div class="explanation"><strong>スワップの詳細:</strong></div>`;
+
+                            swapSteps.forEach(swap => {
+                                html += `
+                        <div class="swap-animation">
+                            <div><strong>Step ${swap.step}:</strong></div>
+                            <div>値${swap.fromValue}(i=${swap.fromIndex}) ↔ 値${swap.toValue}(i=${swap.toIndex})</div>
+                        </div>
+                        <div class="array-container">
+                            <div class="array-label">Step ${swap.step}後:</div>
+                            ${swap.after.map((num, i) => `
+                                <div>
+                                    <div class="array-box ${i === swap.fromIndex || i === swap.toIndex ? 'swapping' :
+                                        (num >= 1 && num <= n && i === num - 1) ? 'correct' : 'misplaced'}">
+                                        <div class="value">${num}</div>
+                                        <div class="index">i=${i}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                            });
+                        } else {
+                            html += `<div class="explanation">スワップは必要ありませんでした。</div>`;
+                        }
+
+                        // Phase 2: 検出フェーズ
+                        html += `
+                <div class="arrow">⬇️</div>
+                <div class="phase-indicator">Phase 2: Missing Number Detection（欠番検出）</div>
+                <div class="array-container">
+                    <div class="array-label">最終配置:</div>
+                    ${workingArray.map((num, i) => `
+                        <div>
+                            <div class="array-box ${num === i + 1 ? 'correct' : 'misplaced'}">
+                                <div class="value">${num}</div>
+                                <div class="index">i=${i}</div>
+                            </div>
+                            <div class="ideal-position">期待値: ${i + 1}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+                        // 結果の計算
+                        let result = n + 1;
+                        let resultIndex = -1;
+                        for (let i = 0; i < n; i++) {
+                            if (workingArray[i] !== i + 1) {
+                                result = i + 1;
+                                resultIndex = i;
+                                break;
+                            }
+                        }
+
+                        html += `
+                <div class="explanation">
+                    <strong>🎯 結果: ${result}</strong><br>
+                    ${resultIndex !== -1 ?
+                                `インデックス${resultIndex}で期待値${result}と実際の値${workingArray[resultIndex]}が不一致 → ${result}が欠けている` :
+                                '1からnまで全て正しく配置されている → 答えはn+1'}
+                </div>
+                
+                <div class="complexity">
+                    <div>実行されたスワップ回数: ${swapSteps.length}</div>
+                    <div>時間複雑度: O(${n}) - 各要素は最大1回移動</div>
+                </div>
+                </div>
+            `;
+
+                        demoArea.innerHTML = html;
+                    }
+
+                    // 初期表示
+                    runCyclicSort([3, 4, -1, 1]);
+                </script>
+    </body>
+
+</html>

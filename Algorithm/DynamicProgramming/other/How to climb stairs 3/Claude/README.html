@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>階段上り問題 - DP解析</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .container {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                color: #4a5568;
+                text-align: center;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            h2 {
+                color: #2d3748;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-top: 40px;
+            }
+
+            h3 {
+                color: #4a5568;
+                margin-top: 30px;
+            }
+
+            .dp-table {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 5px;
+                margin: 20px 0;
+                max-width: 800px;
+            }
+
+            .dp-cell {
+                background: #f7fafc;
+                border: 2px solid #e2e8f0;
+                padding: 15px 8px;
+                text-align: center;
+                border-radius: 8px;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .dp-cell.active {
+                background: #fed7d7;
+                border-color: #f56565;
+                transform: scale(1.05);
+            }
+
+            .dp-cell.contributing {
+                background: #c6f6d5;
+                border-color: #48bb78;
+            }
+
+            .dp-cell .index {
+                font-size: 12px;
+                color: #718096;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .dp-cell .value {
+                font-size: 18px;
+                font-weight: bold;
+                color: #2d3748;
+            }
+
+            .calculation-step {
+                background: #f0f4f8;
+                border-left: 4px solid #667eea;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 0 10px 10px 0;
+            }
+
+            .formula {
+                background: #2d3748;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                text-align: center;
+            }
+
+            .step-controls {
+                text-align: center;
+                margin: 30px 0;
+            }
+
+            button {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                margin: 5px;
+                font-size: 16px;
+                transition: transform 0.2s ease;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+            }
+
+            button:disabled {
+                background: #cbd5e0;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .visualization-container {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .stairs-visual {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                height: 300px;
+                margin: 30px 0;
+                background: linear-gradient(to bottom, #e6fffa 0%, #b2f5ea 100%);
+                border-radius: 10px;
+                padding: 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stair {
+                background: linear-gradient(145deg, #4a5568, #2d3748);
+                margin: 2px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                position: relative;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                border: 2px solid #718096;
+                min-width: 40px;
+                transition: all 0.3s ease;
+            }
+
+            .stair:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            }
+
+            .stair.current-step {
+                background: linear-gradient(145deg, #e53e3e, #c53030);
+                border-color: #feb2b2;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .jump-arrow {
+                position: absolute;
+                padding: 4px 8px;
+                border-radius: 15px;
+                font-size: 11px;
+                font-weight: bold;
+                top: -25px;
+                white-space: nowrap;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                z-index: 10;
+            }
+
+            .jump-arrow.jump-2 {
+                background: linear-gradient(45deg, #e53e3e, #c53030);
+                color: white;
+            }
+
+            .jump-arrow.jump-3 {
+                background: linear-gradient(45deg, #38a169, #2f855a);
+                color: white;
+            }
+
+            .jump-arrow.jump-4 {
+                background: linear-gradient(45deg, #3182ce, #2c5aa0);
+                color: white;
+            }
+
+            .path-visualization {
+                margin: 30px 0;
+                padding: 20px;
+                background: #f7fafc;
+                border-radius: 10px;
+                border: 2px solid #e2e8f0;
+            }
+
+            .path-example {
+                display: flex;
+                align-items: center;
+                margin: 15px 0;
+                padding: 10px;
+                background: white;
+                border-radius: 8px;
+                border-left: 4px solid;
+            }
+
+            .path-example.path-2 {
+                border-left-color: #e53e3e;
+            }
+
+            .path-example.path-3 {
+                border-left-color: #38a169;
+            }
+
+            .path-example.path-4 {
+                border-left-color: #3182ce;
+            }
+
+            .path-step {
+                display: inline-block;
+                background: #edf2f7;
+                padding: 5px 10px;
+                margin: 0 5px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+
+            .arrow-connector {
+                color: #666;
+                font-size: 18px;
+                margin: 0 10px;
+            }
+
+            .complexity-analysis {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-box {
+                background: #edf2f7;
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid #e2e8f0;
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                overflow-x: auto;
+                margin: 15px 0;
+            }
+
+            .highlight {
+                background: #fed7d7;
+                padding: 2px 4px;
+                border-radius: 3px;
+            }
+
+            .tree-diagram {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                display: inline-block;
+                background: #e6fffa;
+                border: 2px solid #38b2ac;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                line-height: 36px;
+                margin: 5px;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🪜 階段上り問題の動的プログラミング解析</h1>
+
+            <h2>📊 問題設定</h2>
+            <div class="calculation-step">
+                <p><strong>入力例:</strong> n=10, a=2, b=3, c=4</p>
+                <p><strong>目標:</strong> 10段の階段を1歩で2段、3段、または4段ずつ上って到達する方法の数を求める</p>
+            </div>
+
+            <h2>🧮 DPテーブルの初期化と計算過程</h2>
+            <div class="step-controls">
+                <button onclick="resetVisualization()">リセット</button>
+                <button id="prevBtn" onclick="prevStep()" disabled>前のステップ</button>
+                <button id="nextBtn" onclick="nextStep()">次のステップ</button>
+                <button onclick="autoPlay()">自動再生</button>
+            </div>
+
+            <div class="visualization-container">
+                <div id="currentStep" style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+                    ステップ 0: 初期化
+                </div>
+                <div class="dp-table" id="dpTable"></div>
+                <div id="calculationDetails" class="calculation-step" style="display: none;"></div>
+            </div>
+
+            <h2>🏗️ 階段の可視化</h2>
+            <div class="visualization-container">
+                <div class="stairs-visual" id="stairsVisual"></div>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                    各段から可能なジャンプ:
+                    <span style="background: linear-gradient(45deg, #e53e3e, #c53030); color: white; padding: 3px 8px; border-radius: 12px;">+2段</span>,
+                    <span style="background: linear-gradient(45deg, #38a169, #2f855a); color: white; padding: 3px 8px; border-radius: 12px;">+3段</span>,
+                    <span style="background: linear-gradient(45deg, #3182ce, #2c5aa0); color: white; padding: 3px 8px; border-radius: 12px;">+4段</span>
+                </p>
+
+                <div class="path-visualization">
+                    <h3 style="text-align: center; margin-bottom: 20px;">📍 10段目への到達パターン例</h3>
+
+                    <div class="path-example path-2">
+                        <strong>2段ジャンプで到達:</strong>
+                        <span class="path-step">0</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">2</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">4</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">6</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">8</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">10</span>
+                    </div>
+
+                    <div class="path-example path-3">
+                        <strong>3段ジャンプ組み合わせ:</strong>
+                        <span class="path-step">0</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">3</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">6</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">9</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">10 (+1は不可)</span>
+                    </div>
+
+                    <div class="path-example path-4">
+                        <strong>4段ジャンプ組み合わせ:</strong>
+                        <span class="path-step">0</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">4</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">8</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">10 (+2)</span>
+                    </div>
+
+                    <div class="path-example" style="border-left-color: #805ad5;">
+                        <strong>混合パターン:</strong>
+                        <span class="path-step">0</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">2 (+2)</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">5 (+3)</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">9 (+4)</span>
+                        <span class="arrow-connector">→</span>
+                        <span class="path-step">10 (+1は不可)</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2>📈 状態遷移の数式</h2>
+            <div class="formula">
+                dp[i] = dp[i-a] + dp[i-b] + dp[i-c]<br>
+                (ただし、i ≥ a, i ≥ b, i ≥ c の場合のみ)
+            </div>
+
+            <div class="calculation-step">
+                <h3>具体的な計算例 (i=10の場合):</h3>
+                <p><strong>dp[10] = dp[8] + dp[7] + dp[6]</strong></p>
+                <ul>
+                    <li>dp[8] = 5 (8段目から2段ジャンプ)</li>
+                    <li>dp[7] = 4 (7段目から3段ジャンプ)</li>
+                    <li>dp[6] = 8 (6段目から4段ジャンプ)</li>
+                </ul>
+                <p><strong>結果: dp[10] = 5 + 4 + 8 = 17</strong></p>
+            </div>
+
+            <h2>⚡ 計算量解析</h2>
+            <div class="complexity-analysis">
+                <div class="complexity-box">
+                    <h3>時間計算量</h3>
+                    <p><strong>O(n)</strong></p>
+                    <ul>
+                        <li>1から n まで各段を1回ずつ計算</li>
+                        <li>各段で定数時間の処理（3つの加算）</li>
+                        <li>合計: n × O(1) = O(n)</li>
+                    </ul>
+                </div>
+                <div class="complexity-box">
+                    <h3>空間計算量</h3>
+                    <p><strong>O(n)</strong></p>
+                    <ul>
+                        <li>DPテーブル: 配列サイズ n+1</li>
+                        <li>その他の変数: 定数個</li>
+                        <li>合計: O(n) + O(1) = O(n)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>💡 アルゴリズムの詳細分析</h2>
+
+            <h3>1. 初期化フェーズ</h3>
+            <div class="code-block">
+                const dp = new Array(n + 1).fill(0);
+                dp[0] = 1; // ベースケース: スタート地点への到達方法は1通り
+            </div>
+
+            <h3>2. 状態遷移フェーズ</h3>
+            <div class="code-block">
+                for (let i = 1; i <= n; i++) { if (i>= a) dp[i] += dp[i - a]; // a段前から来る
+                    if (i >= b) dp[i] += dp[i - b]; // b段前から来る
+                    if (i >= c) dp[i] += dp[i - c]; // c段前から来る
+                    }
+            </div>
+
+            <h3>3. メモ化の効果</h3>
+            <div class="calculation-step">
+                <p><strong>なぜDPが効率的か:</strong></p>
+                <ul>
+                    <li><span class="highlight">重複する部分問題</span>: dp[i]は複数のdp[j] (j > i)から参照される</li>
+                    <li><span class="highlight">最適部分構造</span>: dp[i]の最適解は dp[i-a], dp[i-b], dp[i-c] の最適解から構築</li>
+                    <li><span class="highlight">ボトムアップ方式</span>: 小さい問題から順に解いて大きい問題を解決</li>
+                </ul>
+            </div>
+
+            <h2>🔄 再帰との比較</h2>
+            <div class="calculation-step">
+                <h3>再帰解法の問題点:</h3>
+                <ul>
+                    <li><strong>時間計算量:</strong> O(3^n) - 指数的増加</li>
+                    <li><strong>同じ計算の繰り返し:</strong> dp[i]が何度も計算される</li>
+                    <li><strong>スタックオーバーフロー:</strong> nが大きいときに発生する可能性</li>
+                </ul>
+
+                <h3>DP解法の利点:</h3>
+                <ul>
+                    <li><strong>時間計算量:</strong> O(n) - 線形時間</li>
+                    <li><strong>各計算を1回のみ:</strong> メモ化により効率的</li>
+                    <li><strong>安定性:</strong> ループ処理でスタック問題なし</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            let currentStep = 0;
+            let dpArray = [];
+            const n = 10, a = 2, b = 3, c = 4;
+
+            function initializeVisualization() {
+                dpArray = new Array(n + 1).fill(0);
+                dpArray[0] = 1;
+
+                const table = document.getElementById('dpTable');
+                table.innerHTML = '';
+
+                for (let i = 0; i <= n; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'dp-cell';
+                    cell.id = `cell-${i}`;
+                    cell.innerHTML = `<span class="index">dp[${i}]</span><span class="value">${dpArray[i]}</span>`;
+                    table.appendChild(cell);
+                }
+
+                createStairsVisualization();
+                updateStepDisplay();
+            }
+
+            function createStairsVisualization() {
+                const container = document.getElementById('stairsVisual');
+                container.innerHTML = '';
+
+                // 階段を作成
+                for (let i = 0; i <= n; i++) {
+                    const stair = document.createElement('div');
+                    stair.className = 'stair';
+                    stair.id = `stair-${i}`;
+
+                    // 階段の高さを段数に比例させる
+                    const baseHeight = 20;
+                    const heightIncrement = 15;
+                    stair.style.width = '45px';
+                    stair.style.height = `${baseHeight + i * heightIncrement}px`;
+                    stair.textContent = i;
+
+                    // 現在のステップをハイライト
+                    if (i === currentStep) {
+                        stair.classList.add('current-step');
+                    }
+
+                    // ジャンプ可能性を示す矢印を追加
+                    if (i > 0) {
+                        // 2段ジャンプ
+                        if (i >= a) {
+                            const arrow2 = document.createElement('div');
+                            arrow2.className = 'jump-arrow jump-2';
+                            arrow2.textContent = `+${a}段`;
+                            arrow2.style.left = '-15px';
+                            stair.appendChild(arrow2);
+                        }
+                        // 3段ジャンプ
+                        if (i >= b) {
+                            const arrow3 = document.createElement('div');
+                            arrow3.className = 'jump-arrow jump-3';
+                            arrow3.textContent = `+${b}段`;
+                            arrow3.style.left = '15px';
+                            arrow3.style.top = '-30px';
+                            stair.appendChild(arrow3);
+                        }
+                        // 4段ジャンプ
+                        if (i >= c) {
+                            const arrow4 = document.createElement('div');
+                            arrow4.className = 'jump-arrow jump-4';
+                            arrow4.textContent = `+${c}段`;
+                            arrow4.style.left = '45px';
+                            arrow4.style.top = '-35px';
+                            stair.appendChild(arrow4);
+                        }
+                    }
+
+                    container.appendChild(stair);
+                }
+
+                // 地面を追加
+                const ground = document.createElement('div');
+                ground.style.position = 'absolute';
+                ground.style.bottom = '20px';
+                ground.style.left = '0';
+                ground.style.right = '0';
+                ground.style.height = '4px';
+                ground.style.background = '#8B4513';
+                ground.style.borderRadius = '2px';
+                container.appendChild(ground);
+            }
+
+            function calculateStep(step) {
+                if (step === 0) return;
+
+                const i = step;
+                let calculation = `dp[${i}] = `;
+                let parts = [];
+                let sum = 0;
+
+                if (i >= a && dpArray[i - a] !== undefined) {
+                    parts.push(`dp[${i - a}]`);
+                    sum += dpArray[i - a];
+                }
+                if (i >= b && dpArray[i - b] !== undefined) {
+                    parts.push(`dp[${i - b}]`);
+                    sum += dpArray[i - b];
+                }
+                if (i >= c && dpArray[i - c] !== undefined) {
+                    parts.push(`dp[${i - c}]`);
+                    sum += dpArray[i - c];
+                }
+
+                if (parts.length === 0) {
+                    dpArray[i] = 0;
+                    calculation += '0 (到達不可能)';
+                } else {
+                    calculation += parts.join(' + ');
+                    let valueStr = '';
+                    if (i >= a) valueStr += dpArray[i - a];
+                    if (i >= b) valueStr += (valueStr ? ' + ' : '') + dpArray[i - b];
+                    if (i >= c) valueStr += (valueStr ? ' + ' : '') + dpArray[i - c];
+                    calculation += ` = ${valueStr} = ${sum}`;
+                    dpArray[i] = sum;
+                }
+
+                return calculation;
+            }
+
+            function updateDisplay() {
+                // DPテーブルを更新
+                for (let i = 0; i <= n; i++) {
+                    const cell = document.getElementById(`cell-${i}`);
+                    const valueSpan = cell.querySelector('.value');
+                    valueSpan.textContent = dpArray[i];
+
+                    cell.classList.remove('active', 'contributing');
+
+                    if (i === currentStep) {
+                        cell.classList.add('active');
+                    }
+
+                    // 寄与する要素をハイライト
+                    if (currentStep > 0) {
+                        if (i === currentStep - a || i === currentStep - b || i === currentStep - c) {
+                            if (i >= 0) cell.classList.add('contributing');
+                        }
+                    }
+                }
+
+                // 階段の表示を更新
+                for (let i = 0; i <= n; i++) {
+                    const stair = document.getElementById(`stair-${i}`);
+                    if (stair) {
+                        stair.classList.remove('current-step');
+                        if (i === currentStep) {
+                            stair.classList.add('current-step');
+                        }
+                    }
+                }
+
+                // 計算詳細を表示
+                const detailsDiv = document.getElementById('calculationDetails');
+                if (currentStep > 0 && currentStep <= n) {
+                    const calculation = calculateStep(currentStep);
+                    detailsDiv.innerHTML = `<strong>ステップ ${currentStep}の計算:</strong><br>${calculation}`;
+                    detailsDiv.style.display = 'block';
+                } else if (currentStep === 0) {
+                    detailsDiv.innerHTML = '<strong>初期化:</strong><br>dp[0] = 1 (スタート地点への到達方法は1通り)<br>その他のdp[i] = 0で初期化';
+                    detailsDiv.style.display = 'block';
+                } else {
+                    detailsDiv.style.display = 'none';
+                }
+            }
+
+            function updateStepDisplay() {
+                const stepDiv = document.getElementById('currentStep');
+                if (currentStep === 0) {
+                    stepDiv.textContent = 'ステップ 0: 初期化';
+                } else if (currentStep <= n) {
+                    stepDiv.textContent = `ステップ ${currentStep}: dp[${currentStep}]を計算`;
+                } else {
+                    stepDiv.textContent = `完了: dp[${n}] = ${dpArray[n]} (答え)`;
+                }
+            }
+
+            function nextStep() {
+                if (currentStep < n + 1) {
+                    if (currentStep > 0) {
+                        calculateStep(currentStep);
+                    }
+                    currentStep++;
+                    updateDisplay();
+                    updateStepDisplay();
+
+                    document.getElementById('prevBtn').disabled = false;
+                    if (currentStep > n) {
+                        document.getElementById('nextBtn').disabled = true;
+                    }
+                }
+            }
+
+            function prevStep() {
+                if (currentStep > 0) {
+                    currentStep--;
+                    if (currentStep > 0) {
+                        // 前のステップの状態に戻す
+                        dpArray = new Array(n + 1).fill(0);
+                        dpArray[0] = 1;
+                        for (let i = 1; i <= currentStep; i++) {
+                            calculateStep(i);
+                        }
+                    } else {
+                        dpArray = new Array(n + 1).fill(0);
+                        dpArray[0] = 1;
+                    }
+                    updateDisplay();
+                    updateStepDisplay();
+
+                    document.getElementById('nextBtn').disabled = false;
+                    if (currentStep === 0) {
+                        document.getElementById('prevBtn').disabled = true;
+                    }
+                }
+            }
+
+            function resetVisualization() {
+                currentStep = 0;
+                initializeVisualization();
+                document.getElementById('prevBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = false;
+            }
+
+            function autoPlay() {
+                const interval = setInterval(() => {
+                    if (currentStep <= n) {
+                        nextStep();
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }
+
+            // 初期化
+            initializeVisualization();
+        </script>
+    </body>
+
+</html>

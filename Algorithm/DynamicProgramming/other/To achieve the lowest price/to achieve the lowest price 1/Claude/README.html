@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>りんご購入DPアルゴリズム解析</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                overflow: hidden;
+            }
+
+            .header {
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                color: white;
+                padding: 30px;
+                text-align: center;
+            }
+
+            .content {
+                padding: 30px;
+            }
+
+            .section {
+                margin-bottom: 40px;
+                border-left: 4px solid #4ecdc4;
+                padding-left: 20px;
+            }
+
+            .dp-table {
+                display: flex;
+                gap: 10px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .dp-cell {
+                min-width: 80px;
+                height: 80px;
+                border: 2px solid #333;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                border-radius: 8px;
+                font-weight: bold;
+                background: #f8f9fa;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .dp-cell:hover {
+                transform: scale(1.1);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .dp-cell.highlight {
+                background: #ff6b6b;
+                color: white;
+                border-color: #ff5252;
+            }
+
+            .dp-cell.base-case {
+                background: #4ecdc4;
+                color: white;
+                border-color: #26a69a;
+            }
+
+            .dp-cell.computing {
+                background: #ffd54f;
+                border-color: #ffc107;
+                animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .formula {
+                background: #e8f5e8;
+                border: 2px solid #4caf50;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+                font-family: 'Courier New', monospace;
+                font-size: 16px;
+            }
+
+            .calculation-step {
+                background: #f5f5f5;
+                border-left: 4px solid #2196f3;
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .tree-diagram {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                display: inline-block;
+                background: #e3f2fd;
+                border: 2px solid #1976d2;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                line-height: 56px;
+                margin: 5px;
+                font-weight: bold;
+            }
+
+            .arrow {
+                font-size: 24px;
+                color: #ff5722;
+                margin: 0 10px;
+            }
+
+            .controls {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .btn {
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                margin: 5px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: transform 0.2s;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .input-group {
+                margin: 15px 0;
+            }
+
+            .input-group label {
+                display: inline-block;
+                width: 100px;
+                font-weight: bold;
+            }
+
+            .input-group input {
+                padding: 8px 12px;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                margin-left: 10px;
+            }
+
+            .complexity-analysis {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+
+            .memory-usage {
+                background: #f8f9fa;
+                border: 2px solid #6c757d;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            #step-info {
+                background: #fff3e0;
+                border: 2px solid #ff9800;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+                min-height: 60px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🍎 りんご購入DPアルゴリズム詳細解析</h1>
+                <p>Dynamic Programming による最適化問題の可視化</p>
+            </div>
+
+            <div class="content">
+                <div class="section">
+                    <h2>📊 パラメータ設定</h2>
+                    <div class="input-group">
+                        <label>n (個数):</label>
+                        <input type="number" id="n-input" value="6" min="1" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label>a (1個価格):</label>
+                        <input type="number" id="a-input" value="100" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>b (2個価格):</label>
+                        <input type="number" id="b-input" value="150" min="1">
+                    </div>
+                    <div class="controls">
+                        <button class="btn" onclick="initializeDP()">初期化</button>
+                        <button class="btn" onclick="stepByStep()">ステップ実行</button>
+                        <button class="btn" onclick="runComplete()">完全実行</button>
+                        <button class="btn" onclick="reset()">リセット</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🧮 DPテーブル可視化</h2>
+                    <div id="dp-visualization"></div>
+                    <div id="step-info">
+                        <strong>初期化してください</strong>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📐 漸化式の説明</h2>
+                    <div class="formula">
+                        dp[i] = min(dp[i-1] + a, dp[i-2] + b)
+                    </div>
+                    <p><strong>意味:</strong></p>
+                    <ul>
+                        <li><code>dp[i-1] + a</code>: (i-1)個まで最安で買って、1個追加</li>
+                        <li><code>dp[i-2] + b</code>: (i-2)個まで最安で買って、2個追加</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>🌳 決定木の可視化</h2>
+                    <div id="decision-tree"></div>
+                </div>
+
+                <div class="section">
+                    <h2>📈 計算複雑度解析</h2>
+                    <div class="complexity-analysis">
+                        <h3>時間計算量: O(n)</h3>
+                        <p>各位置iについて定数時間の比較演算のみ実行</p>
+
+                        <h3>空間計算量: O(n)</h3>
+                        <p>DPテーブルとしてn+1サイズの配列を使用</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>💾 メモリ使用量分析</h2>
+                    <div class="memory-usage">
+                        <div id="memory-analysis"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🔍 詳細ステップ解析</h2>
+                    <div id="detailed-steps"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let currentStep = 0;
+            let n, a, b;
+            let dp = [];
+            let isStepMode = false;
+
+            function initializeDP() {
+                n = parseInt(document.getElementById('n-input').value);
+                a = parseInt(document.getElementById('a-input').value);
+                b = parseInt(document.getElementById('b-input').value);
+
+                if (a >= b) {
+                    alert('制約条件: a < b である必要があります');
+                    return;
+                }
+
+                dp = new Array(n + 1);
+                dp[0] = 0;
+                dp[1] = a;
+                currentStep = 2;
+                isStepMode = false;
+
+                updateVisualization();
+                updateMemoryAnalysis();
+                updateStepInfo('DPテーブルが初期化されました。ベースケース: dp[0]=0, dp[1]=' + a);
+            }
+
+            function updateVisualization() {
+                const container = document.getElementById('dp-visualization');
+                container.innerHTML = '';
+
+                for (let i = 0; i <= n; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'dp-cell';
+                    cell.innerHTML = `<div>dp[${i}]</div><div>${dp[i] !== undefined ? dp[i] : '?'}</div>`;
+
+                    if (i <= 1 && dp[i] !== undefined) {
+                        cell.classList.add('base-case');
+                    } else if (dp[i] !== undefined) {
+                        cell.classList.add('highlight');
+                    } else if (i === currentStep && isStepMode) {
+                        cell.classList.add('computing');
+                    }
+
+                    cell.onclick = () => showCalculationDetails(i);
+                    container.appendChild(cell);
+                }
+            }
+
+            function stepByStep() {
+                if (dp.length === 0) {
+                    alert('まず初期化してください');
+                    return;
+                }
+
+                isStepMode = true;
+                if (currentStep <= n) {
+                    const option1 = dp[currentStep - 1] + a;
+                    const option2 = dp[currentStep - 2] + b;
+                    const result = Math.min(option1, option2);
+
+                    dp[currentStep] = result;
+
+                    updateVisualization();
+                    updateDetailedSteps(currentStep, option1, option2, result);
+                    updateDecisionTree(currentStep);
+
+                    updateStepInfo(`ステップ ${currentStep}: dp[${currentStep}] = min(${option1}, ${option2}) = ${result}`);
+
+                    currentStep++;
+
+                    if (currentStep > n) {
+                        updateStepInfo(`完了！n=${n}個のりんごの最小コスト: ${dp[n]}円`);
+                    }
+                }
+            }
+
+            function runComplete() {
+                if (dp.length === 0) {
+                    alert('まず初期化してください');
+                    return;
+                }
+
+                isStepMode = false;
+                for (let i = 2; i <= n; i++) {
+                    dp[i] = Math.min(dp[i - 1] + a, dp[i - 2] + b);
+                }
+                currentStep = n + 1;
+
+                updateVisualization();
+                updateDetailedSteps(n);
+                updateDecisionTree(n);
+                updateStepInfo(`完了！n=${n}個のりんごの最小コスト: ${dp[n]}円`);
+            }
+
+            function reset() {
+                dp = [];
+                currentStep = 0;
+                isStepMode = false;
+                document.getElementById('dp-visualization').innerHTML = '';
+                document.getElementById('detailed-steps').innerHTML = '';
+                document.getElementById('decision-tree').innerHTML = '';
+                updateStepInfo('リセットしました。初期化してください。');
+            }
+
+            function showCalculationDetails(index) {
+                if (index < 2 || dp[index] === undefined) return;
+
+                const option1 = dp[index - 1] + a;
+                const option2 = dp[index - 2] + b;
+                const chosen = dp[index] === option1 ? 'Option 1' : 'Option 2';
+
+                alert(`dp[${index}]の計算詳細:\n` +
+                    `Option 1: dp[${index - 1}] + a = ${dp[index - 1]} + ${a} = ${option1}\n` +
+                    `Option 2: dp[${index - 2}] + b = ${dp[index - 2]} + ${b} = ${option2}\n` +
+                    `選択: ${chosen} (${dp[index]}円)`);
+            }
+
+            function updateDetailedSteps(step, opt1, opt2, result) {
+                const container = document.getElementById('detailed-steps');
+
+                if (step === n && !opt1) {
+                    // 完全実行の場合、全ステップを表示
+                    container.innerHTML = '';
+                    for (let i = 2; i <= n; i++) {
+                        const o1 = dp[i - 1] + a;
+                        const o2 = dp[i - 2] + b;
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'calculation-step';
+                        stepDiv.innerHTML = `
+                        <strong>ステップ ${i}:</strong><br>
+                        dp[${i}] = min(dp[${i - 1}] + a, dp[${i - 2}] + b)<br>
+                        = min(${dp[i - 1]} + ${a}, ${dp[i - 2]} + ${b})<br>
+                        = min(${o1}, ${o2}) = <strong>${dp[i]}</strong>
+                    `;
+                        container.appendChild(stepDiv);
+                    }
+                } else if (opt1) {
+                    // ステップ実行の場合
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'calculation-step';
+                    stepDiv.innerHTML = `
+                    <strong>ステップ ${step}:</strong><br>
+                    dp[${step}] = min(dp[${step - 1}] + a, dp[${step - 2}] + b)<br>
+                    = min(${dp[step - 1]} + ${a}, ${dp[step - 2]} + ${b})<br>
+                    = min(${opt1}, ${opt2}) = <strong>${result}</strong>
+                `;
+                    container.appendChild(stepDiv);
+                }
+            }
+
+            function updateDecisionTree(step) {
+                const container = document.getElementById('decision-tree');
+                if (step < 2) return;
+
+                container.innerHTML = `
+                <div class="tree-diagram">
+                    <div class="tree-node">dp[${step}]</div><br>
+                    <span class="arrow">↙</span>
+                    <span class="arrow">↘</span><br>
+                    <div class="tree-node">${dp[step - 1]}+${a}</div>
+                    <div class="tree-node">${dp[step - 2]}+${b}</div><br>
+                    <div class="tree-node">${dp[step - 1] + a}</div>
+                    <div class="tree-node">${dp[step - 2] + b}</div>
+                </div>
+            `;
+            }
+
+            function updateMemoryAnalysis() {
+                const container = document.getElementById('memory-analysis');
+                const arraySize = (n + 1) * 8; // 64-bit数値として8バイト/要素
+                const totalMemory = arraySize + 100; // 追加変数分
+
+                container.innerHTML = `
+                <h4>メモリ使用量詳細</h4>
+                <p><strong>DPテーブル:</strong> (n+1) × 8バイト = ${arraySize}バイト</p>
+                <p><strong>その他変数:</strong> 約100バイト</p>
+                <p><strong>合計:</strong> 約${totalMemory}バイト</p>
+                <p><strong>配列要素数:</strong> ${n + 1}個</p>
+            `;
+            }
+
+            function updateStepInfo(message) {
+                document.getElementById('step-info').innerHTML = `<strong>現在の状況:</strong> ${message}`;
+            }
+
+            // 初期化
+            window.onload = function () {
+                updateStepInfo('パラメータを設定して「初期化」ボタンを押してください');
+            };
+        </script>
+    </body>
+
+</html>

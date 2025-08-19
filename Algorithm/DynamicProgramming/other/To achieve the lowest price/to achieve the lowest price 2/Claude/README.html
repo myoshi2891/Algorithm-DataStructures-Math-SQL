@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>八百屋のりんご購入問題 - 動的プログラミング解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+                margin-bottom: 30px;
+            }
+
+            h2 {
+                color: #e74c3c;
+                border-left: 4px solid #e74c3c;
+                padding-left: 15px;
+                margin-top: 30px;
+            }
+
+            h3 {
+                color: #27ae60;
+                border-bottom: 2px solid #27ae60;
+                padding-bottom: 5px;
+            }
+
+            .problem-setup {
+                background: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                border-left: 5px solid #3498db;
+            }
+
+            .dp-table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 20px 0;
+                font-size: 14px;
+            }
+
+            .dp-table th,
+            .dp-table td {
+                border: 2px solid #34495e;
+                padding: 12px;
+                text-align: center;
+                font-weight: bold;
+            }
+
+            .dp-table th {
+                background: #3498db;
+                color: white;
+            }
+
+            .dp-table td {
+                background: #ecf0f1;
+            }
+
+            .highlight {
+                background: #f39c12 !important;
+                color: white;
+            }
+
+            .infinity {
+                background: #e74c3c !important;
+                color: white;
+            }
+
+            .final-answer {
+                background: #27ae60 !important;
+                color: white;
+            }
+
+            .step-visualization {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .step-box {
+                flex: 1;
+                min-width: 300px;
+                background: #f8f9fa;
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                padding: 20px;
+            }
+
+            .step-title {
+                font-weight: bold;
+                color: #495057;
+                margin-bottom: 15px;
+                font-size: 16px;
+            }
+
+            .calculation-box {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 5px;
+                padding: 10px;
+                margin: 10px 0;
+                font-family: 'Courier New', monospace;
+            }
+
+            .arrow {
+                font-size: 24px;
+                color: #e74c3c;
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            .complexity-analysis {
+                background: #e8f5e8;
+                border: 2px solid #27ae60;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .memory-visualization {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 5px;
+                margin: 20px 0;
+            }
+
+            .memory-cell {
+                border: 2px solid #34495e;
+                padding: 10px;
+                text-align: center;
+                border-radius: 5px;
+                font-weight: bold;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .interactive-demo {
+                background: #f1f2f6;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .demo-controls {
+                margin: 15px 0;
+            }
+
+            .demo-controls button {
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-right: 10px;
+                font-weight: bold;
+            }
+
+            .demo-controls button:hover {
+                background: #2980b9;
+            }
+
+            .demo-controls button:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+            }
+
+            .progress-bar {
+                width: 100%;
+                background: #ecf0f1;
+                border-radius: 10px;
+                overflow: hidden;
+                margin: 15px 0;
+            }
+
+            .progress-fill {
+                height: 20px;
+                background: linear-gradient(90deg, #3498db, #2980b9);
+                transition: width 0.5s ease;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🍎 八百屋のりんご購入問題 - 動的プログラミング詳細解析</h1>
+
+            <div class="problem-setup">
+                <h3>📋 問題設定</h3>
+                <ul>
+                    <li><strong>りんご2個</strong> = <span id="price-a">110</span>円</li>
+                    <li><strong>りんご5個</strong> = <span id="price-b">200</span>円</li>
+                    <li><strong>必要な個数</strong> = <span id="target-n">4</span>個以上</li>
+                    <li><strong>制約</strong>: 2個パックまたは5個パックでしか購入できない</li>
+                </ul>
+            </div>
+
+            <h2>🧮 1. 動的プログラミング（DP）テーブルの構築過程</h2>
+
+            <h3>初期状態</h3>
+            <p>DPテーブルを初期化します。dp[i] = ちょうどi個のりんごを買うのに必要な最小コスト</p>
+
+            <div class="memory-visualization" id="initial-dp-table">
+                <!-- JavaScript で動的に生成 -->
+            </div>
+
+            <div class="interactive-demo">
+                <h3>🎮 インタラクティブDP構築シミュレーション</h3>
+                <div class="demo-controls">
+                    <button onclick="resetDemo()">リセット</button>
+                    <button onclick="stepDemo()" id="step-button">次のステップ</button>
+                    <button onclick="autoDemo()" id="auto-button">自動実行</button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <p id="current-step">ステップ 0: 初期化完了</p>
+            </div>
+
+            <h3>ステップ別詳細解析</h3>
+            <div id="step-details">
+                <!-- JavaScript で動的に生成 -->
+            </div>
+
+            <h2>📊 2. 最終DPテーブル</h2>
+            <table class="dp-table" id="final-dp-table">
+                <!-- JavaScript で動的に生成 -->
+            </table>
+
+            <h2>🎯 3. 最小コスト探索過程</h2>
+            <div class="step-visualization">
+                <div class="step-box">
+                    <div class="step-title">探索範囲</div>
+                    <p>n=4個以上のりんごを手に入れる方法を探索</p>
+                    <div class="calculation-box">
+                        dp[4] = ∞ (4個ちょうどは作れない)<br>
+                        dp[5] = 200 (5個パック1つ)<br>
+                        dp[6] = 220 (2個パック3つ)<br>
+                        dp[7] = 310 (2個パック1つ + 5個パック1つ)<br>
+                        dp[8] = 400 (2個パック4つ)
+                    </div>
+                </div>
+                <div class="step-box">
+                    <div class="step-title">最小値の決定</div>
+                    <p>4個以上の中で最小コストを選択</p>
+                    <div class="calculation-box">
+                        min(∞, 200, 220, 310, 400) = <strong>200円</strong>
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div style="text-align: center; font-weight: bold; color: #27ae60; font-size: 18px;">
+                        答え: 200円
+                    </div>
+                </div>
+            </div>
+
+            <h2>⚡ 4. 計算量・メモリ効率分析</h2>
+            <div class="complexity-analysis">
+                <h3>時間計算量: O(n)</h3>
+                <ul>
+                    <li>DPテーブルの各要素を1回ずつ処理</li>
+                    <li>各要素から2つの遷移（+2個、+5個）を実行</li>
+                    <li>最終的な最小値探索もO(n)</li>
+                </ul>
+
+                <h3>空間計算量: O(n)</h3>
+                <ul>
+                    <li>DPテーブル: (n+4+1)個の要素</li>
+                    <li>追加変数: 定数個</li>
+                    <li>入力サイズn≤1000なので、メモリ使用量は非常に少ない</li>
+                </ul>
+
+                <h3>実際の性能（n=4の場合）</h3>
+                <div class="step-visualization">
+                    <div class="step-box">
+                        <div class="step-title">メモリ使用量</div>
+                        <ul>
+                            <li>DPテーブル: 9個 × 8バイト = 72バイト</li>
+                            <li>変数: 約20バイト</li>
+                            <li><strong>総計: 約100バイト未満</strong></li>
+                        </ul>
+                    </div>
+                    <div class="step-box">
+                        <div class="step-title">実行ステップ数</div>
+                        <ul>
+                            <li>初期化: 9ステップ</li>
+                            <li>DP構築: 18ステップ（各位置から2つの遷移）</li>
+                            <li>最小値探索: 5ステップ</li>
+                            <li><strong>総計: 32ステップ</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h2>🔍 5. アルゴリズムの詳細フロー</h2>
+            <div class="step-visualization">
+                <div class="step-box">
+                    <div class="step-title">Phase 1: 初期化</div>
+                    <div class="calculation-box">
+                        dp[0] = 0 (0個なら0円)<br>
+                        dp[1] ~ dp[8] = ∞ (未計算)
+                    </div>
+                </div>
+                <div class="step-box">
+                    <div class="step-title">Phase 2: DP遷移</div>
+                    <div class="calculation-box">
+                        各 i について:<br>
+                        • dp[i+2] = min(dp[i+2], dp[i] + a)<br>
+                        • dp[i+5] = min(dp[i+5], dp[i] + b)
+                    </div>
+                </div>
+                <div class="step-box">
+                    <div class="step-title">Phase 3: 解の抽出</div>
+                    <div class="calculation-box">
+                        min(dp[n], dp[n+1], ..., dp[n+4])<br>
+                        ただし dp[i] ≠ ∞ のもののみ
+                    </div>
+                </div>
+            </div>
+
+            <h2>💡 6. なぜこのアプローチが効果的なのか</h2>
+            <div class="problem-setup">
+                <h3>🚫 単純な方法では解けない理由</h3>
+                <ul>
+                    <li>2と5の最大公約数は1だが、小さな数では作れない組み合わせがある</li>
+                    <li>例: 1個、3個は2個パックと5個パックでは作れない</li>
+                    <li>ちょうどn個を作ろうとすると、解が存在しない場合がある</li>
+                </ul>
+
+                <h3>✅ DPアプローチの利点</h3>
+                <ul>
+                    <li><strong>網羅性</strong>: 全ての可能な組み合わせを効率的に探索</li>
+                    <li><strong>最適性</strong>: 各状態で最小コストを保証</li>
+                    <li><strong>柔軟性</strong>: n個以上の条件に対応可能</li>
+                    <li><strong>効率性</strong>: O(n)時間で解を求める</li>
+                </ul>
+            </div>
+
+            <h2>🧪 7. 他の入力例での動作確認</h2>
+            <div class="interactive-demo">
+                <h3>異なる入力での動作テスト</h3>
+                <div class="demo-controls">
+                    <label>n: <input type="number" id="test-n" value="6" min="1" max="20"></label>
+                    <label>a (2個の価格): <input type="number" id="test-a" value="100" min="1" max="500"></label>
+                    <label>b (5個の価格): <input type="number" id="test-b" value="300" min="1" max="500"></label>
+                    <button onclick="testCustomInput()">計算実行</button>
+                </div>
+                <div id="test-result"></div>
+            </div>
+        </div>
+
+        <script>
+            let currentStep = 0;
+            let maxSteps = 0;
+            let dpArray = [];
+            let n = 4, a = 110, b = 200;
+            let animationInterval;
+
+            // 初期化
+            function initializeDP() {
+                dpArray = new Array(n + 5).fill(Infinity);
+                dpArray[0] = 0;
+                currentStep = 0;
+                maxSteps = calculateMaxSteps();
+                updateDPVisualization();
+                updateStepDetails();
+            }
+
+            function calculateMaxSteps() {
+                return (n + 4) * 2 + 1; // 各位置から2つの遷移 + 初期化
+            }
+
+            function updateDPVisualization() {
+                const container = document.getElementById('initial-dp-table');
+                container.innerHTML = '';
+
+                for (let i = 0; i <= n + 4; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'memory-cell';
+                    cell.innerHTML = `<div>dp[${i}]<br>${dpArray[i] === Infinity ? '∞' : dpArray[i]}</div>`;
+
+                    if (dpArray[i] === Infinity) {
+                        cell.classList.add('infinity');
+                    } else if (dpArray[i] === 0) {
+                        cell.style.background = '#3498db';
+                        cell.style.color = 'white';
+                    } else {
+                        cell.classList.add('highlight');
+                    }
+
+                    container.appendChild(cell);
+                }
+            }
+
+            function updateStepDetails() {
+                const container = document.getElementById('step-details');
+                const steps = getStepExplanations();
+
+                container.innerHTML = '';
+                steps.forEach((step, index) => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'step-box';
+                    stepDiv.innerHTML = `
+                    <div class="step-title">ステップ ${index + 1}: ${step.title}</div>
+                    <p>${step.description}</p>
+                    <div class="calculation-box">${step.calculation}</div>
+                `;
+
+                    if (index < currentStep) {
+                        stepDiv.style.background = '#d5f4e6';
+                    } else if (index === currentStep) {
+                        stepDiv.style.background = '#fff3cd';
+                        stepDiv.style.border = '2px solid #f39c12';
+                    }
+
+                    container.appendChild(stepDiv);
+                });
+            }
+
+            function getStepExplanations() {
+                const steps = [];
+                let stepIndex = 0;
+
+                // 初期化
+                steps.push({
+                    title: "初期化",
+                    description: "DPテーブルを初期化します",
+                    calculation: "dp[0] = 0, dp[1]~dp[8] = ∞"
+                });
+                stepIndex++;
+
+                // i = 0からの遷移
+                for (let i = 0; i <= n + 2; i++) {
+                    if (i + 2 <= n + 4) {
+                        steps.push({
+                            title: `i=${i}から+2個の遷移`,
+                            description: `位置${i}から2個パックを購入する場合`,
+                            calculation: `dp[${i + 2}] = min(dp[${i + 2}], dp[${i}] + ${a}) = min(${dpArray[i + 2] === Infinity ? '∞' : dpArray[i + 2]}, ${dpArray[i] === Infinity ? '∞' : dpArray[i]} + ${a})`
+                        });
+                    }
+
+                    if (i + 5 <= n + 4) {
+                        steps.push({
+                            title: `i=${i}から+5個の遷移`,
+                            description: `位置${i}から5個パックを購入する場合`,
+                            calculation: `dp[${i + 5}] = min(dp[${i + 5}], dp[${i}] + ${b}) = min(${dpArray[i + 5] === Infinity ? '∞' : dpArray[i + 5]}, ${dpArray[i] === Infinity ? '∞' : dpArray[i]} + ${b})`
+                        });
+                    }
+                }
+
+                return steps;
+            }
+
+            function resetDemo() {
+                clearInterval(animationInterval);
+                initializeDP();
+                document.getElementById('current-step').textContent = 'ステップ 0: 初期化完了';
+                document.getElementById('progress-fill').style.width = '0%';
+                document.getElementById('step-button').disabled = false;
+                document.getElementById('auto-button').disabled = false;
+            }
+
+            function stepDemo() {
+                if (currentStep >= maxSteps) return;
+
+                executeStep();
+                currentStep++;
+
+                const progress = (currentStep / maxSteps) * 100;
+                document.getElementById('progress-fill').style.width = progress + '%';
+                document.getElementById('current-step').textContent = `ステップ ${currentStep}: ${getStepDescription()}`;
+
+                updateDPVisualization();
+                updateStepDetails();
+
+                if (currentStep >= maxSteps) {
+                    document.getElementById('step-button').disabled = true;
+                    document.getElementById('current-step').textContent = 'すべてのステップが完了しました！';
+                    generateFinalTable();
+                }
+            }
+
+            function executeStep() {
+                const stepType = Math.floor((currentStep - 1) / 2);
+                const isFirstTransition = (currentStep - 1) % 2 === 0;
+                const i = stepType;
+
+                if (currentStep === 0) return; // 初期化は既に完了
+
+                if (isFirstTransition) {
+                    // +2個の遷移
+                    if (i + 2 <= n + 4 && dpArray[i] !== Infinity) {
+                        dpArray[i + 2] = Math.min(dpArray[i + 2], dpArray[i] + a);
+                    }
+                } else {
+                    // +5個の遷移  
+                    if (i + 5 <= n + 4 && dpArray[i] !== Infinity) {
+                        dpArray[i + 5] = Math.min(dpArray[i + 5], dpArray[i] + b);
+                    }
+                }
+            }
+
+            function getStepDescription() {
+                if (currentStep === 0) return '初期化完了';
+
+                const stepType = Math.floor((currentStep - 1) / 2);
+                const isFirstTransition = (currentStep - 1) % 2 === 0;
+                const i = stepType;
+
+                if (isFirstTransition) {
+                    return `i=${i}から+2個の遷移実行`;
+                } else {
+                    return `i=${i}から+5個の遷移実行`;
+                }
+            }
+
+            function autoDemo() {
+                document.getElementById('auto-button').disabled = true;
+                document.getElementById('step-button').disabled = true;
+
+                animationInterval = setInterval(() => {
+                    stepDemo();
+                    if (currentStep >= maxSteps) {
+                        clearInterval(animationInterval);
+                    }
+                }, 800);
+            }
+
+            function generateFinalTable() {
+                const table = document.getElementById('final-dp-table');
+                table.innerHTML = '';
+
+                // ヘッダー
+                const headerRow = table.insertRow();
+                headerRow.insertCell().outerHTML = '<th>インデックス</th>';
+                for (let i = 0; i <= n + 4; i++) {
+                    headerRow.insertCell().outerHTML = `<th>${i}</th>`;
+                }
+
+                // 値の行
+                const valueRow = table.insertRow();
+                valueRow.insertCell().outerHTML = '<th>dp[i]</th>';
+                for (let i = 0; i <= n + 4; i++) {
+                    const cell = valueRow.insertCell();
+                    cell.textContent = dpArray[i] === Infinity ? '∞' : dpArray[i];
+
+                    if (i >= n && dpArray[i] !== Infinity) {
+                        cell.classList.add('final-answer');
+                    } else if (dpArray[i] === Infinity) {
+                        cell.classList.add('infinity');
+                    } else if (dpArray[i] > 0) {
+                        cell.classList.add('highlight');
+                    }
+                }
+            }
+
+            function testCustomInput() {
+                const testN = parseInt(document.getElementById('test-n').value);
+                const testA = parseInt(document.getElementById('test-a').value);
+                const testB = parseInt(document.getElementById('test-b').value);
+
+                if (testA >= testB) {
+                    document.getElementById('test-result').innerHTML = '<p style="color: red;">エラー: a < b である必要があります</p>';
+                    return;
+                }
+
+                // テスト実行
+                const result = solveApplePurchase(testN, testA, testB);
+                const testDP = calculateDP(testN, testA, testB);
+
+                let resultHTML = `
+                <h4>入力: n=${testN}, a=${testA}, b=${testB}</h4>
+                <p><strong>結果: ${result}円</strong></p>
+                <table class="dp-table">
+                    <tr><th>インデックス</th>
+            `;
+
+                for (let i = 0; i <= testN + 4; i++) {
+                    resultHTML += `<th>${i}</th>`;
+                }
+                resultHTML += '</tr><tr><th>dp[i]</th>';
+
+                for (let i = 0; i <= testN + 4; i++) {
+                    const value = testDP[i] === Infinity ? '∞' : testDP[i];
+                    const cellClass = i >= testN && testDP[i] !== Infinity ? 'final-answer' :
+                        testDP[i] === Infinity ? 'infinity' : 'highlight';
+                    resultHTML += `<td class="${cellClass}">${value}</td>`;
+                }
+                resultHTML += '</tr></table>';
+
+                document.getElementById('test-result').innerHTML = resultHTML;
+            }
+
+            function calculateDP(n, a, b) {
+                const dp = new Array(n + 5).fill(Infinity);
+                dp[0] = 0;
+
+                for (let i = 0; i <= n + 2; i++) {
+                    if (dp[i] === Infinity) continue;
+
+                    if (i + 2 <= n + 4) {
+                        dp[i + 2] = Math.min(dp[i + 2], dp[i] + a);
+                    }
+
+                    if (i + 5 <= n + 4) {
+                        dp[i + 5] = Math.min(dp[i + 5], dp[i] + b);
+                    }
+                }
+
+                return dp;
+            }
+
+            function solveApplePurchase(n, a, b) {
+                const dp = calculateDP(n, a, b);
+
+                let minCost = Infinity;
+                for (let i = n; i <= n + 4; i++) {
+                    if (dp[i] !== Infinity) {
+                        minCost = Math.min(minCost, dp[i]);
+                    }
+                }
+
+                return minCost;
+            }
+
+            // 初期化実行
+            window.onload = function () {
+                initializeDP();
+                generateFinalTable();
+            };
+        </script>
+    </body>
+
+</html>

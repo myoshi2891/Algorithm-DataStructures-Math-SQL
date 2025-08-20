@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>行列90度回転アルゴリズム解析</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                line-height: 1.6;
+                background-color: #f5f5f5;
+            }
+
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+            h2 {
+                color: #34495e;
+                margin-top: 30px;
+                border-left: 4px solid #3498db;
+                padding-left: 15px;
+            }
+
+            .matrix {
+                display: inline-grid;
+                gap: 2px;
+                margin: 15px;
+                border: 2px solid #34495e;
+                padding: 10px;
+                background: #ecf0f1;
+                border-radius: 8px;
+            }
+
+            .cell {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #7f8c8d;
+                background: white;
+                font-weight: bold;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+            }
+
+            .highlight {
+                background: #3498db !important;
+                color: white;
+            }
+
+            .highlight-top {
+                background: #e74c3c !important;
+                color: white;
+            }
+
+            .highlight-right {
+                background: #f39c12 !important;
+                color: white;
+            }
+
+            .highlight-bottom {
+                background: #2ecc71 !important;
+                color: white;
+            }
+
+            .highlight-left {
+                background: #9b59b6 !important;
+                color: white;
+            }
+
+            .step {
+                margin: 20px 0;
+                padding: 20px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border-left: 4px solid #3498db;
+            }
+
+            .layer-demo {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 30px;
+                justify-content: center;
+                margin: 20px 0;
+            }
+
+            .arrow {
+                display: inline-block;
+                font-size: 24px;
+                color: #e74c3c;
+                margin: 0 10px;
+            }
+
+            .legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin: 15px 0;
+                justify-content: center;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .legend-color {
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+            }
+
+            .code-section {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 8px;
+                margin: 20px 0;
+                font-family: 'Courier New', monospace;
+                overflow-x: auto;
+            }
+
+            .complexity {
+                background: #27ae60;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+            }
+
+            button {
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 5px;
+                font-size: 14px;
+            }
+
+            button:hover {
+                background: #2980b9;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>行列90度時計回り回転アルゴリズム解析</h1>
+
+            <h2>1. アルゴリズム概要</h2>
+            <p>このアルゴリズムは<strong>レイヤーベースの4要素同時回転</strong>を使用します。行列を同心円状のレイヤーに分割し、各レイヤーで4つの対応する要素を同時に回転させます。</p>
+
+            <h2>2. レイヤー構造の理解</h2>
+            <div class="step">
+                <h3>3×3行列のレイヤー構造</h3>
+                <div class="layer-demo">
+                    <div>
+                        <p>元の行列:</p>
+                        <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="cell">1</div>
+                            <div class="cell">2</div>
+                            <div class="cell">3</div>
+                            <div class="cell">4</div>
+                            <div class="cell">5</div>
+                            <div class="cell">6</div>
+                            <div class="cell">7</div>
+                            <div class="cell">8</div>
+                            <div class="cell">9</div>
+                        </div>
+                    </div>
+                    <div>
+                        <p>レイヤー0（外側）:</p>
+                        <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="cell highlight">1</div>
+                            <div class="cell highlight">2</div>
+                            <div class="cell highlight">3</div>
+                            <div class="cell highlight">4</div>
+                            <div class="cell">5</div>
+                            <div class="cell highlight">6</div>
+                            <div class="cell highlight">7</div>
+                            <div class="cell highlight">8</div>
+                            <div class="cell highlight">9</div>
+                        </div>
+                    </div>
+                    <div>
+                        <p>レイヤー1（中心）:</p>
+                        <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="cell">1</div>
+                            <div class="cell">2</div>
+                            <div class="cell">3</div>
+                            <div class="cell">4</div>
+                            <div class="cell highlight">5</div>
+                            <div class="cell">6</div>
+                            <div class="cell">7</div>
+                            <div class="cell">8</div>
+                            <div class="cell">9</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>4×4行列のレイヤー構造</h3>
+                <div class="layer-demo">
+                    <div>
+                        <p>レイヤー0（外側）:</p>
+                        <div class="matrix" style="grid-template-columns: repeat(4, 1fr);">
+                            <div class="cell highlight">5</div>
+                            <div class="cell highlight">1</div>
+                            <div class="cell highlight">9</div>
+                            <div class="cell highlight">11</div>
+                            <div class="cell highlight">2</div>
+                            <div class="cell">4</div>
+                            <div class="cell">8</div>
+                            <div class="cell highlight">10</div>
+                            <div class="cell highlight">13</div>
+                            <div class="cell">3</div>
+                            <div class="cell">6</div>
+                            <div class="cell highlight">7</div>
+                            <div class="cell highlight">15</div>
+                            <div class="cell highlight">14</div>
+                            <div class="cell highlight">12</div>
+                            <div class="cell highlight">16</div>
+                        </div>
+                    </div>
+                    <div>
+                        <p>レイヤー1（内側）:</p>
+                        <div class="matrix" style="grid-template-columns: repeat(4, 1fr);">
+                            <div class="cell">5</div>
+                            <div class="cell">1</div>
+                            <div class="cell">9</div>
+                            <div class="cell">11</div>
+                            <div class="cell">2</div>
+                            <div class="cell highlight">4</div>
+                            <div class="cell highlight">8</div>
+                            <div class="cell">10</div>
+                            <div class="cell">13</div>
+                            <div class="cell highlight">3</div>
+                            <div class="cell highlight">6</div>
+                            <div class="cell">7</div>
+                            <div class="cell">15</div>
+                            <div class="cell">14</div>
+                            <div class="cell">12</div>
+                            <div class="cell">16</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>3. 4要素同時回転の仕組み</h2>
+            <div class="step">
+                <h3>回転パターンの説明</h3>
+                <p>各レイヤーで、4つの対応する要素を以下の順序で回転させます：</p>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e74c3c;"></div>
+                        <span>Top (上辺)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f39c12;"></div>
+                        <span>Right (右辺)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2ecc71;"></div>
+                        <span>Bottom (下辺)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #9b59b6;"></div>
+                        <span>Left (左辺)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>3×3行列での具体例（レイヤー0）</h3>
+                <div id="rotation-demo">
+                    <div class="layer-demo">
+                        <div>
+                            <p>ステップ1: 初期状態</p>
+                            <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="cell highlight-top">1</div>
+                                <div class="cell highlight-top">2</div>
+                                <div class="cell highlight-right">3</div>
+                                <div class="cell highlight-left">4</div>
+                                <div class="cell">5</div>
+                                <div class="cell highlight-right">6</div>
+                                <div class="cell highlight-left">7</div>
+                                <div class="cell highlight-bottom">8</div>
+                                <div class="cell highlight-bottom">9</div>
+                            </div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div>
+                            <p>ステップ2: 回転後</p>
+                            <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="cell highlight-top">7</div>
+                                <div class="cell highlight-top">4</div>
+                                <div class="cell highlight-right">1</div>
+                                <div class="cell highlight-left">8</div>
+                                <div class="cell">5</div>
+                                <div class="cell highlight-right">2</div>
+                                <div class="cell highlight-left">9</div>
+                                <div class="cell highlight-bottom">6</div>
+                                <div class="cell highlight-bottom">3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>4. アルゴリズムの詳細解析</h2>
+
+            <div class="step">
+                <h3>レイヤー数の計算</h3>
+                <div class="code-section">
+                    // レイヤー数 = Math.floor(n / 2)
+                    // 3×3行列 → Math.floor(3/2) = 1レイヤー
+                    // 4×4行列 → Math.floor(4/2) = 2レイヤー
+                    // 5×5行列 → Math.floor(5/2) = 2レイヤー
+                    for (let layer = 0; layer < Math.floor(n / 2); layer++) </div>
+                        <div class="layer-demo">
+                            <div>
+                                <p><strong>なぜMath.floor(n/2)?</strong></p>
+                                <p>• 奇数サイズ: 中央要素は回転不要</p>
+                                <p>• 偶数サイズ: 全要素が回転対象</p>
+                                <p>• 外側から内側へ順次処理</p>
+                            </div>
+                        </div>
+                </div>
+
+                <div class="step">
+                    <h3>各レイヤーの境界計算</h3>
+                    <div class="code-section">
+                        const first = layer; // レイヤーの開始インデックス
+                        const last = n - 1 - layer; // レイヤーの終了インデックス
+
+                        // 例: 4×4行列のレイヤー0の場合
+                        // first = 0, last = 4-1-0 = 3
+                        // 処理範囲: [0,0] から [3,3] の外周
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>4要素の座標計算式</h3>
+                    <div class="code-section">
+                        for (let i = first; i < last; i++) { const offset=i - first; // 現在位置からの相対位置 // 4つの対応する要素の座標 const topPos=[first, i]; // 上辺の要素 const rightPos=[i, last]; // 右辺の要素 const bottomPos=[last, last-offset]; // 下辺の要素 const leftPos=[last-offset, first]; // 左辺の要素 } </div>
+                            <div class="layer-demo">
+                                <div>
+                                    <p><strong>座標の対応関係:</strong></p>
+                                    <div class="matrix" style="grid-template-columns: repeat(4, 1fr);">
+                                        <div class="cell" style="background: #e74c3c; color: white; font-size: 10px;">[0,0]<br>TOP</div>
+                                        <div class="cell" style="background: #e74c3c; color: white; font-size: 10px;">[0,1]<br>TOP</div>
+                                        <div class="cell" style="background: #e74c3c; color: white; font-size: 10px;">[0,2]<br>TOP</div>
+                                        <div class="cell" style="background: #f39c12; color: white; font-size: 10px;">[0,3]<br>RIGHT</div>
+                                        <div class="cell" style="background: #9b59b6; color: white; font-size: 10px;">[1,0]<br>LEFT</div>
+                                        <div class="cell">4</div>
+                                        <div class="cell">8</div>
+                                        <div class="cell" style="background: #f39c12; color: white; font-size: 10px;">[1,3]<br>RIGHT</div>
+                                        <div class="cell" style="background: #9b59b6; color: white; font-size: 10px;">[2,0]<br>LEFT</div>
+                                        <div class="cell">3</div>
+                                        <div class="cell">6</div>
+                                        <div class="cell" style="background: #f39c12; color: white; font-size: 10px;">[2,3]<br>RIGHT</div>
+                                        <div class="cell" style="background: #2ecc71; color: white; font-size: 10px;">[3,0]<br>BOTTOM</div>
+                                        <div class="cell" style="background: #2ecc71; color: white; font-size: 10px;">[3,1]<br>BOTTOM</div>
+                                        <div class="cell" style="background: #2ecc71; color: white; font-size: 10px;">[3,2]<br>BOTTOM</div>
+                                        <div class="cell" style="background: #2ecc71; color: white; font-size: 10px;">[3,3]<br>BOTTOM</div>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+
+                    <div class="step">
+                        <h3>回転処理の実行順序</h3>
+                        <div class="code-section">
+                            // 1. トップ要素を一時保存
+                            const top = matrix[first][i];
+
+                            // 2. 時計回りに4つの要素を移動
+                            matrix[first][i] = matrix[last-offset][first]; // left → top
+                            matrix[last-offset][first] = matrix[last][last-offset]; // bottom → left
+                            matrix[last][last-offset] = matrix[i][last]; // right → bottom
+                            matrix[i][last] = top; // top → right (保存値を使用)
+                        </div>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                            <p><strong>なぜこの順序？</strong></p>
+                            <p>• 最初にtop要素を保存しないと上書きされて失われる</p>
+                            <p>• left→top→right→bottom→leftの循環で4要素を同時移動</p>
+                            <p>• 一時変数は1つだけで済む（メモリ効率的）</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3>完全なコード（コメント付き）</h3>
+                        <div class="code-section">
+                            function rotate(matrix: number[][]): void {
+                            const n = matrix.length;
+
+                            // 外側から内側へレイヤーごとに処理
+                            for (let layer = 0; layer < Math.floor(n / 2); layer++) { const first=layer; // 現在レイヤーの開始位置 const last=n - 1 - layer; // 現在レイヤーの終了位置 // レイヤーの上辺を左から右へ処理（最後の要素は除く） for (let i=first; i < last; i++) { const offset=i - first; // 現在処理中の4要素の座標 // top: matrix[first][i] 例: [0][1] // right: matrix[i][last] 例: [1][3] // bottom: matrix[last][last-offset] 例: [3][2] // left: matrix[last-offset][first] 例: [2][0] const top=matrix[first][i]; // 上要素を退避 // 時計回りに回転（left→top→right→bottom→left） matrix[first][i]=matrix[last - offset][first]; // left → top matrix[last - offset][first]=matrix[last][last - offset]; // bottom → left matrix[last][last - offset]=matrix[i][last]; // right → bottom matrix[i][last]=top; // top → right } } } </div>
+                        </div>
+
+                        <h2>5. 座標計算の詳細</h2>
+                        <div class="step">
+                            <h3>4×4行列での座標例（レイヤー0、i=0の場合）</h3>
+                            <div class="layer-demo">
+                                <div>
+                                    <p>回転前の4要素:</p>
+                                    <div class="matrix" style="grid-template-columns: repeat(4, 1fr);">
+                                        <div class="cell highlight-top">[0,0]<br>5</div>
+                                        <div class="cell">1</div>
+                                        <div class="cell">9</div>
+                                        <div class="cell">11</div>
+                                        <div class="cell">2</div>
+                                        <div class="cell">4</div>
+                                        <div class="cell">8</div>
+                                        <div class="cell highlight-right">[0,3]<br>10</div>
+                                        <div class="cell">13</div>
+                                        <div class="cell">3</div>
+                                        <div class="cell">6</div>
+                                        <div class="cell">7</div>
+                                        <div class="cell highlight-left">[3,0]<br>15</div>
+                                        <div class="cell">14</div>
+                                        <div class="cell">12</div>
+                                        <div class="cell highlight-bottom">[3,3]<br>16</div>
+                                    </div>
+                                    <div style="margin-top: 10px;">
+                                        <p><strong>座標計算:</strong></p>
+                                        <p>layer=0, i=0, offset=0</p>
+                                        <p>top: [0][0] = 5</p>
+                                        <p>right: [0][3] = 10</p>
+                                        <p>bottom: [3][3] = 16</p>
+                                        <p>left: [3][0] = 15</p>
+                                    </div>
+                                </div>
+                                <span class="arrow">→</span>
+                                <div>
+                                    <p>回転後の4要素:</p>
+                                    <div class="matrix" style="grid-template-columns: repeat(4, 1fr);">
+                                        <div class="cell highlight-top">[0,0]<br>15</div>
+                                        <div class="cell">1</div>
+                                        <div class="cell">9</div>
+                                        <div class="cell">11</div>
+                                        <div class="cell">2</div>
+                                        <div class="cell">4</div>
+                                        <div class="cell">8</div>
+                                        <div class="cell highlight-right">[0,3]<br>5</div>
+                                        <div class="cell">13</div>
+                                        <div class="cell">3</div>
+                                        <div class="cell">6</div>
+                                        <div class="cell">7</div>
+                                        <div class="cell highlight-left">[3,0]<br>16</div>
+                                        <div class="cell">14</div>
+                                        <div class="cell">12</div>
+                                        <div class="cell highlight-bottom">[3,3]<br>10</div>
+                                    </div>
+                                    <div style="margin-top: 10px;">
+                                        <p><strong>移動:</strong></p>
+                                        <p>15 → [0,0] (left→top)</p>
+                                        <p>16 → [3,0] (bottom→left)</p>
+                                        <p>10 → [3,3] (right→bottom)</p>
+                                        <p>5 → [0,3] (top→right)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2>6. 完全なデモンストレーション</h2>
+                        <div class="step">
+                            <button onclick="demonstrateRotation()">3×3行列の完全回転デモを実行</button>
+                            <div id="demo-result"></div>
+                        </div>
+
+                        <h2>7. 計算量分析</h2>
+                        <div class="complexity">
+                            <h3>時間計算量: O(n²)</h3>
+                            <p>• 各要素を正確に1回だけ処理</p>
+                            <p>• ネストしたループだが、内部処理は定数時間</p>
+                            <p>• 最適な時間計算量（全要素を移動する必要があるため）</p>
+                        </div>
+
+                        <div class="complexity" style="background: #e67e22;">
+                            <h3>空間計算量: O(1)</h3>
+                            <p>• 一時変数のみ使用（top変数のみ）</p>
+                            <p>• 追加の配列やデータ構造は不要</p>
+                            <p>• in-place操作を実現</p>
+                        </div>
+
+                        <h2>8. アルゴリズムの利点</h2>
+                        <div class="step">
+                            <ul>
+                                <li><strong>メモリ効率</strong>: 追加のメモリを使用せずin-place操作</li>
+                                <li><strong>最適な時間計算量</strong>: 各要素を1回のみ処理</li>
+                                <li><strong>直感的</strong>: レイヤーごとの処理で理解しやすい</li>
+                                <li><strong>スケーラブル</strong>: 任意のサイズのn×n行列に対応</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <script>
+                        function demonstrateRotation() {
+                            const result = document.getElementById('demo-result');
+                            result.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <h3>3×3行列の段階的回転デモ</h3>
+                    <div class="layer-demo">
+                        <div>
+                            <p><strong>初期状態:</strong></p>
+                            <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="cell">1</div><div class="cell">2</div><div class="cell">3</div>
+                                <div class="cell">4</div><div class="cell">5</div><div class="cell">6</div>
+                                <div class="cell">7</div><div class="cell">8</div><div class="cell">9</div>
+                            </div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div>
+                            <p><strong>レイヤー0処理中:</strong></p>
+                            <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="cell highlight-top">1→7</div><div class="cell highlight-top">2→4</div><div class="cell highlight-right">3→1</div>
+                                <div class="cell highlight-left">4→8</div><div class="cell">5</div><div class="cell highlight-right">6→2</div>
+                                <div class="cell highlight-left">7→9</div><div class="cell highlight-bottom">8→6</div><div class="cell highlight-bottom">9→3</div>
+                            </div>
+                        </div>
+                        <span class="arrow">→</span>
+                        <div>
+                            <p><strong>最終結果:</strong></p>
+                            <div class="matrix" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="cell" style="background: #2ecc71; color: white;">7</div><div class="cell" style="background: #2ecc71; color: white;">4</div><div class="cell" style="background: #2ecc71; color: white;">1</div>
+                                <div class="cell" style="background: #2ecc71; color: white;">8</div><div class="cell">5</div><div class="cell" style="background: #2ecc71; color: white;">2</div>
+                                <div class="cell" style="background: #2ecc71; color: white;">9</div><div class="cell" style="background: #2ecc71; color: white;">6</div><div class="cell" style="background: #2ecc71; color: white;">3</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 15px; background: #d5f4e6; border-radius: 5px;">
+                        <p><strong>処理詳細:</strong></p>
+                        <p>1. レイヤー0で要素(1,2,3,6,9,8,7,4)を時計回りに回転</p>
+                        <p>2. 中央の要素5はレイヤー1（1要素のみ）なので移動不要</p>
+                        <p>3. 結果: [[7,4,1],[8,5,2],[9,6,3]]</p>
+                    </div>
+                </div>
+            `;
+                        }
+                    </script>
+    </body>
+
+</html>

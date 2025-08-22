@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>pow(x, n) アルゴリズム解析</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                text-align: center;
+                color: white;
+                margin-bottom: 30px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .section {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+            }
+
+            .section h2 {
+                color: #4a5568;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+                font-size: 1.8rem;
+            }
+
+            .code-block {
+                background: #1a202c;
+                color: #e2e8f0;
+                padding: 25px;
+                border-radius: 12px;
+                font-family: 'Fira Code', 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                border-left: 4px solid #667eea;
+                line-height: 1.6;
+                font-size: 14px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .algorithm-tree {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                margin: 10px;
+                font-weight: bold;
+                text-align: center;
+                min-width: 120px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                position: relative;
+            }
+
+            .tree-level {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin: 20px 0;
+            }
+
+            .arrow {
+                font-size: 2rem;
+                color: #667eea;
+                margin: 10px 0;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                border: 1px solid #ddd;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .complexity-table th {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table tr:nth-child(even) {
+                background-color: #f8f9ff;
+            }
+
+            .step-visualization {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .step-card {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .step-card h4 {
+                margin-bottom: 10px;
+                font-size: 1.2rem;
+            }
+
+            .highlight {
+                background: linear-gradient(45deg, #ffeaa7, #fab1a0);
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+                border-left: 4px solid #e17055;
+            }
+
+            .demo-section {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+
+            .interactive-button {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 1rem;
+                margin: 10px;
+                transition: transform 0.2s;
+            }
+
+            .interactive-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .result-display {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Fira Code', 'Courier New', monospace;
+                margin: 10px 0;
+                line-height: 1.8;
+                font-size: 13px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                border-left: 3px solid #4299e1;
+            }
+
+            .step-line {
+                margin: 8px 0;
+                padding: 5px 10px;
+                border-radius: 5px;
+                background: rgba(66, 153, 225, 0.1);
+            }
+
+            .step-indent-1 {
+                margin-left: 20px;
+                color: #81c784;
+            }
+
+            .step-indent-2 {
+                margin-left: 40px;
+                color: #ffb74d;
+            }
+
+            .step-indent-3 {
+                margin-left: 60px;
+                color: #f06292;
+            }
+
+            .step-result {
+                color: #64b5f6;
+                font-weight: bold;
+            }
+
+            .final-result {
+                background: rgba(76, 175, 80, 0.2);
+                border-left: 4px solid #4caf50;
+                margin-top: 15px;
+                padding: 10px;
+                font-weight: bold;
+                color: #66bb6a;
+            }
+
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .section {
+                animation: slideInUp 0.6s ease-out;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>⚡ pow(x, n) アルゴリズム解析</h1>
+                <p>高速指数演算（Fast Exponentiation）の詳細解析</p>
+            </div>
+
+            <div class="section">
+                <h2>🔧 実装コード</h2>
+                <div class="code-block">
+                    <span style="color: #68d391;">/**</span>
+                    <span style="color: #68d391;"> * x を n 乗する関数</span>
+                    <span style="color: #68d391;"> * 高速指数演算（Fast Exponentiation）を使用してO(log n)で計算</span>
+                    <span style="color: #68d391;"> * </span>
+                    <span style="color: #68d391;"> * @param {number} x - 底となる数値 (-100.0 &lt; x &lt; 100.0)</span>
+                    <span style="color: #68d391;"> * @param {number} n - 指数となる整数 (-2^31 &lt;= n &lt;= 2^31-1)</span>
+                    <span style="color: #68d391;"> * @return {number} x^n の結果</span>
+                    <span style="color: #68d391;"> */</span>
+                    <span style="color: #f56565;">var</span> <span style="color: #fbd38d;">myPow</span> = <span style="color: #f56565;">function</span>(<span style="color: #90cdf4;">x</span>, <span style="color: #90cdf4;">n</span>) {
+                    <span style="color: #68d391;">// 負の指数の場合、1/x の |n| 乗として計算</span>
+                    <span style="color: #f56565;">if</span> (n &lt; <span style="color: #fbb6ce;">0</span>) {
+                    x = <span style="color: #fbb6ce;">1</span> / x;
+                    n = -n;
+                    }
+
+                    <span style="color: #68d391;">/**</span>
+                    <span style="color: #68d391;"> * 再帰による高速指数演算の実装</span>
+                    <span style="color: #68d391;"> * </span>
+                    <span style="color: #68d391;"> * @param {number} base - 底</span>
+                    <span style="color: #68d391;"> * @param {number} exp - 指数（非負）</span>
+                    <span style="color: #68d391;"> * @return {number} base^exp の結果</span>
+                    <span style="color: #68d391;"> */</span>
+                    <span style="color: #f56565;">function</span> <span style="color: #fbd38d;">fastPow</span>(<span style="color: #90cdf4;">base</span>, <span style="color: #90cdf4;">exp</span>) {
+                    <span style="color: #68d391;">// ベースケース：指数が0の場合は1を返す</span>
+                    <span style="color: #f56565;">if</span> (exp === <span style="color: #fbb6ce;">0</span>) <span style="color: #f56565;">return</span> <span style="color: #fbb6ce;">1</span>;
+
+                    <span style="color: #68d391;">// 指数が偶数の場合：x^n = (x^2)^(n/2)</span>
+                    <span style="color: #f56565;">if</span> (exp % <span style="color: #fbb6ce;">2</span> === <span style="color: #fbb6ce;">0</span>) {
+                    <span style="color: #f56565;">const</span> <span style="color: #90cdf4;">half</span> = <span style="color: #fbd38d;">fastPow</span>(base, <span style="color: #63b3ed;">Math</span>.<span style="color: #fbd38d;">floor</span>(exp / <span style="color: #fbb6ce;">2</span>));
+                    <span style="color: #f56565;">return</span> half * half;
+                    }
+                    <span style="color: #68d391;">// 指数が奇数の場合：x^n = x * x^(n-1)</span>
+                    <span style="color: #f56565;">else</span> {
+                    <span style="color: #f56565;">return</span> base * <span style="color: #fbd38d;">fastPow</span>(base, exp - <span style="color: #fbb6ce;">1</span>);
+                    }
+                    }
+
+                    <span style="color: #f56565;">return</span> <span style="color: #fbd38d;">fastPow</span>(x, n);
+                    };
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 計算量比較</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>手法</th>
+                            <th>時間計算量</th>
+                            <th>空間計算量</th>
+                            <th>n=1000の場合の計算回数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>単純な反復</td>
+                            <td>O(n)</td>
+                            <td>O(1)</td>
+                            <td>1000回</td>
+                        </tr>
+                        <tr>
+                            <td>高速指数演算</td>
+                            <td>O(log n)</td>
+                            <td>O(log n)</td>
+                            <td>約10回</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>🌳 アルゴリズムの動作（例：2^10）</h2>
+                <div class="algorithm-tree">
+                    <div class="tree-level">
+                        <div class="tree-node">fastPow(2, 10)</div>
+                    </div>
+                    <div class="arrow">↓ 10は偶数</div>
+                    <div class="tree-level">
+                        <div class="tree-node">fastPow(2, 5) × fastPow(2, 5)</div>
+                    </div>
+                    <div class="arrow">↓ 5は奇数</div>
+                    <div class="tree-level">
+                        <div class="tree-node">2 × fastPow(2, 4)</div>
+                    </div>
+                    <div class="arrow">↓ 4は偶数</div>
+                    <div class="tree-level">
+                        <div class="tree-node">fastPow(2, 2) × fastPow(2, 2)</div>
+                    </div>
+                    <div class="arrow">↓ 2は偶数</div>
+                    <div class="tree-level">
+                        <div class="tree-node">fastPow(2, 1) × fastPow(2, 1)</div>
+                    </div>
+                    <div class="arrow">↓ 1は奇数</div>
+                    <div class="tree-level">
+                        <div class="tree-node">2 × fastPow(2, 0)</div>
+                    </div>
+                    <div class="arrow">↓ 0はベースケース</div>
+                    <div class="tree-level">
+                        <div class="tree-node">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📝 ステップバイステップ解析</h2>
+                <div class="step-visualization">
+                    <div class="step-card">
+                        <h4>Step 1: 負数処理</h4>
+                        <p>n < 0 の場合<br>x = 1/x, n = -n</p>
+                    </div>
+                    <div class="step-card">
+                        <h4>Step 2: ベースケース</h4>
+                        <p>exp === 0<br>return 1</p>
+                    </div>
+                    <div class="step-card">
+                        <h4>Step 3: 偶数の場合</h4>
+                        <p>exp % 2 === 0<br>half² を返す</p>
+                    </div>
+                    <div class="step-card">
+                        <h4>Step 4: 奇数の場合</h4>
+                        <p>exp % 2 === 1<br>base × fastPow(base, exp-1)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔍 具体例の詳細解析</h2>
+
+                <div class="highlight">
+                    <h3>例1: myPow(2, 10) = 1024</h3>
+                    <div class="result-display" id="example1">計算過程を表示中...</div>
+                </div>
+
+                <div class="highlight">
+                    <h3>例2: myPow(2.1, 3) = 9.261</h3>
+                    <div class="result-display" id="example2">計算過程を表示中...</div>
+                </div>
+
+                <div class="highlight">
+                    <h3>例3: myPow(2, -2) = 0.25</h3>
+                    <div class="result-display" id="example3">計算過程を表示中...</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎮 インタラクティブデモ</h2>
+                <div class="demo-section">
+                    <p>独自の値でテストしてみましょう：</p>
+                    <input type="number" id="baseInput" placeholder="底 (x)" value="2" step="0.1">
+                    <input type="number" id="expInput" placeholder="指数 (n)" value="10">
+                    <button class="interactive-button" onclick="calculateDemo()">計算実行</button>
+                    <div class="result-display" id="demoResult">結果が表示されます</div>
+                    <div class="result-display" id="demoSteps">計算ステップが表示されます</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🚀 最適化のポイント</h2>
+                <div class="highlight">
+                    <h4>1. 分割統治法の活用</h4>
+                    <p>指数を半分に分割することで、O(n) → O(log n) に改善</p>
+                </div>
+                <div class="highlight">
+                    <h4>2. メモ化の効果</h4>
+                    <p>同じ計算結果（half）を2回使用することで効率化</p>
+                </div>
+                <div class="highlight">
+                    <h4>3. 負数処理の工夫</h4>
+                    <p>最初に1/xに変換することで、正の指数として統一処理</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 実装したpow関数
+            var myPow = function (x, n) {
+                if (n < 0) {
+                    x = 1 / x;
+                    n = -n;
+                }
+
+                function fastPow(base, exp) {
+                    if (exp === 0) return 1;
+
+                    if (exp % 2 === 0) {
+                        const half = fastPow(base, Math.floor(exp / 2));
+                        return half * half;
+                    } else {
+                        return base * fastPow(base, exp - 1);
+                    }
+                }
+
+                return fastPow(x, n);
+            };
+
+            // 計算過程を記録する版（改良版）
+            function myPowWithSteps(x, n) {
+                let steps = [];
+                let originalX = x, originalN = n;
+
+                if (n < 0) {
+                    steps.push({
+                        type: 'negative',
+                        text: `負の指数処理: x = 1/${x} = ${1 / x}, n = ${-n}`,
+                        depth: 0
+                    });
+                    x = 1 / x;
+                    n = -n;
+                }
+
+                function fastPowWithSteps(base, exp, depth = 0) {
+                    if (exp === 0) {
+                        steps.push({
+                            type: 'base',
+                            text: `fastPow(${base}, 0) = 1 (ベースケース)`,
+                            depth: depth
+                        });
+                        return 1;
+                    }
+
+                    if (exp % 2 === 0) {
+                        steps.push({
+                            type: 'even',
+                            text: `fastPow(${base}, ${exp}) - 偶数なので半分に分割`,
+                            depth: depth
+                        });
+                        const half = fastPowWithSteps(base, Math.floor(exp / 2), depth + 1);
+                        const result = half * half;
+                        steps.push({
+                            type: 'result',
+                            text: `= ${half} × ${half} = ${result}`,
+                            depth: depth
+                        });
+                        return result;
+                    } else {
+                        steps.push({
+                            type: 'odd',
+                            text: `fastPow(${base}, ${exp}) - 奇数なので base × fastPow(base, exp-1)`,
+                            depth: depth
+                        });
+                        const recursive = fastPowWithSteps(base, exp - 1, depth + 1);
+                        const result = base * recursive;
+                        steps.push({
+                            type: 'result',
+                            text: `= ${base} × ${recursive} = ${result}`,
+                            depth: depth
+                        });
+                        return result;
+                    }
+                }
+
+                const result = fastPowWithSteps(x, n);
+                steps.push({
+                    type: 'final',
+                    text: `最終結果: ${originalX}^${originalN} = ${result}`,
+                    depth: 0
+                });
+
+                return { result, steps };
+            }
+
+            // ステップを美しく表示する関数
+            function formatSteps(stepsData) {
+                return stepsData.steps.map(step => {
+                    const indent = '  '.repeat(step.depth);
+                    const className = step.depth === 0 ? '' : `step-indent-${Math.min(step.depth, 3)}`;
+
+                    if (step.type === 'final') {
+                        return `<div class="final-result">${step.text}</div>`;
+                    } else if (step.type === 'result') {
+                        return `<div class="${className} step-result">${indent}${step.text}</div>`;
+                    } else {
+                        return `<div class="${className}">${indent}${step.text}</div>`;
+                    }
+                }).join('');
+            }
+
+            // 例題の解析を表示
+            function displayExamples() {
+                // 例1
+                const ex1 = myPowWithSteps(2, 10);
+                document.getElementById('example1').innerHTML = formatSteps(ex1);
+
+                // 例2
+                const ex2 = myPowWithSteps(2.1, 3);
+                document.getElementById('example2').innerHTML = formatSteps(ex2);
+
+                // 例3
+                const ex3 = myPowWithSteps(2, -2);
+                document.getElementById('example3').innerHTML = formatSteps(ex3);
+            }
+
+            // インタラクティブデモ
+            function calculateDemo() {
+                const base = parseFloat(document.getElementById('baseInput').value);
+                const exp = parseInt(document.getElementById('expInput').value);
+
+                if (isNaN(base) || isNaN(exp)) {
+                    document.getElementById('demoResult').innerHTML = '<span style="color: #f56565;">エラー: 有効な数値を入力してください</span>';
+                    return;
+                }
+
+                const demo = myPowWithSteps(base, exp);
+                document.getElementById('demoResult').innerHTML = `<div class="final-result">結果: ${base}^${exp} = ${demo.result}</div>`;
+                document.getElementById('demoSteps').innerHTML = formatSteps(demo);
+            }
+
+            // ページ読み込み時に例題を表示
+            window.onload = function () {
+                displayExamples();
+            };
+        </script>
+    </body>
+
+</html>

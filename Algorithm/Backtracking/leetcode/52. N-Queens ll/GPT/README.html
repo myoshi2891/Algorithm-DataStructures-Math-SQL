@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>N-Queens問題：ビットマスクアルゴリズム解析</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            .header h1 {
+                color: #2c3e50;
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .header p {
+                color: #7f8c8d;
+                font-size: 1.2rem;
+            }
+
+            .section {
+                background: rgba(255, 255, 255, 0.95);
+                margin-bottom: 30px;
+                border-radius: 15px;
+                padding: 25px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                transition: transform 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+            }
+
+            .section h2 {
+                color: #2c3e50;
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+                border-bottom: 3px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+            .code-container {
+                position: relative;
+                margin: 20px 0;
+            }
+
+            pre[class*="language-"] {
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+                font-size: 14px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                transition: box-shadow 0.3s ease;
+            }
+
+            pre[class*="language-"]:hover {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .algorithm-steps {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                margin-top: 20px;
+            }
+
+            .step {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                transition: transform 0.3s ease;
+            }
+
+            .step:hover {
+                transform: scale(1.05);
+            }
+
+            .step h3 {
+                margin-bottom: 10px;
+                font-size: 1.3rem;
+            }
+
+            .visualization {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: center;
+                margin: 20px 0;
+            }
+
+            .chessboard {
+                display: grid;
+                grid-template-columns: repeat(4, 50px);
+                grid-template-rows: repeat(4, 50px);
+                gap: 2px;
+                background: #34495e;
+                padding: 10px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .cell {
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 30px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .cell.white {
+                background: #ecf0f1;
+                color: #2c3e50;
+            }
+
+            .cell.black {
+                background: #34495e;
+                color: #ecf0f1;
+            }
+
+            .cell.queen {
+                background: #e74c3c !important;
+                color: white;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                border: 2px solid #3498db;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .complexity-table th {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table td {
+                background: #ecf0f1;
+            }
+
+            .bitmask-demo {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Fira Code', monospace;
+                margin: 20px 0;
+            }
+
+            .bit-representation {
+                display: flex;
+                align-items: center;
+                margin: 10px 0;
+            }
+
+            .bit-box {
+                width: 30px;
+                height: 30px;
+                border: 2px solid #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 2px;
+                background: #34495e;
+                color: #ecf0f1;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .bit-box.set {
+                background: #e74c3c;
+                color: white;
+            }
+
+            .bit-box:hover {
+                transform: scale(1.1);
+            }
+
+            .interactive-demo {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+            }
+
+            .demo-button {
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .demo-button:hover {
+                background: #2980b9;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔍 N-Queens問題：ビットマスクアルゴリズム解析</h1>
+                <p>バックトラッキング + ビット演算による高速化手法の詳細解説</p>
+            </div>
+
+            <div class="section">
+                <h2>📋 問題概要</h2>
+                <p><strong>N-Queens問題</strong>は、n×nのチェス盤にn個のクイーンを配置し、どのクイーンも互いに攻撃し合わないような配置の数を求める古典的な問題です。</p>
+
+                <div class="visualization">
+                    <div>
+                        <h3>4×4盤面での解1</h3>
+                        <div class="chessboard" id="solution1"></div>
+                    </div>
+                    <div>
+                        <h3>4×4盤面での解2</h3>
+                        <div class="chessboard" id="solution2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💻 TypeScriptコード実装</h2>
+                <div class="code-container">
+                    <pre class="line-numbers"><code class="language-typescript">/**
+ * n-queens puzzle の解の総数を返す関数
+ * @param n - チェス盤のサイズ (1 <= n <= 9)
+ * @returns number - n-queens の異なる解の数
+ */
+function totalNQueensGPT(n: number): number {
+    let count = 0;
+
+    /**
+     * 深さ優先探索 (バックトラッキング)
+     * @param row - 現在の行
+     * @param cols - 既に使用中の列 (bitmask)
+     * @param diag1 - 既に使用中の対角線 (↘方向, bitmask)
+     * @param diag2 - 既に使用中の対角線 (↙方向, bitmask)
+     * @returns void
+     */
+    function dfs(row: number, cols: number, diag1: number, diag2: number): void {
+        if (row === n) {
+            count++;
+            return;
+        }
+
+        // 置ける場所 (n ビット分だけ残す)
+        let available = ((1 << n) - 1) & ~(cols | diag1 | diag2);
+
+        while (available) {
+            // 最右ビットを抽出
+            const bit = available & -available;
+            available -= bit;
+            dfs(row + 1, cols | bit, (diag1 | bit) << 1, (diag2 | bit) >> 1);
+        }
+    }
+
+    dfs(0, 0, 0, 0);
+    return count;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🧠 アルゴリズムの処理ステップ</h2>
+                <div class="algorithm-steps">
+                    <div class="step">
+                        <h3>ステップ1: 初期化</h3>
+                        <p>解の数をカウントする変数countを0で初期化し、DFS関数を定義</p>
+                    </div>
+                    <div class="step">
+                        <h3>ステップ2: ベースケース</h3>
+                        <p>全ての行にクイーンを配置完了したら、解の数を1増加</p>
+                    </div>
+                    <div class="step">
+                        <h3>ステップ3: 配置可能位置計算</h3>
+                        <p>ビット演算で現在の行での配置可能な列を高速計算</p>
+                    </div>
+                    <div class="step">
+                        <h3>ステップ4: 再帰探索</h3>
+                        <p>各配置可能位置に対して再帰的にDFSを実行</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔧 ビットマスクの動作原理</h2>
+                <div class="bitmask-demo">
+                    <h3>n=4の場合のビット表現例：</h3>
+                    <div class="bit-representation">
+                        <span style="margin-right: 15px;">cols (列制約):</span>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box set">1</div>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box set">1</div>
+                        <span style="margin-left: 15px;">→ 列1と3が使用中</span>
+                    </div>
+                    <div class="bit-representation">
+                        <span style="margin-right: 15px;">diag1 (↘対角線):</span>
+                        <div class="bit-box set">1</div>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box set">1</div>
+                        <div class="bit-box">0</div>
+                        <span style="margin-left: 15px;">→ 対角線制約</span>
+                    </div>
+                    <div class="bit-representation">
+                        <span style="margin-right: 15px;">diag2 (↙対角線):</span>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box set">1</div>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box set">1</div>
+                        <span style="margin-left: 15px;">→ 対角線制約</span>
+                    </div>
+                    <div class="bit-representation">
+                        <span style="margin-right: 15px;">available:</span>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box">0</div>
+                        <div class="bit-box">0</div>
+                        <span style="margin-left: 15px;">→ 配置可能位置なし</span>
+                    </div>
+                </div>
+
+                <h3>重要なビット演算：</h3>
+                <ul style="margin-top: 15px; line-height: 1.8;">
+                    <li><code>((1 << n) - 1)</code>: n個の1からなるビットマスク生成</li>
+                    <li><code>available & -available</code>: 最右の1ビットを抽出</li>
+                    <li><code>(diag1 | bit) << 1</code>: 次行での↘対角線制約更新</li>
+                    <li><code>(diag2 | bit) >> 1</code>: 次行での↙対角線制約更新</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>⏱️ 計算量解析</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>従来手法</th>
+                            <th>ビットマスク手法</th>
+                            <th>改善効果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>衝突判定</td>
+                            <td>O(n)</td>
+                            <td>O(1)</td>
+                            <td>大幅改善</td>
+                        </tr>
+                        <tr>
+                            <td>時間計算量</td>
+                            <td>O(n! × n)</td>
+                            <td>O(n!)</td>
+                            <td>n倍高速化</td>
+                        </tr>
+                        <tr>
+                            <td>空間計算量</td>
+                            <td>O(n²)</td>
+                            <td>O(n)</td>
+                            <td>メモリ効率化</td>
+                        </tr>
+                        <tr>
+                            <td>n=8での実行速度</td>
+                            <td>遅い</td>
+                            <td>高速</td>
+                            <td>実用的</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>🎯 アルゴリズムの特徴</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: #3498db; color: white; padding: 20px; border-radius: 10px;">
+                        <h3>✅ 利点</h3>
+                        <ul style="margin-top: 10px; line-height: 1.6;">
+                            <li>O(1)での衝突判定</li>
+                            <li>メモリ効率が良い</li>
+                            <li>コードが簡潔</li>
+                            <li>高速な実行速度</li>
+                        </ul>
+                    </div>
+                    <div style="background: #e74c3c; color: white; padding: 20px; border-radius: 10px;">
+                        <h3>⚠️ 注意点</h3>
+                        <ul style="margin-top: 10px; line-height: 1.6;">
+                            <li>ビット演算の理解が必要</li>
+                            <li>デバッグが困難</li>
+                            <li>nの上限（通常32ビット）</li>
+                            <li>可読性がやや劣る</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="interactive-demo">
+                    <h2>🎮 インタラクティブデモ</h2>
+                    <p>異なるnの値でのアルゴリズム実行結果：</p>
+                    <button class="demo-button" onclick="runDemo(1)">n=1</button>
+                    <button class="demo-button" onclick="runDemo(4)">n=4</button>
+                    <button class="demo-button" onclick="runDemo(8)">n=8</button>
+                    <div id="demo-result" style="margin-top: 20px; font-size: 18px; font-weight: bold;"></div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <script>
+            // N-Queens solver implementation
+            function totalNQueensGPT(n) {
+                let count = 0;
+
+                function dfs(row, cols, diag1, diag2) {
+                    if (row === n) {
+                        count++;
+                        return;
+                    }
+
+                    let available = ((1 << n) - 1) & ~(cols | diag1 | diag2);
+
+                    while (available) {
+                        const bit = available & -available;
+                        available -= bit;
+                        dfs(row + 1, cols | bit, (diag1 | bit) << 1, (diag2 | bit) >> 1);
+                    }
+                }
+
+                dfs(0, 0, 0, 0);
+                return count;
+            }
+
+            // Initialize chessboards with solutions
+            function initializeChessboards() {
+                // Solution 1: Queens at (0,1), (1,3), (2,0), (3,2)
+                const solution1 = [
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 1],
+                    [1, 0, 0, 0],
+                    [0, 0, 1, 0]
+                ];
+
+                // Solution 2: Queens at (0,2), (1,0), (2,3), (3,1)
+                const solution2 = [
+                    [0, 0, 1, 0],
+                    [1, 0, 0, 0],
+                    [0, 0, 0, 1],
+                    [0, 1, 0, 0]
+                ];
+
+                renderChessboard('solution1', solution1);
+                renderChessboard('solution2', solution2);
+            }
+
+            function renderChessboard(elementId, solution) {
+                const board = document.getElementById(elementId);
+                board.innerHTML = '';
+
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = `cell ${(i + j) % 2 === 0 ? 'white' : 'black'}`;
+
+                        if (solution[i][j] === 1) {
+                            cell.textContent = '♛';
+                            cell.className += ' queen';
+                        }
+
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            function runDemo(n) {
+                const startTime = performance.now();
+                const result = totalNQueensGPT(n);
+                const endTime = performance.now();
+                const executionTime = (endTime - startTime).toFixed(2);
+
+                document.getElementById('demo-result').innerHTML =
+                    `n=${n} の場合: <strong>${result}</strong> 通りの解 (実行時間: ${executionTime}ms)`;
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeChessboards();
+            });
+        </script>
+    </body>
+
+</html>

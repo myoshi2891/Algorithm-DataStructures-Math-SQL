@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DPアルゴリズム：最長逆背の順区間解析</title>
+
+        <!-- Prism.js CSS -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            h1 {
+                text-align: center;
+                color: white;
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .section {
+                background: white;
+                margin: 20px 0;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .section h2 {
+                color: #4a5568;
+                margin-bottom: 20px;
+                font-size: 1.8rem;
+                border-left: 4px solid #667eea;
+                padding-left: 15px;
+            }
+
+            /* Code blocks */
+            pre[class*="language-"] {
+                margin: 20px 0;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                overflow-x: auto;
+            }
+
+            code[class*="language-"] {
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid #3c4043;
+            }
+
+            /* Visual simulation */
+            .simulation-container {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                border: 2px solid #e9ecef;
+            }
+
+            .array-visualization {
+                display: flex;
+                justify-content: center;
+                align-items: flex-end;
+                margin: 20px 0;
+                padding: 20px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .height-bar {
+                width: 60px;
+                margin: 0 5px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 8px 8px 0 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: white;
+                font-weight: bold;
+                position: relative;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .height-bar:hover {
+                transform: scale(1.1);
+                z-index: 10;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .height-value {
+                position: absolute;
+                top: -25px;
+                background: #333;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+
+            .index-label {
+                position: absolute;
+                bottom: -25px;
+                color: #666;
+                font-size: 12px;
+            }
+
+            .dp-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .dp-table th,
+            .dp-table td {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid #e9ecef;
+                transition: background-color 0.3s ease;
+            }
+
+            .dp-table th {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+            }
+
+            .dp-table tr:hover td {
+                background-color: #f8f9fa;
+            }
+
+            .highlight {
+                background-color: #fff3cd !important;
+                border: 2px solid #ffc107 !important;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .step-explanation {
+                background: #e7f3ff;
+                border-left: 4px solid #2196f3;
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .algorithm-flow {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .flow-step {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 25px;
+                margin: 10px;
+                flex: 1;
+                min-width: 200px;
+                text-align: center;
+                font-weight: bold;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .flow-step:hover {
+                transform: scale(1.05);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .flow-step::after {
+                content: '→';
+                position: absolute;
+                right: -20px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 20px;
+                color: #667eea;
+            }
+
+            .flow-step:last-child::after {
+                display: none;
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #ff6b6b, #feca57);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                margin: 20px 0;
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+
+            .interactive-btn {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .interactive-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            @media (max-width: 768px) {
+                .algorithm-flow {
+                    flex-direction: column;
+                }
+
+                .flow-step::after {
+                    content: '↓';
+                    right: auto;
+                    bottom: -20px;
+                    top: auto;
+                }
+
+                .array-visualization {
+                    overflow-x: auto;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🔄 DPアルゴリズム：最長逆背の順区間解析</h1>
+
+            <div class="section">
+                <h2>📋 問題概要</h2>
+                <p>n人が横一列に並んでおり、区間[l, r]内で身長が非増加（a[i] ≥ a[i+1]）になっている最長区間の長さを求める問題です。</p>
+
+                <div class="step-explanation">
+                    <strong>入力例：</strong> heights = [187, 192, 115, 108, 109]<br>
+                    <strong>期待出力：</strong> 3（区間[1,3]: 192 → 115 → 108）
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 入力データの視覚化</h2>
+                <div class="simulation-container">
+                    <div class="array-visualization" id="heightsViz">
+                        <!-- JavaScript で動的生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🧮 動的プログラミング解法</h2>
+
+                <div class="algorithm-flow">
+                    <div class="flow-step">初期化<br>dp[0] = 1</div>
+                    <div class="flow-step">遷移式適用<br>比較・更新</div>
+                    <div class="flow-step">最大値取得<br>max(dp)</div>
+                </div>
+
+                <pre class="line-numbers"><code class="language-python">def find_longest_decreasing_interval_dp_optimized(n: int, heights: list[int]) -> int:
+    """
+    空間最適化版のDP解法
+    
+    Args:
+        n (int): 人数
+        heights (list[int]): 各人の身長のリスト
+    
+    Returns:
+        int: 最長の逆背の順区間の長さ
+    
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    """
+    if n == 0:
+        return 0
+    if n == 1:
+        return 1
+    
+    max_length: int = 1  # 全体での最大長
+    current_dp: int = 1  # dp[i]に相当（現在位置での最長区間長）
+    
+    for i in range(1, n):
+        if heights[i-1] >= heights[i]:  # 非増加条件を満たす場合
+            current_dp += 1  # 前の区間を延長
+        else:
+            current_dp = 1  # 新しい区間開始
+        
+        max_length = max(max_length, current_dp)
+    
+    return max_length</code></pre>
+            </div>
+
+            <div class="section">
+                <h2>🔍 ステップバイステップ解析</h2>
+                <div class="simulation-container">
+                    <button class="interactive-btn" onclick="runSimulation()">シミュレーション実行</button>
+                    <button class="interactive-btn" onclick="resetSimulation()">リセット</button>
+
+                    <table class="dp-table" id="dpTable">
+                        <thead>
+                            <tr>
+                                <th>ステップ</th>
+                                <th>i</th>
+                                <th>heights[i-1]</th>
+                                <th>heights[i]</th>
+                                <th>条件</th>
+                                <th>current_dp</th>
+                                <th>max_length</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dpTableBody">
+                            <!-- JavaScript で動的生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚡ 計算量解析</h2>
+                <div class="complexity-box">
+                    <div>⏱️ 時間計算量: O(n)</div>
+                    <div>💾 空間計算量: O(1)</div>
+                </div>
+
+                <div class="step-explanation">
+                    <strong>最適化ポイント：</strong>
+                    <ul>
+                        <li>DPテーブル全体を保持せず、必要な状態のみ記録</li>
+                        <li>一回のスキャンで最適解を取得</li>
+                        <li>メモリ使用量を定数に抑制</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 3つのDP手法比較</h2>
+
+                <pre class="line-numbers"><code class="language-python"># 手法1: 基本DP（配列版）
+def basic_dp(n: int, heights: list[int]) -> int:
+    dp = [1] * n  # O(n)空間
+    for i in range(1, n):
+        if heights[i-1] >= heights[i]:
+            dp[i] = dp[i-1] + 1
+        else:
+            dp[i] = 1
+    return max(dp)
+
+# 手法2: 空間最適化版（推奨）
+def optimized_dp(n: int, heights: list[int]) -> int:
+    max_length, current_dp = 1, 1  # O(1)空間
+    for i in range(1, n):
+        if heights[i-1] >= heights[i]:
+            current_dp += 1
+        else:
+            current_dp = 1
+        max_length = max(max_length, current_dp)
+    return max_length
+
+# 手法3: 全区間DP（参考用）
+def all_intervals_dp(n: int, heights: list[int]) -> int:
+    dp = [[False] * n for _ in range(n)]  # O(n²)空間
+    # 全区間を2重ループで確認 O(n²)時間
+    # ...</code></pre>
+            </div>
+        </div>
+
+        <!-- Prism.js JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <script>
+            // サンプルデータ
+            const sampleHeights = [187, 192, 115, 108, 109];
+            let currentStep = 0;
+            let simulationData = [];
+
+            // 高さデータの視覚化
+            function visualizeHeights() {
+                const container = document.getElementById('heightsViz');
+                const maxHeight = Math.max(...sampleHeights);
+
+                container.innerHTML = '';
+                sampleHeights.forEach((height, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'height-bar';
+                    bar.style.height = `${(height / maxHeight) * 150}px`;
+
+                    const heightValue = document.createElement('div');
+                    heightValue.className = 'height-value';
+                    heightValue.textContent = height;
+
+                    const indexLabel = document.createElement('div');
+                    indexLabel.className = 'index-label';
+                    indexLabel.textContent = index;
+
+                    bar.appendChild(heightValue);
+                    bar.appendChild(indexLabel);
+                    container.appendChild(bar);
+
+                    // ホバー効果
+                    bar.addEventListener('mouseenter', () => {
+                        bar.style.transform = 'scale(1.1)';
+                        heightValue.style.background = '#667eea';
+                    });
+
+                    bar.addEventListener('mouseleave', () => {
+                        bar.style.transform = 'scale(1)';
+                        heightValue.style.background = '#333';
+                    });
+                });
+            }
+
+            // DPシミュレーションデータ生成
+            function generateSimulationData() {
+                simulationData = [];
+                let maxLength = 1;
+                let currentDp = 1;
+
+                simulationData.push({
+                    step: 0,
+                    i: 0,
+                    prevHeight: '-',
+                    currHeight: sampleHeights[0],
+                    condition: '初期値',
+                    currentDp: 1,
+                    maxLength: 1
+                });
+
+                for (let i = 1; i < sampleHeights.length; i++) {
+                    if (sampleHeights[i - 1] >= sampleHeights[i]) {
+                        currentDp += 1;
+                    } else {
+                        currentDp = 1;
+                    }
+                    maxLength = Math.max(maxLength, currentDp);
+
+                    simulationData.push({
+                        step: i,
+                        i: i,
+                        prevHeight: sampleHeights[i - 1],
+                        currHeight: sampleHeights[i],
+                        condition: sampleHeights[i - 1] >= sampleHeights[i] ? `${sampleHeights[i - 1]} ≥ ${sampleHeights[i]} ✅` : `${sampleHeights[i - 1]} < ${sampleHeights[i]} ❌`,
+                        currentDp: currentDp,
+                        maxLength: maxLength
+                    });
+                }
+            }
+
+            // DPテーブル初期表示
+            function initializeTable() {
+                const tbody = document.getElementById('dpTableBody');
+                tbody.innerHTML = '';
+
+                simulationData.forEach((data, index) => {
+                    const row = document.createElement('tr');
+                    row.id = `row-${index}`;
+                    row.innerHTML = `
+                    <td>${data.step}</td>
+                    <td>${data.i}</td>
+                    <td>${data.prevHeight}</td>
+                    <td>${data.currHeight}</td>
+                    <td>${data.condition}</td>
+                    <td>${data.currentDp}</td>
+                    <td>${data.maxLength}</td>
+                `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            // シミュレーション実行
+            function runSimulation() {
+                currentStep = 0;
+                const interval = setInterval(() => {
+                    if (currentStep < simulationData.length) {
+                        // 前のハイライトを削除
+                        document.querySelectorAll('.highlight').forEach(el => {
+                            el.classList.remove('highlight');
+                        });
+
+                        // 現在のステップをハイライト
+                        const currentRow = document.getElementById(`row-${currentStep}`);
+                        currentRow.classList.add('highlight');
+
+                        // 高さバーもハイライト
+                        const bars = document.querySelectorAll('.height-bar');
+                        bars.forEach((bar, index) => {
+                            bar.style.opacity = index <= currentStep ? '1' : '0.3';
+                        });
+
+                        currentStep++;
+                    } else {
+                        clearInterval(interval);
+                        // 最終結果をハイライト
+                        const maxLengthCells = document.querySelectorAll('td:last-child');
+                        maxLengthCells[maxLengthCells.length - 1].style.background = '#28a745';
+                        maxLengthCells[maxLengthCells.length - 1].style.color = 'white';
+                    }
+                }, 1500);
+            }
+
+            // リセット
+            function resetSimulation() {
+                currentStep = 0;
+                document.querySelectorAll('.highlight').forEach(el => {
+                    el.classList.remove('highlight');
+                });
+
+                const bars = document.querySelectorAll('.height-bar');
+                bars.forEach(bar => {
+                    bar.style.opacity = '1';
+                });
+
+                const maxLengthCells = document.querySelectorAll('td:last-child');
+                maxLengthCells.forEach(cell => {
+                    cell.style.background = '';
+                    cell.style.color = '';
+                });
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', () => {
+                visualizeHeights();
+                generateSimulationData();
+                initializeTable();
+            });
+        </script>
+    </body>
+
+</html>

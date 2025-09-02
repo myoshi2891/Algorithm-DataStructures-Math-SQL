@@ -1,5 +1,5 @@
 /** @type {import("prettier").Config} */
-module.exports = {
+export default {
     semi: true, // 文末にセミコロンを付ける
     singleQuote: true, // シングルクォートを使用
     trailingComma: "all", // 複数行の配列・オブジェクトなどの末尾にカンマを付ける

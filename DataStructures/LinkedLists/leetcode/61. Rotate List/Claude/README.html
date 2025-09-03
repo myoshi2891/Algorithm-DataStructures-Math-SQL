@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rotate Right List Algorithm - Technical Analysis</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            /* カスタムCSS - Tailwindクラスの統合 */
+            .card-base {
+                background: #1f2937;
+                border-radius: 12px;
+                padding: 24px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                border: 1px solid #374151;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #1d4ed8, #1e40af);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+
+            .btn-secondary {
+                background: #374151;
+                color: #d1d5db;
+                padding: 8px 16px;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+            }
+
+            .btn-secondary:hover {
+                background: #4b5563;
+                color: white;
+            }
+
+            .tab-active {
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+            }
+
+            .node-box {
+                background: #3b82f6;
+                color: white;
+                width: 80px;
+                height: 80px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 18px;
+                margin: 0 8px;
+                transition: all 0.5s ease;
+                border: 3px solid transparent;
+            }
+
+            .node-highlight {
+                background: #f59e0b;
+                border-color: #fbbf24;
+                transform: scale(1.1);
+                box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+            }
+
+            .arrow {
+                width: 40px;
+                height: 4px;
+                background: #6b7280;
+                position: relative;
+                margin: 0 4px;
+            }
+
+            .arrow::after {
+                content: '';
+                position: absolute;
+                right: -8px;
+                top: -6px;
+                width: 0;
+                height: 0;
+                border-left: 8px solid #6b7280;
+                border-top: 7px solid transparent;
+                border-bottom: 7px solid transparent;
+            }
+
+            /* コードブロック - 修正版 */
+            .code-container {
+                background: #0f172a;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid #1e293b;
+                font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, monospace;
+            }
+
+            .code-header {
+                background: #1e293b;
+                padding: 12px 16px;
+                border-bottom: 1px solid #334155;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .code-content {
+                display: flex;
+                position: relative;
+                overflow-x: auto;
+            }
+
+            .line-numbers {
+                background: #1e293b;
+                color: #64748b;
+                padding: 16px 12px;
+                font-size: 14px;
+                line-height: 1.6;
+                user-select: none;
+                border-right: 1px solid #334155;
+                text-align: right;
+                min-width: 50px;
+                white-space: pre;
+                flex-shrink: 0;
+            }
+
+            .code-text {
+                padding: 16px;
+                color: #e2e8f0;
+                font-size: 14px;
+                line-height: 1.6;
+                white-space: pre;
+                overflow-x: auto;
+                flex: 1;
+                margin: 0;
+            }
+
+            .step-indicator {
+                background: #374151;
+                color: #d1d5db;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 16px;
+                transition: all 0.3s ease;
+            }
+
+            .step-active {
+                background: #10b981;
+                color: white;
+                transform: scale(1.2);
+                box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            }
+
+            .fade-in {
+                animation: fadeIn 0.8s ease-in-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .slide-up {
+                animation: slideUp 0.6s ease-out;
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            /* ベンチマーク警告 */
+            .benchmark-warning {
+                background: #fbbf24;
+                color: #92400e;
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 16px;
+                border: 1px solid #f59e0b;
+            }
+
+            /* スクロールバー */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #1f2937;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #4b5563;
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #6b7280;
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-900 text-white min-h-screen">
+        <!-- ヘッダー -->
+        <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <h1 class="text-xl font-bold text-blue-400">Rotate Right Algorithm Analysis</h1>
+                    <div class="flex space-x-4">
+                        <button id="theme-toggle" class="btn-secondary">🌙 Dark</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- タブナビゲーション -->
+            <nav class="flex space-x-1 mb-8" role="tablist">
+                <button class="btn-secondary tab-btn tab-active" data-tab="overview">概要</button>
+                <button class="btn-secondary tab-btn" data-tab="algorithm">アルゴリズム</button>
+                <button class="btn-secondary tab-btn" data-tab="visualization">可視化</button>
+                <button class="btn-secondary tab-btn" data-tab="implementation">実装</button>
+                <button class="btn-secondary tab-btn" data-tab="performance">性能分析</button>
+            </nav>
+
+            <!-- タブコンテンツ -->
+
+            <!-- 概要タブ -->
+            <div id="overview" class="tab-content fade-in">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-green-400 mb-4">問題概要</h2>
+                        <p class="text-gray-300 mb-4">
+                            リンクリストを右にk箇所回転させるアルゴリズムの技術解説です。
+                            このアルゴリズムは以下の特徴を持ちます：
+                        </p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li>時間計算量: O(n) - リストを一度だけ走査</li>
+                            <li>空間計算量: O(1) - 定数の追加メモリのみ使用</li>
+                            <li>型安全性: TypeScriptによる完全な型保証</li>
+                            <li>エラーハンドリング: 包括的な入力検証</li>
+                        </ul>
+                    </div>
+
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-blue-400 mb-4">基本例</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">入力: [1,2,3,4,5], k=2</p>
+                                <div class="flex items-center justify-center">
+                                    <div class="node-box">1</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">2</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">3</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">4</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">5</div>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">出力: [4,5,1,2,3]</p>
+                                <div class="flex items-center justify-center">
+                                    <div class="node-box" style="background: #10b981;">4</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box" style="background: #10b981;">5</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">1</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">2</div>
+                                    <div class="arrow"></div>
+                                    <div class="node-box">3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アルゴリズムタブ -->
+            <div id="algorithm" class="tab-content hidden">
+                <div class="card-base mb-8">
+                    <h2 class="text-2xl font-bold text-green-400 mb-6">アルゴリズムステップ</h2>
+                    <div class="space-y-6">
+                        <div class="flex items-start" data-step="1">
+                            <div class="step-indicator step-active">1</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-yellow-400">長さと末尾の特定</h3>
+                                <p class="text-gray-300">リストを走査してノード数をカウントし、末尾ノードを特定します。</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start" data-step="2">
+                            <div class="step-indicator">2</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-yellow-400">実際の回転数計算</h3>
+                                <p class="text-gray-300">k % length で最適化された回転数を計算します。</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start" data-step="3">
+                            <div class="step-indicator">3</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-yellow-400">新しい末尾の特定</h3>
+                                <p class="text-gray-300">length - actualRotations - 1 の位置にある新しい末尾ノードを見つけます。</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start" data-step="4">
+                            <div class="step-indicator">4</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-yellow-400">ポインタの付け替え</h3>
+                                <p class="text-gray-300">新しい末尾のnextをnullに、元の末尾のnextを元の先頭に設定します。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button id="step-next" class="btn-primary mr-4">次のステップ</button>
+                        <button id="step-reset" class="btn-secondary">リセット</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 可視化タブ -->
+            <div id="visualization" class="tab-content hidden">
+                <div class="card-base">
+                    <h2 class="text-2xl font-bold text-blue-400 mb-6">インタラクティブ可視化</h2>
+
+                    <div class="mb-6">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <label class="text-sm font-medium">リスト:</label>
+                            <input type="text" id="list-input" value="1,2,3,4,5" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white">
+                            <label class="text-sm font-medium">k:</label>
+                            <input type="number" id="k-input" value="2" min="0" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white w-20">
+                            <button id="visualize-btn" class="btn-primary">可視化実行</button>
+                        </div>
+
+                        <div class="flex items-center space-x-4">
+                            <label class="text-sm font-medium">速度:</label>
+                            <input type="range" id="speed-slider" min="1" max="5" value="3" class="flex-1 max-w-xs">
+                            <span id="speed-label" class="text-sm">普通</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-yellow-400">元のリスト</h3>
+                            <div id="original-list" class="flex items-center justify-center flex-wrap"></div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-green-400">処理中のリスト</h3>
+                            <div id="processing-list" class="flex items-center justify-center flex-wrap"></div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-blue-400">結果のリスト</h3>
+                            <div id="result-list" class="flex items-center justify-center flex-wrap"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <div id="step-info" class="bg-gray-800 rounded-lg p-4">
+                            <h4 class="font-semibold text-yellow-400 mb-2">現在のステップ</h4>
+                            <p id="step-description" class="text-gray-300">可視化を開始してください</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 実装タブ -->
+            <div id="implementation" class="tab-content hidden">
+                <div class="space-y-8">
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-purple-400 mb-6">核心部分の実装</h2>
+
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span class="text-sm text-gray-400">TypeScript Implementation</span>
+                                <button class="btn-secondary text-xs" onclick="copyCode('main-code')">📋 コピー</button>
+                            </div>
+                            <div class="code-content">
+                                <div class="line-numbers" id="line-numbers-main"></div>
+                                <pre class="code-text" id="main-code">function rotateRight&lt;T = number&gt;(
+    head: ListNode&lt;T&gt; | null,
+    k: number
+): ListNode&lt;T&gt; | null {
+    // Step 1: エッジケースの処理
+    if (!head || !head.next || k === 0) {
+        return head;
+    }
+    
+    // Step 2: 長さと末尾を特定
+    const { length, tail } = findLengthAndTail(head);
+    
+    // Step 3: 実際の回転数を計算
+    const actualRotations = k % length;
+    if (actualRotations === 0) {
+        return head;
+    }
+    
+    // Step 4: 新しい末尾を見つける
+    const newTail = findNewTail(head, length - actualRotations - 1);
+    
+    // Step 5: 新しい先頭を設定
+    const newHead = newTail.next;
+    
+    // Step 6: ポインタを付け替え
+    newTail.next = null;    // 新しい末尾
+    tail.next = head;       // 循環を作成
+    
+    return newHead;
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-orange-400 mb-6">ヘルパー関数</h2>
+
+                        <div class="code-container">
+                            <div class="code-header">
+                                <span class="text-sm text-gray-400">Helper Functions</span>
+                                <button class="btn-secondary text-xs" onclick="copyCode('helper-code')">📋 コピー</button>
+                            </div>
+                            <div class="code-content">
+                                <div class="line-numbers" id="line-numbers-helper"></div>
+                                <pre class="code-text" id="helper-code">function findLengthAndTail&lt;T&gt;(
+    head: NonNullListNode&lt;T&gt;
+): { length: number; tail: ListNode&lt;T&gt; } {
+    let length = 1;
+    let current = head;
+    
+    while (current.next) {
+        current = current.next;
+        length++;
+    }
+    
+    return { length, tail: current };
+}
+
+function findNewTail&lt;T&gt;(head: ListNode&lt;T&gt;, steps: number): ListNode&lt;T&gt; {
+    let current = head;
+    
+    for (let i = 0; i &lt; steps; i++) {
+        if (!current.next) {
+            throw new Error('Internal error: unexpected end of list');
+        }
+        current = current.next;
+    }
+    
+    return current;
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 性能分析タブ -->
+            <div id="performance" class="tab-content hidden">
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-red-400 mb-6">時間計算量分析</h2>
+
+                        <div class="space-y-4">
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <h3 class="font-semibold text-yellow-400 mb-2">O(n) - 線形時間</h3>
+                                <p class="text-sm text-gray-300">
+                                    リストを一度だけ走査するため、ノード数nに比例した時間がかかります。
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <h3 class="font-semibold text-blue-400 mb-2">詳細分析</h3>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    <li>• 長さ計算: O(n)</li>
+                                    <li>• 新しい末尾探索: O(n)</li>
+                                    <li>• ポインタ付け替え: O(1)</li>
+                                    <li>• 全体: O(n) + O(n) + O(1) = O(n)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-base">
+                        <h2 class="text-2xl font-bold text-green-400 mb-6">空間計算量分析</h2>
+
+                        <div class="space-y-4">
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <h3 class="font-semibold text-yellow-400 mb-2">O(1) - 定数空間</h3>
+                                <p class="text-sm text-gray-300">
+                                    元のリスト構造を再利用し、追加の配列やデータ構造を使用しません。
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <h3 class="font-semibold text-blue-400 mb-2">メモリ使用量</h3>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    <li>• 変数: length, tail, newTail, newHead</li>
+                                    <li>• すべて定数個のポインタ</li>
+                                    <li>• 入力サイズに依存しない</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-base mt-8">
+                    <h2 class="text-2xl font-bold text-purple-400 mb-6">ベンチマークについて</h2>
+
+                    <div class="benchmark-warning">
+                        <h3 class="font-semibold mb-2">⚠️ 注意事項</h3>
+                        <p class="text-sm">
+                            このデモは教育目的であり、実際のベンチマークは含まれていません。
+                            実際のリンクリストの性能測定には、適切なリンクリスト実装とNode.js環境での測定が必要です。
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-blue-400">理論的性能特性</h3>
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <ul class="text-sm text-gray-300 space-y-2">
+                                <li>• <strong>時間計算量:</strong> O(n) - リストサイズに比例</li>
+                                <li>• <strong>空間計算量:</strong> O(1) - 定数空間</li>
+                                <li>• <strong>実際の性能:</strong> メモリアクセスパターンとキャッシュ効率に依存</li>
+                                <li>• <strong>最適化のポイント:</strong> k % length の事前計算による不要な回転の回避</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <h4 class="font-semibold text-yellow-400 mb-2">実装時の考慮事項</h4>
+                            <ul class="text-sm text-gray-300 space-y-1">
+                                <li>• リストが空またはk=0の場合の早期リターン</li>
+                                <li>• k がリスト長より大きい場合の最適化</li>
+                                <li>• 型安全性とエラーハンドリング</li>
+                                <li>• メモリ効率的なポインタ操作</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // グローバル変数
+            let currentStep = 1;
+            let maxSteps = 4;
+            let visualizationState = {
+                originalList: [],
+                k: 0,
+                currentStep: 0,
+                processing: false
+            };
+
+            // ユーティリティ関数
+            function createElement(tag, className = '', textContent = '') {
+                const element = document.createElement(tag);
+                if (className) element.className = className;
+                if (textContent) element.textContent = textContent;
+                return element;
+            }
+
+            function createNodeElement(value, highlight = false) {
+                const node = createElement('div', `node-box ${highlight ? 'node-highlight' : ''}`, value);
+                return node;
+            }
+
+            function createArrowElement() {
+                return createElement('div', 'arrow');
+            }
+
+            // タブ機能
+            function initializeTabs() {
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                const tabContents = document.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetTab = button.getAttribute('data-tab');
+
+                        // アクティブタブの更新
+                        tabButtons.forEach(btn => btn.classList.remove('tab-active'));
+                        button.classList.add('tab-active');
+
+                        // コンテンツの表示切り替え
+                        tabContents.forEach(content => {
+                            content.classList.add('hidden');
+                            content.classList.remove('fade-in');
+                        });
+
+                        const activeContent = document.getElementById(targetTab);
+                        activeContent.classList.remove('hidden');
+                        activeContent.classList.add('fade-in');
+                    });
+                });
+            }
+
+            // ステップ機能
+            function initializeStepFunction() {
+                const nextButton = document.getElementById('step-next');
+                const resetButton = document.getElementById('step-reset');
+
+                nextButton.addEventListener('click', () => {
+                    if (currentStep < maxSteps) {
+                        // 現在のステップを非アクティブ化
+                        document.querySelector(`[data-step="${currentStep}"] .step-indicator`)
+                            .classList.remove('step-active');
+
+                        currentStep++;
+
+                        // 次のステップをアクティブ化
+                        document.querySelector(`[data-step="${currentStep}"] .step-indicator`)
+                            .classList.add('step-active');
+                    }
+                });
+
+                resetButton.addEventListener('click', () => {
+                    // すべてのステップを非アクティブ化
+                    document.querySelectorAll('.step-indicator')
+                        .forEach(indicator => indicator.classList.remove('step-active'));
+
+                    currentStep = 1;
+
+                    // 最初のステップをアクティブ化
+                    document.querySelector(`[data-step="1"] .step-indicator`)
+                        .classList.add('step-active');
+                });
+            }
+
+            // 可視化機能
+            function initializeVisualization() {
+                const visualizeBtn = document.getElementById('visualize-btn');
+                const speedSlider = document.getElementById('speed-slider');
+                const speedLabel = document.getElementById('speed-label');
+
+                // 速度スライダー
+                const speedLabels = ['とても遅い', '遅い', '普通', '速い', 'とても速い'];
+                speedSlider.addEventListener('input', (e) => {
+                    speedLabel.textContent = speedLabels[e.target.value - 1];
+                });
+
+                visualizeBtn.addEventListener('click', runVisualization);
+            }
+
+            function runVisualization() {
+                const listInput = document.getElementById('list-input').value;
+                const kInput = parseInt(document.getElementById('k-input').value);
+
+                const values = listInput.split(',').map(v => v.trim()).filter(v => v);
+                visualizationState = {
+                    originalList: values,
+                    k: kInput,
+                    currentStep: 0,
+                    processing: true
+                };
+
+                displayOriginalList();
+                startVisualizationAnimation();
+            }
+
+            function displayOriginalList() {
+                const container = document.getElementById('original-list');
+                container.innerHTML = '';
+
+                visualizationState.originalList.forEach((value, index) => {
+                    container.appendChild(createNodeElement(value));
+                    if (index < visualizationState.originalList.length - 1) {
+                        container.appendChild(createArrowElement());
+                    }
+                });
+            }
+
+            function startVisualizationAnimation() {
+                const steps = [
+                    { description: '元のリストを表示しています', action: showOriginalStep },
+                    { description: 'リストの長さと末尾を特定しています', action: findLengthStep },
+                    { description: '実際の回転数を計算しています', action: calculateRotationsStep },
+                    { description: '新しい末尾を特定しています', action: findNewTailStep },
+                    { description: 'ポインタを付け替えて回転を完了しています', action: rotateStep }
+                ];
+
+                let stepIndex = 0;
+                const speed = parseInt(document.getElementById('speed-slider').value);
+                const delay = 6000 / speed; // 速度に応じた遅延
+
+                function executeStep() {
+                    if (stepIndex < steps.length) {
+                        const step = steps[stepIndex];
+                        document.getElementById('step-description').textContent = step.description;
+                        step.action();
+                        stepIndex++;
+                        setTimeout(executeStep, delay);
+                    } else {
+                        document.getElementById('step-description').textContent = '可視化完了';
+                        visualizationState.processing = false;
+                    }
+                }
+
+                executeStep();
+            }
+
+            function showOriginalStep() {
+                const container = document.getElementById('processing-list');
+                container.innerHTML = '';
+
+                visualizationState.originalList.forEach((value, index) => {
+                    container.appendChild(createNodeElement(value));
+                    if (index < visualizationState.originalList.length - 1) {
+                        container.appendChild(createArrowElement());
+                    }
+                });
+            }
+
+            function findLengthStep() {
+                const container = document.getElementById('processing-list');
+                const nodes = container.querySelectorAll('.node-box');
+
+                nodes.forEach((node, index) => {
+                    setTimeout(() => {
+                        node.classList.add('node-highlight');
+                        setTimeout(() => node.classList.remove('node-highlight'), 500);
+                    }, index * 200);
+                });
+            }
+
+            function calculateRotationsStep() {
+                const length = visualizationState.originalList.length;
+                const actualRotations = visualizationState.k % length;
+
+                const info = document.createElement('div');
+                info.className = 'text-yellow-400 text-sm mt-2';
+                info.textContent = `長さ: ${length}, k: ${visualizationState.k}, 実際の回転数: ${actualRotations}`;
+                document.getElementById('step-info').appendChild(info);
+            }
+
+            function findNewTailStep() {
+                const length = visualizationState.originalList.length;
+                const actualRotations = visualizationState.k % length;
+                const newTailIndex = length - actualRotations - 1;
+
+                const container = document.getElementById('processing-list');
+                const nodes = container.querySelectorAll('.node-box');
+
+                if (nodes[newTailIndex]) {
+                    nodes[newTailIndex].classList.add('node-highlight');
+                    nodes[newTailIndex].style.background = '#f59e0b';
+                }
+            }
+
+            function rotateStep() {
+                const length = visualizationState.originalList.length;
+                const actualRotations = visualizationState.k % length;
+
+                const rotatedList = [
+                    ...visualizationState.originalList.slice(length - actualRotations),
+                    ...visualizationState.originalList.slice(0, length - actualRotations)
+                ];
+
+                const container = document.getElementById('result-list');
+                container.innerHTML = '';
+
+                rotatedList.forEach((value, index) => {
+                    const node = createNodeElement(value, index < actualRotations);
+                    container.appendChild(node);
+                    if (index < rotatedList.length - 1) {
+                        container.appendChild(createArrowElement());
+                    }
+                });
+            }
+
+            // コードハイライト機能（修正版）
+            function initializeCodeHighlight() {
+                generateLineNumbers('main-code', 'line-numbers-main');
+                generateLineNumbers('helper-code', 'line-numbers-helper');
+            }
+
+            function generateLineNumbers(codeId, lineNumbersId) {
+                const codeElement = document.getElementById(codeId);
+                const lineNumbersElement = document.getElementById(lineNumbersId);
+
+                if (!codeElement || !lineNumbersElement) return;
+
+                const lines = codeElement.textContent.trim().split('\n');
+                const lineNumbers = lines.map((_, index) => (index + 1)).join('\n');
+                lineNumbersElement.textContent = lineNumbers;
+            }
+
+            // コピー機能
+            function copyCode(elementId) {
+                const codeElement = document.getElementById(elementId);
+                if (!codeElement) return;
+
+                const text = codeElement.textContent;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('コードをコピーしました');
+                }).catch(err => {
+                    console.error('コピーに失敗しました:', err);
+                    showToast('コピーに失敗しました', 'error');
+                });
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = createElement('div', `fixed top-4 right-4 px-6 py-3 rounded-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'
+                    } text-white`, message);
+
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+
+            // テーマ切り替え機能
+            function initializeTheme() {
+                const themeToggle = document.getElementById('theme-toggle');
+                if (!themeToggle) return;
+
+                let isDark = true;
+
+                themeToggle.addEventListener('click', () => {
+                    isDark = !isDark;
+
+                    if (isDark) {
+                        document.body.className = 'bg-gray-900 text-white min-h-screen';
+                        themeToggle.textContent = '🌙 Dark';
+                    } else {
+                        document.body.className = 'bg-gray-100 text-gray-900 min-h-screen';
+                        themeToggle.textContent = '☀️ Light';
+
+                        // ライトテーマ用のスタイル調整
+                        document.querySelectorAll('.card-base').forEach(card => {
+                            card.style.background = '#ffffff';
+                            card.style.color = '#1f2937';
+                            card.style.borderColor = '#e5e7eb';
+                        });
+                    }
+                });
+            }
+
+            // アニメーション効果
+            function addScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('slide-up');
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.card-base').forEach(card => {
+                    observer.observe(card);
+                });
+            }
+
+            // キーボードショートカット
+            function initializeKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case '1':
+                                e.preventDefault();
+                                const overviewTab = document.querySelector('[data-tab="overview"]');
+                                if (overviewTab) overviewTab.click();
+                                break;
+                            case '2':
+                                e.preventDefault();
+                                const algorithmTab = document.querySelector('[data-tab="algorithm"]');
+                                if (algorithmTab) algorithmTab.click();
+                                break;
+                            case '3':
+                                e.preventDefault();
+                                const visualizationTab = document.querySelector('[data-tab="visualization"]');
+                                if (visualizationTab) visualizationTab.click();
+                                break;
+                            case '4':
+                                e.preventDefault();
+                                const implementationTab = document.querySelector('[data-tab="implementation"]');
+                                if (implementationTab) implementationTab.click();
+                                break;
+                            case '5':
+                                e.preventDefault();
+                                const performanceTab = document.querySelector('[data-tab="performance"]');
+                                if (performanceTab) performanceTab.click();
+                                break;
+                        }
+                    }
+                });
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOM読み込み完了');
+
+                // 初期状態の設定
+                const overviewTab = document.getElementById('overview');
+                if (overviewTab) {
+                    overviewTab.classList.remove('hidden');
+                    overviewTab.classList.add('fade-in');
+                }
+
+                // すべての他のタブを非表示にする
+                ['algorithm', 'visualization', 'implementation', 'performance'].forEach(tabId => {
+                    const tab = document.getElementById(tabId);
+                    if (tab) {
+                        tab.classList.add('hidden');
+                        tab.classList.remove('fade-in');
+                    }
+                });
+
+                initializeTabs();
+                initializeStepFunction();
+                initializeVisualization();
+                initializeCodeHighlight();
+                initializeTheme();
+                addScrollAnimations();
+                initializeKeyboardShortcuts();
+
+                // ウェルカムメッセージ
+                setTimeout(() => {
+                    showToast('Rotate Right アルゴリズム解析へようこそ！');
+                }, 1000);
+            });
+
+            // グローバル関数として定義（HTMLから呼び出し可能）
+            window.copyCode = copyCode;
+        </script>
+    </body>
+
+</html>

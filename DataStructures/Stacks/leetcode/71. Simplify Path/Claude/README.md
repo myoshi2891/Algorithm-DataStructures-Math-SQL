@@ -97,10 +97,10 @@ flowchart TD
 
 ```mermaid
 graph LR
-    A[Path Input] --> B[split('/')]
+    A[Path Input] --> B[Split by slash]
     B --> C[Stack Array]
     C --> D[Process Components]
-    D --> E[join('/')]
+    D --> E[Join with slash]
     E --> F[Canonical Path]
 
     style B fill:#e1f5fe
@@ -124,9 +124,9 @@ graph LR
 ```mermaid
 graph TB
     A[string input] --> B[Type Validation]
-    B --> C[PathComponent[]]
-    C --> D[Stack<ValidComponent>]
-    D --> E[Canonical Path: string]
+    B --> C[PathComponent Array]
+    C --> D[Stack ValidComponent]
+    D --> E[Canonical Path string]
 
     F[Type Guards] --> B
     G[Union Types] --> C
@@ -204,15 +204,15 @@ graph TD
 ```mermaid
 graph LR
     subgraph "Example 1"
-        A1["/home/"] --> B1[Split: '', 'home', '']
-        B1 --> C1[Stack: 'home']
-        C1 --> D1[Result: "/home"]
+        A1["Path: /home/"] --> B1["Split: empty, home, empty"]
+        B1 --> C1["Stack: home"]
+        C1 --> D1["Result: /home"]
     end
 
     subgraph "Example 2"
-        A2["/a//b////c/d//././/.."] --> B2[Process Components]
-        B2 --> C2[Stack: 'a', 'b', 'c']
-        C2 --> D2[Result: "/a/b/c"]
+        A2["Path: /a//b////c/d//././/.."] --> B2[Process Components]
+        B2 --> C2["Stack: a, b, c"]
+        C2 --> D2["Result: /a/b/c"]
     end
 ```
 

@@ -21,7 +21,7 @@ flowchart TD
     F --> C
     H --> C
     C --> I[Finish events]
-    I --> J[Join buffer with \\n and print]
+    I --> J["Join buffer with newline and print"]
 ```
 
 ---
@@ -42,7 +42,7 @@ sequenceDiagram
     User ->> Program: Input N, K
     User ->> Program: Input initial names
     User ->> Program: Input K events
-    Program ->> Program: Parse into lines[]
+    Program ->> Program: Parse into lines array
 ```
 
 ---
@@ -79,7 +79,7 @@ classDiagram
 
 ```mermaid
 flowchart LR
-    A[join name] --> B[Set.add(name)]
+    A[join name] --> B["Set add name"]
     B --> C[Member added if not exists]
 ```
 
@@ -91,7 +91,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A[leave name] --> B[Set.delete(name)]
+    A[leave name] --> B["Set delete name"]
     B --> C[Member removed]
 ```
 
@@ -103,8 +103,8 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A[handshake] --> B[Array.from(Set)]
-    B --> C[sort()]
+    A[handshake] --> B["Array from Set"]
+    B --> C["sort array"]
     C --> D[Push names to output buffer]
 ```
 
@@ -116,8 +116,8 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Output buffer] --> B[join with \\n]
-    B --> C[console.log(result)]
+    A[Output buffer] --> B["join with newline"]
+    B --> C["console log result"]
 ```
 
 ---

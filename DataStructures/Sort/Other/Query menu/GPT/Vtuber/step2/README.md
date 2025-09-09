@@ -21,7 +21,7 @@ Each event has:
 ```mermaid
 flowchart TD
     A[Input: N, K, members, events] --> B[Validation]
-    B --> C[Sort by (year, name)]
+    B --> C["Sort by (year, name)"]
     C --> D[Extract names]
     D --> E[Output to stdout]
 ```
@@ -93,9 +93,9 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     A[Raw Input] --> B[Split by newline]
-    B --> C[Parse first line: N,K]
-    C --> D[Collect members[]]
-    D --> E[Build events[]]
+    B --> C["Parse first line: N,K"]
+    C --> D["Collect members array"]
+    D --> E["Build events array"]
 ```
 
 ---
@@ -125,7 +125,7 @@ graph TD
 
 ```mermaid
 flowchart TD
-    A[events[]] --> B[Compare year]
+    A["events array"] --> B[Compare year]
     B -->|a.year < b.year| C[Keep order]
     B -->|a.year > b.year| D[Swap]
     B -->|Equal| E[Compare names]
@@ -143,8 +143,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A[Sorted events[]] --> B[Map to names]
-    B --> C[join("\n")]
+    A["Sorted events array"] --> B[Map to names]
+    B --> C["join with newline"]
     C --> D[console.log]
 ```
 

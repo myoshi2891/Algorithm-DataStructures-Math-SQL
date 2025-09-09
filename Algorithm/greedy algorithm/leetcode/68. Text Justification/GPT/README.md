@@ -14,7 +14,7 @@
 - [ASCII 図による可視化](#-ascii-図による可視化)
 - [計算量](#-計算量)
 - [関連問題](#-関連問題)
-- [まとめ](#-まとめ)- [まとめ](#-まとめ)
+- [まとめ](#-まとめ)
 
 ---
 
@@ -85,13 +85,13 @@ export function fullJustify(
 - `lineLength + word.length + line.length` が `maxWidth` を超えると行確定
 
 ```mermaid
-graph TD
-  A[単語を読む] --> B{行に収まるか?}
-  B -- Yes --> C[行に追加]
-  B -- No --> D[スペースを調整して確定]
-  D --> E[結果に push]
-  C --> A
-  E --> A
+flowchart TD
+    A["単語を読む"] --> B{"行に収まるか?"}
+    B -->|Yes| C["行に追加"]
+    B -->|No| D["スペースを調整して確定"]
+    D --> E["結果に push"]
+    C --> A
+    E --> A
 ```
 
 ---

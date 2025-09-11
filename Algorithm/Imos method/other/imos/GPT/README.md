@@ -133,7 +133,7 @@ flowchart TD
     Start([Start]) --> Input[Input Validation]
     Input --> InitDiff[Initialize Difference Array]
     InitDiff --> ProcessQuery{Process Each Query}
-    ProcessQuery --> UpdateDiff[Update diff[L] += 1, diff[R+1] -= 1]
+    ProcessQuery --> UpdateDiff[Update Difference Array]
     UpdateDiff --> NextQuery{More Queries?}
     NextQuery -->|Yes| ProcessQuery
     NextQuery -->|No| CumulativeSum[Calculate Cumulative Sum]

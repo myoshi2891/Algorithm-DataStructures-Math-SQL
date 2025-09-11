@@ -83,16 +83,16 @@ flowchart TB
 
 ```mermaid
 graph TD
-    A[Start Max Search] --> B[maxVal = -Infinity]
-    B --> C[For y = 1 to N]
-    C --> D[For x = 1 to M]
-    D --> E{grid[y][x] > maxVal?}
-    E -->|Yes| F[maxVal = grid[y][x]]
+    A[Start Max Search] --> B[Initialize maxVal]
+    B --> C[Loop through rows]
+    C --> D[Loop through columns]
+    D --> E{Is current value greater than maxVal}
+    E -->|Yes| F[Update maxVal]
     E -->|No| G[Continue]
     F --> G
-    G --> H{More columns?}
+    G --> H{More columns}
     H -->|Yes| D
-    H -->|No| I{More rows?}
+    H -->|No| I{More rows}
     I -->|Yes| C
     I -->|No| J[Return maxVal]
 ```

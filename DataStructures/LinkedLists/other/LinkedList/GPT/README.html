@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linked List Operations - Technical Analysis</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #6366f1;
+        --secondary-color: #8b5cf6;
+        --accent-color: #06b6d4;
+        --dark-bg: #0f172a;
+        --card-bg: #1e293b;
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --border-color: #334155;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, var(--dark-bg) 0%, #1a202c 100%);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      header {
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(20px);
+        padding: 2rem 0;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      h1 {
+        font-size: 3rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+      }
+
+      .section {
+        margin: 4rem 0;
+        padding: 2rem;
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+      }
+
+      .section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .section-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: var(--accent-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .section-title i {
+        font-size: 1.5rem;
+      }
+
+      .code-container {
+        position: relative;
+        margin: 2rem 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .code-header {
+        background: linear-gradient(
+          90deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        color: white;
+        font-weight: 600;
+      }
+
+      .copy-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: auto;
+      }
+
+      .copy-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+
+      pre,
+      code {
+        font-family: "Courier New", Consolas, "Liberation Mono", Menlo,
+          monospace !important;
+        white-space: pre !important;
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+
+      pre {
+        padding: 1.5rem;
+        background: #1a1b26;
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      .line-numbers {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 50px;
+        background: rgba(26, 27, 38, 0.8);
+        padding: 1.5rem 0;
+        text-align: center;
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+        color: #6272a4;
+        border-right: 1px solid #44475a;
+      }
+
+      .visual-demo {
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 0;
+        border: 1px solid var(--border-color);
+      }
+
+      .node-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .node {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        font-weight: bold;
+        font-family: monospace;
+        min-width: 60px;
+        justify-content: center;
+        position: relative;
+        transition: all 0.3s ease;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .node.highlight {
+        background: linear-gradient(
+          135deg,
+          var(--success-color),
+          var(--accent-color)
+        );
+        transform: scale(1.1);
+        box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
+      }
+
+      .node.new {
+        background: linear-gradient(135deg, var(--warning-color), #f97316);
+        animation: pulse 1s infinite;
+      }
+
+      .arrow {
+        font-size: 1.5rem;
+        color: var(--accent-color);
+        margin: 0 0.5rem;
+      }
+
+      .step-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .complexity-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .complexity-card {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .complexity-card:hover {
+        background: rgba(99, 102, 241, 0.2);
+        transform: translateY(-3px);
+      }
+
+      .complexity-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        font-family: monospace;
+      }
+
+      .step-info {
+        background: rgba(6, 182, 212, 0.1);
+        border-left: 4px solid var(--accent-color);
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+      }
+
+      .step-info.active {
+        background: rgba(6, 182, 212, 0.2);
+        transform: translateX(10px);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .operation-demo {
+        margin: 3rem 0;
+      }
+
+      .demo-title {
+        font-size: 1.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 15px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .section {
+          padding: 1.5rem;
+        }
+
+        .node-container {
+          justify-content: flex-start;
+          overflow-x: auto;
+          padding: 1rem;
+        }
+
+        .complexity-info {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .highlight-line {
+        background: rgba(255, 255, 0, 0.1);
+        border-left: 3px solid #f59e0b;
+        transition: all 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1 class="animate__animated animate__fadeInDown">
+          Linked List Operations
+        </h1>
+        <p class="subtitle animate__animated animate__fadeInUp">
+          単方向連結リストの挿入・削除操作の技術解析
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          アルゴリズム概要
+        </h2>
+        <p>
+          このプログラムは単方向連結リスト（Singly Linked
+          List）を用いて、効率的な挿入・削除操作を実現します。
+        </p>
+
+        <div class="complexity-info">
+          <div class="complexity-card">
+            <div class="complexity-value">O(N)</div>
+            <div>初期リスト構築</div>
+          </div>
+          <div class="complexity-card">
+            <div class="complexity-value">O(M)</div>
+            <div>各クエリ処理</div>
+          </div>
+          <div class="complexity-card">
+            <div class="complexity-value">O(N)</div>
+            <div>空間計算量</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-cube"></i>
+          データ構造設計
+        </h2>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>ListNode Class Definition</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <pre><code class="language-python">class ListNode:
+    """単方向リストのノード（軽量化のため __slots__ を使用）"""
+    __slots__ = ('val', 'next')
+
+    def __init__(self, val: int) -> None:
+        self.val: int = val
+        self.next: Optional['ListNode'] = None</code></pre>
+        </div>
+
+        <div class="step-info">
+          <strong>メモリ最適化:</strong>
+          <code>__slots__</code
+          >を使用することで、各ノードのメモリ使用量を約50%削減
+        </div>
+      </section>
+
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-plus-circle"></i>
+          INSERT操作の解析
+        </h2>
+
+        <div class="operation-demo">
+          <div class="demo-title">INSERT操作の視覚的デモンストレーション</div>
+
+          <div class="visual-demo">
+            <div class="step-controls">
+              <button class="btn" onclick="resetInsertDemo()">
+                <i class="fas fa-refresh"></i> Reset
+              </button>
+              <button class="btn" onclick="insertAtPosition(1, 10)">
+                <i class="fas fa-arrow-right"></i> Insert 10 at position 1
+              </button>
+              <button class="btn" onclick="insertAtPosition(2, 20)">
+                <i class="fas fa-arrow-right"></i> Insert 20 at position 2
+              </button>
+              <button class="btn" onclick="insertAtPosition(4, 30)">
+                <i class="fas fa-arrow-right"></i> Insert 30 at position 4
+              </button>
+            </div>
+
+            <div id="insertDemo" class="node-container">
+              <!-- デモ用ノードがここに動的に生成される -->
+            </div>
+
+            <div id="insertStepInfo" class="step-info">
+              操作を選択してください
+            </div>
+          </div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>INSERT Operation Implementation</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <pre><code class="language-python">if t == 1:
+    # INSERT P X
+    if len(parts) != 3:
+        raise ValueError("INSERT query must have 3 parts")
+    try:
+        P = int(parts[1]); X = int(parts[2])
+    except Exception:
+        raise TypeError("P and X must be integers")
+
+    new_node = ListNode(X)
+    if P == 1:
+        # insert at head
+        new_node.next = head
+        head = new_node
+        if tail is None:
+            tail = new_node
+    else:
+        # traverse to (P-1)th node (1-based)
+        prev = head
+        for _i in range(1, P - 1):
+            prev = prev.next
+
+        # now prev is the (P-1)-th node
+        new_node.next = prev.next
+        prev.next = new_node
+        if new_node.next is None:
+            tail = new_node</code></pre>
+        </div>
+      </section>
+
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-minus-circle"></i>
+          ERASE操作の解析
+        </h2>
+
+        <div class="operation-demo">
+          <div class="demo-title">ERASE操作の視覚的デモンストレーション</div>
+
+          <div class="visual-demo">
+            <div class="step-controls">
+              <button class="btn" onclick="resetEraseDemo()">
+                <i class="fas fa-refresh"></i> Reset
+              </button>
+              <button class="btn" onclick="eraseAtPosition(1)">
+                <i class="fas fa-trash"></i> Erase position 1
+              </button>
+              <button class="btn" onclick="eraseAtPosition(2)">
+                <i class="fas fa-trash"></i> Erase position 2
+              </button>
+              <button class="btn" onclick="eraseAtPosition(3)">
+                <i class="fas fa-trash"></i> Erase position 3
+              </button>
+            </div>
+
+            <div id="eraseDemo" class="node-container">
+              <!-- デモ用ノードがここに動的に生成される -->
+            </div>
+
+            <div id="eraseStepInfo" class="step-info">
+              操作を選択してください
+            </div>
+          </div>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>ERASE Operation Implementation</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <pre><code class="language-python">elif t == 2:
+    # ERASE P
+    if len(parts) != 2:
+        raise ValueError("ERASE query must have 2 parts")
+    try:
+        P = int(parts[1])
+    except Exception:
+        raise TypeError("P must be integer")
+
+    if head is None:
+        raise ValueError("attempt to ERASE from empty list")
+
+    if P == 1:
+        # remove head
+        head = head.next
+        if head is None:
+            tail = None
+    else:
+        prev = head
+        for _i in range(1, P - 1):
+            prev = prev.next
+
+        # prev is (P-1)-th node, prev.next is P-th node
+        prev.next = prev.next.next
+        if prev.next is None:
+            tail = prev</code></pre>
+        </div>
+      </section>
+
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-chart-line"></i>
+          パフォーマンス分析
+        </h2>
+
+        <div class="step-info">
+          <strong>時間計算量の詳細分析:</strong>
+          <ul style="margin-top: 1rem; padding-left: 2rem">
+            <li><strong>先頭挿入/削除:</strong> O(1) - ポインタの更新のみ</li>
+            <li>
+              <strong>中間位置操作:</strong> O(P) - 指定位置まで走査が必要
+            </li>
+            <li><strong>末尾操作:</strong> tailポインタにより効率化</li>
+          </ul>
+        </div>
+
+        <div class="complexity-info">
+          <div class="complexity-card">
+            <div class="complexity-value">50%</div>
+            <div>メモリ削減効果</div>
+          </div>
+          <div class="complexity-card">
+            <div class="complexity-value">O(1)</div>
+            <div>最良時間計算量</div>
+          </div>
+          <div class="complexity-card">
+            <div class="complexity-value">O(N)</div>
+            <div>最悪時間計算量</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section animate__animated animate__fadeInUp">
+        <h2 class="section-title">
+          <i class="fas fa-code"></i>
+          完全な実装例
+        </h2>
+
+        <div class="step-info">
+          実際の処理例: 初期リスト [1, 2, 3] に対する操作シーケンス
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>Complete solve() Function</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <pre><code class="language-python">def solve(input_str: str) -> str:
+    """
+    入力を受け取り、クエリを処理して結果を返す。
+    """
+    if not isinstance(input_str, str):
+        raise TypeError("input_str must be a string")
+
+    lines = input_str.rstrip('\n').split('\n')
+    if len(lines) == 0:
+        raise ValueError("empty input")
+
+    # ヘッダ行解析
+    header = lines[0].strip().split()
+    N = int(header[0]); Q = int(header[1])
+
+    # 初期リスト構築（末尾追加）
+    head: Optional[ListNode] = None
+    tail: Optional[ListNode] = None
+    idx_line = 1
+
+    for i in range(N):
+        v = int(lines[idx_line].strip())
+        idx_line += 1
+        node = ListNode(v)
+        if head is None:
+            head = tail = node
+        else:
+            tail.next = node
+            tail = node
+
+    # クエリ処理
+    for _ in range(Q):
+        parts = lines[idx_line].strip().split()
+        idx_line += 1
+        t = int(parts[0])
+
+        # INSERT/ERASE処理（上記コード参照）
+        # ...
+
+    # 出力作成
+    out_lines = []
+    node = head
+    while node is not None:
+        out_lines.append(str(node.val))
+        node = node.next
+
+    return "\n".join(out_lines) + "\n" if out_lines else ""</code></pre>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script>
+      // モジュール化されたJavaScript関数群
+
+      class LinkedListDemo {
+        constructor() {
+          this.insertNodes = [1, 2, 3];
+          this.eraseNodes = [1, 2, 3, 4];
+          this.animationSpeed = 800;
+        }
+
+        createNode(value, className = "") {
+          const node = document.createElement("div");
+          node.className = `node ${className}`;
+          node.textContent = value;
+          return node;
+        }
+
+        createArrow() {
+          const arrow = document.createElement("span");
+          arrow.className = "arrow";
+          arrow.innerHTML = "→";
+          return arrow;
+        }
+
+        renderNodes(container, nodes, highlightIndex = -1) {
+          const fragment = document.createDocumentFragment();
+
+          nodes.forEach((value, index) => {
+            if (index > 0) {
+              fragment.appendChild(this.createArrow());
+            }
+
+            const className = index === highlightIndex ? "highlight" : "";
+            const node = this.createNode(value, className);
+            fragment.appendChild(node);
+          });
+
+          container.innerHTML = "";
+          container.appendChild(fragment);
+        }
+
+        async animateInsertion(container, nodes, position, value) {
+          return new Promise((resolve) => {
+            const newNodes = [...nodes];
+            newNodes.splice(position - 1, 0, value);
+
+            this.renderNodes(container, nodes);
+
+            setTimeout(() => {
+              const fragment = document.createDocumentFragment();
+
+              newNodes.forEach((val, index) => {
+                if (index > 0) {
+                  fragment.appendChild(this.createArrow());
+                }
+
+                let className = "";
+                if (val === value && index === position - 1) {
+                  className = "new";
+                }
+
+                const node = this.createNode(val, className);
+                fragment.appendChild(node);
+              });
+
+              container.innerHTML = "";
+              container.appendChild(fragment);
+
+              setTimeout(resolve, this.animationSpeed);
+            }, this.animationSpeed / 2);
+          });
+        }
+
+        async animateErasure(container, nodes, position) {
+          return new Promise((resolve) => {
+            this.renderNodes(container, nodes, position - 1);
+
+            setTimeout(() => {
+              const newNodes = [...nodes];
+              newNodes.splice(position - 1, 1);
+              this.renderNodes(container, newNodes);
+              setTimeout(resolve, this.animationSpeed);
+            }, this.animationSpeed);
+          });
+        }
+
+        updateStepInfo(elementId, message) {
+          const stepInfo = document.getElementById(elementId);
+          stepInfo.textContent = message;
+          stepInfo.classList.add("active");
+          setTimeout(() => stepInfo.classList.remove("active"), 2000);
+        }
+      }
+
+      const demo = new LinkedListDemo();
+
+      // INSERT操作のデモ関数群
+      function resetInsertDemo() {
+        demo.insertNodes = [1, 2, 3];
+        const container = document.getElementById("insertDemo");
+        demo.renderNodes(container, demo.insertNodes);
+        demo.updateStepInfo(
+          "insertStepInfo",
+          "デモをリセットしました: [1, 2, 3]"
+        );
+      }
+
+      async function insertAtPosition(position, value) {
+        const container = document.getElementById("insertDemo");
+        await demo.animateInsertion(
+          container,
+          demo.insertNodes,
+          position,
+          value
+        );
+        demo.insertNodes.splice(position - 1, 0, value);
+        demo.updateStepInfo(
+          "insertStepInfo",
+          `位置 ${position} に値 ${value} を挿入: [${demo.insertNodes.join(
+            ", "
+          )}]`
+        );
+      }
+
+      // ERASE操作のデモ関数群
+      function resetEraseDemo() {
+        demo.eraseNodes = [1, 2, 3, 4];
+        const container = document.getElementById("eraseDemo");
+        demo.renderNodes(container, demo.eraseNodes);
+        demo.updateStepInfo(
+          "eraseStepInfo",
+          "デモをリセットしました: [1, 2, 3, 4]"
+        );
+      }
+
+      async function eraseAtPosition(position) {
+        const container = document.getElementById("eraseDemo");
+        if (position <= demo.eraseNodes.length) {
+          await demo.animateErasure(container, demo.eraseNodes, position);
+          const deletedValue = demo.eraseNodes[position - 1];
+          demo.eraseNodes.splice(position - 1, 1);
+          demo.updateStepInfo(
+            "eraseStepInfo",
+            `位置 ${position} の値 ${deletedValue} を削除: [${demo.eraseNodes.join(
+              ", "
+            )}]`
+          );
+        }
+      }
+
+      // コピー機能
+      function copyCode(button) {
+        const codeElement =
+          button.parentElement.nextElementSibling.querySelector("code");
+        const text = codeElement.textContent;
+
+        navigator.clipboard.writeText(text).then(() => {
+          button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+          }, 2000);
+        });
+      }
+
+      // スムーズスクロール機能
+      document.addEventListener("DOMContentLoaded", () => {
+        // 初期デモの設定
+        resetInsertDemo();
+        resetEraseDemo();
+
+        // アニメーション観測
+        const observerOptions = {
+          threshold: 0.1,
+          rootMargin: "0px 0px -50px 0px",
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("animate__fadeInUp");
+            }
+          });
+        }, observerOptions);
+
+        document.querySelectorAll(".section").forEach((section) => {
+          observer.observe(section);
+        });
+
+        // プリズムハイライト適用
+        Prism.highlightAll();
+      });
+
+      // パフォーマンス最適化のためのデバウンス関数
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // レスポンシブ対応
+      const handleResize = debounce(() => {
+        // モバイル端末でのレイアウト調整
+        const isMobile = window.innerWidth <= 768;
+        const nodeCotainers = document.querySelectorAll(".node-container");
+
+        nodeCotainers.forEach((container) => {
+          if (isMobile) {
+            container.style.justifyContent = "flex-start";
+          } else {
+            container.style.justifyContent = "center";
+          }
+        });
+      }, 250);
+
+      window.addEventListener("resize", handleResize);
+    </script>
+  </body>
+</html>

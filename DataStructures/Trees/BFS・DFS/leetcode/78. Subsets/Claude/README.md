@@ -224,25 +224,25 @@ def subsets_generator(nums: List[int]):
 
 ### 1. **特殊文字のエスケープ問題**
 
-```mermaid
+```text
 B{start < len(nums)?}  # ❌ '<' 文字が問題
 ```
 
 Mermaid では `<` や `>` などの特殊文字が HTML エンティティと衝突するため、エスケープが必要です：
 
-```mermaid
+```text
 B{"start &lt; len(nums)?"}  # ✅ 正しい記述
 ```
 
 ### 2. **ノードテキスト内のコロン問題**
 
-```mermaid
+```text
 A[Start: backtrack(0)]  # ❌ コロンが構文解析を妨害
 ```
 
 Mermaid ではコロン（`:`）がリンクラベルとして解釈される場合があるため、長いテキストは引用符で囲む必要があります：
 
-```mermaid
+```text
 A["Start: backtrack(0)"]  # ✅ 引用符で囲む
 ```
 
@@ -299,6 +299,50 @@ A["Start: backtrack(0)"]  # ✅ 引用符で囲む
 
 ### HTML のコードブロックの修正
 
+## 問題の原因 1
+
 コードブロックの末尾の改行不足: Prism.js（コードハイライトライブラリ）の仕様で、コードの最後の行に改行がないと、その行番号が表示されないことがあります。
 Python コードブロックの最後に改行を追加して、Prism.js が最終行を正しく認識し、66 行目が表示されるようになります。
 HTML ファイル内の `<code id="python-code">`タグを探し、その末尾に空行を追加してください。
+
+## 問題の原因 2
+
+問題を特定しました。原因は `resetDemo()` 関数で **`setInterval` によって開始されたタイマーを停止していない** ことです。
+
+1. `startDemo()` で `setInterval` を開始
+2. `resetDemo()` でタイマーを停止せずに状態だけリセット
+3. 元のタイマーが引き続き動作し、リセット後も `demoState.currentStep` を進める
+
+## 修正方法
+
+`demoInterval` 変数を追加して、タイマーの参照を保持し、`resetDemo()` でタイマーを確実に停止する必要があります。## 主な修正点
+
+1. **グローバル変数追加**: `let demoInterval = null;` でタイマーの参照を保持
+2. **startDemo()の改良**:
+   - 既存のタイマーがあれば事前に停止
+   - タイマー完了時に参照をクリア
+3. **resetDemo()の改良**:
+   - タイマーを確実に停止
+   - `isRunning` フラグも false に設定
+
+## 追加改善案
+
+より堅牢にするために、以下の改善も推奨します：
+
+```javascript
+// ボタンの状態管理も追加
+function updateButtonStates() {
+  const startBtn = document.querySelector('[onclick="startDemo()"]');
+  const resetBtn = document.querySelector('[onclick="resetDemo()"]');
+
+  if (demoState.isRunning) {
+    startBtn.disabled = true;
+    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 実行中...';
+  } else {
+    startBtn.disabled = false;
+    startBtn.innerHTML = '<i class="fas fa-play"></i> デモ開始';
+  }
+}
+```
+
+この修正により、リセットボタンを押下した際に確実にアニメーションが停止し、重複実行の問題も解決されます。

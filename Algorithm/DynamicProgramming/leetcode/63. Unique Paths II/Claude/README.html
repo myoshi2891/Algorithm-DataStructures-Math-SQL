@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unique Paths II - Dynamic Programming Tutorial</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Prism.js for syntax highlighting -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary: rgb(16, 185, 129);
+        --primary-dark: rgb(5, 150, 105);
+        --secondary: rgb(59, 130, 246);
+        --secondary-dark: rgb(29, 78, 216);
+        --alert: rgb(249, 115, 22);
+        --alert-dark: rgb(194, 65, 12);
+        --base: rgb(71, 85, 105);
+        --base-light: rgb(148, 163, 184);
+        --surface: rgb(248, 250, 252);
+        --surface-dark: rgb(226, 232, 240);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      code,
+      pre {
+        font-family: "JetBrains Mono", monospace !important;
+      }
+
+      .nav-button {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .nav-button:hover {
+        transform: translateY(-2px);
+      }
+
+      .card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+          0 10px 10px -5px rgb(0 0 0 / 0.04);
+      }
+
+      .step-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+      }
+
+      .step-card.active {
+        border-color: var(--primary);
+        background: linear-gradient(
+          135deg,
+          rgb(16, 185, 129, 0.1),
+          rgb(16, 185, 129, 0.05)
+        );
+      }
+
+      .step-card:hover:not(.active) {
+        border-color: var(--base-light);
+        transform: translateY(-2px);
+      }
+
+      .control-button {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .control-button:hover:not(:disabled) {
+        transform: scale(1.05);
+      }
+
+      .control-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .visualization-grid {
+        transition: all 0.3s ease;
+      }
+
+      .grid-cell {
+        transition: all 0.3s ease;
+      }
+
+      .grid-cell.obstacle {
+        background: var(--alert);
+      }
+
+      .grid-cell.path {
+        background: var(--primary);
+      }
+
+      .grid-cell.current {
+        background: var(--secondary);
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .stage {
+        transition: opacity 0.3s ease;
+      }
+
+      .stage.hidden {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+      }
+
+      /* Prism.js customizations */
+      .prism-toolbar {
+        opacity: 1 !important;
+      }
+
+      .prism-toolbar .toolbar-item button {
+        background: white !important;
+        color: var(--base) !important;
+        border: 1px solid var(--surface-dark) !important;
+        border-radius: 6px !important;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .prism-toolbar .toolbar-item button:hover {
+        background: var(--surface) !important;
+        border-color: var(--base-light) !important;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--surface);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--base-light);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--base);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-700">
+    <!-- Hero Section -->
+    <header
+      class="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center">
+          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+            <i class="fas fa-route mr-4"></i>Unique Paths II
+          </h1>
+          <p class="text-xl text-emerald-100 mb-8 max-w-3xl mx-auto">
+            障害物のあるグリッドでの経路数計算をDynamic
+            Programmingで効率的に解く
+          </p>
+
+          <!-- Navigation Buttons -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <a
+              href="#overview"
+              class="nav-button bg-white text-emerald-600 px-6 py-3 rounded-lg font-medium hover:bg-emerald-50 shadow-lg"
+            >
+              <i class="fas fa-info-circle mr-2"></i>概要
+            </a>
+            <a
+              href="#steps"
+              class="nav-button bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-400 shadow-lg"
+            >
+              <i class="fas fa-play mr-2"></i>解説
+            </a>
+            <a
+              href="#code"
+              class="nav-button bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-400 shadow-lg"
+            >
+              <i class="fas fa-code mr-2"></i>実装
+            </a>
+            <a
+              href="#diagram"
+              class="nav-button bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-400 shadow-lg"
+            >
+              <i class="fas fa-project-diagram mr-2"></i>フロー
+            </a>
+            <a
+              href="#complexity"
+              class="nav-button bg-emerald-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-400 shadow-lg"
+            >
+              <i class="fas fa-chart-line mr-2"></i>計算量
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">
+          <i class="fas fa-lightbulb text-emerald-500 mr-3"></i>アルゴリズム概要
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div class="card bg-slate-50 rounded-xl p-8 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-emerald-600">
+              <i class="fas fa-star mr-2"></i>特徴
+            </h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3"></i>
+                <span>Dynamic Programming（動的計画法）を使用</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3"></i>
+                <span>O(m×n)の時間計算量で効率的</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3"></i>
+                <span>障害物を考慮した経路数計算</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3"></i>
+                <span>空間最適化で O(n) メモリ使用</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card bg-slate-50 rounded-xl p-8 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4 text-sky-600">
+              <i class="fas fa-target mr-2"></i>適用場面
+            </h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-sky-500 mt-1 mr-3"></i>
+                <span>ロボット・パス探索問題</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-sky-500 mt-1 mr-3"></i>
+                <span>組み合わせ数学の応用</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-sky-500 mt-1 mr-3"></i>
+                <span>制約のある経路計数問題</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-arrow-right text-sky-500 mt-1 mr-3"></i>
+                <span>グリッドベースのゲーム</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Input/Output Examples -->
+        <div class="grid md:grid-cols-2 gap-8">
+          <div
+            class="card bg-emerald-50 rounded-xl p-8 shadow-lg border border-emerald-200"
+          >
+            <h3 class="text-xl font-semibold mb-4 text-emerald-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Example 1
+            </h3>
+            <div class="bg-white rounded-lg p-4 mb-4">
+              <code class="text-sm">
+                Input: [[0,0,0],[0,1,0],[0,0,0]]<br />
+                Output: 2
+              </code>
+            </div>
+            <p class="text-emerald-700">
+              3×3グリッドで中央に障害物がある場合。2通りの経路が存在。
+            </p>
+          </div>
+
+          <div
+            class="card bg-sky-50 rounded-xl p-8 shadow-lg border border-sky-200"
+          >
+            <h3 class="text-xl font-semibold mb-4 text-sky-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Example 2
+            </h3>
+            <div class="bg-white rounded-lg p-4 mb-4">
+              <code class="text-sm">
+                Input: [[0,1],[0,0]]<br />
+                Output: 1
+              </code>
+            </div>
+            <p class="text-sky-700">
+              2×2グリッドで右上に障害物がある場合。1通りの経路のみ。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Steps Section -->
+    <section id="steps" class="py-16 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">
+          <i class="fas fa-cogs text-emerald-500 mr-3"></i>インタラクティブ解説
+        </h2>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+          <!-- Step Cards -->
+          <div class="lg:col-span-1">
+            <div class="space-y-4 sticky top-8">
+              <div
+                class="step-card active border-2 border-emerald-500 bg-white rounded-lg p-6 shadow-lg"
+                data-step="1"
+              >
+                <h3 class="font-semibold text-lg mb-2">Step 1: 初期化</h3>
+                <p class="text-sm text-slate-600">
+                  DPテーブルを初期化し、開始点を設定します
+                </p>
+              </div>
+
+              <div
+                class="step-card border-2 border-slate-200 bg-white rounded-lg p-6 shadow-lg"
+                data-step="2"
+              >
+                <h3 class="font-semibold text-lg mb-2">Step 2: 最初の行</h3>
+                <p class="text-sm text-slate-600">
+                  最初の行の経路数を計算します
+                </p>
+              </div>
+
+              <div
+                class="step-card border-2 border-slate-200 bg-white rounded-lg p-6 shadow-lg"
+                data-step="3"
+              >
+                <h3 class="font-semibold text-lg mb-2">Step 3: 最初の列</h3>
+                <p class="text-sm text-slate-600">
+                  最初の列の経路数を計算します
+                </p>
+              </div>
+
+              <div
+                class="step-card border-2 border-slate-200 bg-white rounded-lg p-6 shadow-lg"
+                data-step="4"
+              >
+                <h3 class="font-semibold text-lg mb-2">Step 4: DP計算</h3>
+                <p class="text-sm text-slate-600">各セルの経路数を計算します</p>
+              </div>
+
+              <div
+                class="step-card border-2 border-slate-200 bg-white rounded-lg p-6 shadow-lg"
+                data-step="5"
+              >
+                <h3 class="font-semibold text-lg mb-2">Step 5: 結果取得</h3>
+                <p class="text-sm text-slate-600">右下の値が答えです</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visualization Area -->
+          <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl p-8 shadow-lg">
+              <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-4">可視化エリア</h3>
+
+                <!-- Controls -->
+                <div class="flex flex-wrap gap-3 mb-6">
+                  <button
+                    id="playBtn"
+                    class="control-button bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 flex items-center"
+                  >
+                    <i class="fas fa-play mr-2"></i>Play
+                  </button>
+                  <button
+                    id="prevBtn"
+                    class="control-button bg-slate-500 text-white px-4 py-2 rounded-lg hover:bg-slate-600 flex items-center"
+                  >
+                    <i class="fas fa-step-backward mr-2"></i>Prev
+                  </button>
+                  <button
+                    id="nextBtn"
+                    class="control-button bg-slate-500 text-white px-4 py-2 rounded-lg hover:bg-slate-600 flex items-center"
+                  >
+                    <i class="fas fa-step-forward mr-2"></i>Next
+                  </button>
+                  <button
+                    id="resetBtn"
+                    class="control-button bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center"
+                  >
+                    <i class="fas fa-undo mr-2"></i>Reset
+                  </button>
+                </div>
+              </div>
+
+              <!-- Visualization Grid -->
+              <div
+                id="visualizationArea"
+                class="bg-slate-50 rounded-lg p-6 min-h-[400px] flex items-center justify-center relative"
+              >
+                <!-- Stage 1: Initial Setup -->
+                <div class="stage" id="stage1">
+                  <h4 class="text-lg font-semibold mb-4 text-center">
+                    初期化: DPテーブル作成
+                  </h4>
+                  <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-emerald-100 font-bold text-emerald-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-red-300 rounded-lg flex items-center justify-center bg-red-100"
+                    >
+                      X
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stage 2: First Row -->
+                <div class="stage hidden" id="stage2">
+                  <h4 class="text-lg font-semibold mb-4 text-center">
+                    最初の行の処理
+                  </h4>
+                  <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-emerald-100 font-bold text-emerald-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-red-300 rounded-lg flex items-center justify-center bg-red-100"
+                    >
+                      X
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stage 3: First Column -->
+                <div class="stage hidden" id="stage3">
+                  <h4 class="text-lg font-semibold mb-4 text-center">
+                    最初の列の処理
+                  </h4>
+                  <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-emerald-100 font-bold text-emerald-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-purple-300 rounded-lg flex items-center justify-center bg-purple-100 font-bold text-purple-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-red-300 rounded-lg flex items-center justify-center bg-red-100"
+                    >
+                      X
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-purple-300 rounded-lg flex items-center justify-center bg-purple-100 font-bold text-purple-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-white"
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stage 4: DP Calculation -->
+                <div class="stage hidden" id="stage4">
+                  <h4 class="text-lg font-semibold mb-4 text-center">
+                    DP計算: dp[i][j] = dp[i-1][j] + dp[i][j-1]
+                  </h4>
+                  <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-emerald-100 font-bold text-emerald-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-blue-300 rounded-lg flex items-center justify-center bg-blue-100 font-bold text-blue-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-purple-300 rounded-lg flex items-center justify-center bg-purple-100 font-bold text-purple-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-red-300 rounded-lg flex items-center justify-center bg-red-100"
+                    >
+                      X
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-yellow-300 rounded-lg flex items-center justify-center bg-yellow-100 font-bold text-yellow-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-purple-300 rounded-lg flex items-center justify-center bg-purple-100 font-bold text-purple-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-yellow-300 rounded-lg flex items-center justify-center bg-yellow-100 font-bold text-yellow-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-green-300 rounded-lg flex items-center justify-center bg-green-100 font-bold text-green-700"
+                    >
+                      2
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stage 5: Final Result -->
+                <div class="stage hidden" id="stage5">
+                  <h4 class="text-lg font-semibold mb-4 text-center">
+                    結果: dp[m-1][n-1] = 2
+                  </h4>
+                  <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-red-300 rounded-lg flex items-center justify-center bg-red-100"
+                    >
+                      X
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-slate-300 rounded-lg flex items-center justify-center bg-slate-100 font-bold text-slate-700"
+                    >
+                      1
+                    </div>
+                    <div
+                      class="w-16 h-16 border-2 border-emerald-500 rounded-lg flex items-center justify-center bg-emerald-200 font-bold text-emerald-800 text-xl animate-pulse"
+                    >
+                      2
+                    </div>
+                  </div>
+                  <div class="text-center mt-6">
+                    <p class="text-lg font-semibold text-emerald-600">
+                      答え: 2通りの経路が存在
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Implementation Section -->
+    <section id="code" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">
+          <i class="fas fa-code text-emerald-500 mr-3"></i>実装コード
+        </h2>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+          <!-- Code Block -->
+          <div class="lg:col-span-2">
+            <div class="bg-slate-900 rounded-xl overflow-hidden shadow-xl">
+              <div class="bg-slate-800 px-6 py-4 border-b border-slate-700">
+                <h3 class="text-white font-semibold">
+                  <i class="fab fa-python text-emerald-400 mr-2"></i>
+                  Python Solution (LeetCode Format)
+                </h3>
+              </div>
+              <pre
+                class="line-numbers"
+              ><code class="language-python">from typing import List
+
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        """
+        障害物のあるグリッドでのユニークパス数計算
+
+        Args:
+            obstacleGrid: 障害物グリッド (0: 通路, 1: 障害物)
+
+        Returns:
+            ユニークパス数
+
+        Time Complexity: O(m*n)
+        Space Complexity: O(n) - 1D DP最適化版
+        """
+        if not obstacleGrid or not obstacleGrid[0] or obstacleGrid[0][0] == 1:
+            return 0
+
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+
+        # 終点が障害物の場合
+        if obstacleGrid[m - 1][n - 1] == 1:
+            return 0
+
+        # 1D DP（空間最適化）
+        dp = [0] * n
+        dp[0] = 1  # スタート地点
+
+        for i in range(m):
+            # 各行の最初の列
+            if obstacleGrid[i][0] == 1:
+                dp[0] = 0
+
+            # 残りの列
+            for j in range(1, n):
+                dp[j] = 0 if obstacleGrid[i][j] == 1 else dp[j] + dp[j - 1]
+
+        return dp[n - 1]
+
+
+# 可読性重視の2D DP版（参考実装）
+class SolutionReadable:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        """
+        2D DP実装（理解しやすい版）
+
+        Time Complexity: O(m*n)
+        Space Complexity: O(m*n)
+        """
+        if not obstacleGrid or obstacleGrid[0][0] == 1:
+            return 0
+
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+
+        # 2D DPテーブル初期化
+        dp = [[0] * n for _ in range(m)]
+        dp[0][0] = 1
+
+        # 最初の行を初期化
+        for j in range(1, n):
+            dp[0][j] = 0 if obstacleGrid[0][j] == 1 else dp[0][j - 1]
+
+        # 最初の列を初期化
+        for i in range(1, m):
+            dp[i][0] = 0 if obstacleGrid[i][0] == 1 else dp[i - 1][0]
+
+        # メインのDP計算
+        for i in range(1, m):
+            for j in range(1, n):
+                if obstacleGrid[i][j] == 1:
+                    dp[i][j] = 0
+                else:
+                    dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+
+        return dp[m - 1][n - 1]</code></pre>
+            </div>
+          </div>
+
+          <!-- Implementation Points -->
+          <div class="space-y-4">
+            <div
+              class="card bg-emerald-50 rounded-lg p-6 shadow-lg border border-emerald-200"
+            >
+              <h4 class="font-semibold text-emerald-700 mb-3">
+                <i class="fas fa-key mr-2"></i>重要ポイント
+              </h4>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start">
+                  <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                  <span>1D DP配列で空間効率化</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                  <span>インプレース更新で最適化</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                  <span>障害物チェックを統合</span>
+                </li>
+              </ul>
+            </div>
+
+            <div
+              class="card bg-sky-50 rounded-lg p-6 shadow-lg border border-sky-200"
+            >
+              <h4 class="font-semibold text-sky-700 mb-3">
+                <i class="fas fa-lightbulb mr-2"></i>最適化のコツ
+              </h4>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start">
+                  <i class="fas fa-arrow-right text-sky-500 mt-1 mr-2"></i>
+                  <span>2D→1D配列で省メモリ</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-arrow-right text-sky-500 mt-1 mr-2"></i>
+                  <span>エッジケースの早期判定</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-arrow-right text-sky-500 mt-1 mr-2"></i>
+                  <span>三項演算子で簡潔に</span>
+                </li>
+              </ul>
+            </div>
+
+            <div
+              class="card bg-orange-50 rounded-lg p-6 shadow-lg border border-orange-200"
+            >
+              <h4 class="font-semibold text-orange-700 mb-3">
+                <i class="fas fa-exclamation-triangle mr-2"></i>注意点
+              </h4>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-start">
+                  <i class="fas fa-times text-orange-500 mt-1 mr-2"></i>
+                  <span>開始・終了点の障害物チェック</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-times text-orange-500 mt-1 mr-2"></i>
+                  <span>空のグリッドの処理</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-times text-orange-500 mt-1 mr-2"></i>
+                  <span>インプレース更新の順序</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Algorithm Flow Diagram -->
+    <section id="diagram" class="py-16 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">
+          <i class="fas fa-project-diagram text-emerald-500 mr-3"></i
+          >アルゴリズムフロー
+        </h2>
+
+        <div class="bg-white rounded-xl p-8 shadow-lg">
+          <svg width="100%" height="600" viewBox="0 0 800 600" class="mx-auto">
+            <!-- Start -->
+            <rect
+              x="300"
+              y="20"
+              width="200"
+              height="60"
+              rx="30"
+              fill="#10b981"
+              stroke="#059669"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="45"
+              text-anchor="middle"
+              fill="white"
+              font-size="14"
+              font-weight="bold"
+            >
+              START
+            </text>
+            <text
+              x="400"
+              y="60"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+            >
+              Input: obstacleGrid
+            </text>
+
+            <!-- Arrow -->
+            <path
+              d="M 400 80 L 400 120"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+
+            <!-- Check Input -->
+            <polygon
+              points="400,120 480,150 400,180 320,150"
+              fill="#f59e0b"
+              stroke="#d97706"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="145"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              Input Valid?
+            </text>
+            <text
+              x="400"
+              y="160"
+              text-anchor="middle"
+              fill="white"
+              font-size="9"
+            >
+              Empty or Start blocked?
+            </text>
+
+            <!-- No Path -->
+            <path
+              d="M 320 150 L 200 150"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="260"
+              y="145"
+              text-anchor="middle"
+              fill="#ef4444"
+              font-size="11"
+            >
+              No
+            </text>
+
+            <rect
+              x="100"
+              y="130"
+              width="100"
+              height="40"
+              rx="20"
+              fill="#ef4444"
+              stroke="#dc2626"
+              stroke-width="2"
+            />
+            <text
+              x="150"
+              y="155"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              Return 0
+            </text>
+
+            <!-- Yes Path -->
+            <path
+              d="M 400 180 L 400 220"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="200"
+              text-anchor="start"
+              fill="#10b981"
+              font-size="11"
+            >
+              Yes
+            </text>
+
+            <!-- Initialize DP -->
+            <rect
+              x="320"
+              y="220"
+              width="160"
+              height="50"
+              rx="10"
+              fill="#3b82f6"
+              stroke="#2563eb"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="240"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              Initialize DP
+            </text>
+            <text
+              x="400"
+              y="255"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+            >
+              dp[0] = 1, others = 0
+            </text>
+
+            <!-- Arrow -->
+            <path
+              d="M 400 270 L 400 310"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+
+            <!-- Loop Through Rows -->
+            <rect
+              x="320"
+              y="310"
+              width="160"
+              height="50"
+              rx="10"
+              fill="#8b5cf6"
+              stroke="#7c3aed"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="330"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              For each row i
+            </text>
+            <text
+              x="400"
+              y="345"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+            >
+              i = 0 to m-1
+            </text>
+
+            <!-- Arrow -->
+            <path
+              d="M 400 360 L 400 400"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+
+            <!-- Process First Column -->
+            <polygon
+              points="400,400 500,430 400,460 300,430"
+              fill="#f59e0b"
+              stroke="#d97706"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="425"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+              font-weight="bold"
+            >
+              First Column
+            </text>
+            <text
+              x="400"
+              y="440"
+              text-anchor="middle"
+              fill="white"
+              font-size="10"
+            >
+              Obstacle?
+            </text>
+
+            <!-- Set dp[0] = 0 -->
+            <path
+              d="M 300 430 L 200 430"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="250"
+              y="425"
+              text-anchor="middle"
+              fill="#ef4444"
+              font-size="10"
+            >
+              Yes
+            </text>
+
+            <rect
+              x="120"
+              y="410"
+              width="80"
+              height="30"
+              rx="5"
+              fill="#ef4444"
+              stroke="#dc2626"
+              stroke-width="2"
+            />
+            <text
+              x="160"
+              y="430"
+              text-anchor="middle"
+              fill="white"
+              font-size="10"
+            >
+              dp[0] = 0
+            </text>
+
+            <!-- Continue to columns -->
+            <path
+              d="M 400 460 L 400 500"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="480"
+              text-anchor="start"
+              fill="#10b981"
+              font-size="10"
+            >
+              No
+            </text>
+
+            <!-- Process Other Columns -->
+            <rect
+              x="320"
+              y="500"
+              width="160"
+              height="60"
+              rx="10"
+              fill="#059669"
+              stroke="#047857"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="520"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              For each column j
+            </text>
+            <text
+              x="400"
+              y="535"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+            >
+              dp[j] = obstacle?
+            </text>
+            <text
+              x="400"
+              y="550"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+            >
+              0 : dp[j] + dp[j-1]
+            </text>
+
+            <!-- Return to row loop -->
+            <path
+              d="M 480 530 L 560 530 L 560 335 L 480 335"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+              fill="none"
+            />
+
+            <!-- Return Result -->
+            <path
+              d="M 500 335 L 650 335"
+              stroke="#374151"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="575"
+              y="330"
+              text-anchor="middle"
+              fill="#374151"
+              font-size="10"
+            >
+              All rows done
+            </text>
+
+            <rect
+              x="650"
+              y="315"
+              width="120"
+              height="40"
+              rx="20"
+              fill="#10b981"
+              stroke="#059669"
+              stroke-width="2"
+            />
+            <text
+              x="710"
+              y="335"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="bold"
+            >
+              Return dp[n-1]
+            </text>
+
+            <!-- Arrow marker definition -->
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="10"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Complexity Analysis -->
+    <section id="complexity" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-center mb-12">
+          <i class="fas fa-chart-line text-emerald-500 mr-3"></i>計算量解析
+        </h2>
+
+        <div class="grid lg:grid-cols-2 gap-8 mb-12">
+          <!-- Time Complexity -->
+          <div
+            class="card bg-emerald-50 rounded-xl p-8 shadow-lg border border-emerald-200"
+          >
+            <h3 class="text-2xl font-semibold mb-6 text-emerald-700">
+              <i class="fas fa-clock mr-3"></i>時間計算量
+            </h3>
+
+            <div class="space-y-6">
+              <div class="bg-white rounded-lg p-6 border border-emerald-200">
+                <div class="text-3xl font-bold text-emerald-600 mb-2">
+                  O(m × n)
+                </div>
+                <p class="text-emerald-700">各セルを1回ずつ処理</p>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">グリッド走査</span>
+                  <span
+                    class="text-sm font-mono bg-emerald-100 px-2 py-1 rounded"
+                    >O(m×n)</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">各セル計算</span>
+                  <span
+                    class="text-sm font-mono bg-emerald-100 px-2 py-1 rounded"
+                    >O(1)</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">初期化</span>
+                  <span
+                    class="text-sm font-mono bg-emerald-100 px-2 py-1 rounded"
+                    >O(n)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Space Complexity -->
+          <div
+            class="card bg-sky-50 rounded-xl p-8 shadow-lg border border-sky-200"
+          >
+            <h3 class="text-2xl font-semibold mb-6 text-sky-700">
+              <i class="fas fa-memory mr-3"></i>空間計算量
+            </h3>
+
+            <div class="space-y-6">
+              <div class="bg-white rounded-lg p-6 border border-sky-200">
+                <div class="text-3xl font-bold text-sky-600 mb-2">O(n)</div>
+                <p class="text-sky-700">1D DP配列のみ使用</p>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">DP配列</span>
+                  <span class="text-sm font-mono bg-sky-100 px-2 py-1 rounded"
+                    >O(n)</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">変数</span>
+                  <span class="text-sm font-mono bg-sky-100 px-2 py-1 rounded"
+                    >O(1)</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">入力データ</span>
+                  <span class="text-sm font-mono bg-sky-100 px-2 py-1 rounded"
+                    >O(m×n)</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="bg-slate-50 rounded-xl p-8 shadow-lg">
+          <h3 class="text-xl font-semibold mb-6 text-center">
+            <i class="fas fa-balance-scale mr-2"></i>手法比較
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b-2 border-slate-200">
+                  <th class="text-left py-4 px-4 font-semibold">手法</th>
+                  <th class="text-left py-4 px-4 font-semibold">時間計算量</th>
+                  <th class="text-left py-4 px-4 font-semibold">空間計算量</th>
+                  <th class="text-left py-4 px-4 font-semibold">可読性</th>
+                  <th class="text-left py-4 px-4 font-semibold">実装難易度</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm">
+                <tr class="border-b border-slate-200 bg-emerald-50">
+                  <td class="py-3 px-4 font-medium text-emerald-700">
+                    <i class="fas fa-star mr-2"></i>1D DP (採用)
+                  </td>
+                  <td class="py-3 px-4">
+                    <span
+                      class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded"
+                      >O(m×n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">
+                    <span
+                      class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded"
+                      >O(n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">★★★☆☆</td>
+                  <td class="py-3 px-4">★★★☆☆</td>
+                </tr>
+                <tr class="border-b border-slate-200">
+                  <td class="py-3 px-4 font-medium">2D DP</td>
+                  <td class="py-3 px-4">
+                    <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded"
+                      >O(m×n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">
+                    <span
+                      class="bg-orange-100 text-orange-700 px-2 py-1 rounded"
+                      >O(m×n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">★★★★★</td>
+                  <td class="py-3 px-4">★★☆☆☆</td>
+                </tr>
+                <tr class="border-b border-slate-200">
+                  <td class="py-3 px-4 font-medium">再帰+メモ化</td>
+                  <td class="py-3 px-4">
+                    <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded"
+                      >O(m×n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">
+                    <span
+                      class="bg-orange-100 text-orange-700 px-2 py-1 rounded"
+                      >O(m×n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">★★★★☆</td>
+                  <td class="py-3 px-4">★★★★☆</td>
+                </tr>
+                <tr class="border-b border-slate-200">
+                  <td class="py-3 px-4 font-medium">DFS/BFS</td>
+                  <td class="py-3 px-4">
+                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded"
+                      >O(2^(m+n))</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded"
+                      >O(m+n)</span
+                    >
+                  </td>
+                  <td class="py-3 px-4">★★★☆☆</td>
+                  <td class="py-3 px-4">★★★☆☆</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-6 p-6 bg-white rounded-lg border border-emerald-200">
+            <h4 class="font-semibold text-emerald-700 mb-3">
+              <i class="fas fa-thumbs-up mr-2"></i>1D DP採用理由
+            </h4>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-start">
+                <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                <span><strong>空間効率</strong>: O(m×n) → O(n) に削減</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                <span
+                  ><strong>実行速度</strong>: メモリアクセスパターンが最適</span
+                >
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                <span
+                  ><strong>キャッシュ効率</strong>: 連続したメモリアクセス</span
+                >
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-check text-emerald-500 mt-1 mr-2"></i>
+                <span><strong>拡張性</strong>: 大きなグリッドでも安定動作</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-slate-300">
+          <i class="fas fa-code mr-2"></i>
+          Unique Paths II - Dynamic Programming Tutorial
+        </p>
+        <p class="text-slate-400 mt-2 text-sm">
+          学習効率を最大化する、インタラクティブなアルゴリズム解説
+        </p>
+      </div>
+    </footer>
+
+    <!-- Prism.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <script>
+      // Global state
+      let currentStep = 1;
+      let isPlaying = false;
+      let playInterval = null;
+
+      // Initialize when DOM is fully loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("Initializing Unique Paths II Tutorial...");
+
+        // Get DOM elements
+        const playBtn = document.getElementById("playBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const stepCards = document.querySelectorAll(".step-card");
+        const stages = document.querySelectorAll(".stage");
+
+        // Check if all elements exist
+        if (!playBtn || !prevBtn || !nextBtn || !resetBtn) {
+          console.error("Control buttons not found");
+          return;
+        }
+
+        if (stepCards.length === 0 || stages.length === 0) {
+          console.error("Step cards or stages not found");
+          return;
+        }
+
+        console.log("All elements found, setting up event listeners...");
+
+        // Add event listeners
+        playBtn.addEventListener("click", togglePlay);
+        prevBtn.addEventListener("click", prevStep);
+        nextBtn.addEventListener("click", nextStep);
+        resetBtn.addEventListener("click", resetSteps);
+
+        // Step cards click handlers
+        stepCards.forEach((card, index) => {
+          card.addEventListener("click", () => goToStep(index + 1));
+
+          // Add keyboard support
+          card.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              goToStep(index + 1);
+            }
+          });
+        });
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute("href"));
+            if (target) {
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          });
+        });
+
+        // Initial UI update
+        updateUI();
+        console.log("Tutorial initialized successfully");
+      });
+
+      function updateUI() {
+        const stepCards = document.querySelectorAll(".step-card");
+        const stages = document.querySelectorAll(".stage");
+        const playBtn = document.getElementById("playBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        if (!playBtn || !prevBtn || !nextBtn) return;
+
+        // Update step cards
+        stepCards.forEach((card, index) => {
+          if (index + 1 === currentStep) {
+            card.classList.add("active");
+            card.classList.remove("border-slate-200");
+            card.classList.add("border-emerald-500");
+          } else {
+            card.classList.remove("active");
+            card.classList.add("border-slate-200");
+            card.classList.remove("border-emerald-500");
+          }
+        });
+
+        // Update stages
+        stages.forEach((stage, index) => {
+          if (index + 1 === currentStep) {
+            stage.classList.remove("hidden");
+          } else {
+            stage.classList.add("hidden");
+          }
+        });
+
+        // Update buttons
+        prevBtn.disabled = currentStep === 1;
+        nextBtn.disabled = currentStep === 5;
+
+        // Update play button
+        if (isPlaying) {
+          playBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+          playBtn.classList.remove("bg-emerald-500", "hover:bg-emerald-600");
+          playBtn.classList.add("bg-orange-500", "hover:bg-orange-600");
+        } else {
+          playBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Play';
+          playBtn.classList.remove("bg-orange-500", "hover:bg-orange-600");
+          playBtn.classList.add("bg-emerald-500", "hover:bg-emerald-600");
+        }
+      }
+
+      function togglePlay() {
+        if (isPlaying) {
+          stopPlay();
+        } else {
+          startPlay();
+        }
+      }
+
+      function startPlay() {
+        if (currentStep === 5) {
+          currentStep = 1;
+        }
+
+        isPlaying = true;
+        updateUI();
+
+        playInterval = setInterval(() => {
+          if (currentStep < 5) {
+            currentStep++;
+            updateUI();
+          } else {
+            stopPlay();
+            // Auto reset after completion
+            setTimeout(() => {
+              currentStep = 1;
+              updateUI();
+              showNotification(
+                "アニメーション完了！最初のステップに戻りました。",
+                "success"
+              );
+            }, 1500);
+          }
+        }, 2000); // 2 seconds per step
+      }
+
+      function stopPlay() {
+        isPlaying = false;
+        if (playInterval) {
+          clearInterval(playInterval);
+          playInterval = null;
+        }
+        updateUI();
+      }
+
+      function prevStep() {
+        if (currentStep > 1) {
+          currentStep--;
+          updateUI();
+        }
+      }
+
+      function nextStep() {
+        if (currentStep < 5) {
+          currentStep++;
+          updateUI();
+        }
+      }
+
+      function resetSteps() {
+        stopPlay();
+        currentStep = 1;
+        updateUI();
+        showNotification("ステップをリセットしました", "info");
+      }
+
+      function goToStep(step) {
+        stopPlay();
+        currentStep = Math.max(1, Math.min(5, step));
+        updateUI();
+      }
+
+      function showNotification(message, type = "info") {
+        // Remove existing notifications
+        const existingNotifications =
+          document.querySelectorAll(".notification");
+        existingNotifications.forEach((notif) => notif.remove());
+
+        const notification = document.createElement("div");
+        notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 transform translate-x-full`;
+
+        const colors = {
+          success: "bg-emerald-500 text-white",
+          error: "bg-red-500 text-white",
+          info: "bg-blue-500 text-white",
+          warning: "bg-orange-500 text-white",
+        };
+
+        notification.className += ` ${colors[type] || colors.info}`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+          notification.style.transform = "translateX(0)";
+        }, 100);
+
+        // Animate out and remove
+        setTimeout(() => {
+          notification.style.transform = "translateX(100%)";
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+        }, 3000);
+      }
+
+      // Add intersection observer for animations
+      document.addEventListener("DOMContentLoaded", function () {
+        const observerOptions = {
+          threshold: 0.1,
+          rootMargin: "0px 0px -50px 0px",
+        };
+
+        const observer = new IntersectionObserver(function (entries) {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+            }
+          });
+        }, observerOptions);
+
+        // Observe sections for fade-in animation
+        document.querySelectorAll("section").forEach((section) => {
+          section.style.opacity = "0";
+          section.style.transform = "translateY(20px)";
+          section.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+          observer.observe(section);
+        });
+      });
+
+      // Global keyboard shortcuts
+      document.addEventListener("keydown", function (e) {
+        // Only respond to keyboard shortcuts when not typing in an input
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+          return;
+        }
+
+        switch (e.key) {
+          case "ArrowLeft":
+            e.preventDefault();
+            prevStep();
+            break;
+          case "ArrowRight":
+            e.preventDefault();
+            nextStep();
+            break;
+          case " ":
+            e.preventDefault();
+            togglePlay();
+            break;
+          case "r":
+            e.preventDefault();
+            resetSteps();
+            break;
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+            e.preventDefault();
+            goToStep(parseInt(e.key));
+            break;
+        }
+      });
+
+      // Handle copy events from Prism.js
+      document.addEventListener("DOMContentLoaded", function () {
+        // Listen for successful copy events
+        document.addEventListener("copy", function (e) {
+          const activeElement = document.activeElement;
+          if (
+            activeElement &&
+            activeElement.closest('pre[class*="language-"]')
+          ) {
+            setTimeout(() => {
+              showNotification(
+                "コードがクリップボードにコピーされました！",
+                "success"
+              );
+            }, 100);
+          }
+        });
+      });
+
+      // Add hover effects and interactions
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add hover effects to cards
+        const cards = document.querySelectorAll(".card");
+        cards.forEach((card) => {
+          card.addEventListener("mouseenter", function () {
+            if (
+              !this.classList.contains("step-card") ||
+              !this.classList.contains("active")
+            ) {
+              this.style.transform = "translateY(-4px)";
+            }
+          });
+
+          card.addEventListener("mouseleave", function () {
+            if (
+              !this.classList.contains("step-card") ||
+              !this.classList.contains("active")
+            ) {
+              this.style.transform = "translateY(0)";
+            }
+          });
+        });
+
+        // Add parallax effect to hero section
+        let ticking = false;
+
+        function updateParallax() {
+          const scrolled = window.pageYOffset;
+          const parallax = document.querySelector("header");
+          const speed = scrolled * 0.3;
+
+          if (parallax) {
+            parallax.style.transform = `translateY(${speed}px)`;
+          }
+          ticking = false;
+        }
+
+        function requestTick() {
+          if (!ticking) {
+            requestAnimationFrame(updateParallax);
+            ticking = true;
+          }
+        }
+
+        window.addEventListener("scroll", requestTick);
+      });
+
+      // Handle responsive behavior
+      function handleResize() {
+        const isMobile = window.innerWidth < 768;
+        const visualizationArea = document.getElementById("visualizationArea");
+
+        if (isMobile && visualizationArea) {
+          visualizationArea.style.padding = "1rem";
+        }
+      }
+
+      window.addEventListener("resize", handleResize);
+      document.addEventListener("DOMContentLoaded", handleResize);
+
+      // Accessibility improvements
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add ARIA labels to control buttons
+        const controlButtons = [
+          { id: "playBtn", label: "アニメーションの再生/一時停止" },
+          { id: "prevBtn", label: "前のステップに移動" },
+          { id: "nextBtn", label: "次のステップに移動" },
+          { id: "resetBtn", label: "最初のステップにリセット" },
+        ];
+
+        controlButtons.forEach(({ id, label }) => {
+          const btn = document.getElementById(id);
+          if (btn) {
+            btn.setAttribute("aria-label", label);
+            btn.setAttribute("role", "button");
+          }
+        });
+
+        // Add ARIA labels to step cards
+        const stepCards = document.querySelectorAll(".step-card");
+        stepCards.forEach((card, index) => {
+          card.setAttribute("role", "button");
+          card.setAttribute("tabindex", "0");
+          card.setAttribute("aria-label", `ステップ ${index + 1} に移動`);
+        });
+
+        // Add live region for screen reader announcements
+        const liveRegion = document.createElement("div");
+        liveRegion.setAttribute("aria-live", "polite");
+        liveRegion.setAttribute("aria-atomic", "true");
+        liveRegion.className = "sr-only";
+        liveRegion.style.position = "absolute";
+        liveRegion.style.left = "-10000px";
+        liveRegion.style.width = "1px";
+        liveRegion.style.height = "1px";
+        liveRegion.style.overflow = "hidden";
+        document.body.appendChild(liveRegion);
+
+        // Announce step changes to screen readers
+        let previousStep = currentStep;
+        const originalUpdateUI = updateUI;
+        updateUI = function () {
+          originalUpdateUI();
+
+          if (currentStep !== previousStep) {
+            const stepCards = document.querySelectorAll(".step-card");
+            const stepTitle =
+              stepCards[currentStep - 1]?.querySelector("h3")?.textContent ||
+              `ステップ ${currentStep}`;
+            liveRegion.textContent = `現在表示中: ${stepTitle}`;
+            previousStep = currentStep;
+          }
+        };
+      });
+
+      // Error handling and cleanup
+      window.addEventListener("beforeunload", function () {
+        if (playInterval) {
+          clearInterval(playInterval);
+        }
+      });
+
+      // Handle errors gracefully
+      window.addEventListener("error", function (e) {
+        console.error("An error occurred:", e.error);
+        showNotification(
+          "エラーが発生しました。ページを再読み込みしてください。",
+          "error"
+        );
+      });
+
+      // Performance monitoring (development helper)
+      if (typeof performance !== "undefined" && performance.mark) {
+        document.addEventListener("DOMContentLoaded", function () {
+          performance.mark("tutorial-loaded");
+          console.log(
+            "Tutorial performance metrics available via Performance API"
+          );
+        });
+      }
+
+      // Initialize Prism.js with proper configuration
+      if (typeof Prism !== "undefined") {
+        Prism.plugins.autoloader.languages_path =
+          "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/";
+
+        // Custom copy button text
+        if (Prism.plugins.toolbar) {
+          Prism.plugins.toolbar.registerButton(
+            "copy-to-clipboard",
+            function (env) {
+              const element = document.createElement("button");
+              element.textContent = "コピー";
+              element.className = "prism-copy-button";
+              return element;
+            }
+          );
+        }
+      }
+
+      // Final initialization message
+      console.log("🎉 Unique Paths II Tutorial fully initialized!");
+      console.log("Keyboard shortcuts:");
+      console.log("  ← → : Previous/Next step");
+      console.log("  Space : Play/Pause");
+      console.log("  R : Reset");
+      console.log("  1-5 : Jump to step");
+    </script>
+  </body>
+</html>

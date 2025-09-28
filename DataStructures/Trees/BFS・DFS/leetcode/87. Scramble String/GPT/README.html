@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      LeetCode 87: Scramble String — Top-down recursion with memoization &amp;
+      pruning
+    </title>
+    <meta
+      name="description"
+      content="LeetCode 87 Scramble String を、トップダウン再帰 + メモ化 + 頻度枝刈りで解説。インタラクティブ可視化、Pythonコード、計算量のまとめ。"
+    />
+
+    <!-- Tailwind CSS (SRIなし) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome (任意 / SRIなし) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <!-- Prism CSS (SRIなし) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+    />
+
+    <style>
+      :root {
+        --emerald: #10b981;
+        --sky: #0ea5e9;
+        --slate: #334155;
+        --code-lh: 1.6;
+        scroll-behavior: smooth;
+      }
+      /* Cards & soft UI */
+      .card {
+        background: #fff;
+        border: 1px solid #e6e8ef;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(20, 32, 70, 0.06);
+      }
+      .card:hover {
+        box-shadow: 0 16px 36px rgba(20, 32, 70, 0.09);
+        transform: translateY(-1px);
+        transition: box-shadow 0.2s, transform 0.2s;
+      }
+      .btn {
+        border: 1px solid #e6e8ef;
+        border-radius: 9999px;
+        padding: 0.55rem 0.9rem;
+        font-weight: 600;
+        color: #0f172a;
+        background: #fff;
+        transition: box-shadow 0.15s, transform 0.15s, background 0.15s;
+      }
+      .btn:hover {
+        box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+        transform: translateY(-1px);
+      }
+      .btn-emerald {
+        border-color: #94f5d6;
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+      .btn-sky {
+        border-color: #c8e9fb;
+        background: linear-gradient(180deg, #eff9ff, #d7effe);
+      }
+      .btn-ghost {
+        background: #fff;
+      }
+      /* 左右レイアウトの高さ・スクロール */
+      .viz-height,
+      .steps-height {
+        height: auto;
+      }
+      @media (min-width: 768px) {
+        .viz-height,
+        .steps-height {
+          height: 540px;
+        }
+      }
+      .steps-scroll {
+        overflow-y: auto;
+        padding: 0.5rem 0.5rem 0.75rem 0;
+        scroll-behavior: smooth;
+        scroll-snap-type: y proximity;
+        scroll-padding-block: 18px;
+      }
+      .step-card {
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        scroll-snap-align: start;
+        border-width: 1.5px;
+      }
+      .card.step-active {
+        border-color: rgba(16, 185, 129, 0.55);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22),
+          0 16px 34px rgba(15, 118, 110, 0.14);
+        background: linear-gradient(180deg, #ecfff9, #defce7);
+      }
+      .card.step-active:hover {
+        transform: translateY(-1px);
+      }
+      .stage-panel {
+        width: min(90%, 860px);
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: clamp(1.5rem, 1.5vw + 1.2rem, 2.4rem);
+        box-shadow: 0 24px 44px rgba(15, 23, 42, 0.08);
+      }
+      .stage-title {
+        font-size: clamp(1.25rem, 1vw + 1.15rem, 1.6rem);
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 1.25rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      @media (min-width: 768px) {
+        .stage-body {
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 1.2rem;
+        }
+      }
+      .stage-body--single {
+        align-items: stretch;
+      }
+      .stage-body--single .stage-block {
+        flex: 1 1 100%;
+        max-width: none;
+      }
+      .stage-block {
+        flex: 1 1 45%;
+        min-width: min(100%, 280px);
+        border-radius: 16px;
+        border: 1.5px solid rgba(148, 163, 184, 0.36);
+        padding: 1.1rem 1.35rem;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      }
+      .stage-block--positive {
+        background: linear-gradient(180deg, #ecfdf5, #d1fae5);
+        border-color: rgba(74, 222, 128, 0.7);
+      }
+      .stage-block--alert {
+        background: linear-gradient(180deg, #fee2e2, #fecaca);
+        border-color: rgba(248, 113, 113, 0.75);
+      }
+      .stage-block--info {
+        background: linear-gradient(180deg, #e0f2fe, #bae6fd);
+        border-color: rgba(14, 165, 233, 0.55);
+      }
+      .stage-block--warm {
+        background: linear-gradient(180deg, #fff7ed, #fed7aa);
+        border-color: rgba(251, 146, 60, 0.6);
+      }
+      .stage-block--neutral {
+        background: linear-gradient(180deg, #eef2ff, #e0e7ff);
+        border-color: rgba(129, 140, 248, 0.55);
+      }
+      .stage-block__heading {
+        font-size: clamp(1.05rem, 0.8vw + 0.9rem, 1.2rem);
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 0.4rem;
+      }
+      .stage-block__text {
+        font-size: clamp(0.95rem, 0.6vw + 0.8rem, 1.05rem);
+        line-height: 1.6;
+        color: #1f2937;
+        margin: 0;
+      }
+      .stage-block__list {
+        margin: 0.5rem 0 0;
+        padding-left: 1.1rem;
+        font-size: clamp(0.92rem, 0.6vw + 0.78rem, 1.02rem);
+        color: #1f2937;
+      }
+      .stage-block__list li + li {
+        margin-top: 0.35rem;
+      }
+
+      /* SVG fade show/hide */
+      .stage {
+        transition: opacity 0.22s ease, transform 0.22s ease;
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      .stage.active {
+        opacity: 1;
+        transform: none;
+      }
+      .hidden-visually {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      /* Prism line-height sync */
+      pre[class*="language-"],
+      pre[class*="language-"] > code {
+        line-height: var(--code-lh) !important;
+        white-space: pre !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      pre.line-numbers {
+        padding-left: 3.2em !important;
+      }
+      .line-numbers .line-numbers-rows {
+        width: 3.2em;
+      }
+      .line-numbers .line-numbers-rows > span {
+        height: calc(var(--code-lh) * 1em);
+      }
+
+      /* Prism toolbar cosmetic */
+      div.code-toolbar > .toolbar .toolbar-item > button,
+      div.code-toolbar > .toolbar .toolbar-item > a {
+        background: #fff;
+        border: 1px solid #e6e8ef;
+        border-radius: 10px;
+        padding: 6px 10px;
+        font: 600 13px/1.2 Inter, system-ui, -apple-system, "Segoe UI",
+          "Helvetica Neue", Arial, sans-serif;
+        color: #334155;
+        box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      }
+      div.code-toolbar > .toolbar .toolbar-item > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .stage {
+          transition: none !important;
+        }
+        .card:hover,
+        .btn:hover {
+          transform: none !important;
+          box-shadow: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800 antialiased">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <h1
+          class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900"
+        >
+          LeetCode 87: Scramble String
+        </h1>
+        <p class="mt-2 text-slate-600">
+          Top-down recursion with
+          <span class="font-semibold">memoization</span> &amp;
+          <span class="font-semibold">frequency pruning</span>
+          を図解・コードで解説。
+        </p>
+
+        <!-- Local Nav -->
+        <nav class="mt-6 flex flex-wrap gap-2" aria-label="Section navigation">
+          <a href="#overview" class="btn btn-ghost"
+            ><i class="fa-solid fa-circle-info mr-2 text-emerald-500"></i
+            >概要</a
+          >
+          <a href="#steps" class="btn btn-ghost"
+            ><i class="fa-solid fa-shoe-prints mr-2 text-emerald-500"></i
+            >ステップ</a
+          >
+          <a href="#code" class="btn btn-ghost"
+            ><i class="fa-solid fa-code mr-2 text-emerald-500"></i>コード</a
+          >
+          <a href="#diagram" class="btn btn-ghost"
+            ><i class="fa-solid fa-diagram-project mr-2 text-emerald-500"></i
+            >図解</a
+          >
+          <a href="#complexity" class="btn btn-ghost"
+            ><i class="fa-solid fa-gauge-high mr-2 text-emerald-500"></i
+            >計算量</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 space-y-14">
+      <!-- Overview -->
+      <section id="overview" class="scroll-mt-24">
+        <div class="card p-6 md:p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-3">
+            アルゴリズム概要
+          </h2>
+          <ul class="list-disc ml-6 space-y-1">
+            <li>
+              二分割＋スワップの再帰で生成できる文字列集合に
+              <code>s2</code> が含まれるか判定。
+            </li>
+            <li>
+              <b>再帰 + メモ化</b>：部分問題
+              <code>(i1, i2, len)</code> をキャッシュし重複計算を回避。
+            </li>
+            <li>
+              <b>頻度枝刈り</b>：区間の 26-bin 文字頻度差が非ゼロなら即不一致。
+            </li>
+            <li>
+              <b>完全一致の早期終了</b>：区間が等しければ分割不要で True。
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Steps + Visualization -->
+      <section id="steps" class="scroll-mt-24">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 items-start">
+          <!-- Left: steps (fixed height + scroll) -->
+          <div class="card p-5 md:p-6 flex flex-col steps-height">
+            <h3 class="text-xl font-semibold text-slate-900 mb-3">
+              ステップバイステップ
+            </h3>
+            <div class="flex-1 steps-scroll pr-2 md:pr-3 space-y-3">
+              <!-- 10 steps -->
+              <div
+                class="card step-card p-4 step-active"
+                role="button"
+                tabindex="0"
+                data-step-target="1"
+                aria-pressed="true"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    1
+                  </div>
+                  <div>
+                    <div class="font-semibold">入力長の確認</div>
+                    <div class="text-sm text-slate-600">
+                      長さが違えば False を返す
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="2"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    2
+                  </div>
+                  <div>
+                    <div class="font-semibold">完全一致の早期終了</div>
+                    <div class="text-sm text-slate-600">
+                      s1 と s2 が同じなら True
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="3"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    3
+                  </div>
+                  <div>
+                    <div class="font-semibold">全体の文字頻度チェック</div>
+                    <div class="text-sm text-slate-600">
+                      26-bin 差分があれば False
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="4"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    4
+                  </div>
+                  <div>
+                    <div class="font-semibold">dfs(0,0,n) の開始</div>
+                    <div class="text-sm text-slate-600">
+                      トップダウン探索を開始
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="5"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    5
+                  </div>
+                  <div>
+                    <div class="font-semibold">メモ化キャッシュを参照</div>
+                    <div class="text-sm text-slate-600">
+                      保存済みなら結果を取得
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="6"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    6
+                  </div>
+                  <div>
+                    <div class="font-semibold">部分文字列の完全一致</div>
+                    <div class="text-sm text-slate-600">
+                      一致なら True を返す
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="7"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    7
+                  </div>
+                  <div>
+                    <div class="font-semibold">局所頻度で枝刈り</div>
+                    <div class="text-sm text-slate-600">差分が出たら False</div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="8"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    8
+                  </div>
+                  <div>
+                    <div class="font-semibold">非スワップ分割の探索</div>
+                    <div class="text-sm text-slate-600">
+                      cut=1..len-1 を再帰的に確認
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="9"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    9
+                  </div>
+                  <div>
+                    <div class="font-semibold">スワップ分割の探索</div>
+                    <div class="text-sm text-slate-600">
+                      入れ替えパターンを再帰探索
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="card step-card p-4"
+                role="button"
+                tabindex="0"
+                data-step-target="10"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="h-8 w-8 rounded-full grid place-items-center bg-emerald-50 text-emerald-600 font-bold"
+                  >
+                    10
+                  </div>
+                  <div>
+                    <div class="font-semibold">結果をメモ化して返却</div>
+                    <div class="text-sm text-slate-600">
+                      成功なら True／全滅なら False
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="pt-3 flex flex-wrap gap-2">
+              <button
+                class="btn btn-sky"
+                data-action="play"
+                aria-label="ステップを自動再生"
+              >
+                <i class="fa-solid fa-play mr-2"></i>再生
+              </button>
+              <button
+                class="btn"
+                data-action="prev"
+                aria-label="前のステップへ"
+              >
+                <i class="fa-solid fa-arrow-left mr-2"></i>前へ
+              </button>
+              <button
+                class="btn"
+                data-action="next"
+                aria-label="次のステップへ"
+              >
+                <i class="fa-solid fa-arrow-right mr-2"></i>次へ
+              </button>
+              <button
+                class="btn btn-emerald"
+                data-action="reset"
+                aria-label="ステップ1にリセット"
+              >
+                <i class="fa-solid fa-rotate-left mr-2"></i>最初に戻す
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Visualization (fixed height) -->
+          <div class="card p-5 md:p-8 viz-height flex flex-col">
+            <h3 class="sr-only">図解</h3>
+            <div class="flex-1 relative">
+              <!-- 10 stages, 同じ領域で切替 -->
+              <!-- Stage template: レスポンシブカード -->
+              <div
+                class="stage active absolute inset-0 flex items-center justify-center"
+                data-step="1"
+                aria-hidden="false"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ1: 入力長の確認</h4>
+                  <div class="stage-body">
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">
+                        len(s1) と len(s2) の長さを比較
+                      </p>
+                      <p class="stage-block__text">
+                        一致していればスクランブル判定を継続。
+                        入力サイズが揃っていることをまず確認します。
+                      </p>
+                    </div>
+                    <div class="stage-block stage-block--alert">
+                      <p class="stage-block__heading">
+                        長さが異なる → False を返す
+                      </p>
+                      <p class="stage-block__text">
+                        長さが違う文字列からスクランブル生成は不可能。
+                        その場で探索を終了します。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="2"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ2: 完全一致の早期終了</h4>
+                  <div class="stage-body stage-body--single">
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">
+                        s1 と s2 が完全一致するかを確認
+                      </p>
+                      <p class="stage-block__text">
+                        文字列がそのまま同じであれば追加分割は不要。 True
+                        を返して探索を打ち切ります。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="3"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ3: 全体の文字頻度チェック</h4>
+                  <div class="stage-body">
+                    <div class="stage-block stage-block--warm">
+                      <p class="stage-block__heading">
+                        26 個の差分カウンタで頻度を比較
+                      </p>
+                      <p class="stage-block__text">
+                        それぞれの文字について出現回数の差分を累積。
+                        すべてゼロで揃っていればスクランブル候補を維持できます。
+                      </p>
+                    </div>
+                    <div class="stage-block stage-block--alert">
+                      <p class="stage-block__heading">
+                        差分あり → False を返す
+                      </p>
+                      <p class="stage-block__text">
+                        どこかで差が出た時点で構成不能。 以降の再帰を行わず
+                        False を返します。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="4"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ4: dfs(0,0,n) の開始</h4>
+                  <div class="stage-body stage-body--single">
+                    <div class="stage-block stage-block--info">
+                      <p class="stage-block__heading">
+                        先頭から長さ n の区間をトップダウン探索
+                      </p>
+                      <ul class="stage-block__list">
+                        <li>部分問題のキーは <code>(i1, i2, len)</code>。</li>
+                        <li>左右の分割を試しながら再帰的に真偽を判定。</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="5"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ5: メモ化キャッシュを参照</h4>
+                  <div class="stage-body">
+                    <div class="stage-block stage-block--warm">
+                      <p class="stage-block__heading">
+                        (i1, i2, len) の結果をキャッシュ確認
+                      </p>
+                      <p class="stage-block__text">
+                        既に同じ部分問題を評価済みなら再帰をスキップ。
+                        計算済み結果をそのまま利用します。
+                      </p>
+                    </div>
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">ヒットしたら値を即返す</p>
+                      <ul class="stage-block__list">
+                        <li>冗長な枝の探索を避ける。</li>
+                        <li>計算量を大幅に削減し、同じ比較を繰り返さない。</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="6"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ6: 部分文字列の完全一致</h4>
+                  <div class="stage-body stage-body--single">
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">
+                        対象区間が同一なら True を返す
+                      </p>
+                      <p class="stage-block__text">
+                        比較中の部分文字列が完全一致したら、その枝は確定。
+                        これ以上の分割を行わず最短距離で答えに辿り着きます。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="7"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ7: 局所頻度で枝刈り</h4>
+                  <div class="stage-body">
+                    <div class="stage-block stage-block--warm">
+                      <p class="stage-block__heading">
+                        各分割位置で 26-bin 差分を再計算
+                      </p>
+                      <p class="stage-block__text">
+                        分割候補ごとに局所的な頻度差をチェック。
+                        ここで整合性が取れている枝のみ次の再帰へ進みます。
+                      </p>
+                    </div>
+                    <div class="stage-block stage-block--alert">
+                      <p class="stage-block__heading">
+                        差分が出たら即座に打ち切り
+                      </p>
+                      <p class="stage-block__text">
+                        差分が残る枝はスクランブル不可なので False
+                        を返して戻り、 無駄な再帰コールを防ぎます。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="8"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ8: 非スワップ分割の探索</h4>
+                  <div class="stage-body stage-body--single">
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">
+                        左右を入れ替えずに分割して検証
+                      </p>
+                      <ul class="stage-block__list">
+                        <li>
+                          cut を 1 から len-1 まで動かし、左と右をそのまま再帰。
+                        </li>
+                        <li>両側の再帰が True になればスクランブル成立。</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="9"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ9: スワップ分割の探索</h4>
+                  <div class="stage-body stage-body--single">
+                    <div class="stage-block stage-block--neutral">
+                      <p class="stage-block__heading">
+                        左右を入れ替えるパターンを再帰チェック
+                      </p>
+                      <ul class="stage-block__list">
+                        <li>
+                          右側の prefix と左側の suffix を入れ替えて再帰。
+                        </li>
+                        <li>
+                          dfs(i1, i2+len-cut, cut) と dfs(i1+cut, i2, len-cut)
+                          の組を確認。
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="stage absolute inset-0 flex items-center justify-center"
+                data-step="10"
+                aria-hidden="true"
+              >
+                <div class="stage-panel">
+                  <h4 class="stage-title">ステップ10: 結果をメモ化して返却</h4>
+                  <div class="stage-body">
+                    <div class="stage-block stage-block--positive">
+                      <p class="stage-block__heading">
+                        成功した分割は True を記録
+                      </p>
+                      <p class="stage-block__text">
+                        どこかの組み合わせで条件を満たしたら True をメモ化。
+                        上位の呼び出しへ成功を伝搬させます。
+                      </p>
+                    </div>
+                    <div class="stage-block stage-block--alert">
+                      <p class="stage-block__heading">
+                        全探索が失敗したら False を記録
+                      </p>
+                      <p class="stage-block__text">
+                        すべての分割で成立しなかった場合は False
+                        をメモに保存し、 再利用できるよう呼び出し元へ返します。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Code -->
+      <section id="code" class="scroll-mt-24">
+        <div class="card p-6 md:p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">
+            コード例（Python / LeetCode形式）
+          </h2>
+          <pre
+            class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto language-python"
+          ><code class="language-python">from __future__ import annotations
+
+from functools import lru_cache
+from typing import Final
+
+
+class Solution:
+    &quot;&quot;&quot;
+    87. Scramble String
+
+    トップダウン再帰 + メモ化 + 頻度枝刈り + 完全一致早期判定
+    - Pure: 外部状態なし
+    - 型注釈: pylance対応
+    &quot;&quot;&quot;
+
+    def isScramble(self, s1: str, s2: str) -> bool:
+        &quot;&quot;&quot;
+        判定関数（LeetCode規定シグネチャ）
+
+        Args:
+            s1: 元文字列（a-z, 1..30）
+            s2: 判定対象（a-z, 1..30, len(s1) == len(s2)）
+
+        Returns:
+            bool: s2 が s1 のスクランブルで生成可能なら True
+
+        Complexity:
+            Time: O(n^4) worst, Space: O(n^3)  (n = len(s1))
+        &quot;&quot;&quot;
+        n: int = len(s1)
+        if n != len(s2):
+            return False
+        if s1 == s2:
+            return True
+
+        OA: Final[int] = ord(&quot;a&quot;)
+
+        def same_multiset(i1: int, i2: int, length: int) -> bool:
+            cnt = [0] * 26
+            for k in range(length):
+                cnt[ord(s1[i1 + k]) - OA] += 1
+                cnt[ord(s2[i2 + k]) - OA] -= 1
+            for v in cnt:
+                if v != 0:
+                    return False
+            return True
+
+        def equal(i1: int, i2: int, length: int) -> bool:
+            for k in range(length):
+                if s1[i1 + k] != s2[i2 + k]:
+                    return False
+            return True
+
+        if not same_multiset(0, 0, n):
+            return False
+
+        @lru_cache(maxsize=いいえne)
+        def dfs(i1: int, i2: int, length: int) -> bool:
+            if equal(i1, i2, length):
+                return True
+            if not same_multiset(i1, i2, length):
+                return False
+            for cut in range(1, length):
+                if dfs(i1, i2, cut) and dfs(i1 + cut, i2 + cut, length - cut):
+                    return True
+                if dfs(i1, i2 + (length - cut), cut) and dfs(i1 + cut, i2, length - cut):
+                    return True
+            return False
+
+        return dfs(0, 0, n)</code></pre>
+        </div>
+      </section>
+
+      <!-- Diagram (static overview) -->
+      <section id="diagram" class="scroll-mt-24">
+        <div class="card p-6 md:p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">
+            視覚的図解・フローチャート（概要）
+          </h2>
+          <svg viewBox="0 0 800 1050" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient
+                id="startGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #cdeafe; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #a9d7ff; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="decisionGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #bbf7d0; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7dd3fc; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="processGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #fef3c7; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #fde68a; stop-opacity: 1"
+                />
+              </linearGradient>
+              <linearGradient
+                id="returnGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #fecaca; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #fca5a5; stop-opacity: 1"
+                />
+              </linearGradient>
+              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow
+                  dx="2"
+                  dy="4"
+                  stdDeviation="3"
+                  flood-opacity="0.3"
+                />
+              </filter>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="9"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+              </marker>
+            </defs>
+
+            <!-- 開始 node -->
+            <rect
+              x="300"
+              y="20"
+              width="200"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#startGrad)"
+              filter="url(#shadow)"
+              stroke="#93c5fd"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="45"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              開始
+            </text>
+            <text
+              x="400"
+              y="63"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              fill="#7D7D7D"
+            >
+              dfs(i1,i2,len)
+            </text>
+
+            <!-- Equal substring decision -->
+            <polygon
+              points="400,140 480,190 400,240 320,190"
+              fill="url(#decisionGrad)"
+              filter="url(#shadow)"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="185"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="13"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              区間は完全一致？
+            </text>
+
+            <!-- True を返す (from Equal) -->
+            <rect
+              x="550"
+              y="160"
+              width="120"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#returnGrad)"
+              filter="url(#shadow)"
+              stroke="#6A1B9A"
+              stroke-width="2"
+            />
+            <text
+              x="610"
+              y="185"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              結果を返す
+            </text>
+            <text
+              x="610"
+              y="203"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              True
+            </text>
+
+            <!-- Freq equal decision -->
+            <polygon
+              points="400,300 480,350 400,400 320,350"
+              fill="url(#decisionGrad)"
+              filter="url(#shadow)"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="345"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="13"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              文字頻度は一致？
+            </text>
+
+            <!-- False を返す (from Freq) -->
+            <rect
+              x="130"
+              y="320"
+              width="120"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#returnGrad)"
+              filter="url(#shadow)"
+              stroke="#6A1B9A"
+              stroke-width="2"
+            />
+            <text
+              x="190"
+              y="345"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              結果を返す
+            </text>
+            <text
+              x="190"
+              y="363"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              False
+            </text>
+
+            <!-- Loop process -->
+            <rect
+              x="320"
+              y="460"
+              width="160"
+              height="60"
+              rx="10"
+              ry="10"
+              fill="url(#processGrad)"
+              filter="url(#shadow)"
+              stroke="#EF6C00"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="485"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              分割ループ
+            </text>
+            <text
+              x="400"
+              y="503"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="13"
+              fill="#7D7D7D"
+            >
+              cut = 1..len-1
+            </text>
+
+            <!-- 非スワップ decision -->
+            <polygon
+              points="400,580 480,630 400,680 320,630"
+              fill="url(#decisionGrad)"
+              filter="url(#shadow)"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="625"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="13"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              非スワップで成立？
+            </text>
+
+            <!-- True を返す (from 非スワップ) -->
+            <rect
+              x="550"
+              y="600"
+              width="120"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#returnGrad)"
+              filter="url(#shadow)"
+              stroke="#6A1B9A"
+              stroke-width="2"
+            />
+            <text
+              x="610"
+              y="625"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              結果を返す
+            </text>
+            <text
+              x="610"
+              y="643"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              True
+            </text>
+
+            <!-- Swap decision -->
+            <polygon
+              points="400,740 480,790 400,840 320,790"
+              fill="url(#decisionGrad)"
+              filter="url(#shadow)"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="785"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="13"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              スワップで成立？
+            </text>
+
+            <!-- True を返す (from Swap) -->
+            <rect
+              x="550"
+              y="760"
+              width="120"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#returnGrad)"
+              filter="url(#shadow)"
+              stroke="#6A1B9A"
+              stroke-width="2"
+            />
+            <text
+              x="610"
+              y="785"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              結果を返す
+            </text>
+            <text
+              x="610"
+              y="803"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              True
+            </text>
+
+            <!-- 次の cut へ process -->
+            <rect
+              x="130"
+              y="760"
+              width="120"
+              height="60"
+              rx="10"
+              ry="10"
+              fill="url(#processGrad)"
+              filter="url(#shadow)"
+              stroke="#EF6C00"
+              stroke-width="2"
+            />
+            <text
+              x="190"
+              y="785"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              次の cut へ
+            </text>
+
+            <!-- False を返す (final) -->
+            <rect
+              x="340"
+              y="960"
+              width="120"
+              height="60"
+              rx="30"
+              ry="30"
+              fill="url(#returnGrad)"
+              filter="url(#shadow)"
+              stroke="#6A1B9A"
+              stroke-width="2"
+            />
+            <text
+              x="400"
+              y="985"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              結果を返す
+            </text>
+            <text
+              x="400"
+              y="1003"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="14"
+              font-weight="bold"
+              fill="#7D7D7D"
+            >
+              False
+            </text>
+
+            <!-- Arrows & labels (はい/いいえ等は据え置き) -->
+            <line
+              x1="400"
+              y1="80"
+              x2="400"
+              y2="140"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <line
+              x1="480"
+              y1="190"
+              x2="550"
+              y2="190"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="490"
+              y="185"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              はい
+            </text>
+
+            <line
+              x1="400"
+              y1="240"
+              x2="400"
+              y2="300"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="275"
+              text-anchor="start"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              いいえ
+            </text>
+
+            <line
+              x1="320"
+              y1="350"
+              x2="250"
+              y2="350"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="300"
+              y="345"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              いいえ
+            </text>
+
+            <line
+              x1="400"
+              y1="400"
+              x2="400"
+              y2="460"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="435"
+              text-anchor="start"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              はい
+            </text>
+
+            <line
+              x1="400"
+              y1="520"
+              x2="400"
+              y2="580"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+
+            <line
+              x1="480"
+              y1="630"
+              x2="550"
+              y2="630"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="490"
+              y="625"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              はい
+            </text>
+
+            <line
+              x1="400"
+              y1="680"
+              x2="400"
+              y2="740"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="715"
+              text-anchor="start"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              いいえ
+            </text>
+
+            <line
+              x1="480"
+              y1="790"
+              x2="550"
+              y2="790"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="490"
+              y="785"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              はい
+            </text>
+
+            <line
+              x1="320"
+              y1="790"
+              x2="250"
+              y2="790"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="300"
+              y="785"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              いいえ
+            </text>
+
+            <path
+              d="M 130 790 Q 50 790 50 490 Q 50 490 320 490"
+              stroke="#333"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="80"
+              y="640"
+              text-anchor="middle"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              cut++
+            </text>
+
+            <line
+              x1="400"
+              y1="840"
+              x2="400"
+              y2="960"
+              stroke="#333"
+              stroke-width="2"
+              marker-end="url(#arrowhead)"
+            />
+            <text
+              x="415"
+              y="945"
+              text-anchor="start"
+              font-family="Arial, sans-serif"
+              font-size="12"
+              font-weight="bold"
+              fill="#0f172a"
+            >
+              全て試行済み
+            </text>
+
+            <path
+              d="M 480 490 Q 520 490 520 990 Q 520 990 460 990"
+              stroke="#333"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrowhead)"
+              stroke-dasharray="5,5"
+            />
+          </svg>
+          <p class="mt-3 text-sm text-slate-600">
+            開始 → 完全一致 → 頻度チェック → cut ループ → 非スワップ／スワップの
+            成否 → cut++ / 全滅で False という Mermaid
+            図と同じ流れを見やすく配置し ています。
+          </p>
+        </div>
+      </section>
+
+      <!-- Complexity -->
+      <section id="complexity" class="scroll-mt-24">
+        <div class="card p-6 md:p-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-3">計算量</h2>
+          <ul class="list-disc ml-6 space-y-1">
+            <li>
+              <b>Time</b>: O(n<sup>4</sup>)（cut × 2 分岐 ×
+              区間組の組み合わせ。メモ化 &amp; 枝刈りで実用的）
+            </li>
+            <li>
+              <b>Space</b>: O(n<sup>3</sup>)（メモ化テーブル＋再帰スタック）
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-10 py-10 text-center text-sm text-slate-500">
+      &copy; 2025 Scramble String いいえtes — Built with Tailwind &amp; Prism
+    </footer>
+
+    <!-- Prism JS (SRIなし / 読み順重要) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Interaction JS -->
+    <script>
+      (function () {
+        const stepCards = Array.from(
+          document.querySelectorAll("[data-step-target]")
+        );
+        const stages = Array.from(document.querySelectorAll("[data-step]"));
+        const stepsContainer = document.querySelector(".steps-scroll");
+        const btnPrev = document.querySelector('[data-action="prev"]');
+        const btnNext = document.querySelector('[data-action="next"]');
+        const btnReset = document.querySelector('[data-action="reset"]');
+        const btnPlay = document.querySelector('[data-action="play"]');
+
+        const N = stages.length; // ← 10 ステップに自動追従
+        let currentStep = 1;
+        let isPlaying = false;
+        let playTimer = null;
+        let focusNextUpdate = false;
+
+        const prefersReducedMotion = () =>
+          !!(
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          );
+
+        function updateUI() {
+          let activeCard = null;
+          stepCards.forEach((card) => {
+            const s = Number(card.getAttribute("data-step-target"));
+            const active = s === currentStep;
+            card.classList.toggle("step-active", active);
+            card.setAttribute("aria-pressed", String(active));
+            if (active) {
+              activeCard = card;
+            }
+          });
+          stages.forEach((el) => {
+            const s = Number(el.getAttribute("data-step"));
+            const active = s === currentStep;
+            el.classList.toggle("active", active);
+            el.setAttribute("aria-hidden", String(!active));
+          });
+          if (activeCard && stepsContainer) {
+            const margin = 18;
+            const containerRect = stepsContainer.getBoundingClientRect();
+            const cardRect = activeCard.getBoundingClientRect();
+            const behavior = prefersReducedMotion() ? "auto" : "smooth";
+            if (cardRect.top < containerRect.top + margin) {
+              stepsContainer.scrollBy({
+                top: cardRect.top - containerRect.top - margin,
+                behavior,
+              });
+            } else if (cardRect.bottom > containerRect.bottom - margin) {
+              stepsContainer.scrollBy({
+                top: cardRect.bottom - containerRect.bottom + margin,
+                behavior,
+              });
+            }
+            if (focusNextUpdate && typeof activeCard.focus === "function") {
+              activeCard.focus({ preventScroll: true });
+            }
+          }
+          focusNextUpdate = false;
+        }
+
+        function goto(step, options = {}) {
+          currentStep = Math.min(Math.max(step, 1), N);
+          focusNextUpdate = Boolean(options.focus);
+          updateUI();
+        }
+
+        function stopPlay() {
+          isPlaying = false;
+          if (playTimer) {
+            clearTimeout(playTimer);
+            playTimer = null;
+          }
+          btnPlay.removeAttribute("disabled");
+          btnPlay.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+
+        function reset() {
+          stopPlay();
+          goto(1, { focus: true });
+        }
+        function next() {
+          goto(currentStep + 1, { focus: true });
+        }
+        function prev() {
+          goto(currentStep - 1, { focus: true });
+        }
+
+        function playOnce() {
+          if (isPlaying) return;
+          isPlaying = true;
+          btnPlay.setAttribute("disabled", "true");
+          btnPlay.classList.add("opacity-50", "cursor-not-allowed");
+
+          const stepMs = prefersReducedMotion() ? 240 : 820;
+
+          let s = 1;
+          goto(s, { focus: true });
+
+          function tick() {
+            if (!isPlaying) return;
+            if (s < N) {
+              s += 1;
+              goto(s, { focus: true });
+              playTimer = setTimeout(tick, stepMs);
+            } else {
+              setTimeout(() => reset(), stepMs);
+            }
+          }
+          playTimer = setTimeout(tick, stepMs);
+        }
+
+        // events
+        stepCards.forEach((card) => {
+          const go = () => {
+            stopPlay();
+            goto(Number(card.getAttribute("data-step-target")), {
+              focus: true,
+            });
+          };
+          card.addEventListener("click", go);
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              go();
+            }
+          });
+        });
+        btnPrev.addEventListener("click", () => {
+          stopPlay();
+          prev();
+        });
+        btnNext.addEventListener("click", () => {
+          stopPlay();
+          next();
+        });
+        btnReset.addEventListener("click", reset);
+        btnPlay.addEventListener("click", playOnce);
+
+        updateUI();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Median of Two Sorted Arrays - 二分探索パーティション法</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+      }
+
+      /* カスタムグラデーション */
+      .gradient-header {
+        background: linear-gradient(135deg, #d1fae5, #bfdbfe);
+      }
+      .gradient-emerald {
+        background: linear-gradient(135deg, #10b981, #059669);
+      }
+      .gradient-emerald-hover {
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+      .gradient-slate {
+        background: linear-gradient(135deg, #64748b, #475569);
+      }
+
+      /* ステップボタンのアクティブ状態 */
+      .step-button.active {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        border-color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+      }
+
+      .nav-link {
+        display: inline-block;
+        padding: 0.25rem 1rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        margin: auto;
+        color: #334155;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          background 0.2s ease, border-color 0.2s ease;
+      }
+
+      /* ナビゲーションリンクのホバー */
+      .nav-link:hover {
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+        border-color: #0f766e;
+        box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
+        transform: translateY(-2px);
+      }
+
+      /* コントロールボタンのホバー */
+      .control-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+      }
+
+      /* Prismツールバーカスタマイズ */
+      div.code-toolbar > .toolbar {
+        opacity: 1;
+      }
+      div.code-toolbar > .toolbar .toolbar-item > button,
+      div.code-toolbar > .toolbar .toolbar-item > a {
+        background: #fff;
+        border: 1px solid #e6e8ef;
+        border-radius: 10px;
+        padding: 1rem 1.5rem;
+        margin: 1rem 1rem 0 0;
+        font: 600 13px/1.2 Inter, system-ui, sans-serif;
+        color: #334155;
+        box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      }
+      div.code-toolbar > .toolbar .toolbar-item > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+
+      /* グリッドレイアウト（Tailwindでは表現不可） */
+      .viz-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      @media (min-width: 768px) {
+        .viz-grid {
+          grid-template-columns: 1fr 2fr;
+        }
+      }
+    </style>
+  </head>
+  <body class="text-slate-800">
+    <div class="max-w-7xl mx-auto p-8">
+      <!-- ヘッダー -->
+      <header
+        class="gradient-header bg-white rounded-2xl p-4 mb-8 shadow-md border border-slate-200 text-center"
+      >
+        <h1 class="text-4xl font-bold text-emerald-800 mb-2">
+          Median of Two Sorted Arrays
+        </h1>
+        <p class="text-lg text-cyan-700 pb-2">
+          二分探索パーティション法による O(log min(m,n)) 実装
+        </p>
+        <!-- ナビゲーション -->
+        <nav class="text-center">
+          <a href="#overview" class="nav-link" aria-label="概要セクションへ"
+            >概要</a
+          >
+          <a href="#steps" class="nav-link" aria-label="ステップ解説へ"
+            >ステップ</a
+          >
+          <a href="#code" class="nav-link" aria-label="コード例へ">コード</a>
+          <a href="#diagram" class="nav-link" aria-label="図解へ">図解</a>
+          <a href="#complexity" class="nav-link" aria-label="計算量へ"
+            >計算量</a
+          >
+        </nav>
+      </header>
+
+      <!-- 概要 -->
+      <section
+        id="overview"
+        class="bg-white rounded-2xl p-8 mb-8 shadow-md border border-slate-200"
+      >
+        <h2 class="text-3xl font-bold text-emerald-600 mb-4">
+          📋 アルゴリズム概要
+        </h2>
+        <p class="leading-relaxed mb-4">
+          2つのソート済み配列
+          <code class="bg-slate-100 px-2 py-1 rounded">nums1</code> と
+          <code class="bg-slate-100 px-2 py-1 rounded">nums2</code>
+          が与えられたとき、それらをマージした際の中央値を求める問題です。
+          要件として
+          <strong>O(log(m+n))</strong> の時間計算量が求められています。
+        </p>
+        <p class="leading-relaxed mb-4">
+          <strong>戦略：</strong
+          >短い配列に対して二分探索を行い、両配列を「左半分」と「右半分」に分割するパーティション点を探します。
+          正しいパーティションでは、左半分の最大値 ≤
+          右半分の最小値が成立します。
+        </p>
+        <div class="bg-emerald-50 p-6 rounded-xl border-l-4 border-emerald-500">
+          <h3 class="text-xl font-semibold text-cyan-700 mt-0 mb-4">
+            主要ポイント
+          </h3>
+          <ul class="leading-loose list-disc list-inside">
+            <li><strong>手法：</strong>二分探索パーティション法</li>
+            <li><strong>時間計算量：</strong>O(log min(m, n))</li>
+            <li><strong>空間計算量：</strong>O(1)</li>
+            <li>
+              <strong>最適化：</strong
+              >整数センチネル使用、float変換は最終結果のみ
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ステップ解説 -->
+      <section
+        id="steps"
+        class="bg-white rounded-2xl p-8 mb-8 shadow-md border border-slate-200"
+      >
+        <h2 class="text-3xl font-bold text-emerald-600 mb-4">
+          🎯 ステップバイステップ解説
+        </h2>
+        <div id="visualization-root"></div>
+      </section>
+
+      <!-- コード -->
+      <section
+        id="code"
+        class="bg-white rounded-2xl p-8 mb-8 shadow-md border border-slate-200"
+      >
+        <h2 class="text-3xl font-bold text-emerald-600 mb-4">💻 Python実装</h2>
+        <pre
+          class="line-numbers"
+        ><code class="language-python">from __future__ import annotations
+
+from typing import Final, List
+
+
+class Solution:
+    """
+    Median of Two Sorted Arrays
+    - Time:  O(log(min(m, n)))
+    - Space: O(1)
+    速度・メモリ最適化版（二分探索パーティション法）
+    """
+
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        """
+        2つのソート済み配列の中央値を計算する。
+
+        Args:
+            nums1: 非減少順の整数配列（長さ 0..1000）
+            nums2: 非減少順の整数配列（長さ 0..1000）
+
+        Returns:
+            中央値（偶数長の場合は中央2要素の平均）
+        """
+        # --- 短い配列をAにする（探索範囲を最小化） ---
+        if len(nums1) > len(nums2):
+            nums1, nums2 = nums2, nums1
+
+        A: List[int] = nums1
+        B: List[int] = nums2
+        a_len: int = len(A)
+        b_len: int = len(B)
+
+        # 総数と奇偶を事前計算（ループ内の分岐削減）
+        total: int = a_len + b_len
+        total_is_odd: bool = (total & 1) == 1
+        half: int = (total + 1) >> 1  # 左側に含める要素数
+
+        # 整数センチネル（制約±1e6を超える値）
+        NEG: Final[int] = -10_000_007
+        POS: Final[int] = +10_000_007
+
+        lo: int = 0
+        hi: int = a_len
+
+        # --- 二分探索によるパーティション点の探索 ---
+        while lo <= hi:
+            i: int = (lo + hi) >> 1  # Aの左パート長
+            j: int = half - i         # Bの左パート長
+
+            # 境界値の取得（範囲外はセンチネル）
+            a_left: int = NEG if i == 0 else A[i - 1]
+            a_right: int = POS if i == a_len else A[i]
+            b_left: int = NEG if j == 0 else B[j - 1]
+            b_right: int = POS if j == b_len else B[j]
+
+            # パーティション条件のチェック
+            if a_left <= b_right and b_left <= a_right:
+                # 正しいパーティションを発見
+                if total_is_odd:
+                    # 奇数長：左側の最大値が中央値
+                    return float(a_left if a_left > b_left else b_left)
+                # 偶数長：左側最大と右側最小の平均
+                left_max: int = a_left if a_left > b_left else b_left
+                right_min: int = a_right if a_right < b_right else b_right
+                return (left_max + right_min) * 0.5
+
+            # パーティション調整
+            if a_left > b_right:
+                # Aの左が大きすぎる → Aの左パートを減らす
+                hi = i - 1
+            else:
+                # Aの右が大きすぎる → Aの左パートを増やす
+                lo = i + 1
+
+        # 入力が正しければここには到達しない
+        return 0.0</code></pre>
+      </section>
+
+      <!-- 図解 -->
+      <section
+        id="diagram"
+        class="bg-white rounded-2xl p-8 mb-8 shadow-md border border-slate-200"
+      >
+        <h2 class="text-3xl font-bold text-emerald-600 mb-4">
+          📊 視覚的図解・フローチャート
+        </h2>
+        <svg
+          viewBox="0 0 800 1150"
+          class="max-w-full h-auto svg-with-margin"
+          style="color: #333"
+        >
+          <defs>
+            <marker
+              id="arrow"
+              markerWidth="10"
+              markerHeight="10"
+              refX="9"
+              refY="3"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+            </marker>
+          </defs>
+
+          <!-- Start -->
+          <ellipse
+            cx="400"
+            cy="60"
+            rx="80"
+            ry="30"
+            fill="#d1fae5"
+            stroke="#10b981"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="60"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            開始
+          </text>
+
+          <!-- Swap check -->
+          <path
+            d="M 400 90 L 400 150"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <path
+            d="M 400 150 L 480 190 L 400 230 L 320 190 Z"
+            fill="#fef3c7"
+            stroke="#f59e0b"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="188"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            len(nums1) &gt;
+          </text>
+          <text
+            x="400"
+            y="206"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            len(nums2)?
+          </text>
+
+          <!-- Swap arrays -->
+          <path
+            d="M 480 190 L 600 190"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="540"
+            y="185"
+            text-anchor="middle"
+            font-size="11"
+            fill="#059669"
+          >
+            Yes
+          </text>
+          <rect
+            x="600"
+            y="160"
+            width="140"
+            height="60"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="670"
+            y="185"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            配列を入れ替え
+          </text>
+          <text x="670" y="200" text-anchor="middle" font-size="10">
+            (nums1, nums2)
+          </text>
+
+          <!-- Initialize -->
+          <path
+            d="M 400 230 L 400 290"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="360"
+            y="265"
+            text-anchor="middle"
+            font-size="11"
+            fill="#dc2626"
+          >
+            No
+          </text>
+          <path
+            d="M 670 220 L 670 320 L 500 320"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <rect
+            x="300"
+            y="290"
+            width="200"
+            height="60"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="315"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            初期化
+          </text>
+          <text x="400" y="330" text-anchor="middle" font-size="10">
+            A=nums1, B=nums2
+          </text>
+
+          <!-- Calculate half -->
+          <path
+            d="M 400 350 L 400 400"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <rect
+            x="300"
+            y="400"
+            width="200"
+            height="60"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="425"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            half, total計算
+          </text>
+          <text x="400" y="440" text-anchor="middle" font-size="10">
+            total_is_odd判定
+          </text>
+
+          <!-- Init binary -->
+          <path
+            d="M 400 460 L 400 510"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <rect
+            x="300"
+            y="510"
+            width="200"
+            height="50"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="540"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            lo=0, hi=len(A)
+          </text>
+
+          <!-- Loop -->
+          <path
+            d="M 400 560 L 400 640"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <path
+            d="M 400 640 L 480 680 L 400 720 L 320 680 Z"
+            fill="#fef3c7"
+            stroke="#f59e0b"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="680"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            lo &lt;= hi?
+          </text>
+
+          <!-- Calculate i, j -->
+          <path
+            d="M 400 720 L 400 780"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="360"
+            y="755"
+            text-anchor="middle"
+            font-size="11"
+            fill="#059669"
+          >
+            Yes
+          </text>
+          <rect
+            x="300"
+            y="780"
+            width="200"
+            height="60"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="805"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            i = (lo+hi)>>1
+          </text>
+          <text x="400" y="820" text-anchor="middle" font-size="10">
+            j = half - i
+          </text>
+
+          <!-- Get bounds -->
+          <path
+            d="M 400 840 L 400 890"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <rect
+            x="270"
+            y="890"
+            width="260"
+            height="60"
+            rx="8"
+            fill="#e0f2fe"
+            stroke="#0284c7"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="915"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            境界値取得
+          </text>
+          <text x="400" y="930" text-anchor="middle" font-size="10">
+            a_left, a_right, b_left, b_right
+          </text>
+
+          <!-- Check partition -->
+          <path
+            d="M 400 950 L 400 1030"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <path
+            d="M 400 1030 L 500 1070 L 400 1110 L 300 1070 Z"
+            fill="#fef3c7"
+            stroke="#f59e0b"
+            stroke-width="2"
+          />
+          <text
+            x="400"
+            y="1068"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            a_left &lt;= b_right
+          </text>
+          <text
+            x="400"
+            y="1078"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            AND b_left &lt;= a_right?
+          </text>
+
+          <!-- Valid partition - return -->
+          <path
+            d="M 500 1070 L 620 1070"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="560"
+            y="1065"
+            text-anchor="middle"
+            font-size="11"
+            fill="#059669"
+          >
+            Yes
+          </text>
+          <ellipse
+            cx="680"
+            cy="1070"
+            rx="60"
+            ry="30"
+            fill="#d1fae5"
+            stroke="#10b981"
+            stroke-width="2"
+          />
+          <text
+            x="680"
+            y="1075"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            中央値を返す
+          </text>
+
+          <!-- Adjust partition -->
+          <path
+            d="M 300 1070 L 180 1070"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="240"
+            y="1065"
+            text-anchor="middle"
+            font-size="11"
+            fill="#dc2626"
+          >
+            No
+          </text>
+          <path
+            d="M 180 1050 L 220 1070 L 180 1090 L 140 1070 Z"
+            fill="#fee2e2"
+            stroke="#dc2626"
+            stroke-width="2"
+          />
+          <text
+            x="180"
+            y="1075"
+            text-anchor="middle"
+            font-size="10"
+            font-weight="600"
+          >
+            調整
+          </text>
+
+          <!-- Loop back -->
+          <path
+            d="M 140 1070 L 80 1070 L 80 680 L 320 680"
+            stroke="#64748b"
+            stroke-width="2"
+            fill="none"
+            marker-end="url(#arrow)"
+          />
+        </svg>
+
+        <p
+          class="mt-8 text-slate-600 leading-relaxed font-semibold"
+          style="font-family: 'Source Code Pro', monospace; font-size: 20px"
+        >
+          <strong style="font-size: 24px">フローの説明：</strong><br />
+          1. 短い配列をAにする（探索範囲を最小化）<br />
+          2. 中央値を求めるための半分の長さ（half）を計算<br />
+          3. 二分探索でパーティション点iを探索<br />
+          4. パーティション点jを自動的に決定（j = half - i）<br />
+          5. 境界値を取得してパーティション条件をチェック<br />
+          6. 条件を満たせば中央値を返す、満たさなければiを調整して再探索
+        </p>
+      </section>
+
+      <!-- 計算量 -->
+      <section
+        id="complexity"
+        class="bg-white rounded-2xl p-8 mb-8 shadow-md border border-slate-200"
+      >
+        <h2 class="text-3xl font-bold text-emerald-600 mb-4">⚡ 計算量説明</h2>
+        <div class="bg-amber-50 p-6 rounded-xl mb-4">
+          <h3 class="text-2xl font-semibold text-cyan-700 mt-0 mb-4">
+            時間計算量
+          </h3>
+          <span
+            class="inline-block px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-200 rounded-lg font-semibold font-mono my-1"
+            >O(log min(m, n))</span
+          >
+          <p class="leading-relaxed mt-4">
+            短い配列に対する二分探索のみを行うため、探索回数は短い配列の長さの対数に比例します。
+            各ステップは定数時間の比較と計算のみです。
+          </p>
+        </div>
+
+        <div class="bg-blue-50 p-6 rounded-xl">
+          <h3 class="text-2xl font-semibold text-cyan-700 mt-0 mb-4">
+            空間計算量
+          </h3>
+          <span
+            class="inline-block px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-200 rounded-lg font-semibold font-mono my-1"
+            >O(1)</span
+          >
+          <p class="leading-relaxed mt-4">
+            固定個数のローカル変数のみを使用します。配列のマージやコピーは不要で、
+            入力サイズに依存する追加メモリは確保しません。
+          </p>
+        </div>
+
+        <div class="mt-8 bg-slate-50 p-6 rounded-xl">
+          <h3 class="text-2xl font-semibold text-cyan-700 mb-4">
+            最適化の比較
+          </h3>
+          <table class="w-full border-collapse mt-4">
+            <tr class="bg-slate-200">
+              <th class="p-3 text-left border border-slate-300">手法</th>
+              <th class="p-3 text-left border border-slate-300">時間</th>
+              <th class="p-3 text-left border border-slate-300">空間</th>
+            </tr>
+            <tr>
+              <td class="p-3 border border-slate-300 font-semibold">
+                二分探索パーティション（本実装）
+              </td>
+              <td class="p-3 border border-slate-300">O(log min(m,n))</td>
+              <td class="p-3 border border-slate-300">O(1)</td>
+            </tr>
+            <tr class="bg-slate-50">
+              <td class="p-3 border border-slate-300">マージ後ソート</td>
+              <td class="p-3 border border-slate-300">O((m+n)log(m+n))</td>
+              <td class="p-3 border border-slate-300">O(m+n)</td>
+            </tr>
+            <tr>
+              <td class="p-3 border border-slate-300">2ポインタ線形走査</td>
+              <td class="p-3 border border-slate-300">O(m+n)</td>
+              <td class="p-3 border border-slate-300">O(1)</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      const baseControlBtn =
+        "control-btn px-3 py-1 text-white border-none rounded-xl font-semibold cursor-pointer transition-all my-1";
+      const controlBtn = `${baseControlBtn} gradient-emerald`;
+      const controlBtnSecondary = `${baseControlBtn} gradient-slate`;
+
+      const stepsData = [
+        {
+          step: 1,
+          title: "初期化",
+          desc: "nums1=[1,3], nums2=[2] を処理開始。nums1が短いのでA=[1,3], B=[2]とする。",
+          visual: { type: "init", nums1: [1, 3], nums2: [2] },
+        },
+        {
+          step: 2,
+          title: "パラメータ計算",
+          desc: "total=3（奇数）、half=2。左側に2要素を含めるパーティションを探す。",
+          visual: { type: "params", total: 3, half: 2, isOdd: true },
+        },
+        {
+          step: 3,
+          title: "二分探索開始: i=1",
+          desc: "A の中点 i=1 を試す。j=half-i=2-1=1。",
+          visual: {
+            type: "partition",
+            A: [1, 3],
+            B: [2],
+            i: 1,
+            j: 1,
+            lo: 0,
+            hi: 2,
+          },
+        },
+        {
+          step: 4,
+          title: "境界値取得",
+          desc: "a_left=A[0]=1, a_right=A[1]=3, b_left=B[0]=2, b_right=∞（センチネル）",
+          visual: {
+            type: "bounds",
+            a_left: 1,
+            a_right: 3,
+            b_left: 2,
+            b_right: "∞",
+          },
+        },
+        {
+          step: 5,
+          title: "パーティション条件チェック",
+          desc: "1 ≤ ∞ かつ 2 ≤ 3。条件を満たす！",
+          visual: {
+            type: "check",
+            valid: true,
+            a_left: 1,
+            b_right: "∞",
+            b_left: 2,
+            a_right: 3,
+          },
+        },
+        {
+          step: 6,
+          title: "中央値計算（奇数）",
+          desc: "total は奇数なので、左側の最大値 max(1, 2) = 2 が中央値",
+          visual: { type: "result", median: 2.0, isOdd: true, left_max: 2 },
+        },
+        {
+          step: 7,
+          title: "偶数長の例：nums1=[1,2], nums2=[3,4]",
+          desc: "total=4（偶数）、half=2。A=[1,2], B=[3,4]",
+          visual: { type: "init", nums1: [1, 2], nums2: [3, 4] },
+        },
+        {
+          step: 8,
+          title: "偶数例：i=1を試す",
+          desc: "i=1, j=2-1=1。a_left=1, a_right=2, b_left=3, b_right=4",
+          visual: {
+            type: "partition",
+            A: [1, 2],
+            B: [3, 4],
+            i: 1,
+            j: 1,
+            lo: 0,
+            hi: 2,
+          },
+        },
+        {
+          step: 9,
+          title: "偶数例：条件チェック失敗",
+          desc: "1 ≤ 4 だが 3 > 2。条件不成立。b_left > a_right なので i を増やす。",
+          visual: {
+            type: "check",
+            valid: false,
+            a_left: 1,
+            b_right: 4,
+            b_left: 3,
+            a_right: 2,
+          },
+        },
+        {
+          step: 10,
+          title: "偶数例：i=2を試す",
+          desc: "i=2, j=0。a_left=2, a_right=∞, b_left=-∞, b_right=3",
+          visual: {
+            type: "partition",
+            A: [1, 2],
+            B: [3, 4],
+            i: 2,
+            j: 0,
+            lo: 2,
+            hi: 2,
+          },
+        },
+        {
+          step: 11,
+          title: "偶数例：条件成立",
+          desc: "2 ≤ 3 かつ -∞ ≤ ∞。left_max=2, right_min=3",
+          visual: {
+            type: "check",
+            valid: true,
+            a_left: 2,
+            b_right: 3,
+            b_left: "-∞",
+            a_right: "∞",
+          },
+        },
+        {
+          step: 12,
+          title: "中央値計算（偶数）",
+          desc: "total は偶数なので (left_max + right_min) / 2 = (2+3)/2 = 2.5",
+          visual: {
+            type: "result",
+            median: 2.5,
+            isOdd: false,
+            left_max: 2,
+            right_min: 3,
+          },
+        },
+      ];
+
+      function VisualizationApp() {
+        const [activeStep, setActiveStep] = useState(1);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const timerRef = useRef(null);
+
+        useEffect(() => {
+          if (isPlaying) {
+            if (activeStep >= stepsData.length) {
+              setIsPlaying(false);
+              setActiveStep(1);
+              return;
+            }
+            timerRef.current = setTimeout(() => {
+              setActiveStep((prev) => prev + 1);
+            }, 2000);
+          }
+          return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+          };
+        }, [isPlaying, activeStep]);
+
+        const handlePlay = () => {
+          if (isPlaying) return;
+          setActiveStep(1);
+          setIsPlaying(true);
+        };
+
+        const handlePrev = () => {
+          if (activeStep > 1) setActiveStep(activeStep - 1);
+          setIsPlaying(false);
+        };
+
+        const handleNext = () => {
+          if (activeStep < stepsData.length) setActiveStep(activeStep + 1);
+          setIsPlaying(false);
+        };
+
+        const handleReset = () => {
+          setActiveStep(1);
+          setIsPlaying(false);
+        };
+
+        const handleStepClick = (step) => {
+          setActiveStep(step);
+          setIsPlaying(false);
+        };
+
+        const currentStepData = stepsData[activeStep - 1];
+
+        return (
+          <div className="viz-grid">
+            <div>
+              <h3 className="text-2xl font-semibold text-cyan-700 mt-0 mb-4">
+                ステップ一覧
+              </h3>
+              {stepsData.map((step) => (
+                <button
+                  key={step.step}
+                  className={`step-button p-4 my-2 border-2 border-slate-200 rounded-xl bg-white cursor-pointer transition-all text-left w-full hover:border-emerald-500 hover:translate-x-1 ${
+                    activeStep === step.step ? "active" : ""
+                  }`}
+                  onClick={() => handleStepClick(step.step)}
+                  type="button"
+                  aria-label={`ステップ ${step.step}: ${step.title}`}
+                  aria-current={activeStep === step.step ? "step" : undefined}
+                >
+                  <div className="flex flex-row font-bold text-emerald-600 mb-1">
+                    Step {step.step}
+                    <p className="inline-block ml-3 text-sm text-slate-700">
+                      {step.title}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-center justify-center">
+              <div className="bg-emerald-50 p-6 rounded-xl mb-4">
+                <h3 className="text-xl font-semibold text-emerald-600 mt-0 mb-2">
+                  Step {currentStepData.step}: {currentStepData.title}
+                </h3>
+                <p className="leading-relaxed text-slate-700 m-0">
+                  {currentStepData.desc}
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border-2 border-slate-200">
+                <StepVisualization visual={currentStepData.visual} />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                <button
+                  className={controlBtn}
+                  onClick={handlePlay}
+                  type="button"
+                  disabled={isPlaying}
+                  aria-label="自動再生"
+                >
+                  ▶ Play
+                </button>
+                <button
+                  className={controlBtn}
+                  onClick={handlePrev}
+                  type="button"
+                  disabled={activeStep === 1}
+                  aria-label="前のステップ"
+                >
+                  ◀ Prev
+                </button>
+                <button
+                  className={controlBtn}
+                  onClick={handleNext}
+                  type="button"
+                  disabled={activeStep === stepsData.length}
+                  aria-label="次のステップ"
+                >
+                  Next ▶
+                </button>
+                <button
+                  className={controlBtnSecondary}
+                  onClick={handleReset}
+                  type="button"
+                  aria-label="リセット"
+                >
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function StepVisualization({ visual }) {
+        if (visual.type === "init") {
+          const nums1Count = visual.nums1.length;
+          const nums2Count = visual.nums2.length;
+          const boxWidth = 67.5; // 45 * 1.5
+          const boxHeight = 67.5;
+          const spacing = 75; // 50 * 1.5
+
+          // 中央揃え用のオフセット計算
+          const nums1TotalWidth = nums1Count * spacing;
+          const nums2TotalWidth = nums2Count * spacing;
+          const nums1StartX = (600 - nums1TotalWidth) / 2;
+          const nums2StartX = (600 - nums2TotalWidth) / 2;
+
+          return (
+            <svg
+              viewBox="0 0 600 400"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="50"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                入力配列
+              </text>
+              <text
+                x="300"
+                y="100"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#334155"
+              >
+                nums1
+              </text>
+              {visual.nums1.map((val, idx) => (
+                <g key={idx}>
+                  <rect
+                    x={nums1StartX + idx * spacing}
+                    y="120"
+                    width={boxWidth}
+                    height={boxHeight}
+                    fill="#dbeafe"
+                    stroke="#0284c7"
+                    strokeWidth="3"
+                    rx="6"
+                  />
+                  <text
+                    x={nums1StartX + idx * spacing + boxWidth / 2}
+                    y="161"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    {val}
+                  </text>
+                </g>
+              ))}
+
+              <text
+                x="300"
+                y="240"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#334155"
+              >
+                nums2
+              </text>
+              {visual.nums2.map((val, idx) => (
+                <g key={idx}>
+                  <rect
+                    x={nums2StartX + idx * spacing}
+                    y="260"
+                    width={boxWidth}
+                    height={boxHeight}
+                    fill="#fef3c7"
+                    stroke="#f59e0b"
+                    strokeWidth="3"
+                    rx="6"
+                  />
+                  <text
+                    x={nums2StartX + idx * spacing + boxWidth / 2}
+                    y="301"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    {val}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          );
+        }
+
+        if (visual.type === "params") {
+          return (
+            <svg
+              viewBox="0 0 600 300"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="50"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                パラメータ
+              </text>
+
+              <rect
+                x="150"
+                y="80"
+                width="300"
+                height="60"
+                fill="#e0f2fe"
+                stroke="#0284c7"
+                strokeWidth="2"
+                rx="8"
+              />
+              <text
+                x="300"
+                y="110"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                total = {visual.total} ({visual.isOdd ? "奇数" : "偶数"})
+              </text>
+              <text x="300" y="128" textAnchor="middle" fontSize="18">
+                half = {visual.half} （左側に含める要素数）
+              </text>
+
+              <rect
+                x="150"
+                y="160"
+                width="300"
+                height="50"
+                fill="#fef3c7"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                rx="8"
+              />
+              <text
+                x="300"
+                y="192"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                探索範囲: lo = 0, hi = len(A)
+              </text>
+            </svg>
+          );
+        }
+
+        if (visual.type === "partition") {
+          const { A, B, i, j } = visual;
+          const boxWidth = 75; // 50 * 1.5
+          const boxHeight = 75;
+          const spacing = 90; // 60 * 1.5
+
+          // 中央揃え用のオフセット計算
+          const aCount = A.length;
+          const bCount = B.length;
+          const aTotalWidth = aCount * spacing;
+          const bTotalWidth = bCount * spacing;
+          const aStartX = (600 - aTotalWidth) / 2 + spacing / 2;
+          const bStartX = (600 - bTotalWidth) / 2 + spacing / 2;
+          const labelOffset = 60; // ラベル用のオフセット
+
+          return (
+            <svg
+              viewBox="0 0 600 500"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="50"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                パーティション: i={i}, j={j}
+              </text>
+
+              <text
+                x={aStartX - labelOffset}
+                y="135"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#334155"
+                fontWeight="600"
+              >
+                A
+              </text>
+              {A.map((val, idx) => (
+                <g key={idx}>
+                  <rect
+                    x={aStartX + idx * spacing - boxWidth / 2}
+                    y="100"
+                    width={boxWidth}
+                    height={boxHeight}
+                    fill={idx < i ? "#d1fae5" : "#fecaca"}
+                    stroke={idx < i ? "#10b981" : "#dc2626"}
+                    strokeWidth="3"
+                    rx="6"
+                  />
+                  <text
+                    x={aStartX + idx * spacing}
+                    y="145"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    {val}
+                  </text>
+                </g>
+              ))}
+              {i < A.length && (
+                <path
+                  d={`M ${aStartX + i * spacing - boxWidth / 2 - 8} 90 L ${
+                    aStartX + i * spacing - boxWidth / 2 - 8
+                  } 185`}
+                  stroke="#dc2626"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray="8,8"
+                />
+              )}
+
+              <text
+                x={bStartX - labelOffset}
+                y="285"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#334155"
+                fontWeight="600"
+              >
+                B
+              </text>
+              {B.map((val, idx) => (
+                <g key={idx}>
+                  <rect
+                    x={bStartX + idx * spacing - boxWidth / 2}
+                    y="250"
+                    width={boxWidth}
+                    height={boxHeight}
+                    fill={idx < j ? "#d1fae5" : "#fecaca"}
+                    stroke={idx < j ? "#10b981" : "#dc2626"}
+                    strokeWidth="3"
+                    rx="6"
+                  />
+                  <text
+                    x={bStartX + idx * spacing}
+                    y="295"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    {val}
+                  </text>
+                </g>
+              ))}
+              {j < B.length && (
+                <path
+                  d={`M ${bStartX + j * spacing - boxWidth / 2 - 8} 240 L ${
+                    bStartX + j * spacing - boxWidth / 2 - 8
+                  } 335`}
+                  stroke="#dc2626"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray="8,8"
+                />
+              )}
+
+              <text
+                x="300"
+                y="390"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#059669"
+                fontWeight="600"
+              >
+                緑: 左パート（中央値の左側）
+              </text>
+              <text
+                x="300"
+                y="420"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#dc2626"
+                fontWeight="600"
+              >
+                赤: 右パート（中央値の右側）
+              </text>
+            </svg>
+          );
+        }
+
+        if (visual.type === "bounds") {
+          const { a_left, a_right, b_left, b_right } = visual;
+          return (
+            <svg
+              viewBox="0 0 600 300"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="40"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                境界値
+              </text>
+
+              <rect
+                x="80"
+                y="80"
+                width="200"
+                height="80"
+                fill="#e0f2fe"
+                stroke="#0284c7"
+                strokeWidth="2"
+                rx="8"
+              />
+              <text
+                x="180"
+                y="105"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                A の境界
+              </text>
+              <text x="180" y="125" textAnchor="middle" fontSize="18">
+                a_left = {a_left}
+              </text>
+              <text x="180" y="145" textAnchor="middle" fontSize="18">
+                a_right = {a_right}
+              </text>
+
+              <rect
+                x="320"
+                y="80"
+                width="200"
+                height="80"
+                fill="#fef3c7"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                rx="8"
+              />
+              <text
+                x="420"
+                y="105"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                B の境界
+              </text>
+              <text x="420" y="125" textAnchor="middle" fontSize="18">
+                b_left = {b_left}
+              </text>
+              <text x="420" y="145" textAnchor="middle" fontSize="18">
+                b_right = {b_right}
+              </text>
+
+              <text
+                x="300"
+                y="210"
+                textAnchor="middle"
+                fontSize="18"
+                fill="#64748b"
+              >
+                センチネル: -∞ = -10000007, ∞ = 10000007
+              </text>
+            </svg>
+          );
+        }
+
+        if (visual.type === "check") {
+          const { valid, a_left, b_right, b_left, a_right } = visual;
+          return (
+            <svg
+              viewBox="0 0 600 300"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="40"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                パーティション条件チェック
+              </text>
+
+              <rect
+                x="100"
+                y="80"
+                width="400"
+                height="60"
+                fill={valid ? "#d1fae5" : "#fee2e2"}
+                stroke={valid ? "#10b981" : "#dc2626"}
+                strokeWidth="3"
+                rx="8"
+              />
+              <text
+                x="300"
+                y="110"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                {a_left} ≤ {b_right} ? →{" "}
+                {a_left <= (b_right === "∞" ? Infinity : b_right) ? "✓" : "✗"}
+              </text>
+              <text
+                x="300"
+                y="128"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+              >
+                {b_left} ≤ {a_right} ? →{" "}
+                {(b_left === "-∞" ? -Infinity : b_left) <=
+                (a_right === "∞" ? Infinity : a_right)
+                  ? "✓"
+                  : "✗"}
+              </text>
+
+              <text
+                x="300"
+                y="180"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="700"
+                fill={valid ? "#059669" : "#dc2626"}
+              >
+                {valid
+                  ? "✓ 条件成立！正しいパーティション発見"
+                  : "✗ 条件不成立。パーティションを調整"}
+              </text>
+            </svg>
+          );
+        }
+
+        if (visual.type === "result") {
+          const { median, isOdd, left_max, right_min } = visual;
+          return (
+            <svg
+              viewBox="0 0 600 300"
+              className="w-full h-auto svg-with-margin"
+            >
+              <text
+                x="300"
+                y="40"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="600"
+                fill="#059669"
+              >
+                中央値計算
+              </text>
+
+              <rect
+                x="150"
+                y="80"
+                width="300"
+                height="80"
+                fill="#d1fae5"
+                stroke="#10b981"
+                strokeWidth="3"
+                rx="12"
+              />
+              {isOdd ? (
+                <>
+                  <text
+                    x="300"
+                    y="110"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    奇数長: 左側の最大値
+                  </text>
+                  <text x="300" y="130" textAnchor="middle" fontSize="18">
+                    median = {left_max}
+                  </text>
+                </>
+              ) : (
+                <>
+                  <text
+                    x="300"
+                    y="105"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    偶数長: 左最大と右最小の平均
+                  </text>
+                  <text x="300" y="125" textAnchor="middle" fontSize="18">
+                    median = ({left_max} + {right_min}) / 2
+                  </text>
+                  <text x="300" y="145" textAnchor="middle" fontSize="18">
+                    = {median}
+                  </text>
+                </>
+              )}
+
+              <ellipse
+                cx="300"
+                cy="220"
+                rx="100"
+                ry="40"
+                fill="#fef3c7"
+                stroke="#f59e0b"
+                strokeWidth="3"
+              />
+              <text
+                x="300"
+                y="230"
+                textAnchor="middle"
+                fontSize="16"
+                fontWeight="700"
+                fill="#059669"
+              >
+                結果: {median}
+              </text>
+            </svg>
+          );
+        }
+
+        return null;
+      }
+      const root = ReactDOM.createRoot(
+        document.getElementById("visualization-root")
+      );
+      root.render(<VisualizationApp />);
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute("href"));
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

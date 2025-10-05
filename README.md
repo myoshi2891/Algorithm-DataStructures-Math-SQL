@@ -2,22 +2,22 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/network/members)
-[![Languages](https://img.shields.io/badge/Languages-Python%20|%20TypeScript%20|%20JavaScript-blue?style=flat-square)](#)
+[![Languages](https://img.shields.io/badge/Languages-Python%20|%20TypeScript%20|%20JavaScript-blue?style=flat-square)]
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/myoshi2891/Algorithm-DataStructures-Math-SQL)
 
 ## 🔍 概要（Overview）
 
-本ドキュメントは **Algorithm-DataStructures** リポジトリの包括的な概要を示します。  
-このリポジトリは、**アルゴリズム実装・インタラクティブ可視化・性能ベンチマーク**を統合した多言語教育プラットフォームです。  
+本ドキュメントは **Algorithm-DataStructures** リポジトリの包括的な概要を示します。
+このリポジトリは、**アルゴリズム実装・インタラクティブ可視化・性能ベンチマーク**を統合した多言語教育プラットフォームです。
 競技プログラミング、技術面接、コンピュータサイエンス教育向けの **最適化されたリファレンス実装集** として機能します。
 
 ---
 
 ## 🎯 目的と範囲（Purpose and Scope）
 
-- 主要アルゴリズムカテゴリの包括的実装  
-- 各言語（Python / TypeScript / JavaScript）における統一的ロジック  
-- 教育・可視化・パフォーマンス評価の統合フレームワーク  
+- 主要アルゴリズムカテゴリの包括的実装
+- 各言語（Python / TypeScript / JavaScript）における統一的ロジック
+- 教育・可視化・パフォーマンス評価の統合フレームワーク
 - 学習・面接・競技環境のすべてに対応
 
 ---
@@ -37,7 +37,7 @@ flowchart TD
     B3 -->|「構造実装」| C3["Tree / Graph / BIT / Stack"]
     B4 -->|「動的可視化」| C4["HTML / Canvas / JS Interactives"]
     B5 -->|「性能分析」| C5["Performance.now() ・ Timing Tools"]
-````
+```
 
 ---
 
@@ -45,11 +45,11 @@ flowchart TD
 
 各アルゴリズムは **共通ロジック** を維持しながら、各言語の特性を活かして最適化されています。
 
-| 言語             | 主な構成                  | 型システム                | 最適化手法                       |
-| -------------- | --------------------- | -------------------- | --------------------------- |
-| **Python**     | `class Solution`      | `typing.List` / 型ヒント | `ord() - 48` / リスト内包表記      |
-| **TypeScript** | `function multiply()` | 厳格な型定義 (`number[]`)  | コンパイル時型安全性                  |
-| **JavaScript** | `var multiply`        | 動的型付け                | `charCodeAt() - 48` / V8最適化 |
+| 言語           | 主な構成              | 型システム                | 最適化手法                      |
+| -------------- | --------------------- | ------------------------- | ------------------------------- |
+| **Python**     | `class Solution`      | `typing.List` / 型ヒント  | `ord() - 48` / リスト内包表記   |
+| **TypeScript** | `function multiply()` | 厳格な型定義 (`number[]`) | コンパイル時型安全性            |
+| **JavaScript** | `var multiply`        | 動的型付け                | `charCodeAt() - 48` / V8 最適化 |
 
 ```mermaid
 flowchart LR
@@ -64,13 +64,13 @@ flowchart LR
 
 リポジトリは、**計算量と応用領域** に基づいてアルゴリズムを体系化しています。
 
-| カテゴリ                    | 代表関数                                     | 時間計算量      | 空間計算量    | 対応言語           |
-| ----------------------- | ---------------------------------------- | ---------- | -------- | -------------- |
-| **Binary Search**       | `search()` / `findMedianSortedArrays()`  | O(log n)   | O(1)     | Python, TS, JS |
-| **Mathematical**        | `Solution.multiply()` / `multiply()`     | O(m×n)     | O(m+n)   | Python, TS, JS |
-| **Dynamic Programming** | `countWays()` / `count_ways()`           | O(n)〜O(n²) | O(n)     | Python, TS, JS |
-| **Backtracking**        | `combinationSum()` / `backtrack()`       | O(2^n)     | O(log n) | TS, JS         |
-| **Data Structures**     | `BinaryIndexedTree.update()` / `query()` | O(log n)   | O(n)     | Python         |
+| カテゴリ                | 代表関数                                 | 時間計算量  | 空間計算量 | 対応言語       |
+| ----------------------- | ---------------------------------------- | ----------- | ---------- | -------------- |
+| **Binary Search**       | `search()` / `findMedianSortedArrays()`  | O(log n)    | O(1)       | Python, TS, JS |
+| **Mathematical**        | `Solution.multiply()` / `multiply()`     | O(m×n)      | O(m+n)     | Python, TS, JS |
+| **Dynamic Programming** | `countWays()` / `count_ways()`           | O(n)〜O(n²) | O(n)       | Python, TS, JS |
+| **Backtracking**        | `combinationSum()` / `backtrack()`       | O(2^n)      | O(log n)   | TS, JS         |
+| **Data Structures**     | `BinaryIndexedTree.update()` / `query()` | O(log n)    | O(n)       | Python         |
 
 ```mermaid
 graph TD
@@ -97,10 +97,11 @@ flowchart TD
 
 ### 🎮 インタラクティブ機能
 
-* **リアルタイム実行:** `demoMultiply()` で入力値を即テスト
-* **性能計測:** `performance.now()` による時間分析
-* **逐次可視化:** 各ステップを動的追跡
-* **多言語例:** 同一アルゴリズムをPython/TS/JSで比較可能
+**リアルタイム実行:** `demoMultiply()` で入力値を即テスト
+
+- **性能計測:** `performance.now()` による時間分析
+- **逐次可視化:** 各ステップを動的追跡
+- **多言語例:** 同一アルゴリズムを Python/TS/JS で比較可能
 
 ---
 
@@ -112,7 +113,7 @@ flowchart TD
     A --> B2[Visualization Engine]
     A --> B3[Benchmarking Module]
     A --> B4[Educational UI Components]
-```
+``* `
 
 ---
 
@@ -153,3 +154,4 @@ flowchart TD
 
 </div>
 
+```

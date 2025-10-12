@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeetCode 5: Longest Palindromic Substring - 中心展開法</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Prism.js -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      code[class*="language-"],
+      pre[class*="language-"] {
+        font-family: "JetBrains Mono", "Source Code Pro", monospace;
+        font-size: 0.95rem;
+      }
+
+      div.code-toolbar > .toolbar {
+        opacity: 1;
+      }
+
+      div.code-toolbar > .toolbar .toolbar-item > button,
+      div.code-toolbar > .toolbar .toolbar-item > a {
+        background: #fff;
+        border: 1px solid #e6e8ef;
+        border-radius: 10px;
+        padding: 1rem 1.5rem;
+        margin: 1rem 1rem 0 0;
+        font: 600 13px/1.2 Inter, system-ui, sans-serif;
+        color: #334155;
+        box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      }
+
+      div.code-toolbar > .toolbar .toolbar-item > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+  >
+    <div class="max-w-[1400px] mx-auto">
+      <!-- Header -->
+      <header
+        id="header"
+        class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+      >
+        <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+          Longest Palindromic Substring
+        </h1>
+        <p class="text-xl text-cyan-700 font-semibold mt-2">
+          中心展開法による O(n²) 実装
+        </p>
+        <nav class="flex flex-wrap gap-4 mt-6">
+          <a
+            href="#overview"
+            class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+            >概要</a
+          >
+          <a
+            href="#steps"
+            class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+            >ステップ解説</a
+          >
+          <a
+            href="#code"
+            class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+            >コード</a
+          >
+          <a
+            href="#diagram"
+            class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+            >フローチャート</a
+          >
+          <a
+            href="#complexity"
+            class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+            >計算量</a
+          >
+        </nav>
+      </header>
+
+      <!-- Overview -->
+      <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+        <h2
+          class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+        >
+          アルゴリズム概要
+        </h2>
+
+        <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題説明</h3>
+        <p class="mb-4">
+          文字列
+          <code class="bg-slate-100 px-2 py-1 rounded text-sm">s</code>
+          が与えられたとき、<strong>最長の回文部分文字列</strong>を返す問題です。
+        </p>
+
+        <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+        <div class="bg-slate-50 p-4 rounded-lg mb-4">
+          <p class="font-semibold mb-2">例1:</p>
+          <pre
+            class="bg-slate-800 text-white p-3 rounded"
+          ><code>Input: s = "babad"
+Output: "bab" (または "aba")</code></pre>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-lg mb-4">
+          <p class="font-semibold mb-2">例2:</p>
+          <pre
+            class="bg-slate-800 text-white p-3 rounded"
+          ><code>Input: s = "cbbd"
+Output: "bb"</code></pre>
+        </div>
+
+        <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+        <ul class="list-disc list-inside space-y-2 ml-4">
+          <li>
+            <code class="bg-slate-100 px-2 py-1 rounded text-sm"
+              >1 &lt;= s.length &lt;= 1000</code
+            >
+          </li>
+          <li>
+            <code class="bg-slate-100 px-2 py-1 rounded text-sm">s</code>
+            は英字と数字のみから構成される
+          </li>
+        </ul>
+
+        <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+        <ul class="list-disc list-inside space-y-2 ml-4">
+          <li>
+            <strong>中心展開法</strong>を使用し、各位置を中心として左右に展開
+          </li>
+          <li>奇数長（中心1文字）と偶数長（中心2文字）の両方を試行</li>
+          <li>回文が続く限り範囲を広げ、最長のものを記録</li>
+          <li>追加メモリを使わず、インデックスのみで管理</li>
+        </ul>
+
+        <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">
+          主要ポイント
+        </h3>
+        <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+          <p class="font-semibold text-emerald-900 mb-2">時間計算量: O(n²)</p>
+          <p class="text-slate-700 mb-3">各位置 O(n) × 展開 O(n) = O(n²)</p>
+
+          <p class="font-semibold text-emerald-900 mb-2">空間計算量: O(1)</p>
+          <p class="text-slate-700">インデックスのみ保持、追加構造不要</p>
+        </div>
+      </section>
+
+      <!-- Steps -->
+      <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+        <h2
+          class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+        >
+          ステップバイステップ解説
+        </h2>
+        <p class="text-lg text-slate-700 font-bold mb-4">
+          s = "babad" を例に、アルゴリズムの動作を追ってみましょう。
+        </p>
+        <div id="react-root"></div>
+      </section>
+
+      <!-- Code -->
+      <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+        <h2
+          class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+        >
+          Python実装
+        </h2>
+        <pre
+          class="line-numbers"
+        ><code class="language-python">from __future__ import annotations
+
+
+class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        """
+        Longest Palindromic Substring - 中心展開法
+        Time: O(n^2), Space: O(1)
+
+        各位置を中心に奇数長・偶数長の回文を展開し、最長のものを返す。
+        """
+        n: int = len(s)
+        if n <= 1:
+            return s
+
+        def expand(l: int, r: int) -> tuple[int, int]:
+            """
+            中心 (l, r) から可能な限り展開し、
+            inclusive の [L, R] インデックスを返す。
+            """
+            while l >= 0 and r < n and s[l] == s[r]:
+                l -= 1
+                r += 1
+            # ループ終了時は l, r が条件を満たさない位置なので +1, -1 で戻す
+            return l + 1, r - 1
+
+        best_l: int = 0
+        best_r: int = 0
+
+        # 各位置で奇数長・偶数長の両方を試行
+        for i in range(n):
+            # 奇数長（中心1文字）
+            l1, r1 = expand(i, i)
+            if r1 - l1 > best_r - best_l:
+                best_l, best_r = l1, r1
+
+            # 偶数長（中心2文字）
+            l2, r2 = expand(i, i + 1)
+            if r2 - l2 > best_r - best_l:
+                best_l, best_r = l2, r2
+
+        # 最後に一度だけスライスを生成（メモリ効率化）
+        return s[best_l : best_r + 1]</code></pre>
+      </section>
+
+      <!-- Diagram -->
+      <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+        <h2
+          class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+        >
+          フローチャート
+        </h2>
+        <div class="mt-[20px] overflow-x-auto">
+          <svg
+            viewBox="0 0 840 900"
+            style="max-width: 100%; height: auto; color: #333"
+            role="img"
+            aria-label="Longest Palindromic Substring flowchart"
+          >
+            <defs>
+              <marker
+                id="arrow"
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,6 L9,3 z" fill="#64748b"></path>
+              </marker>
+            </defs>
+
+            <!-- 開始 -->
+            <ellipse
+              cx="400"
+              cy="60"
+              rx="100"
+              ry="35"
+              fill="#d1fae5"
+              stroke="#10b981"
+              stroke-width="2"
+            ></ellipse>
+            <text
+              x="400"
+              y="60"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="18"
+              font-weight="600"
+            >
+              開始
+            </text>
+
+            <!-- 開始 → 長さチェック -->
+            <path
+              d="M 400 95 L 400 150"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+
+            <!-- 長さチェック（ダイヤ） -->
+            <path
+              d="M 400 150 L 500 200 L 400 250 L 300 200 Z"
+              fill="#fef3c7"
+              stroke="#f59e0b"
+              stroke-width="2"
+            ></path>
+            <text
+              x="400"
+              y="200"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="0">n &lt;= 1</tspan>
+            </text>
+
+            <!-- はい → 即座に返す -->
+            <path
+              d="M 500 200 L 600 200"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="550"
+              y="190"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#059669"
+            >
+              はい
+            </text>
+            <rect
+              x="600"
+              y="170"
+              width="160"
+              height="60"
+              rx="8"
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              stroke-width="2"
+            ></rect>
+            <text
+              x="680"
+              y="200"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="680" dy="-8">s を返す</tspan>
+              <tspan x="680" dy="18">(基底条件)</tspan>
+            </text>
+
+            <!-- いいえ → 初期化 -->
+            <path
+              d="M 400 250 L 400 290"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="440"
+              y="270"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#dc2626"
+            >
+              いいえ
+            </text>
+
+            <rect
+              x="300"
+              y="290"
+              width="200"
+              height="70"
+              rx="8"
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              stroke-width="2"
+            ></rect>
+            <text
+              x="400"
+              y="325"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="-8">初期化</tspan>
+              <tspan x="400" dy="18">best_l = 0, best_r = 0</tspan>
+            </text>
+
+            <!-- 初期化 → ループ判定 -->
+            <path
+              d="M 400 360 L 400 415"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+
+            <!-- ループ判定（ダイヤ） -->
+            <path
+              d="M 400 415 L 500 465 L 400 515 L 300 465 Z"
+              fill="#fef3c7"
+              stroke="#f59e0b"
+              stroke-width="2"
+            ></path>
+            <text
+              x="400"
+              y="465"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="-8">i &lt; n</tspan>
+              <tspan x="400" dy="18">(各位置を走査)</tspan>
+            </text>
+
+            <!-- はい → 奇数長展開 -->
+            <path
+              d="M 400 515 L 400 555"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="440"
+              y="535"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#059669"
+            >
+              はい
+            </text>
+
+            <rect
+              x="300"
+              y="555"
+              width="200"
+              height="60"
+              rx="8"
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              stroke-width="2"
+            ></rect>
+            <text
+              x="400"
+              y="585"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="-8">expand(i, i)</tspan>
+              <tspan x="400" dy="18">(奇数長)</tspan>
+            </text>
+
+            <!-- 奇数長 → 更新チェック（ダイヤ） -->
+            <path
+              d="M 400 615 L 400 675"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <path
+              d="M 400 675 L 500 725 L 400 775 L 300 725 Z"
+              fill="#fef3c7"
+              stroke="#f59e0b"
+              stroke-width="2"
+            ></path>
+            <text
+              x="400"
+              y="725"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="-8">より長い</tspan>
+              <tspan x="400" dy="18">回文か</tspan>
+            </text>
+
+            <!-- はい → best 更新 -->
+            <path
+              d="M 300 725 L 160 725"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="255"
+              y="710"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#059669"
+            >
+              はい
+            </text>
+
+            <rect
+              x="60"
+              y="695"
+              width="100"
+              height="60"
+              rx="8"
+              fill="#d1fae5"
+              stroke="#10b981"
+              stroke-width="2"
+            ></rect>
+            <text
+              x="110"
+              y="725"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="110" dy="-8">best を</tspan>
+              <tspan x="110" dy="18">更新</tspan>
+            </text>
+
+            <!-- best 更新 → 偶数長展開 へ戻す線 -->
+            <path
+              d="M 110 755 L 110 845 L 300 845"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+
+            <!-- いいえ → 偶数長展開 -->
+            <path
+              d="M 400 775 L 400 815"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="440"
+              y="795"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#dc2626"
+            >
+              いいえ
+            </text>
+
+            <rect
+              x="300"
+              y="815"
+              width="200"
+              height="60"
+              rx="8"
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              stroke-width="2"
+            ></rect>
+            <text
+              x="400"
+              y="845"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="400" dy="-8">expand(i, i+1)</tspan>
+              <tspan x="400" dy="18">(偶数長)</tspan>
+            </text>
+
+            <!-- 偶数長 → ループバック i++ -->
+            <path
+              d="M 500 845 L 630 845 L 630 465 L 500 465"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="645"
+              y="655"
+              text-anchor="start"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#6366f1"
+            >
+              i++
+            </text>
+
+            <!-- ループ判定 No → 結果へ -->
+            <path
+              d="M 300 465 L 110 465 L 110 555"
+              stroke="#64748b"
+              stroke-width="2"
+              fill="none"
+              marker-end="url(#arrow)"
+            ></path>
+            <text
+              x="255"
+              y="445"
+              text-anchor="start"
+              dominant-baseline="middle"
+              font-size="14"
+              font-weight="600"
+              fill="#dc2626"
+            >
+              いいえ
+            </text>
+
+            <!-- 結果 -->
+            <ellipse
+              cx="110"
+              cy="590"
+              rx="90"
+              ry="35"
+              fill="#d1fae5"
+              stroke="#10b981"
+              stroke-width="2"
+            ></ellipse>
+            <text
+              x="110"
+              y="590"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="600"
+            >
+              <tspan x="110" dy="-8">結果を</tspan>
+              <tspan x="110" dy="18">返す</tspan>
+            </text>
+          </svg>
+        </div>
+
+        <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+          <strong class="text-2xl">フローの説明：</strong><br />
+          1. <span class="text-teal-700">開始</span> → 文字列 s
+          の長さをチェック<br />
+          2. <span class="text-amber-600">n ≤ 1</span> なら
+          <span class="text-cyan-700">s をそのまま返して終了</span
+          >（基底条件）<br />
+          3. そうでなければ
+          <span class="text-cyan-700">best_l = 0, best_r = 0</span>
+          で初期化<br />
+          4. <span class="text-amber-600">各位置 i を走査</span>（i = 0 から n-1
+          まで）<br />
+          5. 各位置で
+          <span class="text-cyan-700">expand(i, i)</span> を実行（奇数長）<br />
+          6. より長い回文なら <span class="text-emerald-600">best を更新</span
+          ><br />
+          7. 次に
+          <span class="text-cyan-700">expand(i, i+1)</span>
+          を実行（偶数長）<br />
+          8. より長い回文なら <span class="text-emerald-600">best を更新</span
+          ><br />
+          9. i++ して次の位置へ（ステップ4に戻る）<br />
+          10. 全位置走査完了後、<span class="text-teal-700"
+            >s[best_l : best_r+1] を返して終了</span
+          >
+        </p>
+      </section>
+
+      <!-- Complexity -->
+      <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+        <h2
+          class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+        >
+          計算量分析
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-emerald-50">
+                <th
+                  class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold"
+                >
+                  項目
+                </th>
+                <th
+                  class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold"
+                >
+                  本実装（中心展開法）
+                </th>
+                <th
+                  class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold"
+                >
+                  代替手法
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                  時間計算量
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  <code class="bg-emerald-100 px-2 py-1 rounded">O(n²)</code>
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  DP: O(n²)<br />
+                  Manacher: O(n)
+                </td>
+              </tr>
+              <tr class="bg-slate-50">
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                  空間計算量
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  <code class="bg-emerald-100 px-2 py-1 rounded">O(1)</code>
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  DP: O(n²)<br />
+                  Manacher: O(n)
+                </td>
+              </tr>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                  実装コスト
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  <span class="text-emerald-600 font-semibold">低</span>
+                  (短く直感的)
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  DP: 中<br />
+                  Manacher: 高
+                </td>
+              </tr>
+              <tr class="bg-slate-50">
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                  n=1000での実用性
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  <span class="text-emerald-600 font-semibold">◎ 十分高速</span>
+                </td>
+                <td class="border-2 border-slate-200 px-4 py-3">
+                  DP: △ (メモリ重い)<br />
+                  Manacher: ◎ (最速)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-6 bg-cyan-50 border-l-4 border-cyan-500 p-4 rounded">
+          <p class="font-semibold text-cyan-900 mb-2">💡 採用理由</p>
+          <ul class="list-disc list-inside space-y-1 text-slate-700 ml-2">
+            <li>制約 n ≤ 1000 では O(n²) で十分実用的</li>
+            <li>追加メモリ O(1) でメモリ効率が最高</li>
+            <li>実装が短く、バグ混入率が低い</li>
+            <li>CPython の文字比較（C実装）を活用できる</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- React -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      const stepsData = [
+        {
+          step: 1,
+          title: "初期化",
+          desc: 's = "babad" (n=5) を例とする。best_l = 0, best_r = 0 で初期化（最小の回文は s[0] の1文字）',
+          visual: {
+            type: "init",
+            s: "babad",
+            best_l: 0,
+            best_r: 0,
+          },
+        },
+        {
+          step: 2,
+          title: "i=0: 奇数長展開",
+          desc: 'expand(0, 0) で "b" から展開。左右に拡張できないため l=0, r=0。長さ1（現在のbestと同じ）なので更新なし。',
+          visual: {
+            type: "expand_odd",
+            s: "babad",
+            i: 0,
+            l: 0,
+            r: 0,
+            best_l: 0,
+            best_r: 0,
+            updated: false,
+          },
+        },
+        {
+          step: 3,
+          title: "i=0: 偶数長展開",
+          desc: 'expand(0, 1) で "b" と "a" から展開。s[0] ≠ s[1] なので即座に終了。更新なし。',
+          visual: {
+            type: "expand_even",
+            s: "babad",
+            i: 0,
+            l: 0,
+            r: 1,
+            best_l: 0,
+            best_r: 0,
+            updated: false,
+            match: false,
+          },
+        },
+        {
+          step: 4,
+          title: "i=1: 奇数長展開",
+          desc: 'expand(1, 1) で "a" から展開。s[0]="b" と s[2]="b" が一致！l=0, r=2 に拡張。さらに左右を試すが範囲外。最終 l=0, r=2 で "bab"（長さ3）を発見。best を更新！',
+          visual: {
+            type: "expand_odd",
+            s: "babad",
+            i: 1,
+            l: 0,
+            r: 2,
+            best_l: 0,
+            best_r: 2,
+            updated: true,
+          },
+        },
+        {
+          step: 5,
+          title: "i=1: 偶数長展開",
+          desc: 'expand(1, 2) で "a" と "b" から展開。s[1] ≠ s[2] なので即座に終了。更新なし。',
+          visual: {
+            type: "expand_even",
+            s: "babad",
+            i: 1,
+            l: 1,
+            r: 2,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+            match: false,
+          },
+        },
+        {
+          step: 6,
+          title: "i=2: 奇数長展開",
+          desc: 'expand(2, 2) で "b" から展開。s[1]="a" と s[3]="a" が一致！l=1, r=3 に拡張。さらに s[0]="b" と s[4]="d" を比較→不一致。最終 l=1, r=3 で "aba"（長さ3）。bestと同じ長さなので更新なし（左優先）。',
+          visual: {
+            type: "expand_odd",
+            s: "babad",
+            i: 2,
+            l: 1,
+            r: 3,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+          },
+        },
+        {
+          step: 7,
+          title: "i=2: 偶数長展開",
+          desc: 'expand(2, 3) で "b" と "a" から展開。s[2] ≠ s[3] なので即座に終了。更新なし。',
+          visual: {
+            type: "expand_even",
+            s: "babad",
+            i: 2,
+            l: 2,
+            r: 3,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+            match: false,
+          },
+        },
+        {
+          step: 8,
+          title: "i=3: 奇数長展開",
+          desc: 'expand(3, 3) で "a" から展開。左右に拡張できないため l=3, r=3。長さ1なので更新なし。',
+          visual: {
+            type: "expand_odd",
+            s: "babad",
+            i: 3,
+            l: 3,
+            r: 3,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+          },
+        },
+        {
+          step: 9,
+          title: "i=3: 偶数長展開",
+          desc: 'expand(3, 4) で "a" と "d" から展開。s[3] ≠ s[4] なので即座に終了。更新なし。',
+          visual: {
+            type: "expand_even",
+            s: "babad",
+            i: 3,
+            l: 3,
+            r: 4,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+            match: false,
+          },
+        },
+        {
+          step: 10,
+          title: "i=4: 奇数長展開",
+          desc: 'expand(4, 4) で "d" から展開。左右に拡張できないため l=4, r=4。長さ1なので更新なし。',
+          visual: {
+            type: "expand_odd",
+            s: "babad",
+            i: 4,
+            l: 4,
+            r: 4,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+          },
+        },
+        {
+          step: 11,
+          title: "i=4: 偶数長展開",
+          desc: "expand(4, 5) で範囲外なので即座に終了。更新なし。",
+          visual: {
+            type: "expand_even",
+            s: "babad",
+            i: 4,
+            l: 4,
+            r: 5,
+            best_l: 0,
+            best_r: 2,
+            updated: false,
+            match: false,
+            outOfBounds: true,
+          },
+        },
+        {
+          step: 12,
+          title: "結果",
+          desc: '全位置の走査が完了。best_l=0, best_r=2 より s[0:3] = "bab" を返す。',
+          visual: {
+            type: "result",
+            s: "babad",
+            best_l: 0,
+            best_r: 2,
+            result: "bab",
+          },
+        },
+      ];
+
+      function StepVisualization({ visual }) {
+        const {
+          type,
+          s,
+          i,
+          l,
+          r,
+          best_l,
+          best_r,
+          updated,
+          match,
+          outOfBounds,
+          result,
+        } = visual;
+        const chars = s.split("");
+        const n = chars.length;
+
+        const boxWidth = 75;
+        const boxHeight = 75;
+        const spacing = 90;
+        const totalWidth = n * spacing;
+        const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+        return (
+          <svg
+            viewBox="0 0 600 450"
+            style={{ maxWidth: "100%", height: "auto", marginTop: "20px" }}
+          >
+            <defs>
+              <marker
+                id="arrowPurple"
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+              </marker>
+              <marker
+                id="arrowBlue"
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" />
+              </marker>
+              <marker
+                id="arrowGreen"
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+              </marker>
+            </defs>
+
+            {/* タイトル */}
+            <text
+              x="300"
+              y="30"
+              textAnchor="middle"
+              fontSize="18"
+              fontWeight="600"
+            >
+              {type === "init" && "初期状態"}
+              {type === "expand_odd" && `位置 ${i} で奇数長展開`}
+              {type === "expand_even" && `位置 ${i} で偶数長展開`}
+              {type === "result" && "最終結果"}
+            </text>
+
+            {/* 文字列配列 */}
+            {chars.map((char, idx) => {
+              let fillColor = "#ffffff";
+              let strokeColor = "#cbd5e1";
+              let strokeWidth = 2;
+
+              // 現在の展開範囲
+              if (
+                type !== "init" &&
+                type !== "result" &&
+                idx >= l &&
+                idx <= r &&
+                r < n
+              ) {
+                if (
+                  type === "expand_odd" ||
+                  (type === "expand_even" && match !== false)
+                ) {
+                  fillColor = "#ddd6fe";
+                  strokeColor = "#a855f7";
+                  strokeWidth = 3;
+                }
+              }
+
+              // bestの範囲
+              if (idx >= best_l && idx <= best_r) {
+                fillColor = "#d1fae5";
+                strokeColor = "#10b981";
+                strokeWidth = 3;
+              }
+
+              // 更新があった場合
+              if (updated && idx >= l && idx <= r) {
+                fillColor = "#fef3c7";
+                strokeColor = "#f59e0b";
+                strokeWidth = 4;
+              }
+
+              return (
+                <g key={idx}>
+                  <rect
+                    x={startX + idx * spacing - boxWidth / 2}
+                    y="100"
+                    width={boxWidth}
+                    height={boxHeight}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    rx="6"
+                  />
+                  <text
+                    x={startX + idx * spacing}
+                    y="145"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                  >
+                    {char}
+                  </text>
+                  <text
+                    x={startX + idx * spacing}
+                    y="200"
+                    textAnchor="middle"
+                    fontSize="14"
+                    fill="#64748b"
+                  >
+                    {idx}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* 現在位置 i の矢印 */}
+            {type !== "init" && type !== "result" && i !== undefined && (
+              <>
+                <path
+                  d={`M ${startX + i * spacing} 60 L ${
+                    startX + i * spacing
+                  } 100`}
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  fill="none"
+                  markerEnd="url(#arrowBlue)"
+                />
+                <text
+                  x={startX + i * spacing}
+                  y="50"
+                  textAnchor="middle"
+                  fontSize="18"
+                  fontWeight="600"
+                  fill="#3b82f6"
+                >
+                  i = {i}
+                </text>
+              </>
+            )}
+
+            {/* 展開範囲の矢印（l, r） */}
+            {type !== "init" &&
+              type !== "result" &&
+              l !== undefined &&
+              r !== undefined &&
+              r < n &&
+              !outOfBounds && (
+                <>
+                  <path
+                    d={`M ${startX + l * spacing - 10} 220 L ${
+                      startX + l * spacing - 10
+                    } 175`}
+                    stroke="#a855f7"
+                    strokeWidth="2"
+                    fill="none"
+                    markerEnd="url(#arrowPurple)"
+                  />
+                  <text
+                    x={startX + l * spacing - 10}
+                    y="240"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                    fill="#a855f7"
+                  >
+                    l = {l}
+                  </text>
+
+                  <path
+                    d={`M ${startX + r * spacing + 10} 240 L ${
+                      startX + r * spacing + 10
+                    } 175`}
+                    stroke="#a855f7"
+                    strokeWidth="2"
+                    fill="none"
+                    markerEnd="url(#arrowPurple)"
+                  />
+                  <text
+                    x={startX + r * spacing + 10}
+                    y="260"
+                    textAnchor="middle"
+                    fontSize="18"
+                    fontWeight="600"
+                    fill="#a855f7"
+                  >
+                    r = {r}
+                  </text>
+                </>
+              )}
+
+            {/* best範囲の表示 */}
+            {(type === "init" || type === "result" || best_l !== undefined) && (
+              <>
+                <path
+                  d={`M ${startX + best_l * spacing - 30} 260 L ${
+                    startX + best_l * spacing - 30
+                  } 175`}
+                  stroke="#10b981"
+                  strokeWidth="2"
+                  fill="none"
+                  markerEnd="url(#arrowGreen)"
+                />
+                <text
+                  x={startX + best_l * spacing - 30}
+                  y="280"
+                  textAnchor="middle"
+                  fontSize="18"
+                  fontWeight="600"
+                  fill="#10b981"
+                >
+                  best_l
+                </text>
+
+                <path
+                  d={`M ${startX + best_r * spacing + 30} 280 L ${
+                    startX + best_r * spacing + 30
+                  } 175`}
+                  stroke="#10b981"
+                  strokeWidth="2"
+                  fill="none"
+                  markerEnd="url(#arrowGreen)"
+                />
+                <text
+                  x={startX + best_r * spacing + 30}
+                  y="300"
+                  textAnchor="middle"
+                  fontSize="18"
+                  fontWeight="600"
+                  fill="#10b981"
+                >
+                  best_r
+                </text>
+              </>
+            )}
+
+            {/* 説明テキスト */}
+            <text
+              x="300"
+              y="330"
+              textAnchor="middle"
+              fontSize="18"
+              fill="#64748b"
+            >
+              {type === "init" &&
+                `最小の回文: s[${best_l}] = "${chars[best_l]}"`}
+              {type === "expand_odd" &&
+                !updated &&
+                !outOfBounds &&
+                "この展開では更新なし"}
+              {type === "expand_odd" &&
+                updated &&
+                `新しい最長回文を発見！長さ ${r - l + 1}`}
+              {type === "expand_even" &&
+                match === false &&
+                "文字が一致せず、展開できない"}
+              {type === "expand_even" && outOfBounds && "範囲外のため展開なし"}
+              {type === "expand_even" &&
+                match !== false &&
+                !updated &&
+                "この展開では更新なし"}
+              {type === "result" &&
+                `最長回文: "${result}" (長さ ${best_r - best_l + 1})`}
+            </text>
+
+            {/* 凡例 */}
+            <g transform="translate(50, 370)">
+              <rect
+                x="0"
+                y="0"
+                width="30"
+                height="20"
+                fill="#d1fae5"
+                stroke="#10b981"
+                strokeWidth="2"
+                rx="3"
+              />
+              <text x="40" y="15" fontSize="14" fill="#64748b">
+                best範囲
+              </text>
+
+              <rect
+                x="150"
+                y="0"
+                width="30"
+                height="20"
+                fill="#ddd6fe"
+                stroke="#a855f7"
+                strokeWidth="2"
+                rx="3"
+              />
+              <text x="190" y="15" fontSize="14" fill="#64748b">
+                展開中
+              </text>
+
+              <rect
+                x="280"
+                y="0"
+                width="30"
+                height="20"
+                fill="#fef3c7"
+                stroke="#f59e0b"
+                strokeWidth="3"
+                rx="3"
+              />
+              <text x="320" y="15" fontSize="14" fill="#64748b">
+                更新
+              </text>
+            </g>
+          </svg>
+        );
+      }
+
+      function StepByStepDemo() {
+        const [activeStep, setActiveStep] = useState(1);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const timerRef = useRef(null);
+
+        useEffect(() => {
+          if (isPlaying) {
+            if (activeStep >= stepsData.length) {
+              setIsPlaying(false);
+              setActiveStep(1);
+              return;
+            }
+            timerRef.current = setTimeout(() => {
+              setActiveStep((prev) => prev + 1);
+            }, 2000);
+          }
+          return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+          };
+        }, [isPlaying, activeStep]);
+
+        const handlePlay = () => {
+          if (isPlaying) return;
+          if (activeStep === stepsData.length) {
+            setActiveStep(1);
+          }
+          setIsPlaying(true);
+        };
+
+        const handlePrev = () => {
+          if (activeStep > 1) {
+            setIsPlaying(false);
+            setActiveStep(activeStep - 1);
+          }
+        };
+
+        const handleNext = () => {
+          if (activeStep < stepsData.length) {
+            setIsPlaying(false);
+            setActiveStep(activeStep + 1);
+          }
+        };
+
+        const handleReset = () => {
+          setIsPlaying(false);
+          setActiveStep(1);
+        };
+
+        const handleStepClick = (step) => {
+          setIsPlaying(false);
+          setActiveStep(step);
+        };
+
+        const currentStepData = stepsData.find((s) => s.step === activeStep);
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+            <div>
+              <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                ステップ一覧
+              </h3>
+              <div className="space-y-2">
+                {stepsData.map((step) => {
+                  const isActive = activeStep === step.step;
+                  return (
+                    <button
+                      key={step.step}
+                      type="button"
+                      className={[
+                        "w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4",
+                        "bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1",
+                        isActive
+                          ? "bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]"
+                          : "",
+                      ].join(" ")}
+                      onClick={() => handleStepClick(step.step)}
+                      aria-label={`ステップ${step.step}: ${step.title}`}
+                      aria-current={isActive ? "step" : undefined}
+                    >
+                      <div
+                        className={[
+                          "font-bold mb-1",
+                          isActive ? "text-emerald-900" : "text-teal-800",
+                        ].join(" ")}
+                      >
+                        Step {step.step}: {step.title}
+                      </div>
+                      <div className="text-slate-500 text-sm mt-1">
+                        {step.desc.substring(0, 50)}
+                        {step.desc.length > 50 ? "..." : ""}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="my-auto">
+              <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                  Step {currentStepData.step}: {currentStepData.title}
+                </h3>
+                <p className="text-slate-600 leading-7">
+                  {currentStepData.desc}
+                </p>
+              </div>
+
+              <StepVisualization visual={currentStepData.visual} />
+
+              <div className="flex flex-wrap justify-center gap-2 mt-1">
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                  onClick={handlePlay}
+                  disabled={isPlaying}
+                  aria-label="自動再生"
+                >
+                  ▶ Play
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                  onClick={handlePrev}
+                  disabled={activeStep === 1 || isPlaying}
+                  aria-label="前のステップ"
+                >
+                  ◀ Prev
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                  onClick={handleNext}
+                  disabled={activeStep === stepsData.length || isPlaying}
+                  aria-label="次のステップ"
+                >
+                  Next ▶
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                  onClick={handleReset}
+                  aria-label="リセット"
+                >
+                  ↺ Reset
+                </button>
+              </div>
+
+              <div className="mt-6 p-4 rounded-xl border-2 border-slate-200 bg-slate-50">
+                <p className="m-0 text-slate-500 text-sm">
+                  <strong>進捗:</strong> Step {activeStep} / {stepsData.length}
+                  {isPlaying ? " (自動再生中...)" : ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("react-root"));
+      root.render(<StepByStepDemo />);
+    </script>
+  </body>
+</html>

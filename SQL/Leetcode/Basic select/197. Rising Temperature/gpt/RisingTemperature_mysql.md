@@ -27,11 +27,9 @@ WHERE prev_date IS NOT NULL
   AND DATEDIFF(recordDate, prev_date) = 1  -- 昨日が存在するかを厳密判定
   AND temperature > prev_temp;
 
-Runtime
-330
-ms
-Beats
-98.99%
+
+※以下のランタイム・Beat値は一例であり、実行環境（データセット規模、MySQLバージョン、ハードウェア、実行コマンド等）によって大きく変動します。
+例: LeetCodeテスト環境（小規模サンプルDB, MySQL 8.x, x86_64, `SELECT ...` 実行時）での一回の計測値: Runtime 330ms, Beats 98.99%
 
 ```
 
@@ -45,14 +43,9 @@ FROM Weather AS w1
 JOIN Weather AS w0
   ON w0.recordDate = DATE_SUB(w1.recordDate, INTERVAL 1 DAY)
 WHERE w1.temperature > w0.temperature;
-
-Runtime
-366
-ms
-Beats
-89.98%
-
 ```
+
+※この自己結合アプローチは `recordDate` にインデックスがある場合に高速です。インデックスがない場合、結合が O(N²) まで低下するため、必ず `recordDate`（または同等の列）にインデックスを作成してください。
 
 ## 4) 要点解説
 
@@ -63,8 +56,14 @@ Beats
 
 ## 5) 計算量（概算）
 
-- ウィンドウ: 全件ソート **O(N log N)**、1 パス集計 **O(N)**
-- 自己結合: `recordDate` にインデックスがあればルックアップ **O(N)** 近似（なければ **O(N log N)**）
+### 計算量・実用上の注意
+
+- **ウィンドウ関数解法**: ソートステップがボトルネックとなり、最悪計算量は **O(N log N)**（平均も同等）。パーティションやソート用に **O(N)** の追加メモリが必要。
+  DB によってはソートの安定性や内部アルゴリズム（例: 外部ソート、インメモリソート）が異なる。
+- **自己結合解法**: `recordDate` にカバーインデックス（例: `INDEX(recordDate, temperature, id)`）がある場合、
+  各行ごとにインデックス経由で 1 日前を高速に検索できるため **O(N)**（平均）。
+  インデックスがない場合は全表走査となり **O(N log N)** 以上（最悪 **O(N²)**）に劣化。空間はインデックス分と一時テーブル分。
+- **DB 最適化**: 実際のパフォーマンスは DB の実装（例: MySQL のインデックス付きネストループ結合、PostgreSQL のハッシュ結合）やクエリプランナーの最適化に依存。インデックス設計や統計情報の更新も重要。
 
 ## 6) 図解（Mermaid 超保守版）
 

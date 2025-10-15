@@ -27,11 +27,8 @@ WHERE prev_date IS NOT NULL
   AND (recordDate - prev_date) = 1    -- ちょうど前日だけを対象（date 差は整数日）
   AND temperature > prev_temp;
 
-Runtime
-213
-ms
-Beats
-84.57%
+
+**Runtime:** 213ms (Beats 84.57%)
 
 ```
 
@@ -44,11 +41,8 @@ JOIN Weather AS w0
   ON w0.recordDate = w1.recordDate - 1   -- 前日が存在する行だけ残る
 WHERE w1.temperature > w0.temperature;
 
-Runtime
-208
-ms
-Beats
-93.95%
+
+**Runtime:** 208ms (Beats 93.95%)
 
 ```
 
@@ -62,7 +56,9 @@ Beats
 ## 4) 計算量（概算）
 
 - ウィンドウ処理: **O(N log N)**（`recordDate` でのソート後に 1 パス）
-- 自己結合: `recordDate` にインデックスがあれば **O(N)** 近似（なければ **O(N log N)**）
+- 自己結合: `recordDate` にインデックスがあれば各行ごとにインデックス経由で 1 日前を高速検索できるため **O(N)**。
+  インデックスがない場合、DB はネストループ結合で **O(N²)** になることが多く、ハッシュ結合やマージ結合が使われれば **O(N log N)** や **O(N)** まで改善する場合もある。
+  最適な性能のため、`recordDate` にインデックスを作成することを推奨。
 
 ## 5) 図解（Mermaid 超保守版）
 

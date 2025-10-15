@@ -40,16 +40,8 @@ def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
 
 Analyze Complexity
 
-Runtime
-326
-ms
-Beats
-29.18%
-Memory
-68.08
-MB
-Beats
-35.24%
+- Runtime: 326 ms (Beats 29.18%)
+- Memory: 68.08 MB (Beats 35.24%)
 ```
 
 ## 3) アルゴリズム説明
@@ -113,7 +105,7 @@ def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
     rd = pd.to_datetime(w['recordDate'], errors='coerce')
 
     # 可変長オブジェクトを避けて numpy 配列で演算
-    temp = w['temperature'].to_numpy()
+  temp = w['temperature'].to_numpy(dtype=float)  # float型でNaNを扱えるように
     ids  = w['id'].to_numpy()
 
     # DateIndex を作り、(当日-1日) が指す行番号を一括で取得（完全一致のみ）
@@ -122,9 +114,9 @@ def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
 
     # 前日が存在する位置だけ抽出し、numpy.take で O(1) 参照
     has_prev = idxer != -1
-    prev_temp = np.empty_like(temp)
-    # 値のある箇所だけ埋める（不要な全要素代入を避ける）
-    prev_temp[has_prev] = np.take(temp, idxer[has_prev])
+  prev_temp = np.full_like(temp, np.nan)  # 未使用箇所は明示的にNaN
+  # 値のある箇所だけ埋める（不要な全要素代入を避ける）
+  prev_temp[has_prev] = np.take(temp, idxer[has_prev])
 
     mask = has_prev & (temp > prev_temp)
 
@@ -156,10 +148,15 @@ Beats
 
 1. **列型の固定**
    `temperature` が `int32/64`、`id` が `int32/64` になっているか確認（`object` 避け）。
+   型変換は「rising_temperature」関数の冒頭で
 
-   ```python
+```python
+def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
    weather = weather.astype({'id':'int64','temperature':'int64'})
-   ```
+   # ...existing code...
+```
+
+または関数呼び出し前の前処理段階で行うとよいです。
 
 2. **`recordDate` をあらかじめ datetime に**（前処理段階で保証できるなら関数内の変換コストを削減）。
 3. **欠日が少なく、データがほぼ連続日**のときだけ：

@@ -133,6 +133,8 @@ def first_login(Activity: pd.DataFrame) -> pd.DataFrame:
 ### 追加の“安価な”微調整（任意）
 
 ```python
+import pandas as pd
+
 def first_login(Activity: pd.DataFrame) -> pd.DataFrame:
     # 可能なら事前に型を整える（コピー抑制に注意: copy=False）
     if Activity['player_id'].dtype != 'int32':
@@ -149,35 +151,39 @@ def first_login(Activity: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
 
-# Analyze Complexity
-
-# Runtime 259 ms
-# Beats 98.67%
-# Memory 67.94 MB
-# Beats 75.06%
-
+# > 前提条件
+# >
+# > このコードを安全に実行するための重要な前提条件：
+# >
+# > 1. **データ型の制約**:
+# >    - `player_id` は `int32` の範囲内である必要があります（-2,147,483,648 から 2,147,483,647）
+# >      - 範囲外の値がある場合は、オーバーフローチェック付きの変換か、より大きな整数型の使用が必要
+# >    - `event_date` は有効な日付形式で、`datetime64[ns]` に変換可能である必要があります
+# >      - NULL値や無効な日付形式は事前に除外または適切な値に置換する必要があります
+# >
+# > 2. **エラー処理戦略**:
+# >    - データ型変換エラーは事前検証で捕捉し、無効なレコードはログに記録して除外
+# >    - 大規模データセットの場合、バッチ処理での段階的な検証を推奨
+# >
+# > # > 最適化のポイント
+# > >
+# > > - **`.groupby(... )['event_date'].min()`** は **`.agg(min)`** よりオーバーヘッドが小さい。
+# > > - **`sort=False`** でグループキーの並べ替えを抑止。
+# > > - **`observed=True`** は `player_id` が `category` の場合に未出現カテゴリを除外（不要計算を消せる）。
+# > > - `player_id` を **`int32`**（または **`category`**）へ、`event_date` を **`datetime64[ns]`** へ正規化すると、メモリ圧縮と演算器分岐の削減に効きます。
 ```
-
-> ポイント
->
-> - **`.groupby(... )['event_date'].min()`** は **`.agg(min)`** よりオーバーヘッドが小さい。
-> - **`sort=False`** でグループキーの並べ替えを抑止。
-> - **`observed=True`** は `player_id` が `category` の場合に未出現カテゴリを除外（不要計算を消せる）。
-> - `player_id` を **`int32`**（または **`category`**）へ、`event_date` を **`datetime64[ns]`** へ正規化すると、メモリ圧縮と演算器分岐の削減に効きます。
-
----
 
 ## さらに効かせたいときの条件付きテク
 
 - **重複が多い**（同一 `(player_id, event_date)` が大量）なら、前段で列最小化＋ユニーク化が効くことがあります：
 
-  ```python
+```python
   # 重複が顕著な場合のみトレードオフで検討
   a = Activity[['player_id', 'event_date']].drop_duplicates()
   out = a.groupby('player_id', sort=False, observed=True)['event_date'].min().rename('first_login').reset_index()
-  ```
+```
 
-  > 重複が少ないと逆効果（drop のコスト分だけ遅くなる）なので要計測。
+> 重複が少ないと逆効果（drop のコスト分だけ遅くなる）なので要計測。
 
 - **`player_id` がカテゴリとして管理されている**場合は、未使用カテゴリを事前に落とす：
 

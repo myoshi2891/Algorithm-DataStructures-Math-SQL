@@ -64,49 +64,49 @@
  * @complexity Time: O(log(m*n)), Space: O(1)
  */
 function searchMatrix(matrix: readonly number[][], target: number): boolean {
-  // --- 入力検証 ---
-  if (!Array.isArray(matrix)) throw new TypeError("matrix must be an array");
-  const m = matrix.length;
-  if (m === 0) return false;
-  if (m > 100) throw new RangeError("matrix row count exceeds limit");
+    // --- 入力検証 ---
+    if (!Array.isArray(matrix)) throw new TypeError('matrix must be an array');
+    const m = matrix.length;
+    if (m === 0) return false;
+    if (m > 100) throw new RangeError('matrix row count exceeds limit');
 
-  const n = matrix[0].length;
-  if (n === 0) return false;
-  if (n > 100) throw new RangeError("matrix column count exceeds limit");
+    const n = matrix[0].length;
+    if (n === 0) return false;
+    if (n > 100) throw new RangeError('matrix column count exceeds limit');
 
-  if (typeof target !== "number" || !Number.isFinite(target)) {
-    throw new TypeError("target must be a finite number");
-  }
-
-  for (let i = 0; i < m; i++) {
-    if (!Array.isArray(matrix[i]) || matrix[i].length !== n) {
-      throw new TypeError("matrix must be rectangular");
+    if (typeof target !== 'number' || !Number.isFinite(target)) {
+        throw new TypeError('target must be a finite number');
     }
-    for (let j = 0; j < n; j++) {
-      const v = matrix[i][j];
-      if (typeof v !== "number" || !Number.isFinite(v)) {
-        throw new TypeError("matrix must contain finite numbers");
-      }
+
+    for (let i = 0; i < m; i++) {
+        if (!Array.isArray(matrix[i]) || matrix[i].length !== n) {
+            throw new TypeError('matrix must be rectangular');
+        }
+        for (let j = 0; j < n; j++) {
+            const v = matrix[i][j];
+            if (typeof v !== 'number' || !Number.isFinite(v)) {
+                throw new TypeError('matrix must contain finite numbers');
+            }
+        }
     }
-  }
 
-  // --- 本処理（二分探索） ---
-  let low = 0;
-  let high = m * n - 1;
+    // --- 本処理（二分探索） ---
+    let low = 0;
+    let high = m * n - 1;
 
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2);
-    const midVal = matrix[Math.floor(mid / n)][mid % n];
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const midVal = matrix[Math.floor(mid / n)][mid % n];
 
-    if (midVal === target) return true;
-    if (midVal < target) {
-      low = mid + 1;
-    } else {
-      high = mid - 1;
+        if (midVal === target) return true;
+        if (midVal < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
     }
-  }
 
-  return false;
+    return false;
 }
 
 export { searchMatrix };

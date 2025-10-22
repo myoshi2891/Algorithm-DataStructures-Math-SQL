@@ -17,14 +17,14 @@
 
 // ```javascript
 // Node.js (v18.16.1) 用
-const fs = require("fs");
+const fs = require('fs');
 
 // 入力の読み取り
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
-const [N, W] = input[0].split(" ").map(Number);
-const items = input.slice(1).map(line => {
-  const [w, v] = line.split(" ").map(Number);
-  return { w, v };
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+const [N, W] = input[0].split(' ').map(Number);
+const items = input.slice(1).map((line) => {
+    const [w, v] = line.split(' ').map(Number);
+    return { w, v };
 });
 
 // 最大価値の合計（各価値最大1000 × N）
@@ -36,22 +36,22 @@ dp[0] = 0; // 価値0のときの重量は0
 
 // 品物を1つずつ見てDPを更新
 for (let i = 0; i < N; i++) {
-  const { w, v } = items[i];
+    const { w, v } = items[i];
 
-  // 逆順に更新することで「1つの品物を1回だけ使う」制約を守る
-  for (let value = maxValue; value >= v; value--) {
-    if (dp[value - v] + w <= W) {
-      dp[value] = Math.min(dp[value], dp[value - v] + w);
+    // 逆順に更新することで「1つの品物を1回だけ使う」制約を守る
+    for (let value = maxValue; value >= v; value--) {
+        if (dp[value - v] + w <= W) {
+            dp[value] = Math.min(dp[value], dp[value - v] + w);
+        }
     }
-  }
 }
 
 // dp[v] <= W を満たす最大の v を探す
 let result = 0;
 for (let v = 0; v <= maxValue; v++) {
-  if (dp[v] <= W) {
-    result = v;
-  }
+    if (dp[v] <= W) {
+        result = v;
+    }
 }
 
 console.log(result);

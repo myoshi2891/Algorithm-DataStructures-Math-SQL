@@ -40,13 +40,13 @@
 //  */
 // function solveCardScore(n, cards) {
 //     let maxScore = 0;
-    
+
 //     // 4つのパターンを試す
 //     // パターン1: 表の総和 >= 0, 裏の総和 >= 0 (スコア = 表の総和 + 裏の総和)
 //     // パターン2: 表の総和 >= 0, 裏の総和 < 0 (スコア = 表の総和 - 裏の総和)
 //     // パターン3: 表の総和 < 0, 裏の総和 >= 0 (スコア = -表の総和 + 裏の総和)
 //     // パターン4: 表の総和 < 0, 裏の総和 < 0 (スコア = -表の総和 - 裏の総和)
-    
+
 //     for (let pattern = 0; pattern < 4; pattern++) {
 //         // 各カードの貢献度を計算
 //         const contributions = cards.map(([a, b]) => {
@@ -57,7 +57,7 @@
 //                 case 3: return -a - b;   // -表の総和 - 裏の総和
 //             }
 //         });
-        
+
 //         // 正の貢献度のカードのみを選択
 //         let currentScore = 0;
 //         for (let i = 0; i < n; i++) {
@@ -65,10 +65,10 @@
 //                 currentScore += contributions[i];
 //             }
 //         }
-        
+
 //         maxScore = Math.max(maxScore, currentScore);
 //     }
-    
+
 //     return maxScore;
 // }
 
@@ -80,13 +80,13 @@
 // function solve(input) {
 //     const lines = input.trim().split('\n');
 //     const n = parseInt(lines[0]);
-    
+
 //     const cards = [];
 //     for (let i = 1; i <= n; i++) {
 //         const [a, b] = lines[i].split(' ').map(Number);
 //         cards.push([a, b]);
 //     }
-    
+
 //     const result = solveCardScore(n, cards);
 //     return result.toString();
 // }
@@ -95,7 +95,7 @@
 // function main() {
 //     const startTime = process.hrtime.bigint();
 //     const startMemory = process.memoryUsage();
-    
+
 //     try {
 //         const input = fs.readFileSync('/dev/stdin', 'utf8');
 //         const result = solve(input);
@@ -104,14 +104,14 @@
 //         console.error('Error reading input:', error);
 //         process.exit(1);
 //     }
-    
+
 //     // パフォーマンス測定（デバッグ用）
 //     const endTime = process.hrtime.bigint();
 //     const endMemory = process.memoryUsage();
-    
+
 //     const executionTime = Number(endTime - startTime) / 1_000_000; // ミリ秒
 //     const memoryUsed = (endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024; // MB
-    
+
 //     // 標準エラー出力にパフォーマンス情報を出力（本番では削除可能）
 //     // console.error(`Execution time: ${executionTime.toFixed(2)} ms`);
 //     // console.error(`Memory used: ${memoryUsed.toFixed(2)} MB`);
@@ -125,7 +125,7 @@
 // 5 -3
 // -4 1
 // -2 -3`;
-    
+
 //     console.log('Test result:', solve(testInput));
 //     // 期待値: 18
 // }
@@ -134,7 +134,7 @@
 // if (require.main === module) {
 //     // テストを実行したい場合はコメントアウト
 //     // test();
-    
+
 //     // 本番実行
 //     main();
 // }

@@ -50,7 +50,7 @@
 // ## 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 // Module System: CommonJS
 // Runtime: Node.js v18.x
 // External Libraries: Not allowed
@@ -69,79 +69,79 @@
  * @complexity Time O(log(min(m,n))), Space O(1)
  */
 function findMedianSortedArrays(nums1, nums2) {
-  // ---- 入力検証（軽量＆早期）----
-  if (!Array.isArray(nums1) || !Array.isArray(nums2)) {
-    throw new TypeError("Both inputs must be arrays.");
-  }
-  const m = nums1.length | 0;
-  const n = nums2.length | 0;
-
-  // 長さ制約
-  if (m < 0 || m > 1000 || n < 0 || n > 1000) {
-    throw new RangeError("Array length out of allowed range [0,1000].");
-  }
-  const total = m + n;
-  if (total < 1 || total > 2000) {
-    throw new RangeError("Total length must be in [1,2000].");
-  }
-
-  // 値域と数値単型、および非減少（昇順）検証
-  validateArray(nums1);
-  validateArray(nums2);
-  if (!isNonDecreasing(nums1) || !isNonDecreasing(nums2)) {
-    throw new RangeError("Arrays must be sorted in non-decreasing order.");
-  }
-
-  // ---- 本処理：二分探索パーティション ----
-  // 常に nums1 を短い方にする
-  let A = nums1,
-    B = nums2;
-  let aLen = m,
-    bLen = n;
-  if (aLen > bLen) {
-    A = nums2;
-    B = nums1;
-    aLen = n;
-    bLen = m;
-  }
-
-  const half = ((aLen + bLen + 1) / 2) | 0; // 左側の要素数
-  let lo = 0,
-    hi = aLen;
-
-  while (lo <= hi) {
-    const i = (lo + hi) >> 1; // A 側の切り取り数
-    const j = half - i; // B 側の切り取り数
-
-    const aLeft = i === 0 ? -Infinity : A[i - 1];
-    const aRight = i === aLen ? Infinity : A[i];
-    const bLeft = j === 0 ? -Infinity : B[j - 1];
-    const bRight = j === bLen ? Infinity : B[j];
-
-    // パーティション条件
-    if (aLeft <= bRight && bLeft <= aRight) {
-      // 正しい分割
-      if (((aLen + bLen) & 1) === 1) {
-        // 奇数：左側最大
-        const leftMax = aLeft > bLeft ? aLeft : bLeft;
-        return leftMax;
-      } else {
-        // 偶数：左側最大と右側最小の平均
-        const leftMax = aLeft > bLeft ? aLeft : bLeft;
-        const rightMin = aRight < bRight ? aRight : bRight;
-        return (leftMax + rightMin) / 2;
-      }
-    } else if (aLeft > bRight) {
-      // 左が重い → A の切り取りを減らす
-      hi = i - 1;
-    } else {
-      // 右が重い → A の切り取りを増やす
-      lo = i + 1;
+    // ---- 入力検証（軽量＆早期）----
+    if (!Array.isArray(nums1) || !Array.isArray(nums2)) {
+        throw new TypeError('Both inputs must be arrays.');
     }
-  }
+    const m = nums1.length | 0;
+    const n = nums2.length | 0;
 
-  // ここに来ないはず（検証済み入力で必ず解がある）
-  throw new Error("Unexpected state: valid median not found.");
+    // 長さ制約
+    if (m < 0 || m > 1000 || n < 0 || n > 1000) {
+        throw new RangeError('Array length out of allowed range [0,1000].');
+    }
+    const total = m + n;
+    if (total < 1 || total > 2000) {
+        throw new RangeError('Total length must be in [1,2000].');
+    }
+
+    // 値域と数値単型、および非減少（昇順）検証
+    validateArray(nums1);
+    validateArray(nums2);
+    if (!isNonDecreasing(nums1) || !isNonDecreasing(nums2)) {
+        throw new RangeError('Arrays must be sorted in non-decreasing order.');
+    }
+
+    // ---- 本処理：二分探索パーティション ----
+    // 常に nums1 を短い方にする
+    let A = nums1,
+        B = nums2;
+    let aLen = m,
+        bLen = n;
+    if (aLen > bLen) {
+        A = nums2;
+        B = nums1;
+        aLen = n;
+        bLen = m;
+    }
+
+    const half = ((aLen + bLen + 1) / 2) | 0; // 左側の要素数
+    let lo = 0,
+        hi = aLen;
+
+    while (lo <= hi) {
+        const i = (lo + hi) >> 1; // A 側の切り取り数
+        const j = half - i; // B 側の切り取り数
+
+        const aLeft = i === 0 ? -Infinity : A[i - 1];
+        const aRight = i === aLen ? Infinity : A[i];
+        const bLeft = j === 0 ? -Infinity : B[j - 1];
+        const bRight = j === bLen ? Infinity : B[j];
+
+        // パーティション条件
+        if (aLeft <= bRight && bLeft <= aRight) {
+            // 正しい分割
+            if (((aLen + bLen) & 1) === 1) {
+                // 奇数：左側最大
+                const leftMax = aLeft > bLeft ? aLeft : bLeft;
+                return leftMax;
+            } else {
+                // 偶数：左側最大と右側最小の平均
+                const leftMax = aLeft > bLeft ? aLeft : bLeft;
+                const rightMin = aRight < bRight ? aRight : bRight;
+                return (leftMax + rightMin) / 2;
+            }
+        } else if (aLeft > bRight) {
+            // 左が重い → A の切り取りを減らす
+            hi = i - 1;
+        } else {
+            // 右が重い → A の切り取りを増やす
+            lo = i + 1;
+        }
+    }
+
+    // ここに来ないはず（検証済み入力で必ず解がある）
+    throw new Error('Unexpected state: valid median not found.');
 }
 
 /**
@@ -150,16 +150,16 @@ function findMedianSortedArrays(nums1, nums2) {
  * @throws {TypeError|RangeError}
  */
 function validateArray(arr) {
-  const len = arr.length | 0;
-  for (let i = 0; i < len; i++) {
-    const v = arr[i];
-    if (typeof v !== "number" || !Number.isFinite(v)) {
-      throw new TypeError("Arrays must contain finite numbers only.");
+    const len = arr.length | 0;
+    for (let i = 0; i < len; i++) {
+        const v = arr[i];
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+            throw new TypeError('Arrays must contain finite numbers only.');
+        }
+        if (v < -1e6 || v > 1e6) {
+            throw new RangeError('Values must be within [-1e6, 1e6].');
+        }
     }
-    if (v < -1e6 || v > 1e6) {
-      throw new RangeError("Values must be within [-1e6, 1e6].");
-    }
-  }
 }
 
 /**
@@ -168,11 +168,11 @@ function validateArray(arr) {
  * @returns {boolean}
  */
 function isNonDecreasing(arr) {
-  const len = arr.length | 0;
-  for (let i = 1; i < len; i++) {
-    if (arr[i - 1] > arr[i]) return false;
-  }
-  return true;
+    const len = arr.length | 0;
+    for (let i = 1; i < len; i++) {
+        if (arr[i - 1] > arr[i]) return false;
+    }
+    return true;
 }
 
 module.exports = { findMedianSortedArrays };

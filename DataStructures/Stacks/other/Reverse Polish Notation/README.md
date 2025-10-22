@@ -93,7 +93,7 @@ flowchart TD
 ## 4. 実装コード
 
 ```js
-"use strict";
+'use strict';
 
 /**
  * 逆ポーランド記法を評価する関数
@@ -101,34 +101,34 @@ flowchart TD
  * @returns {number} 評価結果
  */
 function evaluateRPN(tokens) {
-  const stack = [];
+    const stack = [];
 
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i];
+    for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i];
 
-    if (t === "+" || t === "-") {
-      const b = stack.pop();
-      const a = stack.pop();
-      stack.push(t === "+" ? a + b : a - b);
-    } else {
-      stack.push(Number(t));
+        if (t === '+' || t === '-') {
+            const b = stack.pop();
+            const a = stack.pop();
+            stack.push(t === '+' ? a + b : a - b);
+        } else {
+            stack.push(Number(t));
+        }
     }
-  }
 
-  return stack[0];
+    return stack[0];
 }
 
 function main() {
-  const fs = require("fs");
-  const input = fs.readFileSync(0, "utf8").trim().split(/\s+/);
-  const N = Number(input[0]);
-  const tokens = input.slice(1);
+    const fs = require('fs');
+    const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/);
+    const N = Number(input[0]);
+    const tokens = input.slice(1);
 
-  console.log(evaluateRPN(tokens));
+    console.log(evaluateRPN(tokens));
 }
 
 if (require.main === module) {
-  main();
+    main();
 }
 
 module.exports = { evaluateRPN };

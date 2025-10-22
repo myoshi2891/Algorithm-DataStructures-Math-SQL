@@ -24,8 +24,10 @@ function myAtoi(s: string): number {
         const digit = s[i].charCodeAt(0) - '0'.charCodeAt(0);
 
         // 4. オーバーフロー確認
-        if (result > Math.floor(INT_MAX / 10) || 
-            (result === Math.floor(INT_MAX / 10) && digit > INT_MAX % 10)) {
+        if (
+            result > Math.floor(INT_MAX / 10) ||
+            (result === Math.floor(INT_MAX / 10) && digit > INT_MAX % 10)
+        ) {
             return sign === 1 ? INT_MAX : INT_MIN;
         }
 

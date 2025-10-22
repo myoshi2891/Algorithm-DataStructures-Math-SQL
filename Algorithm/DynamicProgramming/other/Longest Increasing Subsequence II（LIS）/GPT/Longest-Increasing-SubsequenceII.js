@@ -8,11 +8,11 @@
 // ```javascript
 /**
  * 最長増加部分列 (LIS) を求める関数
- * 
+ *
  * @param {number} n - 木の本数
  * @param {number[]} heights - 各木の高さの配列
  * @returns {number} - 残せる木の本数の最大値 (LISの長さ)
- * 
+ *
  * 計算量: O(n^2)
  *   - 外側ループ n 回、内側ループ最大 n 回
  *   - n ≤ 5000 のため、最大 25,000,000 回程度の演算で十分実行可能
@@ -34,8 +34,8 @@ function longestIncreasingSubsequence(n, heights) {
 }
 
 // ===== メイン処理 =====
-const fs = require("fs");
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+const fs = require('fs');
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 
 const n = input[0];
 const heights = input.slice(1);

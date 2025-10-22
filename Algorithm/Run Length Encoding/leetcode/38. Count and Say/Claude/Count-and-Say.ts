@@ -20,7 +20,7 @@
 
 // 4. **型安全性**: TypeScriptの静的型チェックにより、実行時エラーのリスクを最小限に抑えています。
 
-// 5. **LeetCode最適化**: 
+// 5. **LeetCode最適化**:
 //    - 余分な配列やオブジェクトを使わない
 //    - インライン文字列操作で高速化
 //    - 必要最小限のメモリ使用量
@@ -34,16 +34,16 @@
  */
 function countAndSay(n: number): string {
     // ベースケース: n=1の場合は"1"を返す
-    let current: string = "1";
-    
+    let current: string = '1';
+
     // n=1の場合はそのまま返す
     if (n === 1) return current;
-    
+
     // 2からnまで反復的に数列を構築
     for (let i: number = 2; i <= n; i++) {
         current = runLengthEncode(current);
     }
-    
+
     return current;
 }
 
@@ -53,10 +53,10 @@ function countAndSay(n: number): string {
  * @returns エンコード後の文字列
  */
 function runLengthEncode(str: string): string {
-    let result: string = "";
+    let result: string = '';
     let count: number = 1;
     let currentChar: string = str[0];
-    
+
     // 文字列を左から右にスキャン
     for (let i: number = 1; i < str.length; i++) {
         if (str[i] === currentChar) {
@@ -69,9 +69,9 @@ function runLengthEncode(str: string): string {
             count = 1;
         }
     }
-    
+
     // 最後の文字グループを追加
     result += count + currentChar;
-    
+
     return result;
 }

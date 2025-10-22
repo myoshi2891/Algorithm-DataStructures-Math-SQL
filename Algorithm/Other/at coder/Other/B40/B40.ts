@@ -15,27 +15,27 @@ import * as fs from 'fs';
  * @returns 条件を満たすペア数（整数）
  */
 function countDivisiblePairs(N: number, A: number[]): number {
-  const modCount: number[] = Array(100).fill(0);
+    const modCount: number[] = Array(100).fill(0);
 
-  // 各要素の100で割った余りの頻度をカウント
-  for (let i = 0; i < N; i++) {
-    modCount[A[i] % 100]++;
-  }
+    // 各要素の100で割った余りの頻度をカウント
+    for (let i = 0; i < N; i++) {
+        modCount[A[i] % 100]++;
+    }
 
-  let totalPairs = 0;
+    let totalPairs = 0;
 
-  // modが0の要素同士の組み合わせ: C(n, 2)
-  totalPairs += (modCount[0] * (modCount[0] - 1)) >> 1;
+    // modが0の要素同士の組み合わせ: C(n, 2)
+    totalPairs += (modCount[0] * (modCount[0] - 1)) >> 1;
 
-  // modが50の要素同士の組み合わせ: C(n, 2)
-  totalPairs += (modCount[50] * (modCount[50] - 1)) >> 1;
+    // modが50の要素同士の組み合わせ: C(n, 2)
+    totalPairs += (modCount[50] * (modCount[50] - 1)) >> 1;
 
-  // 他の余り同士（r と 100-r）
-  for (let r = 1; r < 50; r++) {
-    totalPairs += modCount[r] * modCount[100 - r];
-  }
+    // 他の余り同士（r と 100-r）
+    for (let r = 1; r < 50; r++) {
+        totalPairs += modCount[r] * modCount[100 - r];
+    }
 
-  return totalPairs;
+    return totalPairs;
 }
 
 // --------- 入力処理 ----------

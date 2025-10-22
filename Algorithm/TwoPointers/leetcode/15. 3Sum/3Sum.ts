@@ -73,8 +73,8 @@ function runThreeSumWithMetrics(nums: number[]): void {
         result: result,
         metrics: {
             timeMs: elapsedTimeMs.toFixed(3),
-            memoryMB: memoryUsageMB.toFixed(3)
-        }
+            memoryMB: memoryUsageMB.toFixed(3),
+        },
     };
 
     console.log(JSON.stringify(output, null, 2));
@@ -103,4 +103,3 @@ runThreeSumWithMetrics(sampleInput);
 // | ----------------- | ---------------------------------------- |
 // | LeetCode / 権限制限環境 | `console.log` に出力（ファイル出力はNG）             |
 // | ローカルNode.js (権限有) | `fs.writeFileSync('./output.json', ...)` |
-

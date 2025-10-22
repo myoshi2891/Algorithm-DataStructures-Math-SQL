@@ -59,18 +59,16 @@ Analyze Complexity
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `drop_duplicates`：主キー相当の重複を除去して最小列化
-  - `to_datetime(...).dt.normalize()`：日付比較のため 00:00 に正規化
-  - `groupby(...).transform('min')`：各 `player_id` の初回日
-  - ベクトル比較 `eq` と `Timedelta(days=1)`：翌日判定
-  - `nunique`：ID 基準で分子・分母を計数
+    - `drop_duplicates`：主キー相当の重複を除去して最小列化
+    - `to_datetime(...).dt.normalize()`：日付比較のため 00:00 に正規化
+    - `groupby(...).transform('min')`：各 `player_id` の初回日
+    - ベクトル比較 `eq` と `Timedelta(days=1)`：翌日判定
+    - `nunique`：ID 基準で分子・分母を計数
 
 - **NULL / 重複 / 型**
-
-  - 無効な日付は `errors='coerce'` により `NaT` になり、比較で自然に除外されます。
-  - `(player_id, event_date)` の重複があっても `drop_duplicates` 済みで安全。
-  - `normalize()` により `datetime` と `date` が混在しても日単位比較が安定します。
+    - 無効な日付は `errors='coerce'` により `NaT` になり、比較で自然に除外されます。
+    - `(player_id, event_date)` の重複があっても `drop_duplicates` 済みで安全。
+    - `normalize()` により `datetime` と `date` が混在しても日単位比較が安定します。
 
 ## 4) 計算量（概算）
 

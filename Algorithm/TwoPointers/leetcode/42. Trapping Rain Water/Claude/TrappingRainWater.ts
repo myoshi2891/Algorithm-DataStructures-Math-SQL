@@ -19,13 +19,13 @@
 
 /**
  * 雨水をトラップする量を計算する関数
- * 
+ *
  * @param height - 各位置の高さを表す配列（非負整数）
  * @returns トラップできる雨水の総量
- * 
+ *
  * 時間計算量: O(n) - 配列を一度だけ走査
  * 空間計算量: O(1) - 追加の配列を使用しない
- * 
+ *
  * アルゴリズム:
  * 1. 左右から2つのポインタを使用
  * 2. 各ポインタで現在までの最大高度を追跡
@@ -37,13 +37,13 @@ function trap(height: number[]): number {
     if (!height || height.length <= 2) {
         return 0;
     }
-    
-    let left: number = 0;                    // 左ポインタ
-    let right: number = height.length - 1;   // 右ポインタ
-    let leftMax: number = 0;                 // 左側の最大高度
-    let rightMax: number = 0;                // 右側の最大高度
-    let water: number = 0;                   // トラップされた水の総量
-    
+
+    let left: number = 0; // 左ポインタ
+    let right: number = height.length - 1; // 右ポインタ
+    let leftMax: number = 0; // 左側の最大高度
+    let rightMax: number = 0; // 右側の最大高度
+    let water: number = 0; // トラップされた水の総量
+
     // 左右のポインタが交差するまで処理を続ける
     while (left < right) {
         // 左側の高さが右側より低い場合
@@ -68,6 +68,6 @@ function trap(height: number[]): number {
             right--;
         }
     }
-    
+
     return water;
 }

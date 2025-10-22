@@ -6,16 +6,16 @@
 ## 初期状態
 
 ```ts
-n = 3
+n = 3;
 matrix = [
-  [0,0,0],
-  [0,0,0],
-  [0,0,0]
-]
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+];
 
-num = 1
-left = 0, right = 2
-top = 0, bottom = 2
+num = 1;
+((left = 0), (right = 2));
+((top = 0), (bottom = 2));
 ```
 
 ---
@@ -24,9 +24,9 @@ top = 0, bottom = 2
 
 ループ: `for (let j = left; j <= right; j++)`
 
-* `matrix[0][0] = 1`
-* `matrix[0][1] = 2`
-* `matrix[0][2] = 3`
+- `matrix[0][0] = 1`
+- `matrix[0][1] = 2`
+- `matrix[0][2] = 3`
 
 更新後:
 
@@ -44,8 +44,8 @@ top = 0, bottom = 2
 
 ループ: `for (let i = top; i <= bottom; i++)`
 
-* `matrix[1][2] = 4`
-* `matrix[2][2] = 5`
+- `matrix[1][2] = 4`
+- `matrix[2][2] = 5`
 
 更新後:
 
@@ -65,8 +65,8 @@ top = 0, bottom = 2
 
 ループ: `for (let j = right; j >= left; j--)`
 
-* `matrix[2][1] = 6`
-* `matrix[2][0] = 7`
+- `matrix[2][1] = 6`
+- `matrix[2][0] = 7`
 
 更新後:
 
@@ -86,7 +86,7 @@ top = 0, bottom = 2
 
 ループ: `for (let i = bottom; i >= top; i--)`
 
-* `matrix[1][0] = 8`
+- `matrix[1][0] = 8`
 
 更新後:
 
@@ -106,7 +106,7 @@ top = 0, bottom = 2
 
 ループ: `for (let j = left; j <= right; j++)`
 
-* `matrix[1][1] = 9`
+- `matrix[1][1] = 9`
 
 更新後:
 
@@ -139,4 +139,3 @@ top = 0, bottom = 2
 3. **下の行 (右→左)** → 螺旋の「下辺」を埋める
 4. **左の列 (下→上)** → 螺旋の「左辺」を埋める
    ➡️ これを境界を縮めながら繰り返すことで、内側に進む螺旋パターンが完成します。
-

@@ -477,42 +477,42 @@
  * @complexity Time: O(n*m), Space: O(n*m) where n=words.length, m=average word length
  */
 function fullJustify(words, maxWidth) {
-  // 入力検証
-  if (!Array.isArray(words) || words.length === 0) return [];
-  if (typeof maxWidth !== "number" || maxWidth < 1) return [];
+    // 入力検証
+    if (!Array.isArray(words) || words.length === 0) return [];
+    if (typeof maxWidth !== 'number' || maxWidth < 1) return [];
 
-  const result = [];
-  let i = 0;
+    const result = [];
+    let i = 0;
 
-  while (i < words.length) {
-    // 現在行に収まる単語を貪欲に収集
-    const lineWords = [];
-    let totalWordsLength = 0;
-
-    // 単語を行に詰め込む（貪欲アプローチ）
     while (i < words.length) {
-      const wordLength = words[i].length;
-      const minSpacesNeeded = lineWords.length; // 現在の単語数 = 必要な最小スペース数
-      const totalNeededLength = totalWordsLength + minSpacesNeeded + wordLength;
+        // 現在行に収まる単語を貪欲に収集
+        const lineWords = [];
+        let totalWordsLength = 0;
 
-      if (totalNeededLength > maxWidth) break;
+        // 単語を行に詰め込む（貪欲アプローチ）
+        while (i < words.length) {
+            const wordLength = words[i].length;
+            const minSpacesNeeded = lineWords.length; // 現在の単語数 = 必要な最小スペース数
+            const totalNeededLength = totalWordsLength + minSpacesNeeded + wordLength;
 
-      lineWords.push(words[i]);
-      totalWordsLength += wordLength;
-      i++;
+            if (totalNeededLength > maxWidth) break;
+
+            lineWords.push(words[i]);
+            totalWordsLength += wordLength;
+            i++;
+        }
+
+        // 行を正当化して結果に追加
+        const justifiedLine = justifyLineSafe(
+            lineWords,
+            totalWordsLength,
+            maxWidth,
+            i === words.length,
+        );
+        result.push(justifiedLine);
     }
 
-    // 行を正当化して結果に追加
-    const justifiedLine = justifyLineSafe(
-      lineWords,
-      totalWordsLength,
-      maxWidth,
-      i === words.length
-    );
-    result.push(justifiedLine);
-  }
-
-  return result;
+    return result;
 }
 
 /**
@@ -525,51 +525,51 @@ function fullJustify(words, maxWidth) {
  * @returns {string} 正当化された行
  */
 function justifyLineSafe(lineWords, totalWordsLength, maxWidth, isLastLine) {
-  const wordsCount = lineWords.length;
+    const wordsCount = lineWords.length;
 
-  // エラー防止：空の場合
-  if (wordsCount === 0) {
-    return " ".repeat(Math.max(0, maxWidth));
-  }
-
-  // 単語が1個または最終行の場合：左寄せ
-  if (wordsCount === 1 || isLastLine) {
-    const leftAligned = lineWords.join(" ");
-    const paddingLength = maxWidth - leftAligned.length;
-    const safeRepeatCount = Math.max(0, paddingLength);
-    return leftAligned + " ".repeat(safeRepeatCount);
-  }
-
-  // 完全正当化：スペースを均等分散
-  const totalSpacesNeeded = maxWidth - totalWordsLength;
-  const gaps = wordsCount - 1;
-
-  // gaps が 0 の場合の処理（単語が1個の場合）
-  if (gaps === 0) {
-    const paddingLength = maxWidth - totalWordsLength;
-    const safeRepeatCount = Math.max(0, paddingLength);
-    return lineWords[0] + " ".repeat(safeRepeatCount);
-  }
-
-  // スペースの分散計算
-  const baseSpaces = Math.floor(totalSpacesNeeded / gaps);
-  const extraSpaces = totalSpacesNeeded % gaps;
-
-  // 効率的な文字列構築
-  const parts = [];
-
-  for (let i = 0; i < wordsCount; i++) {
-    parts.push(lineWords[i]);
-
-    if (i < gaps) {
-      // 最後の単語以外
-      const spacesCount = baseSpaces + (i < extraSpaces ? 1 : 0);
-      const safeSpacesCount = Math.max(0, spacesCount);
-      parts.push(" ".repeat(safeSpacesCount));
+    // エラー防止：空の場合
+    if (wordsCount === 0) {
+        return ' '.repeat(Math.max(0, maxWidth));
     }
-  }
 
-  return parts.join("");
+    // 単語が1個または最終行の場合：左寄せ
+    if (wordsCount === 1 || isLastLine) {
+        const leftAligned = lineWords.join(' ');
+        const paddingLength = maxWidth - leftAligned.length;
+        const safeRepeatCount = Math.max(0, paddingLength);
+        return leftAligned + ' '.repeat(safeRepeatCount);
+    }
+
+    // 完全正当化：スペースを均等分散
+    const totalSpacesNeeded = maxWidth - totalWordsLength;
+    const gaps = wordsCount - 1;
+
+    // gaps が 0 の場合の処理（単語が1個の場合）
+    if (gaps === 0) {
+        const paddingLength = maxWidth - totalWordsLength;
+        const safeRepeatCount = Math.max(0, paddingLength);
+        return lineWords[0] + ' '.repeat(safeRepeatCount);
+    }
+
+    // スペースの分散計算
+    const baseSpaces = Math.floor(totalSpacesNeeded / gaps);
+    const extraSpaces = totalSpacesNeeded % gaps;
+
+    // 効率的な文字列構築
+    const parts = [];
+
+    for (let i = 0; i < wordsCount; i++) {
+        parts.push(lineWords[i]);
+
+        if (i < gaps) {
+            // 最後の単語以外
+            const spacesCount = baseSpaces + (i < extraSpaces ? 1 : 0);
+            const safeSpacesCount = Math.max(0, spacesCount);
+            parts.push(' '.repeat(safeSpacesCount));
+        }
+    }
+
+    return parts.join('');
 }
 
 /**
@@ -578,214 +578,207 @@ function justifyLineSafe(lineWords, totalWordsLength, maxWidth, isLastLine) {
  * @param {number} maxWidth - 最大幅
  */
 function validateInput(words, maxWidth) {
-  if (!Array.isArray(words)) {
-    throw new TypeError("words must be an array");
-  }
-  if (typeof maxWidth !== "number" || !Number.isInteger(maxWidth)) {
-    throw new TypeError("maxWidth must be an integer");
-  }
-  if (maxWidth < 1 || maxWidth > 100) {
-    throw new RangeError("maxWidth must be between 1 and 100");
-  }
-  if (words.length === 0 || words.length > 300) {
-    throw new RangeError("words length must be between 1 and 300");
-  }
+    if (!Array.isArray(words)) {
+        throw new TypeError('words must be an array');
+    }
+    if (typeof maxWidth !== 'number' || !Number.isInteger(maxWidth)) {
+        throw new TypeError('maxWidth must be an integer');
+    }
+    if (maxWidth < 1 || maxWidth > 100) {
+        throw new RangeError('maxWidth must be between 1 and 100');
+    }
+    if (words.length === 0 || words.length > 300) {
+        throw new RangeError('words length must be between 1 and 300');
+    }
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    if (typeof word !== "string") {
-      throw new TypeError(`words[${i}] must be a string`);
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        if (typeof word !== 'string') {
+            throw new TypeError(`words[${i}] must be a string`);
+        }
+        if (word.length === 0 || word.length > 20) {
+            throw new RangeError(`words[${i}] length must be between 1 and 20`);
+        }
+        if (word.length > maxWidth) {
+            throw new RangeError(`words[${i}] length exceeds maxWidth`);
+        }
     }
-    if (word.length === 0 || word.length > 20) {
-      throw new RangeError(`words[${i}] length must be between 1 and 20`);
-    }
-    if (word.length > maxWidth) {
-      throw new RangeError(`words[${i}] length exceeds maxWidth`);
-    }
-  }
 }
 
 // テスト用のヘルパー関数
 function runTests() {
-  const testCases = [
-    {
-      words: ["This", "is", "an", "example", "of", "text", "justification."],
-      maxWidth: 16,
-      expected: ["This    is    an", "example  of text", "justification.  "],
-    },
-    {
-      words: ["What", "must", "be", "acknowledgment", "shall", "be"],
-      maxWidth: 16,
-      expected: ["What   must   be", "acknowledgment  ", "shall be        "],
-    },
-    {
-      words: [
-        "Science",
-        "is",
-        "what",
-        "we",
-        "understand",
-        "well",
-        "enough",
-        "to",
-        "explain",
-        "to",
-        "a",
-        "computer.",
-        "Art",
-        "is",
-        "everything",
-        "else",
-        "we",
-        "do",
-      ],
-      maxWidth: 20,
-      expected: [
-        "Science  is  what we",
-        "understand      well",
-        "enough to explain to",
-        "a  computer.  Art is",
-        "everything  else  we",
-        "do                  ",
-      ],
-    },
-  ];
+    const testCases = [
+        {
+            words: ['This', 'is', 'an', 'example', 'of', 'text', 'justification.'],
+            maxWidth: 16,
+            expected: ['This    is    an', 'example  of text', 'justification.  '],
+        },
+        {
+            words: ['What', 'must', 'be', 'acknowledgment', 'shall', 'be'],
+            maxWidth: 16,
+            expected: ['What   must   be', 'acknowledgment  ', 'shall be        '],
+        },
+        {
+            words: [
+                'Science',
+                'is',
+                'what',
+                'we',
+                'understand',
+                'well',
+                'enough',
+                'to',
+                'explain',
+                'to',
+                'a',
+                'computer.',
+                'Art',
+                'is',
+                'everything',
+                'else',
+                'we',
+                'do',
+            ],
+            maxWidth: 20,
+            expected: [
+                'Science  is  what we',
+                'understand      well',
+                'enough to explain to',
+                'a  computer.  Art is',
+                'everything  else  we',
+                'do                  ',
+            ],
+        },
+    ];
 
-  console.log("Running tests...");
+    console.log('Running tests...');
 
-  testCases.forEach((testCase, index) => {
-    try {
-      const result = fullJustify(testCase.words, testCase.maxWidth);
-      const passed =
-        JSON.stringify(result) === JSON.stringify(testCase.expected);
-      console.log(`Test ${index + 1}: ${passed ? "PASS" : "FAIL"}`);
+    testCases.forEach((testCase, index) => {
+        try {
+            const result = fullJustify(testCase.words, testCase.maxWidth);
+            const passed = JSON.stringify(result) === JSON.stringify(testCase.expected);
+            console.log(`Test ${index + 1}: ${passed ? 'PASS' : 'FAIL'}`);
 
-      if (!passed) {
-        console.log("Expected:", testCase.expected);
-        console.log("Got:", result);
-        console.log("---");
-        // 詳細比較
-        for (
-          let i = 0;
-          i < Math.max(result.length, testCase.expected.length);
-          i++
-        ) {
-          if (result[i] !== testCase.expected[i]) {
-            console.log(
-              `Line ${i}: Expected "${testCase.expected[i]}" (${testCase.expected[i]?.length})`
-            );
-            console.log(
-              `Line ${i}: Got      "${result[i]}" (${result[i]?.length})`
-            );
-          }
+            if (!passed) {
+                console.log('Expected:', testCase.expected);
+                console.log('Got:', result);
+                console.log('---');
+                // 詳細比較
+                for (let i = 0; i < Math.max(result.length, testCase.expected.length); i++) {
+                    if (result[i] !== testCase.expected[i]) {
+                        console.log(
+                            `Line ${i}: Expected "${testCase.expected[i]}" (${testCase.expected[i]?.length})`,
+                        );
+                        console.log(`Line ${i}: Got      "${result[i]}" (${result[i]?.length})`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(`Test ${index + 1}: ERROR - ${error.message}`);
+            console.error(error.stack);
         }
-      }
-    } catch (error) {
-      console.log(`Test ${index + 1}: ERROR - ${error.message}`);
-      console.error(error.stack);
-    }
-  });
+    });
 }
 
 // デバッグ実行用
 function debugRun() {
-  const words = [
-    "Science",
-    "is",
-    "what",
-    "we",
-    "understand",
-    "well",
-    "enough",
-    "to",
-    "explain",
-    "to",
-    "a",
-    "computer.",
-    "Art",
-    "is",
-    "everything",
-    "else",
-    "we",
-    "do",
-  ];
-  const maxWidth = 20;
+    const words = [
+        'Science',
+        'is',
+        'what',
+        'we',
+        'understand',
+        'well',
+        'enough',
+        'to',
+        'explain',
+        'to',
+        'a',
+        'computer.',
+        'Art',
+        'is',
+        'everything',
+        'else',
+        'we',
+        'do',
+    ];
+    const maxWidth = 20;
 
-  console.log("Input words:", words);
-  console.log("maxWidth:", maxWidth);
-  console.log("Running fullJustify...");
+    console.log('Input words:', words);
+    console.log('maxWidth:', maxWidth);
+    console.log('Running fullJustify...');
 
-  try {
-    const result = fullJustify(words, maxWidth);
-    console.log("Success! Result:", result);
+    try {
+        const result = fullJustify(words, maxWidth);
+        console.log('Success! Result:', result);
 
-    result.forEach((line, index) => {
-      console.log(`Line ${index}: "${line}" (length: ${line.length})`);
-    });
-  } catch (error) {
-    console.error("Error occurred:", error.message);
-    console.error("Stack:", error.stack);
-  }
+        result.forEach((line, index) => {
+            console.log(`Line ${index}: "${line}" (length: ${line.length})`);
+        });
+    } catch (error) {
+        console.error('Error occurred:', error.message);
+        console.error('Stack:', error.stack);
+    }
 }
 
 // LeetCode形式のエクスポート（完全安全版）
 var fullJustifyLeetCode = function (words, maxWidth) {
-  const result = [];
-  let i = 0;
+    const result = [];
+    let i = 0;
 
-  while (i < words.length) {
-    // 現在行に収まる単語を貪欲に収集
-    const lineWords = [];
-    let totalWordsLength = 0;
-
-    // 単語を行に詰め込む
     while (i < words.length) {
-      const wordLength = words[i].length;
-      const minSpacesNeeded = lineWords.length; // 現在の単語数 = 必要な最小スペース数
-      const totalNeededLength = totalWordsLength + minSpacesNeeded + wordLength;
+        // 現在行に収まる単語を貪欲に収集
+        const lineWords = [];
+        let totalWordsLength = 0;
 
-      if (totalNeededLength > maxWidth) break;
+        // 単語を行に詰め込む
+        while (i < words.length) {
+            const wordLength = words[i].length;
+            const minSpacesNeeded = lineWords.length; // 現在の単語数 = 必要な最小スペース数
+            const totalNeededLength = totalWordsLength + minSpacesNeeded + wordLength;
 
-      lineWords.push(words[i]);
-      totalWordsLength += wordLength;
-      i++;
-    }
+            if (totalNeededLength > maxWidth) break;
 
-    // 行を正当化
-    const wordsCount = lineWords.length;
-    const isLastLine = i === words.length;
-
-    let justifiedLine;
-
-    // 単語が1個または最終行の場合：左寄せ
-    if (wordsCount === 1 || isLastLine) {
-      const leftAligned = lineWords.join(" ");
-      const paddingLength = maxWidth - leftAligned.length;
-      const safeRepeatCount = Math.max(0, paddingLength);
-      justifiedLine = leftAligned + " ".repeat(safeRepeatCount);
-    } else {
-      // 完全正当化：スペースを均等分散
-      const totalSpacesNeeded = maxWidth - totalWordsLength;
-      const gaps = wordsCount - 1;
-      const baseSpaces = Math.floor(totalSpacesNeeded / gaps);
-      const extraSpaces = totalSpacesNeeded % gaps;
-
-      const parts = [];
-      for (let j = 0; j < wordsCount; j++) {
-        parts.push(lineWords[j]);
-        if (j < gaps) {
-          const spacesCount = baseSpaces + (j < extraSpaces ? 1 : 0);
-          const safeSpacesCount = Math.max(0, spacesCount);
-          parts.push(" ".repeat(safeSpacesCount));
+            lineWords.push(words[i]);
+            totalWordsLength += wordLength;
+            i++;
         }
-      }
-      justifiedLine = parts.join("");
+
+        // 行を正当化
+        const wordsCount = lineWords.length;
+        const isLastLine = i === words.length;
+
+        let justifiedLine;
+
+        // 単語が1個または最終行の場合：左寄せ
+        if (wordsCount === 1 || isLastLine) {
+            const leftAligned = lineWords.join(' ');
+            const paddingLength = maxWidth - leftAligned.length;
+            const safeRepeatCount = Math.max(0, paddingLength);
+            justifiedLine = leftAligned + ' '.repeat(safeRepeatCount);
+        } else {
+            // 完全正当化：スペースを均等分散
+            const totalSpacesNeeded = maxWidth - totalWordsLength;
+            const gaps = wordsCount - 1;
+            const baseSpaces = Math.floor(totalSpacesNeeded / gaps);
+            const extraSpaces = totalSpacesNeeded % gaps;
+
+            const parts = [];
+            for (let j = 0; j < wordsCount; j++) {
+                parts.push(lineWords[j]);
+                if (j < gaps) {
+                    const spacesCount = baseSpaces + (j < extraSpaces ? 1 : 0);
+                    const safeSpacesCount = Math.max(0, spacesCount);
+                    parts.push(' '.repeat(safeSpacesCount));
+                }
+            }
+            justifiedLine = parts.join('');
+        }
+
+        result.push(justifiedLine);
     }
 
-    result.push(justifiedLine);
-  }
-
-  return result;
+    return result;
 };
 
 // 実行例

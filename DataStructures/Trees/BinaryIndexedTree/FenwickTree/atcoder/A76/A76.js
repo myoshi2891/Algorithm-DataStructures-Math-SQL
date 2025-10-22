@@ -1,16 +1,16 @@
-const readline = require("readline");
+const readline = require('readline');
 
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 
 const MOD = 1_000_000_007;
 
-rl.once("line", (line1) => {
-    const [N, W, L, R] = line1.trim().split(" ").map(Number);
-    rl.once("line", (line2) => {
-        const X = line2.trim().split(" ").map(Number);
+rl.once('line', (line1) => {
+    const [N, W, L, R] = line1.trim().split(' ').map(Number);
+    rl.once('line', (line2) => {
+        const X = line2.trim().split(' ').map(Number);
 
         // 座標圧縮: 0 (スタート), 全ての足場, W (ゴール)
         const positions = [0, ...X, W];
@@ -78,7 +78,8 @@ rl.once("line", (line1) => {
 
 // 二分探索: lower_bound
 function lowerBound(arr, x) {
-    let left = 0, right = arr.length;
+    let left = 0,
+        right = arr.length;
     while (left < right) {
         let mid = (left + right) >> 1;
         if (arr[mid] < x) left = mid + 1;
@@ -89,7 +90,8 @@ function lowerBound(arr, x) {
 
 // 二分探索: upper_bound
 function upperBound(arr, x) {
-    let left = 0, right = arr.length;
+    let left = 0,
+        right = arr.length;
     while (left < right) {
         let mid = (left + right) >> 1;
         if (arr[mid] <= x) left = mid + 1;
@@ -97,7 +99,6 @@ function upperBound(arr, x) {
     }
     return left;
 }
-
 
 // ✅ 解法概要（JavaScript）
 // 出発点 0 と終点 W を含めた すべてのジャンプ可能な地点 を 昇順で管理。

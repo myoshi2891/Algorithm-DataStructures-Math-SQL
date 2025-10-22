@@ -6,10 +6,10 @@
 // ```javascript
 /**
  * n個の括弧の全ての正しい組み合わせを生成します
- * 
+ *
  * @param {number} n - 括弧のペア数（1 <= n <= 8）
  * @returns {string[]} - 全ての正しい括弧の組み合わせ
- * 
+ *
  * 時間計算量: O(4^n / sqrt(n)) （カタラン数）
  * メモリ消費量: O(4^n / sqrt(n)) （結果配列と呼び出しスタック）
  */
@@ -18,7 +18,7 @@ function generateParenthesisJs(n) {
 
     /**
      * バックトラッキングで括弧を追加
-     * 
+     *
      * @param {string} current - 現在の括弧列
      * @param {number} open - 残り使える開き括弧の数
      * @param {number} close - 残り使える閉じ括弧の数
@@ -31,16 +31,16 @@ function generateParenthesisJs(n) {
 
         // 開き括弧を追加
         if (open > 0) {
-            backtrack(current + "(", open - 1, close);
+            backtrack(current + '(', open - 1, close);
         }
 
         // 閉じ括弧を追加（開き括弧より多くは使えない）
         if (close > open) {
-            backtrack(current + ")", open, close - 1);
+            backtrack(current + ')', open, close - 1);
         }
     }
 
-    backtrack("", n, n);
+    backtrack('', n, n);
 
     return result;
 }
@@ -92,7 +92,7 @@ function generateParenthesisJs(n) {
 //                 └─ ")" -> "(())"
 //                      └─ "(" -> "(())("
 //                           └─ ")" -> "(())()" [解]
-//       └─ ")" -> "()"   
+//       └─ ")" -> "()"
 //            └─ "(" -> "()("
 //                 └─ "(" -> "()(("
 //                      └─ ")" -> "(()()"
@@ -101,4 +101,3 @@ function generateParenthesisJs(n) {
 //                      └─ "(" -> "()()("
 //                           └─ ")" -> "()()()" [解]
 // ```
-

@@ -10,7 +10,7 @@
 
 // ### ✅ 実装コード（Node.js, JavaScript）
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 最小公倍数を求める関数
@@ -38,7 +38,7 @@ function gcd(a, b) {
 }
 
 // 入力読み込み
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split(" ");
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(' ');
 const A = BigInt(input[0]);
 const B = BigInt(input[1]);
 

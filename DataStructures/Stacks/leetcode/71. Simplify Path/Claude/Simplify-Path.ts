@@ -70,146 +70,133 @@ type PathComponent = string;
 type PathStack = PathComponent[];
 
 // パス構成要素の型定義（Union Types活用）
-type SpecialComponent = "." | ".." | "";
+type SpecialComponent = '.' | '..' | '';
 type ValidComponent = Exclude<PathComponent, SpecialComponent>;
 
 // アルゴリズムオプション
 interface PathSimplifyOptions {
-  readonly strictValidation?: boolean;
-  readonly preserveTrailingSlash?: boolean;
+    readonly strictValidation?: boolean;
+    readonly preserveTrailingSlash?: boolean;
 }
 
 // メイン関数（LeetCode形式）
 function simplifyPath(path: string): string {
-  // 1. 入力型検証（型ガード）
-  if (!isValidUnixPath(path)) {
-    return "/";
-  }
+    // 1. 入力型検証（型ガード）
+    if (!isValidUnixPath(path)) {
+        return '/';
+    }
 
-  // 2. パス構成要素分割（型安全な操作）
-  const components: PathComponent[] = path.split("/");
+    // 2. パス構成要素分割（型安全な操作）
+    const components: PathComponent[] = path.split('/');
 
-  // 3. 型安全なスタック初期化
-  const stack: PathStack = [];
+    // 3. 型安全なスタック初期化
+    const stack: PathStack = [];
 
-  // 4. 構成要素処理（型ガード活用）
-  for (const component of components) {
-    processPathComponent(component, stack);
-  }
+    // 4. 構成要素処理（型ガード活用）
+    for (const component of components) {
+        processPathComponent(component, stack);
+    }
 
-  // 5. 正規化パス構築（型安全）
-  return buildCanonicalPath(stack);
+    // 5. 正規化パス構築（型安全）
+    return buildCanonicalPath(stack);
 }
 
 /**
  * Unix絶対パス判定（型ガード）
  */
 function isValidUnixPath(path: string): path is UnixPath {
-  return (
-    typeof path === "string" &&
-    path.length > 0 &&
-    path.length <= 3000 &&
-    path[0] === "/"
-  );
+    return typeof path === 'string' && path.length > 0 && path.length <= 3000 && path[0] === '/';
 }
 
 /**
  * パス構成要素処理（型安全 + インライン最適化）
  */
-function processPathComponent(
-  component: PathComponent,
-  stack: PathStack
-): void {
-  // 型ガードによる効率的分岐
-  if (isEmptyOrCurrent(component)) {
-    return; // 早期リターンでV8最適化
-  }
+function processPathComponent(component: PathComponent, stack: PathStack): void {
+    // 型ガードによる効率的分岐
+    if (isEmptyOrCurrent(component)) {
+        return; // 早期リターンでV8最適化
+    }
 
-  if (isParentDirectory(component)) {
-    handleParentDirectory(stack);
-    return;
-  }
+    if (isParentDirectory(component)) {
+        handleParentDirectory(stack);
+        return;
+    }
 
-  // 有効なディレクトリ/ファイル名
-  if (isValidComponent(component)) {
-    stack.push(component);
-  }
+    // 有効なディレクトリ/ファイル名
+    if (isValidComponent(component)) {
+        stack.push(component);
+    }
 }
 
 /**
  * 空文字列・現在ディレクトリ判定（型ガード + インライン化）
  */
-function isEmptyOrCurrent(component: PathComponent): component is "" | "." {
-  return component === "" || component === ".";
+function isEmptyOrCurrent(component: PathComponent): component is '' | '.' {
+    return component === '' || component === '.';
 }
 
 /**
  * 親ディレクトリ判定（型ガード）
  */
-function isParentDirectory(component: PathComponent): component is ".." {
-  return component === "..";
+function isParentDirectory(component: PathComponent): component is '..' {
+    return component === '..';
 }
 
 /**
  * 有効な構成要素判定（型ガード）
  */
-function isValidComponent(
-  component: PathComponent
-): component is ValidComponent {
-  return component !== "" && component !== "." && component !== "..";
+function isValidComponent(component: PathComponent): component is ValidComponent {
+    return component !== '' && component !== '.' && component !== '..';
 }
 
 /**
  * 親ディレクトリ処理（型安全なスタック操作）
  */
 function handleParentDirectory(stack: PathStack): void {
-  if (stack.length > 0) {
-    stack.pop(); // V8最適化: 型情報でlength更新最適化
-  }
+    if (stack.length > 0) {
+        stack.pop(); // V8最適化: 型情報でlength更新最適化
+    }
 }
 
 /**
  * 正規化パス構築（型安全な文字列操作）
  */
 function buildCanonicalPath(stack: ReadonlyArray<PathComponent>): string {
-  // ルートディレクトリ特別処理（const assertion活用）
-  if (stack.length === 0) {
-    return "/" as const;
-  }
+    // ルートディレクトリ特別処理（const assertion活用）
+    if (stack.length === 0) {
+        return '/' as const;
+    }
 
-  // 効率的パス結合（Template Literal活用可能性）
-  return `/${stack.join("/")}`;
+    // 効率的パス結合（Template Literal活用可能性）
+    return `/${stack.join('/')}`;
 }
 
 /**
  * 型安全な入力検証（開発環境用）
  */
 function validateInput(path: unknown): asserts path is string {
-  if (typeof path !== "string") {
-    throw new TypeError(`Expected string, got ${typeof path}`);
-  }
-  if (path.length === 0 || path.length > 3000) {
-    throw new RangeError(`Path length must be 1-3000, got ${path.length}`);
-  }
-  if (!path.startsWith("/")) {
-    throw new Error("Path must be absolute (start with /)");
-  }
+    if (typeof path !== 'string') {
+        throw new TypeError(`Expected string, got ${typeof path}`);
+    }
+    if (path.length === 0 || path.length > 3000) {
+        throw new RangeError(`Path length must be 1-3000, got ${path.length}`);
+    }
+    if (!path.startsWith('/')) {
+        throw new Error('Path must be absolute (start with /)');
+    }
 }
 
 /**
  * 高機能版実装（業務開発用、LeetCode提出時は削除）
  */
-function simplifyPathAdvanced(
-  path: string,
-  options: PathSimplifyOptions = {}
-): string {
-  const { strictValidation = false } = options;
+function simplifyPathAdvanced(path: string, options: PathSimplifyOptions = {}): string {
+    const { strictValidation = false } = options;
 
-  if (strictValidation) {
-    validateInput(path);
-  }
+    if (strictValidation) {
+        validateInput(path);
+    }
 
-  return simplifyPath(path);
+    return simplifyPath(path);
 }
 
 // 型安全なテストケース（LeetCode提出時は削除）

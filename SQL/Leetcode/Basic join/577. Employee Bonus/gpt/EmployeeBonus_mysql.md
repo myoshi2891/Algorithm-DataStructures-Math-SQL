@@ -180,9 +180,8 @@ Beats 27.41%
   今回は「bonus<1000 組」と「Bonus が存在しない組」で完全分割できます。
 - **起点テーブルの選択**: ① はヒット件数が相対的に少ない（`<1000`）はずなので **Bonus 起点**が有利。② は「存在しない」の検出なので **Employee 起点**が自然。
 - **インデックス設計**:
-
-  - `Bonus(bonus, empId)`：範囲 → 結合の順に合う並び。`SELECT` 列も `bonus` だけなので**被覆索引**になりやすく、テーブルアクセスを減らせます。
-  - `Employee(empId PK)`：結合キーでルックアップ。
+    - `Bonus(bonus, empId)`：範囲 → 結合の順に合う並び。`SELECT` 列も `bonus` だけなので**被覆索引**になりやすく、テーブルアクセスを減らせます。
+    - `Employee(empId PK)`：結合キーでルックアップ。
 
 - **ヒント（必要なら）**: `STRAIGHT_JOIN` を ① 側に使うと Bonus 起点を強められます。例：
   `SELECT STRAIGHT_JOIN e.name, b.bonus FROM Bonus b JOIN Employee e ON e.empId=b.empId WHERE b.bonus<1000;`
@@ -215,8 +214,7 @@ flowchart TD
 2. `UNION ALL` 版クエリに差し替え（もしくは CTE で事前絞り）
 3. `ANALYZE TABLE Employee, Bonus;` 実行
 4. `EXPLAIN ANALYZE` で実行行数とインデックス利用を確認
-
-   - ① 枝で `ix_bonus_bonus_empId` の範囲走査になっていれば OK
-   - ② 枝で `Bonus` の `PRIMARY` ルックアップ（存在確認）になっていれば OK
+    - ① 枝で `ix_bonus_bonus_empId` の範囲走査になっていれば OK
+    - ② 枝で `Bonus` の `PRIMARY` ルックアップ（存在確認）になっていれば OK
 
 これで体感で **Runtime が大きく改善**するはずです。もし依然として遅ければ、実データの分布（`bonus<1000` のヒット割合）と `EXPLAIN ANALYZE` の結果を貼っていただければ、さらに踏み込んだプラン調整（ヒント/結合順/派生表マテリアライズ）を提案します。

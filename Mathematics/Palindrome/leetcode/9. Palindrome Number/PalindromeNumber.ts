@@ -25,7 +25,7 @@ function isPalindrome(x: number): boolean {
 
     // 半分だけ反転させる
     while (x > reverted) {
-        reverted = reverted * 10 + x % 10;
+        reverted = reverted * 10 + (x % 10);
         x = Math.floor(x / 10);
     }
 

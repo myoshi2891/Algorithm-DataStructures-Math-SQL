@@ -1,36 +1,32 @@
 class Graph {
-	constructor() {
-		this.adjacencyList = {};
-	}
-
-	addVertex(vertex) {
-		if (!this.adjacencyList[vertex]) {
-			this.adjacencyList[vertex] = [];
-		}
-	}
-
-	addEdge(vertex1, vertex2) {
-		this.adjacencyList[vertex1].push(vertex2);
-		this.adjacencyList[vertex2].push(vertex1);
-	}
-
-	removeEdge(vertex1, vertex2) {
-		this.adjacencyList[vertex1] = this.adjacencyList[vertex1].filter(
-			(v) => v !== vertex2
-		);
-		this.adjacencyList[vertex2] = this.adjacencyList[vertex2].filter(
-			(v) => v !== vertex1
-		);
-	}
-
-	removeVertex(vertex) {
-		while (this.adjacencyList[vertex].length) {
-			const adjacencyVertex = this.adjacencyList[vertex].pop();
-			this.removeEdge(adjacencyVertex, vertex);
-		}
-		delete this.adjacencyList[vertex];
+    constructor() {
+        this.adjacencyList = {};
     }
-    
+
+    addVertex(vertex) {
+        if (!this.adjacencyList[vertex]) {
+            this.adjacencyList[vertex] = [];
+        }
+    }
+
+    addEdge(vertex1, vertex2) {
+        this.adjacencyList[vertex1].push(vertex2);
+        this.adjacencyList[vertex2].push(vertex1);
+    }
+
+    removeEdge(vertex1, vertex2) {
+        this.adjacencyList[vertex1] = this.adjacencyList[vertex1].filter((v) => v !== vertex2);
+        this.adjacencyList[vertex2] = this.adjacencyList[vertex2].filter((v) => v !== vertex1);
+    }
+
+    removeVertex(vertex) {
+        while (this.adjacencyList[vertex].length) {
+            const adjacencyVertex = this.adjacencyList[vertex].pop();
+            this.removeEdge(adjacencyVertex, vertex);
+        }
+        delete this.adjacencyList[vertex];
+    }
+
     depthFirstRecursive(start) {
         const result = [];
         const visited = {};
@@ -40,13 +36,12 @@ class Graph {
             if (!vertex) return null;
             visited[vertex] = true;
             result.push(vertex);
-            adjacencyList[vertex].forEach(neighbor => {
-                if(!visited[neighbor]) {
+            adjacencyList[vertex].forEach((neighbor) => {
+                if (!visited[neighbor]) {
                     return dfs(neighbor);
                 }
-                
             });
-        }(start))
+        })(start);
         return result;
     }
 
@@ -58,21 +53,21 @@ class Graph {
 
         visited[start] = true;
 
-        while (stack.length) {            
+        while (stack.length) {
             currentVertex = stack.pop();
             result.push(currentVertex);
 
-            this.adjacencyList[currentVertex].forEach(neighbor => {
+            this.adjacencyList[currentVertex].forEach((neighbor) => {
                 if (!visited[neighbor]) {
                     visited[neighbor] = true;
                     stack.push(neighbor);
                 }
-            })
+            });
         }
         return result;
     }
 
-    breadthFirst(start) { 
+    breadthFirst(start) {
         const queue = [start];
         const result = [];
         const visited = {};
@@ -83,8 +78,7 @@ class Graph {
             currentVertex = queue.shift();
             result.push(currentVertex);
 
-
-            this.adjacencyList[currentVertex].forEach(neighbor => {
+            this.adjacencyList[currentVertex].forEach((neighbor) => {
                 if (!visited[neighbor]) {
                     visited[neighbor] = true;
                     queue.push(neighbor);
@@ -96,22 +90,22 @@ class Graph {
 }
 
 const g = new Graph();
-g.addVertex("A");
-g.addVertex("B");
-g.addVertex("C");
-g.addVertex("D");
-g.addVertex("E");
-g.addVertex("F");
+g.addVertex('A');
+g.addVertex('B');
+g.addVertex('C');
+g.addVertex('D');
+g.addVertex('E');
+g.addVertex('F');
 
-g.addEdge("A", "B");
-g.addEdge("A", "C");
-g.addEdge("B", "D");
-g.addEdge("C", "E");
-g.addEdge("D", "E");
-g.addEdge("D", "F");
-g.addEdge("E", "F");
+g.addEdge('A', 'B');
+g.addEdge('A', 'C');
+g.addEdge('B', 'D');
+g.addEdge('C', 'E');
+g.addEdge('D', 'E');
+g.addEdge('D', 'F');
+g.addEdge('E', 'F');
 // g.depthFirstRecursive("A");
 // console.log(g.depthFirstRecursive("A"));
 // console.log(g.depthFirstIterative("A"));
-console.log(g.breadthFirst("A"));
+console.log(g.breadthFirst('A'));
 // console.log(g);

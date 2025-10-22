@@ -19,13 +19,13 @@
  * 配列から欠けている最小の正の整数を見つける
  * @param {number[]} nums - 整数配列
  * @return {number} - 欠けている最小の正の整数
- * 
+ *
  * 時間複雑度: O(n)
  * 空間複雑度: O(1)
  */
 function firstMissingPositive(nums) {
     const n = nums.length;
-    
+
     // Step 1: 配列内の値を正規化
     // 1からnの範囲外の値（0以下、n+1以上）をn+1に置き換える
     for (let i = 0; i < n; i++) {
@@ -33,7 +33,7 @@ function firstMissingPositive(nums) {
             nums[i] = n + 1;
         }
     }
-    
+
     // Step 2: 各数値の存在を配列のインデックスを使って記録
     // 値xが存在する場合、インデックスx-1の値を負にする
     for (let i = 0; i < n; i++) {
@@ -43,14 +43,14 @@ function firstMissingPositive(nums) {
             nums[val - 1] = -Math.abs(nums[val - 1]);
         }
     }
-    
+
     // Step 3: 最初の正の値のインデックス+1が答え
     for (let i = 0; i < n; i++) {
         if (nums[i] > 0) {
             return i + 1;
         }
     }
-    
+
     // 1からnまでの全ての数が存在する場合、答えはn+1
     return n + 1;
 }

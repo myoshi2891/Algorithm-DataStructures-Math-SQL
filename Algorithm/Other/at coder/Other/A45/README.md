@@ -77,11 +77,11 @@ for i = 1 to N-1:
 
 ## ✅ まとめ
 
-| ポイント   | 内容                   |
-| ------ | -------------------- |
-| 操作     | 2色 → 1色の決まったルール（6通り） |
+| ポイント     | 内容                               |
+| ------------ | ---------------------------------- |
+| 操作         | 2色 → 1色の決まったルール（6通り） |
 | アルゴリズム | 左から順に 2 枚ずつ操作して 1 枚に |
-| 判定     | 最後に残った色と目標色を比較       |
+| 判定         | 最後に残った色と目標色を比較       |
 
 ---
 
@@ -117,31 +117,31 @@ const target: string = parts[1];
 import * as fs from 'fs';
 
 function main(input: string): void {
-  const [line1, line2] = input.trim().split('\n');
-  const parts: string[] = line1.split(' ');
-  const N: number = parseInt(parts[0]);
-  const target: string = parts[1];
-  const colors: string[] = line2.trim().split('');
+    const [line1, line2] = input.trim().split('\n');
+    const parts: string[] = line1.split(' ');
+    const N: number = parseInt(parts[0]);
+    const target: string = parts[1];
+    const colors: string[] = line2.trim().split('');
 
-  const combine: { [key: string]: string } = {
-    'WW': 'W',
-    'BB': 'R',
-    'RR': 'B',
-    'WB': 'B',
-    'BW': 'B',
-    'BR': 'W',
-    'RB': 'W',
-    'RW': 'R',
-    'WR': 'R',
-  };
+    const combine: { [key: string]: string } = {
+        WW: 'W',
+        BB: 'R',
+        RR: 'B',
+        WB: 'B',
+        BW: 'B',
+        BR: 'W',
+        RB: 'W',
+        RW: 'R',
+        WR: 'R',
+    };
 
-  let current: string = colors[0];
-  for (let i = 1; i < colors.length; i++) {
-    const pair: string = current + colors[i];
-    current = combine[pair];
-  }
+    let current: string = colors[0];
+    for (let i = 1; i < colors.length; i++) {
+        const pair: string = current + colors[i];
+        current = combine[pair];
+    }
 
-  console.log(current === target ? 'Yes' : 'No');
+    console.log(current === target ? 'Yes' : 'No');
 }
 
 const input: string = fs.readFileSync('/dev/stdin', 'utf8');
@@ -161,8 +161,8 @@ const [a, b]: [string, string] = something.split(' ');
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-02 20:08:20 | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 585 Byte | **AC** | 30 ms | 10500 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66405128) |
-| 2025-06-02 20:07:14 | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 792 Byte | **AC** | 62 ms | 51920 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66405108) |
-| 2025-06-02 20:00:19 | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 748 Byte | **AC** | 93 ms | 51888 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66404972) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                     | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-02 20:08:20                                                                           | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 585 Byte                                                                                  | **AC** | 30 ms                                                                                        | 10500 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66405128) |
+| 2025-06-02 20:07:14                                                                           | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 792 Byte                                                                                  | **AC** | 62 ms                                                                                        | 51920 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66405108) |
+| 2025-06-02 20:00:19                                                                           | [A45 - Card Elimination](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_as) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 748 Byte                                                                                  | **AC** | 93 ms                                                                                        | 51888 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66404972) |

@@ -45,7 +45,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Longest Palindromic Substring
@@ -65,56 +65,52 @@
  * @complexity 時間 O(n^2), 空間 O(1)
  */
 function longestPalindrome(s) {
-  // ---- 入力検証（早期・軽量）----
-  if (typeof s !== "string") throw new TypeError("Input must be a string");
-  const n = s.length;
-  if (n < 1 || n > 1000)
-    throw new RangeError("Input length must be in [1, 1000]");
-  // 問題文の制約に合わせ英数字のみを許可（余計なユニコード正規化等は行わない）
-  // 正規表現は一度だけ生成し、隠れクラスを安定化
-  const re = /^[A-Za-z0-9]+$/;
-  if (!re.test(s))
-    throw new RangeError(
-      "Input must consist of digits and English letters only"
-    );
+    // ---- 入力検証（早期・軽量）----
+    if (typeof s !== 'string') throw new TypeError('Input must be a string');
+    const n = s.length;
+    if (n < 1 || n > 1000) throw new RangeError('Input length must be in [1, 1000]');
+    // 問題文の制約に合わせ英数字のみを許可（余計なユニコード正規化等は行わない）
+    // 正規表現は一度だけ生成し、隠れクラスを安定化
+    const re = /^[A-Za-z0-9]+$/;
+    if (!re.test(s)) throw new RangeError('Input must consist of digits and English letters only');
 
-  // ---- 中心展開のヘルパ（クロージャ軽量）----
-  /**
-   * 中心 (l,r) から最大まで拡張し、拡張後の [L, R] を返す。
-   * @param {number} l
-   * @param {number} r
-   * @returns {[number, number]} inclusive 範囲
-   */
-  function expand(l, r) {
-    // while で境界・一致を確認。ループ内は読み取りのみで型安定。
-    while (l >= 0 && r < n && s.charCodeAt(l) === s.charCodeAt(r)) {
-      l--;
-      r++;
+    // ---- 中心展開のヘルパ（クロージャ軽量）----
+    /**
+     * 中心 (l,r) から最大まで拡張し、拡張後の [L, R] を返す。
+     * @param {number} l
+     * @param {number} r
+     * @returns {[number, number]} inclusive 範囲
+     */
+    function expand(l, r) {
+        // while で境界・一致を確認。ループ内は読み取りのみで型安定。
+        while (l >= 0 && r < n && s.charCodeAt(l) === s.charCodeAt(r)) {
+            l--;
+            r++;
+        }
+        // 1つ進み過ぎているので戻す（inclusive）
+        return [l + 1, r - 1];
     }
-    // 1つ進み過ぎているので戻す（inclusive）
-    return [l + 1, r - 1];
-  }
 
-  // ---- 本処理：各インデックスを中心として奇数長・偶数長を展開 ----
-  let bestL = 0,
-    bestR = 0; // inclusive
-  for (let i = 0; i < n; i++) {
-    // 奇数長（単一中心）
-    const odd = expand(i, i);
-    if (odd[1] - odd[0] > bestR - bestL) {
-      bestL = odd[0];
-      bestR = odd[1];
+    // ---- 本処理：各インデックスを中心として奇数長・偶数長を展開 ----
+    let bestL = 0,
+        bestR = 0; // inclusive
+    for (let i = 0; i < n; i++) {
+        // 奇数長（単一中心）
+        const odd = expand(i, i);
+        if (odd[1] - odd[0] > bestR - bestL) {
+            bestL = odd[0];
+            bestR = odd[1];
+        }
+        // 偶数長（隣接2文字中心）
+        const even = expand(i, i + 1);
+        if (even[1] - even[0] > bestR - bestL) {
+            bestL = even[0];
+            bestR = even[1];
+        }
     }
-    // 偶数長（隣接2文字中心）
-    const even = expand(i, i + 1);
-    if (even[1] - even[0] > bestR - bestL) {
-      bestL = even[0];
-      bestR = even[1];
-    }
-  }
 
-  // 返却時のみ substring を生成（GC 圧低減）
-  return s.substring(bestL, bestR + 1);
+    // 返却時のみ substring を生成（GC 圧低減）
+    return s.substring(bestL, bestR + 1);
 }
 
 module.exports = { longestPalindrome };

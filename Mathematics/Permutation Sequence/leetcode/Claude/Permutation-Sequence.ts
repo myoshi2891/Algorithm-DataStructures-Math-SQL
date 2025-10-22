@@ -8,7 +8,7 @@
 // ## パフォーマンス特性
 // - **時間計算量**: O(n²) - splice操作がO(n)でn回実行
 // - **空間計算量**: O(n) - factorial配列とnumbers配列のみ使用
-// - **LeetCode最適化**: 
+// - **LeetCode最適化**:
 //   - 全順列生成を避けて直接計算
 //   - 不要なメモリ割り当てを回避
 //   - TypeScriptのコンパイル時最適化を活用
@@ -32,32 +32,32 @@ function getPermutation(n: number, k: number): string {
     for (let i = 1; i < n; i++) {
         factorial[i] = factorial[i - 1] * i;
     }
-    
+
     // 使用可能な数字のリスト
     const numbers: number[] = [];
     for (let i = 1; i <= n; i++) {
         numbers.push(i);
     }
-    
+
     // k を 0-indexed に変換
     k--;
-    
+
     let result: string = '';
-    
+
     // 各桁を順番に決定
     for (let i = 0; i < n; i++) {
         // 現在の桁で選択すべき数字のインデックスを計算
         const index: number = Math.floor(k / factorial[n - 1 - i]);
-        
+
         // 選択した数字を結果に追加
         result += numbers[index];
-        
+
         // 使用した数字を削除
         numbers.splice(index, 1);
-        
+
         // k を更新（残りの順列での位置）
         k %= factorial[n - 1 - i];
     }
-    
+
     return result;
 }

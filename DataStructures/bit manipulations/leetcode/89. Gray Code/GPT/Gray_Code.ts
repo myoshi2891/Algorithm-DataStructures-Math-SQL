@@ -69,26 +69,26 @@
  * @complexity Time: O(2^n) | Space: O(2^n) (output) / O(1) auxiliary
  */
 function grayCode(n: number): number[] {
-  // --- Runtime validation (defensive; LeetCode入力は制約内想定) ---
-  if (!Number.isFinite(n) || Math.trunc(n) !== n) {
-    throw new TypeError("n must be a finite integer");
-  }
-  if (n < 1 || n > 16) {
-    throw new RangeError("n must be in [1, 16]");
-  }
+    // --- Runtime validation (defensive; LeetCode入力は制約内想定) ---
+    if (!Number.isFinite(n) || Math.trunc(n) !== n) {
+        throw new TypeError('n must be a finite integer');
+    }
+    if (n < 1 || n > 16) {
+        throw new RangeError('n must be in [1, 16]');
+    }
 
-  // Precompute size and preallocate result array (number-typed, fixed length)
-  const M = 1 << n; // safe for n <= 16 (max 65536)
-  const res = new Array<number>(M);
+    // Precompute size and preallocate result array (number-typed, fixed length)
+    const M = 1 << n; // safe for n <= 16 (max 65536)
+    const res = new Array<number>(M);
 
-  // Single pass generation: G(i) = i ^ (i >> 1)
-  for (let i = 0; i < M; i++) {
-    // >>> 1 は符号なし右シフトでも良いが、ここでは >> 1 で十分（32bit域）
-    // >>> 0 を通せば常に非負の 32bit 整数になる（好みで使用可）。
-    res[i] = (i ^ (i >> 1)) >>> 0;
-  }
+    // Single pass generation: G(i) = i ^ (i >> 1)
+    for (let i = 0; i < M; i++) {
+        // >>> 1 は符号なし右シフトでも良いが、ここでは >> 1 で十分（32bit域）
+        // >>> 0 を通せば常に非負の 32bit 整数になる（好みで使用可）。
+        res[i] = (i ^ (i >> 1)) >>> 0;
+    }
 
-  return res;
+    return res;
 }
 // ```
 

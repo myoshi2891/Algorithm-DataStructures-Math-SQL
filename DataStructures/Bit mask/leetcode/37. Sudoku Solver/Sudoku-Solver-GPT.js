@@ -48,7 +48,7 @@ function solveSudokuJs(board) {
         // 1~9まで試す
         for (let num = 1; num <= 9; num++) {
             const bit = 1 << num;
-            if ((rowMask[i] & bit) || (colMask[j] & bit) || (boxMask[bIdx] & bit)) {
+            if (rowMask[i] & bit || colMask[j] & bit || boxMask[bIdx] & bit) {
                 continue; // 使用済みはスキップ
             }
 

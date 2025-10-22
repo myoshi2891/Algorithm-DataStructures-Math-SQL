@@ -72,7 +72,7 @@ modCount[90] = 1
 ```ts
 const modCount: number[] = Array(100).fill(0);
 for (let i = 0; i < N; i++) {
-  modCount[A[i] % 100]++;
+    modCount[A[i] % 100]++;
 }
 ```
 
@@ -100,10 +100,10 @@ mod 余り : 出現数（modCount 配列）
 
 #### 理由：
 
-* `0 + 0 = 0`
-* `50 + 50 = 100`
+- `0 + 0 = 0`
+- `50 + 50 = 100`
 
-同じ余りから2つ選ぶ → **組み合わせ：C(n,2) = n*(n-1)/2*\*
+同じ余りから2つ選ぶ → \*_組み合わせ：C(n,2) = n_(n-1)/2\*\*
 
 ```ts
 totalPairs += (modCount[0] * (modCount[0] - 1)) >> 1;
@@ -123,27 +123,27 @@ modCount[50] = 1 → C(1, 2) = 0組
 
 #### 例：
 
-* (10, 90)
-* (20, 80)
-* (30, 70)
-* (40, 60)
+- (10, 90)
+- (20, 80)
+- (30, 70)
+- (40, 60)
 
 → 合計 4組
 
 ```ts
 for (let r = 1; r < 50; r++) {
-  totalPairs += modCount[r] * modCount[100 - r];
+    totalPairs += modCount[r] * modCount[100 - r];
 }
 ```
 
 #### 図解：
 
-| r  | 100 - r | modCount\[r] | modCount\[100 - r] | ペア数     |
-| -- | ------- | ------------ | ------------------ | ------- |
-| 10 | 90      | 1            | 1                  | 1       |
-| 20 | 80      | 1            | 1                  | 1       |
-| 30 | 70      | 1            | 1                  | 1       |
-| 40 | 60      | 1            | 1                  | 1       |
+| r    | 100 - r | modCount\[r] | modCount\[100 - r] | ペア数   |
+| ---- | ------- | ------------ | ------------------ | -------- |
+| 10   | 90      | 1            | 1                  | 1        |
+| 20   | 80      | 1            | 1                  | 1        |
+| 30   | 70      | 1            | 1                  | 1        |
+| 40   | 60      | 1            | 1                  | 1        |
 | 合計 |         |              |                    | **4** 組 |
 
 ---
@@ -174,9 +174,9 @@ return totalPairs; // => 4
 
 ## ✅ 補足：なぜ O(N) で高速？
 
-* 配列一回走査：O(N)
-* `modCount` はサイズ100固定：O(100)
-* 合計：O(N) 時間、O(100) 空間 → 1秒制限・1024MiB メモリ制限に**余裕で収まる**
+- 配列一回走査：O(N)
+- `modCount` はサイズ100固定：O(100)
+- 合計：O(N) 時間、O(100) 空間 → 1秒制限・1024MiB メモリ制限に**余裕で収まる**
 
 ---
 
@@ -191,10 +191,10 @@ console.log('modCount:', modCount.slice(0, 20)); // 先頭20個表示
 ---
 
 質問があればどこでも補足します。必要なら、動作確認用の Jest テストコードも提供できます。
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) | |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-31 20:02:15 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1170 Byte |  | 1 ms | 1628 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067416) |
-| 2025-07-31 20:00:54 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1159 Byte |  | 17 ms | 21692 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067397) |
-| 2025-07-31 19:58:42 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1340 Byte |  | 20 ms | 10732 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067368) |
-| 2025-07-31 19:50:25 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1204 Byte |  | 42 ms | 42916 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067256) |
-| 2025-07-31 19:47:53 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 957 Byte |  | 42 ms | 42816 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067221) |
+| 2025-07-31 20:02:15 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1170 Byte | | 1 ms | 1628 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067416) |
+| 2025-07-31 20:00:54 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1159 Byte | | 17 ms | 21692 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067397) |
+| 2025-07-31 19:58:42 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1340 Byte | | 20 ms | 10732 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067368) |
+| 2025-07-31 19:50:25 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1204 Byte | | 42 ms | 42916 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067256) |
+| 2025-07-31 19:47:53 | [B40 - Divide by 100](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dm) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 957 Byte | | 42 ms | 42816 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68067221) |

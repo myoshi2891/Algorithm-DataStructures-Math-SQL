@@ -15,8 +15,8 @@
 
 変更された要素のみを `Map` で保持します。アクセス時は：
 
-* 変更が記録されていればその値を使う
-* 記録されていなければ初期値 `i + 1` を返す
+- 変更が記録されていればその値を使う
+- 記録されていなければ初期値 `i + 1` を返す
 
 ---
 
@@ -25,19 +25,20 @@
 実際に反転させるのではなく、`reversed` フラグを使ってインデックス変換で対応。
 
 ---
+
 ## ✅ メモリ効率の比較
 
-| アプローチ         | メモリ使用量                  |
-| ------------- | ----------------------- |
-| 通常の配列（O(N)）   | 約 200,000 \* 4B ≒ 800KB |
-| 差分Mapのみ（O(K)） | K件変更のみ記録、非常に軽い          |
+| アプローチ          | メモリ使用量                |
+| ------------------- | --------------------------- |
+| 通常の配列（O(N)）  | 約 200,000 \* 4B ≒ 800KB    |
+| 差分Mapのみ（O(K)） | K件変更のみ記録、非常に軽い |
 
 ---
 
 ## ✅ 注意点
 
-* `Map` はハッシュ構造なので、要素数が少ないうちは非常に軽量。
-* `変更件数` ≪ `N` であることが多いため、圧倒的に省メモリです。
+- `Map` はハッシュ構造なので、要素数が少ないうちは非常に軽量。
+- `変更件数` ≪ `N` であることが多いため、圧倒的に省メモリです。
 
 ---
 
@@ -47,9 +48,9 @@
 
 ## 📌 状態を表す記号
 
-* `N = 5`
-* `reversed = false` または `true`
-* `Map = {}` は変更を記録する差分マップ
+- `N = 5`
+- `reversed = false` または `true`
+- `Map = {}` は変更を記録する差分マップ
 
 ---
 
@@ -155,21 +156,21 @@ Map に 3 があるので、Map[3] = 8 を返す
 
 ## ✨ ポイント
 
-| 操作      | 時間   | メモリ | 内容                     |
-| ------- | ---- | --- | ---------------------- |
-| `1 x y` | O(1) | 少   | `Map` に変更だけ記録          |
-| `2`     | O(1) | 0   | `reversed` フラグをトグルするだけ |
-| `3 x`   | O(1) | 少   | 実際のインデックスに変換して値取得      |
+| 操作    | 時間 | メモリ | 内容                               |
+| ------- | ---- | ------ | ---------------------------------- |
+| `1 x y` | O(1) | 少     | `Map` に変更だけ記録               |
+| `2`     | O(1) | 0      | `reversed` フラグをトグルするだけ  |
+| `3 x`   | O(1) | 少     | 実際のインデックスに変換して値取得 |
 
 ---
 
 検索
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-01 16:12:29 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005) | 1000 | 1481 Byte | **AC** | 251 ms | 59356 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378486) |
-| 2025-06-01 16:11:26 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1119 Byte | **AC** | 45 ms | 14144 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378453) |
-| 2025-06-01 16:10:17 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 894 Byte | **AC** | 67 ms | 27148 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378425) |
-| 2025-06-01 16:08:45 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 917 Byte | **AC** | 105 ms | 37140 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378392) |
-| 2025-06-01 16:01:23 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 837 Byte | **AC** | 189 ms | 81852 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378214) |
-| 2025-06-01 15:59:19 | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 843 Byte | **AC** | 193 ms | 77992 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378165) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                       | ユーザ                                            | 言語                                                                                                    | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-01 16:12:29                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005)            | 1000                                                                                    | 1481 Byte                                                                                 | **AC** | 251 ms                                                                                       | 59356 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378486) |
+| 2025-06-01 16:11:26                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)               | 1000                                                                                    | 1119 Byte                                                                                 | **AC** | 45 ms                                                                                        | 14144 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378453) |
+| 2025-06-01 16:10:17                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)              | 1000                                                                                    | 894 Byte                                                                                  | **AC** | 67 ms                                                                                        | 27148 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378425) |
+| 2025-06-01 16:08:45                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)      | 1000                                                                                    | 917 Byte                                                                                  | **AC** | 105 ms                                                                                       | 37140 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378392) |
+| 2025-06-01 16:01:23                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000                                                                                    | 837 Byte                                                                                  | **AC** | 189 ms                                                                                       | 81852 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378214) |
+| 2025-06-01 15:59:19                                                                           | [A44 - Change and Reverse](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ar) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000                                                                                    | 843 Byte                                                                                  | **AC** | 193 ms                                                                                       | 77992 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66378165) |

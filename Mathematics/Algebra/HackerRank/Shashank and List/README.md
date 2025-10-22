@@ -101,10 +101,9 @@
   という積の形に収束する。
 
 - この式の強みは：
-
-  1. **N が大きくても O(N) で処理できる**（逐次掛け算するだけ）。
-  2. **各要素の値 (a_i) が大きくても対応可能**（`pow(2, a_i, MOD)` で対数時間計算）。
-  3. Python の組み込み `pow` は高速で最適化済み。
+    1. **N が大きくても O(N) で処理できる**（逐次掛け算するだけ）。
+    2. **各要素の値 (a_i) が大きくても対応可能**（`pow(2, a_i, MOD)` で対数時間計算）。
+    3. Python の組み込み `pow` は高速で最適化済み。
 
 ---
 
@@ -137,35 +136,30 @@
 ## 1. 定義の違い
 
 - **Subarray（連続部分列）**
-
-  - 配列の連続した区間を取る。
-  - 例: `[1,2,3]` の subarray は `[1]`, `[2]`, `[3]`, `[1,2]`, `[2,3]`, `[1,2,3]`。
-  - 個数は **N(N+1)/2** 個。
+    - 配列の連続した区間を取る。
+    - 例: `[1,2,3]` の subarray は `[1]`, `[2]`, `[3]`, `[1,2]`, `[2,3]`, `[1,2,3]`。
+    - 個数は **N(N+1)/2** 個。
 
 - **Subsequence（部分列／部分集合）**
-
-  - 順序は保つが、連続である必要はない。各要素を「使う or 使わない」。
-  - 例: `[1,2,3]` の subsequence は `[1]`, `[2]`, `[3]`, `[1,2]`, `[1,3]`, `[2,3]`, `[1,2,3]`。
-  - 個数は **2^N - 1** 個。
+    - 順序は保つが、連続である必要はない。各要素を「使う or 使わない」。
+    - 例: `[1,2,3]` の subsequence は `[1]`, `[2]`, `[3]`, `[1,2]`, `[1,3]`, `[2,3]`, `[1,2,3]`。
+    - 個数は **2^N - 1** 個。
 
 ---
 
 ## 2. 問題文からの見分けポイント
 
 1. **キーワードに注目**
-
-   - "subarray" / "contiguous" / "interval" → 連続部分列 (subarray)。
-   - "subsequence" / "subset" / "non-empty list" → 部分列/部分集合 (subsequence)。
+    - "subarray" / "contiguous" / "interval" → 連続部分列 (subarray)。
+    - "subsequence" / "subset" / "non-empty list" → 部分列/部分集合 (subsequence)。
 
 2. **個数の式に注目**
-
-   - 「全部で **2^N - 1** 個」 → subsequence 系。
-   - 「全部で **N(N+1)/2** 個」 → subarray 系。
+    - 「全部で **2^N - 1** 個」 → subsequence 系。
+    - 「全部で **N(N+1)/2** 個」 → subarray 系。
 
 3. **典型的な式**
-
-   - subarray 系 → prefix sum, sliding window, two pointers で処理できる。
-   - subsequence 系 → 各要素の寄与が独立になるため、積や組合せ式に帰着することが多い。
+    - subarray 系 → prefix sum, sliding window, two pointers で処理できる。
+    - subsequence 系 → 各要素の寄与が独立になるため、積や組合せ式に帰着することが多い。
 
 ---
 
@@ -183,9 +177,8 @@
 - **ステップ 1**: 問題文で subarray / subsequence のどちらかを判定。
 - **ステップ 2**: 個数の式がどちらに対応するか確認。
 - **ステップ 3**:
-
-  - subarray 系 → prefix sum / sliding window を考える。
-  - subsequence 系 → 各要素を「選ぶ/選ばない」で積や冪乗の式を立てられないか考える。
+    - subarray 系 → prefix sum / sliding window を考える。
+    - subsequence 系 → 各要素を「選ぶ/選ばない」で積や冪乗の式を立てられないか考える。
 
 ---
 
@@ -216,19 +209,16 @@
 ### 代表的なアプローチ
 
 1. **Prefix Sum**
-
-   - 和を高速に計算するために使う
-   - 例: 和が K になる subarray の個数 → prefix sum + hashmap
+    - 和を高速に計算するために使う
+    - 例: 和が K になる subarray の個数 → prefix sum + hashmap
 
 2. **Sliding Window / Two Pointers**
-
-   - 長さ制限や「条件を満たす最大/最小」問題に強い
-   - 例: 連続部分列の最大和（Kadane's Algorithm）
+    - 長さ制限や「条件を満たす最大/最小」問題に強い
+    - 例: 連続部分列の最大和（Kadane's Algorithm）
 
 3. **Monotonic Stack**
-
-   - 区間の最小値/最大値を絡める問題で登場
-   - 例: Largest Rectangle in Histogram, Sum of Subarray Minimums
+    - 区間の最小値/最大値を絡める問題で登場
+    - 例: Largest Rectangle in Histogram, Sum of Subarray Minimums
 
 ### 典型問題
 
@@ -250,19 +240,16 @@
 ### 代表的なアプローチ 2
 
 1. **組合せ式 / 積の式**
-
-   - 各要素を「取る/取らない」で独立に寄与する → 積や冪乗に帰着
-   - 例: 今回の問題 (\prod (1+2^{a_i}) - 1)
+    - 各要素を「取る/取らない」で独立に寄与する → 積や冪乗に帰着
+    - 例: 今回の問題 (\prod (1+2^{a_i}) - 1)
 
 2. **DP（Longest 系）**
-
-   - 最長部分列、最短部分列など
-   - 例: Longest Increasing Subsequence (LIS), Longest Common Subsequence (LCS)
+    - 最長部分列、最短部分列など
+    - 例: Longest Increasing Subsequence (LIS), Longest Common Subsequence (LCS)
 
 3. **Backtracking / Bitmask**
-
-   - N が小さい場合 (N ≤ 20 程度) に全探索
-   - 例: Subset Sum, Generate All Subsequences
+    - N が小さい場合 (N ≤ 20 程度) に全探索
+    - 例: Subset Sum, Generate All Subsequences
 
 ### 典型問題 2
 
@@ -276,19 +263,16 @@
 ## 3. 見分け方チェックリスト ✅
 
 1. 問題文のキーワード確認
-
-   - "subarray", "contiguous", "interval" → Subarray
-   - "subsequence", "subset", "2^N - 1" → Subsequence
+    - "subarray", "contiguous", "interval" → Subarray
+    - "subsequence", "subset", "2^N - 1" → Subsequence
 
 2. 個数の式を確認
-
-   - N(N+1)/2 が出てきたら Subarray
-   - 2^N - 1 が出てきたら Subsequence
+    - N(N+1)/2 が出てきたら Subarray
+    - 2^N - 1 が出てきたら Subsequence
 
 3. 解法の型を思い出す
-
-   - Subarray → Prefix Sum / Sliding Window / Stack
-   - Subsequence → DP / Combinatorics / Backtracking
+    - Subarray → Prefix Sum / Sliding Window / Stack
+    - Subsequence → DP / Combinatorics / Backtracking
 
 ---
 

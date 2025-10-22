@@ -8,7 +8,7 @@
 // - **メモリ**: O(n) で実現可能（1行分のDPテーブル）
 // - **数値範囲**: 0-200の整数のみ → 型安全性で最適化可能
 
-// ### 業務開発視点  
+// ### 業務開発視点
 // - **型安全性**: `number[][]` 型でコンパイル時検証
 // - **エラーハンドリング**: 型ガードとアサーション関数の組み合わせ
 // - **可読性**: インターフェースとジェネリクスで意図明確化
@@ -85,21 +85,21 @@
 // function minPathSum(grid: number[][]): number {
 //     const m = grid.length;
 //     const n = grid[0].length;
-    
+
 //     // Single cell optimization
 //     if (m === 1 && n === 1) {
 //         return grid[0][0];
 //     }
-    
+
 //     // 1D DP array with explicit typing
 //     const dp: number[] = new Array<number>(n);
-    
+
 //     // Initialize first row
 //     dp[0] = grid[0][0];
 //     for (let j = 1; j < n; j++) {
 //         dp[j] = dp[j - 1] + grid[0][j];
 //     }
-    
+
 //     // Process remaining rows
 //     for (let i = 1; i < m; i++) {
 //         dp[0] += grid[i][0];
@@ -107,7 +107,7 @@
 //             dp[j] = Math.min(dp[j], dp[j - 1]) + grid[i][j];
 //         }
 //     }
-    
+
 //     return dp[n - 1];
 // }
 // ```
@@ -146,21 +146,23 @@ function isValidGrid(value: unknown): value is Grid {
     if (!Array.isArray(value) || value.length === 0) {
         return false;
     }
-    
+
     if (!Array.isArray(value[0]) || value[0].length === 0) {
         return false;
     }
-    
+
     const n = value[0].length;
-    return value.every((row: unknown) => 
-        Array.isArray(row) && 
-        row.length === n && 
-        row.every((cell: unknown) => 
-            typeof cell === 'number' && 
-            Number.isInteger(cell) &&
-            cell >= CONSTRAINTS.MIN_VALUE && 
-            cell <= CONSTRAINTS.MAX_VALUE
-        )
+    return value.every(
+        (row: unknown) =>
+            Array.isArray(row) &&
+            row.length === n &&
+            row.every(
+                (cell: unknown) =>
+                    typeof cell === 'number' &&
+                    Number.isInteger(cell) &&
+                    cell >= CONSTRAINTS.MIN_VALUE &&
+                    cell <= CONSTRAINTS.MAX_VALUE,
+            ),
     );
 }
 
@@ -180,12 +182,14 @@ function validateInput(grid: unknown): asserts grid is Grid {
     if (!isValidGrid(grid)) {
         throw new TypeError('Invalid grid: must be a 2D array of integers between 0-200');
     }
-    
+
     const m = grid.length;
     const n = grid[0].length;
-    
+
     if (m > CONSTRAINTS.MAX_DIMENSION || n > CONSTRAINTS.MAX_DIMENSION) {
-        throw new RangeError(`Grid dimensions must not exceed ${CONSTRAINTS.MAX_DIMENSION}×${CONSTRAINTS.MAX_DIMENSION}`);
+        throw new RangeError(
+            `Grid dimensions must not exceed ${CONSTRAINTS.MAX_DIMENSION}×${CONSTRAINTS.MAX_DIMENSION}`,
+        );
     }
 }
 
@@ -197,13 +201,10 @@ function validateInput(grid: unknown): asserts grid is Grid {
  * @param options - アルゴリズムオプション
  * @returns 最小パス合計値
  * @throws {TypeError} 入力型エラー
- * @throws {RangeError} 制約違反エラー  
+ * @throws {RangeError} 制約違反エラー
  * @complexity Time: O(m×n), Space: O(n)
  */
-function minPathSum(
-    grid: unknown, 
-    options: AlgorithmOptions = {}
-): number {
+function minPathSum(grid: unknown, options: AlgorithmOptions = {}): number {
     // 1. 入力検証（型安全）
     if (options.validateInput !== false) {
         validateInput(grid);
@@ -213,40 +214,40 @@ function minPathSum(
             throw new TypeError('Invalid grid format');
         }
     }
-    
+
     // 2. エッジケース処理（型ガード活用）
     if (isSingleCell(grid)) {
         return grid[0][0];
     }
-    
+
     // 3. グリッド情報取得（型安全）
     const m: number = grid.length;
     const n: number = grid[0].length;
-    
+
     // 4. 1D DP配列初期化（型明示でV8最適化）
     const dp: number[] = new Array<number>(n);
-    
+
     // 5. 第1行の初期化（型安全なループ）
     dp[0] = grid[0][0];
     for (let j = 1; j < n; j++) {
         dp[j] = dp[j - 1] + grid[0][j];
     }
-    
+
     // 6. メインアルゴリズム（型安全 + V8最適化）
     for (let i = 1; i < m; i++) {
         // 各行の左端: 上からのみ
         dp[0] += grid[i][0];
-        
+
         // 各行の中間・右端: min(上, 左) + 現在値
         for (let j = 1; j < n; j++) {
             const fromTop: number = dp[j];
             const fromLeft: number = dp[j - 1];
             const current: number = grid[i][j];
-            
+
             dp[j] = Math.min(fromTop, fromLeft) + current;
         }
     }
-    
+
     return dp[n - 1];
 }
 
@@ -279,25 +280,35 @@ interface TestCase {
  */
 const testCases: readonly TestCase[] = [
     {
-        input: [[1, 3, 1], [1, 5, 1], [4, 2, 1]] as const,
+        input: [
+            [1, 3, 1],
+            [1, 5, 1],
+            [4, 2, 1],
+        ] as const,
         expected: 7,
-        description: "Example 1: 3×3 grid"
+        description: 'Example 1: 3×3 grid',
     },
     {
-        input: [[1, 2, 3], [4, 5, 6]] as const,
+        input: [
+            [1, 2, 3],
+            [4, 5, 6],
+        ] as const,
         expected: 12,
-        description: "Example 2: 2×3 grid"
+        description: 'Example 2: 2×3 grid',
     },
     {
         input: [[1]] as const,
         expected: 1,
-        description: "Edge case: Single cell"
+        description: 'Edge case: Single cell',
     },
     {
-        input: [[1, 2], [1, 1]] as const,
+        input: [
+            [1, 2],
+            [1, 1],
+        ] as const,
         expected: 3,
-        description: "Small case: 2×2 grid"
-    }
+        description: 'Small case: 2×2 grid',
+    },
 ] as const;
 
 /**
@@ -305,14 +316,14 @@ const testCases: readonly TestCase[] = [
  */
 function runTests(): void {
     console.log('=== TypeScript Minimum Path Sum Tests ===\n');
-    
+
     for (let i = 0; i < testCases.length; i++) {
         const { input, expected, description }: TestCase = testCases[i];
-        
+
         try {
             const result: number = minPathSum(input);
             const passed: boolean = result === expected;
-            
+
             console.log(`Test ${i + 1}: ${description}`);
             console.log(`Input: ${JSON.stringify(input)}`);
             console.log(`Expected: ${expected}, Got: ${result}`);
@@ -329,20 +340,20 @@ function runTests(): void {
  */
 function performanceTest(): void {
     console.log('=== TypeScript Performance Test ===');
-    
+
     const sizes: readonly (readonly [number, number])[] = [
         [50, 50],
-        [100, 100], 
-        [200, 200]
+        [100, 100],
+        [200, 200],
     ] as const;
-    
+
     for (const [m, n] of sizes) {
         const grid: number[][] = generateLargeGrid(m, n);
-        
+
         const startTime: number = performance.now();
         const result: number = minPathSum(grid);
         const endTime: number = performance.now();
-        
+
         const duration: string = (endTime - startTime).toFixed(2);
         console.log(`Grid ${m}×${n}: ${duration}ms, Result: ${result}`);
     }
@@ -353,7 +364,7 @@ function performanceTest(): void {
  */
 function typeSafetyTest(): void {
     console.log('=== TypeScript Type Safety Test ===');
-    
+
     const invalidInputs: readonly unknown[] = [
         null,
         undefined,
@@ -361,10 +372,10 @@ function typeSafetyTest(): void {
         [[]],
         [[1, 2], [3]], // 不整合な行長
         [[1, -1]], // 範囲外の値
-        [["1", "2"]], // 文字列
+        [['1', '2']], // 文字列
         [[1.5, 2.5]], // 小数
     ] as const;
-    
+
     for (let i = 0; i < invalidInputs.length; i++) {
         try {
             minPathSum(invalidInputs[i]);
@@ -387,7 +398,7 @@ export {
     typeSafetyTest,
     type Grid,
     type InputData,
-    type AlgorithmOptions
+    type AlgorithmOptions,
 };
 
 // ===== 実行部分（モジュール環境での条件付き実行） =====

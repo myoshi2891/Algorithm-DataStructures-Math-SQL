@@ -61,7 +61,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * Decode Ways: s を 1..26 マッピングでデコードできる通り数を返す（Pure）
@@ -84,55 +84,54 @@
  * @complexity Time O(n), Space O(1)
  */
 function numDecodings(s) {
-  // ---- 入力検証（早期）----
-  if (typeof s !== "string") {
-    throw new TypeError("Input must be a string");
-  }
-  const n = s.length;
-  if (n < 1 || n > 100) {
-    throw new RangeError("Input length must be in [1, 100]");
-  }
-  // 全て数字か（ASCII '0'..'9'）
-  // ついでに最初の文字を取得して先頭0の早期不成立も見る
-  const c0 = s.charCodeAt(0);
-  if (c0 < 48 || c0 > 57) throw new TypeError("Input must contain digits only");
-  if (c0 === 48) return 0; // 先頭 '0' はデコード不能
-
-  for (let i = 1; i < n; i++) {
-    const ci = s.charCodeAt(i);
-    if (ci < 48 || ci > 57)
-      throw new TypeError("Input must contain digits only");
-  }
-
-  // ---- DP（O(1) ローリング）----
-  // dp[0] = 1（空文字の基数 / 最初の1桁が有効なら 1）
-  let prev2 = 1; // dp[i-2]
-  let prev1 = 1; // dp[i-1] for i=1（先頭が '1'..'9' であることは上で保証）
-
-  for (let i = 1; i < n; i++) {
-    const d1 = s.charCodeAt(i) - 48; // 現在桁
-    const d0 = s.charCodeAt(i - 1) - 48; // 直前桁
-    let cur = 0;
-
-    // 1桁有効: 1..9
-    if (d1 >= 1) {
-      cur += prev1;
+    // ---- 入力検証（早期）----
+    if (typeof s !== 'string') {
+        throw new TypeError('Input must be a string');
     }
-    // 2桁有効: 10..26
-    const two = d0 * 10 + d1; // 'xy' → 10*x + y（先頭0は two<10 となり自然に無効）
-    if (two >= 10 && two <= 26) {
-      cur += prev2;
+    const n = s.length;
+    if (n < 1 || n > 100) {
+        throw new RangeError('Input length must be in [1, 100]');
+    }
+    // 全て数字か（ASCII '0'..'9'）
+    // ついでに最初の文字を取得して先頭0の早期不成立も見る
+    const c0 = s.charCodeAt(0);
+    if (c0 < 48 || c0 > 57) throw new TypeError('Input must contain digits only');
+    if (c0 === 48) return 0; // 先頭 '0' はデコード不能
+
+    for (let i = 1; i < n; i++) {
+        const ci = s.charCodeAt(i);
+        if (ci < 48 || ci > 57) throw new TypeError('Input must contain digits only');
     }
 
-    // どちらにも該当しない → デコード不能
-    if (cur === 0) return 0;
+    // ---- DP（O(1) ローリング）----
+    // dp[0] = 1（空文字の基数 / 最初の1桁が有効なら 1）
+    let prev2 = 1; // dp[i-2]
+    let prev1 = 1; // dp[i-1] for i=1（先頭が '1'..'9' であることは上で保証）
 
-    // ロール
-    prev2 = prev1;
-    prev1 = cur;
-  }
+    for (let i = 1; i < n; i++) {
+        const d1 = s.charCodeAt(i) - 48; // 現在桁
+        const d0 = s.charCodeAt(i - 1) - 48; // 直前桁
+        let cur = 0;
 
-  return prev1;
+        // 1桁有効: 1..9
+        if (d1 >= 1) {
+            cur += prev1;
+        }
+        // 2桁有効: 10..26
+        const two = d0 * 10 + d1; // 'xy' → 10*x + y（先頭0は two<10 となり自然に無効）
+        if (two >= 10 && two <= 26) {
+            cur += prev2;
+        }
+
+        // どちらにも該当しない → デコード不能
+        if (cur === 0) return 0;
+
+        // ロール
+        prev2 = prev1;
+        prev1 = cur;
+    }
+
+    return prev1;
 }
 
 // LeetCode 形式（関数定義）＋ ローカル/CI 用エクスポート

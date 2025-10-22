@@ -11,12 +11,12 @@
 function generateMatrix(n) {
     // n x n の空の配列を作成
     const matrix = Array.from({ length: n }, () => Array(n).fill(0));
-    
-    let num = 1;          // 入れる数値
-    let left = 0;         // 左境界
-    let right = n - 1;    // 右境界
-    let top = 0;          // 上境界
-    let bottom = n - 1;   // 下境界
+
+    let num = 1; // 入れる数値
+    let left = 0; // 左境界
+    let right = n - 1; // 右境界
+    let top = 0; // 上境界
+    let bottom = n - 1; // 下境界
 
     // すべてのセルを埋めるまで繰り返す
     while (left <= right && top <= bottom) {

@@ -12,7 +12,7 @@
  */
 function multiply(num1, num2) {
     // 片方が "0" なら答えは "0"
-    if (num1 === "0" || num2 === "0") return "0";
+    if (num1 === '0' || num2 === '0') return '0';
 
     const m = num1.length;
     const n = num2.length;
@@ -37,7 +37,7 @@ function multiply(num1, num2) {
         start++;
     }
 
-    return result.slice(start).join("");
+    return result.slice(start).join('');
 }
 // ```
 

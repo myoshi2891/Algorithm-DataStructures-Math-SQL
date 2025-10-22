@@ -270,12 +270,12 @@ const X = BigInt(xStr);
 const N = Number(nStr);
 const Q = Number(qStr);
 const S = input[1].trim();
-const queries = input.slice(2).map(line => line.split(' ').map(Number));
+const queries = input.slice(2).map((line) => line.split(' ').map(Number));
 
 // A = 1, ..., Z = 26
 const T = Array(N + 1);
 for (let i = 0; i < N; i++) {
-  T[i + 1] = BigInt(S.charCodeAt(i) - 64);
+    T[i + 1] = BigInt(S.charCodeAt(i) - 64);
 }
 
 // 前計算
@@ -283,22 +283,22 @@ const powX = Array(N + 2).fill(1n);
 const h = Array(N + 1).fill(0n);
 
 for (let i = 1; i <= N + 1; i++) {
-  powX[i] = (powX[i - 1] * X) % P;
+    powX[i] = (powX[i - 1] * X) % P;
 }
 
 for (let i = 1; i <= N; i++) {
-  h[i] = (h[i - 1] * X + T[i]) % P;
+    h[i] = (h[i - 1] * X + T[i]) % P;
 }
 
 // クエリ処理
 const results = [];
 
 for (const [L, R] of queries) {
-  const left = h[L - 1];
-  const right = h[R];
-  const power = powX[R - L + 1];
-  let val = (right - (left * power) % P + P) % P;
-  results.push(val.toString());
+    const left = h[L - 1];
+    const right = h[R];
+    const power = powX[R - L + 1];
+    let val = (right - ((left * power) % P) + P) % P;
+    results.push(val.toString());
 }
 
 console.log(results.join('\n'));

@@ -2,37 +2,34 @@
 
 ```ts
 class ListNode {
-  val: number;
-  next: ListNode | null;
+    val: number;
+    next: ListNode | null;
 
-  constructor(val?: number, next?: ListNode | null) {
-    this.val = val ?? 0;
-    this.next = next ?? null;
-  }
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = val ?? 0;
+        this.next = next ?? null;
+    }
 }
 
-function addTwoNumbers(
-  l1: ListNode | null,
-  l2: ListNode | null
-): ListNode | null {
-  const dummyHead = new ListNode(0);
-  let current = dummyHead;
-  let carry = 0;
+function addTwoNumbers(l1: ListNode | null, l2: ListNode | null): ListNode | null {
+    const dummyHead = new ListNode(0);
+    let current = dummyHead;
+    let carry = 0;
 
-  while (l1 !== null || l2 !== null || carry > 0) {
-    const val1 = l1?.val ?? 0;
-    const val2 = l2?.val ?? 0;
-    const sum = val1 + val2 + carry;
+    while (l1 !== null || l2 !== null || carry > 0) {
+        const val1 = l1?.val ?? 0;
+        const val2 = l2?.val ?? 0;
+        const sum = val1 + val2 + carry;
 
-    carry = Math.floor(sum / 10);
-    current.next = new ListNode(sum % 10);
-    current = current.next;
+        carry = Math.floor(sum / 10);
+        current.next = new ListNode(sum % 10);
+        current = current.next;
 
-    l1 = l1?.next ?? null;
-    l2 = l2?.next ?? null;
-  }
+        l1 = l1?.next ?? null;
+        l2 = l2?.next ?? null;
+    }
 
-  return dummyHead.next;
+    return dummyHead.next;
 }
 ```
 
@@ -60,22 +57,22 @@ function addTwoNumbers(
 
 ```ts
 function arrayToList(arr: number[]): ListNode | null {
-  const dummy = new ListNode();
-  let current = dummy;
-  for (const num of arr) {
-    current.next = new ListNode(num);
-    current = current.next;
-  }
-  return dummy.next;
+    const dummy = new ListNode();
+    let current = dummy;
+    for (const num of arr) {
+        current.next = new ListNode(num);
+        current = current.next;
+    }
+    return dummy.next;
 }
 
 function listToArray(head: ListNode | null): number[] {
-  const result: number[] = [];
-  while (head !== null) {
-    result.push(head.val);
-    head = head.next;
-  }
-  return result;
+    const result: number[] = [];
+    while (head !== null) {
+        result.push(head.val);
+        head = head.next;
+    }
+    return result;
 }
 ```
 
@@ -105,28 +102,25 @@ console.log(listToArray(result)); // [7, 0, 8]
 以下のように `ListNode` の定義部分を削除して、`addTwoNumbers` の関数部分だけ使ってください。
 
 ```ts
-function addTwoNumbers(
-  l1: ListNode | null,
-  l2: ListNode | null
-): ListNode | null {
-  const dummyHead = new ListNode(0);
-  let current = dummyHead;
-  let carry = 0;
+function addTwoNumbers(l1: ListNode | null, l2: ListNode | null): ListNode | null {
+    const dummyHead = new ListNode(0);
+    let current = dummyHead;
+    let carry = 0;
 
-  while (l1 !== null || l2 !== null || carry > 0) {
-    const val1 = l1?.val ?? 0;
-    const val2 = l2?.val ?? 0;
-    const sum = val1 + val2 + carry;
+    while (l1 !== null || l2 !== null || carry > 0) {
+        const val1 = l1?.val ?? 0;
+        const val2 = l2?.val ?? 0;
+        const sum = val1 + val2 + carry;
 
-    carry = Math.floor(sum / 10);
-    current.next = new ListNode(sum % 10);
-    current = current.next;
+        carry = Math.floor(sum / 10);
+        current.next = new ListNode(sum % 10);
+        current = current.next;
 
-    l1 = l1?.next ?? null;
-    l2 = l2?.next ?? null;
-  }
+        l1 = l1?.next ?? null;
+        l2 = l2?.next ?? null;
+    }
 
-  return dummyHead.next;
+    return dummyHead.next;
 }
 ```
 
@@ -140,13 +134,13 @@ function addTwoNumbers(
 
 ```ts
 class MyListNode {
-  val: number;
-  next: MyListNode | null;
+    val: number;
+    next: MyListNode | null;
 
-  constructor(val?: number, next?: MyListNode | null) {
-    this.val = val ?? 0;
-    this.next = next ?? null;
-  }
+    constructor(val?: number, next?: MyListNode | null) {
+        this.val = val ?? 0;
+        this.next = next ?? null;
+    }
 }
 ```
 

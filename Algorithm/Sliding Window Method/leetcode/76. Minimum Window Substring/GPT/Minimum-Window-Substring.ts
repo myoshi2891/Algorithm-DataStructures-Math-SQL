@@ -68,79 +68,77 @@
  * @complexity Time: O(m + n), Space: O(1)
  */
 function minWindow(s: string, t: string): string {
-  // ランタイム型チェック（LeetCode 環境でも安全）
-  if (typeof s !== "string" || typeof t !== "string") {
-    throw new TypeError("Both s and t must be strings");
-  }
-
-  const m = s.length;
-  const n = t.length;
-  const MAX_LEN = 1e5;
-  if (m < 0 || n < 0 || m > MAX_LEN || n > MAX_LEN) {
-    throw new RangeError(`Input sizes must be within 0..${MAX_LEN}`);
-  }
-
-  if (n === 0) return ""; // t が空なら空文字（問題の前提では t.length >=1 だが安全策）
-  if (m === 0) return "";
-
-  // ASCII 想定（問題文は英字のみ）: 128 で十分
-  const NEED_ARR_SIZE = 128;
-  const need: number[] = new Array(NEED_ARR_SIZE).fill(0);
-
-  // t の頻度をセット
-  for (let i = 0; i < n; i++) {
-    const code = t.charCodeAt(i);
-    if (code >= NEED_ARR_SIZE) {
-      // 英字以外が来た場合も扱えるように配列拡張ではなく RangeError を投げる選択肢もあるが
-      // ここでは安全のため IndexError 回避として modulo はしない。大きい code は配列外となる。
-      // ただし LeetCode の本問題は英字のみなので通常通らない。
-      throw new RangeError("Character code in t exceeds supported ASCII range");
-    }
-    need[code]++;
-  }
-
-  let required = n; // 残り必要文字数（重複分もカウント）
-  let left = 0;
-  let minLen = Number.POSITIVE_INFINITY;
-  let minStart = 0;
-
-  // 右ポインタを伸ばしつつ、条件を満たしたら左を縮める
-  for (let right = 0; right < m; right++) {
-    const rCode = s.charCodeAt(right);
-    if (rCode >= NEED_ARR_SIZE) {
-      throw new RangeError("Character code in s exceeds supported ASCII range");
+    // ランタイム型チェック（LeetCode 環境でも安全）
+    if (typeof s !== 'string' || typeof t !== 'string') {
+        throw new TypeError('Both s and t must be strings');
     }
 
-    // need[code] > 0 ならその文字がまだ必要であることを示す
-    if (need[rCode] > 0) {
-      required--;
+    const m = s.length;
+    const n = t.length;
+    const MAX_LEN = 1e5;
+    if (m < 0 || n < 0 || m > MAX_LEN || n > MAX_LEN) {
+        throw new RangeError(`Input sizes must be within 0..${MAX_LEN}`);
     }
-    // 使った分は減らす（余分に来たら負になる）
-    need[rCode]--;
 
-    // 現在の window がすべての必要文字を含むなら縮められる
-    while (required === 0) {
-      const windowLen = right - left + 1;
-      if (windowLen < minLen) {
-        minLen = windowLen;
-        minStart = left;
-      }
+    if (n === 0) return ''; // t が空なら空文字（問題の前提では t.length >=1 だが安全策）
+    if (m === 0) return '';
 
-      const lCode = s.charCodeAt(left);
-      // 左を1つ外すので need を回復させる
-      need[lCode]++;
+    // ASCII 想定（問題文は英字のみ）: 128 で十分
+    const NEED_ARR_SIZE = 128;
+    const need: number[] = new Array(NEED_ARR_SIZE).fill(0);
 
-      // 回復後 need[lCode] > 0 ならその文字が再び不足になる -> required を増やす
-      if (need[lCode] > 0) {
-        required++;
-      }
-      left++;
+    // t の頻度をセット
+    for (let i = 0; i < n; i++) {
+        const code = t.charCodeAt(i);
+        if (code >= NEED_ARR_SIZE) {
+            // 英字以外が来た場合も扱えるように配列拡張ではなく RangeError を投げる選択肢もあるが
+            // ここでは安全のため IndexError 回避として modulo はしない。大きい code は配列外となる。
+            // ただし LeetCode の本問題は英字のみなので通常通らない。
+            throw new RangeError('Character code in t exceeds supported ASCII range');
+        }
+        need[code]++;
     }
-  }
 
-  return minLen === Number.POSITIVE_INFINITY
-    ? ""
-    : s.slice(minStart, minStart + minLen);
+    let required = n; // 残り必要文字数（重複分もカウント）
+    let left = 0;
+    let minLen = Number.POSITIVE_INFINITY;
+    let minStart = 0;
+
+    // 右ポインタを伸ばしつつ、条件を満たしたら左を縮める
+    for (let right = 0; right < m; right++) {
+        const rCode = s.charCodeAt(right);
+        if (rCode >= NEED_ARR_SIZE) {
+            throw new RangeError('Character code in s exceeds supported ASCII range');
+        }
+
+        // need[code] > 0 ならその文字がまだ必要であることを示す
+        if (need[rCode] > 0) {
+            required--;
+        }
+        // 使った分は減らす（余分に来たら負になる）
+        need[rCode]--;
+
+        // 現在の window がすべての必要文字を含むなら縮められる
+        while (required === 0) {
+            const windowLen = right - left + 1;
+            if (windowLen < minLen) {
+                minLen = windowLen;
+                minStart = left;
+            }
+
+            const lCode = s.charCodeAt(left);
+            // 左を1つ外すので need を回復させる
+            need[lCode]++;
+
+            // 回復後 need[lCode] > 0 ならその文字が再び不足になる -> required を増やす
+            if (need[lCode] > 0) {
+                required++;
+            }
+            left++;
+        }
+    }
+
+    return minLen === Number.POSITIVE_INFINITY ? '' : s.slice(minStart, minStart + minLen);
 }
 
 // LeetCode 形式：関数そのものを提出するので export は任意だが、モジュールとして利用する際の互換性のためエクスポートを付ける。

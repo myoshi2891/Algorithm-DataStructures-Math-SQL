@@ -73,33 +73,33 @@
  * @complexity Time: O(n), Space: O(1)
  */
 export function removeDuplicates(nums: number[]): number {
-  // 入力検証
-  if (!Array.isArray(nums)) {
-    throw new TypeError("Input must be an array");
-  }
-  const n: number = nums.length;
-  if (n < 1 || n > 3 * 1e4) {
-    throw new RangeError("Array length out of bounds");
-  }
-  for (let i = 0; i < n; i++) {
-    const v = nums[i];
-    if (!Number.isInteger(v)) {
-      throw new TypeError("Array must contain integers");
+    // 入力検証
+    if (!Array.isArray(nums)) {
+        throw new TypeError('Input must be an array');
     }
-    if (v < -1e4 || v > 1e4) {
-      throw new RangeError("Array element out of range");
+    const n: number = nums.length;
+    if (n < 1 || n > 3 * 1e4) {
+        throw new RangeError('Array length out of bounds');
     }
-  }
+    for (let i = 0; i < n; i++) {
+        const v = nums[i];
+        if (!Number.isInteger(v)) {
+            throw new TypeError('Array must contain integers');
+        }
+        if (v < -1e4 || v > 1e4) {
+            throw new RangeError('Array element out of range');
+        }
+    }
 
-  // ---- 本処理 ----
-  let writeIndex = 0;
-  for (let i = 0; i < n; i++) {
-    if (writeIndex < 2 || nums[i] !== nums[writeIndex - 2]) {
-      nums[writeIndex] = nums[i];
-      writeIndex++;
+    // ---- 本処理 ----
+    let writeIndex = 0;
+    for (let i = 0; i < n; i++) {
+        if (writeIndex < 2 || nums[i] !== nums[writeIndex - 2]) {
+            nums[writeIndex] = nums[i];
+            writeIndex++;
+        }
     }
-  }
-  return writeIndex;
+    return writeIndex;
 }
 // ```
 

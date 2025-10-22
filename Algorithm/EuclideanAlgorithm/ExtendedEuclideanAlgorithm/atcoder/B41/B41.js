@@ -31,34 +31,35 @@ const fs = require('fs');
  * @returns {string} - 操作回数と各操作後の (x, y) のリストを文字列で返す
  */
 function findOperations(X, Y) {
-  const path = [];
-  let x = X, y = Y;
+    const path = [];
+    let x = X,
+        y = Y;
 
-  // 逆から構築
-  while (!(x === 1 && y === 1)) {
-    path.push([x, y]);
-    if (x > y) {
-      x -= y;
-    } else {
-      y -= x;
+    // 逆から構築
+    while (!(x === 1 && y === 1)) {
+        path.push([x, y]);
+        if (x > y) {
+            x -= y;
+        } else {
+            y -= x;
+        }
     }
-  }
 
-  path.reverse(); // 初期状態 (1, 1) から順に並べる
+    path.reverse(); // 初期状態 (1, 1) から順に並べる
 
-  let output = path.length + '\n';
-  for (const [a, b] of path) {
-    output += `${a} ${b}\n`;
-  }
-  return output;
+    let output = path.length + '\n';
+    for (const [a, b] of path) {
+        output += `${a} ${b}\n`;
+    }
+    return output;
 }
 
 // ---- 入出力処理部 ----
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
-  const [X, Y] = input;
-  const result = findOperations(X, Y);
-  console.log(result);
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
+    const [X, Y] = input;
+    const result = findOperations(X, Y);
+    console.log(result);
 }
 
 main();

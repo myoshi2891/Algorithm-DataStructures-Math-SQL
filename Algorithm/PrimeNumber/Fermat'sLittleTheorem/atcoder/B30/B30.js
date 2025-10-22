@@ -35,28 +35,28 @@ const invFact = Array(MAX + 1);
  * @returns {bigint} base^exp % MOD
  */
 function modPow(base, exp) {
-  let result = 1n;
-  base %= MOD;
-  while (exp > 0) {
-    if (exp % 2n === 1n) result = result * base % MOD;
-    base = base * base % MOD;
-    exp >>= 1n;
-  }
-  return result;
+    let result = 1n;
+    base %= MOD;
+    while (exp > 0) {
+        if (exp % 2n === 1n) result = (result * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1n;
+    }
+    return result;
 }
 
 /**
  * 前計算: fact[], invFact[] を埋める
  */
 function precomputeFactorials() {
-  fact[0] = 1n;
-  for (let i = 1; i <= MAX; i++) {
-    fact[i] = fact[i - 1] * BigInt(i) % MOD;
-  }
-  invFact[MAX] = modPow(fact[MAX], MOD - 2n);
-  for (let i = MAX - 1; i >= 0; i--) {
-    invFact[i] = invFact[i + 1] * BigInt(i + 1) % MOD;
-  }
+    fact[0] = 1n;
+    for (let i = 1; i <= MAX; i++) {
+        fact[i] = (fact[i - 1] * BigInt(i)) % MOD;
+    }
+    invFact[MAX] = modPow(fact[MAX], MOD - 2n);
+    for (let i = MAX - 1; i >= 0; i--) {
+        invFact[i] = (invFact[i + 1] * BigInt(i + 1)) % MOD;
+    }
 }
 
 /**
@@ -66,18 +66,18 @@ function precomputeFactorials() {
  * @returns {bigint}
  */
 function comb(n, r) {
-  if (r < 0 || r > n) return 0n;
-  return fact[n] * invFact[r] % MOD * invFact[n - r] % MOD;
+    if (r < 0 || r > n) return 0n;
+    return (((fact[n] * invFact[r]) % MOD) * invFact[n - r]) % MOD;
 }
 
 // 入力読み取りと出力処理
 function main(input) {
-  const [H, W] = input.trim().split(' ').map(Number);
-  precomputeFactorials(); // 階乗と逆元の前計算
-  const totalSteps = H + W - 2;
-  const downSteps = H - 1;
-  const answer = comb(totalSteps, downSteps);
-  console.log(answer.toString()); // bigint を string にして出力
+    const [H, W] = input.trim().split(' ').map(Number);
+    precomputeFactorials(); // 階乗と逆元の前計算
+    const totalSteps = H + W - 2;
+    const downSteps = H - 1;
+    const answer = comb(totalSteps, downSteps);
+    console.log(answer.toString()); // bigint を string にして出力
 }
 
 // 標準入力から読み込んで実行

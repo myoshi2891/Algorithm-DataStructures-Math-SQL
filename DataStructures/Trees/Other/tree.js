@@ -16,26 +16,26 @@ const fs = require('fs');
  * @returns {void}
  */
 function solve() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-  const N = parseInt(input[0], 10); // 頂点数
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const N = parseInt(input[0], 10); // 頂点数
 
-  // 隣接行列の初期化（全て0）
-  const adj = Array.from({ length: N }, () => Array(N).fill(0));
+    // 隣接行列の初期化（全て0）
+    const adj = Array.from({ length: N }, () => Array(N).fill(0));
 
-  // 各辺の入力を処理し、隣接行列を更新
-  for (let i = 1; i < input.length; i++) {
-    const [aStr, bStr] = input[i].split(' ');
-    const a = parseInt(aStr, 10) - 1; // 0-based index
-    const b = parseInt(bStr, 10) - 1;
+    // 各辺の入力を処理し、隣接行列を更新
+    for (let i = 1; i < input.length; i++) {
+        const [aStr, bStr] = input[i].split(' ');
+        const a = parseInt(aStr, 10) - 1; // 0-based index
+        const b = parseInt(bStr, 10) - 1;
 
-    adj[a][b] = 1;
-    adj[b][a] = 1; // 無向グラフなので対称
-  }
+        adj[a][b] = 1;
+        adj[b][a] = 1; // 無向グラフなので対称
+    }
 
-  // 出力
-  for (let i = 0; i < N; i++) {
-    console.log(adj[i].join(' '));
-  }
+    // 出力
+    for (let i = 0; i < N; i++) {
+        console.log(adj[i].join(' '));
+    }
 }
 
 solve();

@@ -1,8 +1,8 @@
 この問題においては：
 
-* 配列 `X` は **固定長20** の整数配列（`Int32Array` などでも良い）
-* 操作は **100回固定**（定数T）
-* 各ステップで一時的な値の変更しかしておらず、**大規模なデータ構造は使っていない**
+- 配列 `X` は **固定長20** の整数配列（`Int32Array` などでも良い）
+- 操作は **100回固定**（定数T）
+- 各ステップで一時的な値の変更しかしておらず、**大規模なデータ構造は使っていない**
 
 そのため、\*\*現状でもメモリ消費は非常に小さい（数KB以下）\*\*ですが、もしさらにメモリ効率を高めたい場合、以下の最適化案があります：
 
@@ -61,18 +61,18 @@ function apply(X, p, q, r, delta) {
 ### ✅ 最小構成まとめ（超省メモリ・効率的）
 
 ```js
-const readline = require("readline");
+const readline = require('readline');
 
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 
 let input = [];
 
-rl.on("line", line => input.push(line.trim())).on("close", () => {
+rl.on('line', (line) => input.push(line.trim())).on('close', () => {
     const T = parseInt(input[0]);
-    const ops = input.slice(1).map(l => l.split(" ").map(x => x - 1));
+    const ops = input.slice(1).map((l) => l.split(' ').map((x) => x - 1));
     const X = new Int8Array(20);
     let zeroCount = 20;
     const res = [];
@@ -80,7 +80,8 @@ rl.on("line", line => input.push(line.trim())).on("close", () => {
     for (let i = 0; i < T; i++) {
         const [p, q, r] = ops[i];
 
-        let gainA = 0, gainB = 0;
+        let gainA = 0,
+            gainB = 0;
         for (const idx of [p, q, r]) {
             if (X[idx] === 0) gainA--;
             if (X[idx] + 1 === 0) gainA++;
@@ -89,14 +90,14 @@ rl.on("line", line => input.push(line.trim())).on("close", () => {
         }
 
         if (zeroCount + gainA >= zeroCount + gainB) {
-            res.push("A");
+            res.push('A');
             for (const i of [p, q, r]) {
                 if (X[i] === 0) zeroCount--;
                 X[i]++;
                 if (X[i] === 0) zeroCount++;
             }
         } else {
-            res.push("B");
+            res.push('B');
             for (const i of [p, q, r]) {
                 if (X[i] === 0) zeroCount--;
                 X[i]--;
@@ -105,7 +106,7 @@ rl.on("line", line => input.push(line.trim())).on("close", () => {
         }
     }
 
-    console.log(res.join("\n"));
+    console.log(res.join('\n'));
 });
 ```
 
@@ -113,13 +114,13 @@ rl.on("line", line => input.push(line.trim())).on("close", () => {
 
 ### 🚀 結論
 
-* 元の実装でもメモリ使用量はごくわずか
-* ただし上記のように：
+- 元の実装でもメモリ使用量はごくわずか
+- ただし上記のように：
+    - `TypedArray` 使用
+    - `zeroCount` 差分管理
+    - シミュレーションの復元削減
 
-  * `TypedArray` 使用
-  * `zeroCount` 差分管理
-  * シミュレーションの復元削減
-* によって **省メモリかつ高速化**が可能です。
+- によって **省メモリかつ高速化**が可能です。
 
 TypeScript実装における各処理の仕組みを、**図解とともに順を追って**解説。対象コード👇（省略あり）：
 
@@ -128,34 +129,34 @@ const X = new Int8Array(20);
 let zeroCount = 20;
 
 for (let i = 0; i < T; i++) {
-  const [p, q, r] = ops[i];
-  const indices = [p, q, r];
+    const [p, q, r] = ops[i];
+    const indices = [p, q, r];
 
-  let gainA = 0;
-  let gainB = 0;
+    let gainA = 0;
+    let gainB = 0;
 
-  for (const idx of indices) {
-    if (X[idx] === 0) gainA--;
-    if (X[idx] + 1 === 0) gainA++;
-    if (X[idx] === 0) gainB--;
-    if (X[idx] - 1 === 0) gainB++;
-  }
-
-  if (zeroCount + gainA >= zeroCount + gainB) {
-    result.push("A");
     for (const idx of indices) {
-      if (X[idx] === 0) zeroCount--;
-      X[idx]++;
-      if (X[idx] === 0) zeroCount++;
+        if (X[idx] === 0) gainA--;
+        if (X[idx] + 1 === 0) gainA++;
+        if (X[idx] === 0) gainB--;
+        if (X[idx] - 1 === 0) gainB++;
     }
-  } else {
-    result.push("B");
-    for (const idx of indices) {
-      if (X[idx] === 0) zeroCount--;
-      X[idx]--;
-      if (X[idx] === 0) zeroCount++;
+
+    if (zeroCount + gainA >= zeroCount + gainB) {
+        result.push('A');
+        for (const idx of indices) {
+            if (X[idx] === 0) zeroCount--;
+            X[idx]++;
+            if (X[idx] === 0) zeroCount++;
+        }
+    } else {
+        result.push('B');
+        for (const idx of indices) {
+            if (X[idx] === 0) zeroCount--;
+            X[idx]--;
+            if (X[idx] === 0) zeroCount++;
+        }
     }
-  }
 }
 ```
 
@@ -183,8 +184,8 @@ X = new Int8Array(20)
          X = [0,  0,  0,  0,  0,  ..., 0]   ← 初期状態
 ```
 
-* 配列 `X` は長さ20。最初は全要素0。
-* `zeroCount = 20` として、0の数を数えて保持。
+- 配列 `X` は長さ20。最初は全要素0。
+- `zeroCount = 20` として、0の数を数えて保持。
 
 ---
 
@@ -236,9 +237,9 @@ zeroCount = 17
 
 ```ts
 for (const idx of [2, 5, 10]) {
-  if (X[idx] === 0) zeroCount--; // 0→非0なら減る
-  X[idx]++;                      // 実際に値更新
-  if (X[idx] === 0) zeroCount++; // 非0→0なら増える
+    if (X[idx] === 0) zeroCount--; // 0→非0なら減る
+    X[idx]++; // 実際に値更新
+    if (X[idx] === 0) zeroCount++; // 非0→0なら増える
 }
 ```
 
@@ -248,8 +249,8 @@ for (const idx of [2, 5, 10]) {
 
 スコアは「各手順の終了後に `X[j] === 0` である要素の個数」で加算されます。つまり：
 
-* `zeroCount` をその都度正しく保てばスコアを即座に計算可能
-* 逆に `X` 全体を `.filter(x => x === 0).length` のように全走査すると遅い・非効率
+- `zeroCount` をその都度正しく保てばスコアを即座に計算可能
+- 逆に `X` 全体を `.filter(x => x === 0).length` のように全走査すると遅い・非効率
 
 ---
 
@@ -257,8 +258,8 @@ for (const idx of [2, 5, 10]) {
 
 操作が毎回 **3つの要素のみ変更**されるので、
 
-* 変更対象外の 17要素は影響なし
-* 差分を3箇所だけチェック・更新すれば `X` 全体を走査せずに済む
+- 変更対象外の 17要素は影響なし
+- 差分を3箇所だけチェック・更新すれば `X` 全体を走査せずに済む
 
 この仕組みが、**高速＆省メモリのポイント**です。
 
@@ -291,11 +292,11 @@ for (const idx of [2, 5, 10]) {
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-04 12:12:04 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 37454 | 1445 Byte | **AC** | 17 ms | 21704 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438508) |
-| 2025-06-04 12:10:10 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 37454 | 1540 Byte | **AC** | 1 ms | 1628 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438489) |
-| 2025-06-04 12:08:30 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 37454 | 1168 Byte | **AC** | 11 ms | 9080 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438466) |
-| 2025-06-04 11:57:05 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 37454 | 1586 Byte | **AC** | 43 ms | 43396 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438327) |
-| 2025-06-04 11:53:07 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 37454 | 1282 Byte | **AC** | 41 ms | 43216 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438265) |
-| 2025-06-04 11:51:12 | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 37454 | 1225 Byte | **AC** | 45 ms | 43156 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438240) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-04 12:12:04                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 37454                                                                                   | 1445 Byte                                                                                 | **AC** | 17 ms                                                                                        | 21704 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438508) |
+| 2025-06-04 12:10:10                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 37454                                                                                   | 1540 Byte                                                                                 | **AC** | 1 ms                                                                                         | 1628 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438489) |
+| 2025-06-04 12:08:30                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 37454                                                                                   | 1168 Byte                                                                                 | **AC** | 11 ms                                                                                        | 9080 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438466) |
+| 2025-06-04 11:57:05                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 37454                                                                                   | 1586 Byte                                                                                 | **AC** | 43 ms                                                                                        | 43396 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438327) |
+| 2025-06-04 11:53:07                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 37454                                                                                   | 1282 Byte                                                                                 | **AC** | 41 ms                                                                                        | 43216 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438265) |
+| 2025-06-04 11:51:12                                                                           | [A49 - Heuristic 2](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aw) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 37454                                                                                   | 1225 Byte                                                                                 | **AC** | 45 ms                                                                                        | 43156 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66438240) |

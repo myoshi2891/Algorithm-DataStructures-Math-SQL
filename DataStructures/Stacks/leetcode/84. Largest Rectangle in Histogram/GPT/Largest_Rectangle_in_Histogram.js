@@ -43,7 +43,7 @@
 //    （実行環境: **CommonJS**, Node.js v18、外部ライブラリ不可）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Largest Rectangle in Histogram
@@ -58,52 +58,52 @@
  * 空間計算量: O(n)  （Int32Array スタック; 追加の配列生成なし）
  */
 function largestRectangleArea(heights) {
-  // --- 入力検証 ---
-  if (!Array.isArray(heights)) {
-    throw new TypeError("Input must be an array of integers");
-  }
-  const n = heights.length;
-
-  // 問題制約の範囲チェック（LeetCode準拠）
-  if (n < 1 || n > 1e5) {
-    throw new RangeError("Array length out of bounds [1, 1e5]");
-  }
-
-  // 要素型・範囲チェック（整数・有限・値域）
-  for (let i = 0; i < n; i++) {
-    const v = heights[i];
-    if (typeof v !== "number" || !Number.isFinite(v) || !Number.isInteger(v)) {
-      throw new TypeError("All elements must be finite integers");
+    // --- 入力検証 ---
+    if (!Array.isArray(heights)) {
+        throw new TypeError('Input must be an array of integers');
     }
-    if (v < 0 || v > 1e4) {
-      throw new RangeError("Element out of bounds [0, 1e4]");
+    const n = heights.length;
+
+    // 問題制約の範囲チェック（LeetCode準拠）
+    if (n < 1 || n > 1e5) {
+        throw new RangeError('Array length out of bounds [1, 1e5]');
     }
-  }
 
-  // --- 本処理（単調増加スタック） ---
-  // スタックは「インデックス」を保持。対応する高さは heights[idx]。
-  // curr < heights[stack[top]] になったら、pop して面積を確定。
-  // 番兵として i==n のとき curr=0 とみなすことで一括排出。
-  const stack = new Int32Array(n + 1); // 固定長、GC圧縮
-  let top = -1;
-  let maxArea = 0;
-
-  for (let i = 0; i <= n; i++) {
-    const curr = i === n ? 0 : heights[i];
-
-    // 現在の高さがスタック頂点より低い → 頂点を高さとする長方形の幅が確定
-    while (top >= 0 && curr < heights[stack[top]]) {
-      const h = heights[stack[top--]];
-      const leftIndex = top >= 0 ? stack[top] : -1; // 左境界（直前に残った更に低い棒）
-      const width = i - leftIndex - 1; // (右境界 i-1) - (左境界) の距離
-      const area = h * width;
-      if (area > maxArea) maxArea = area;
+    // 要素型・範囲チェック（整数・有限・値域）
+    for (let i = 0; i < n; i++) {
+        const v = heights[i];
+        if (typeof v !== 'number' || !Number.isFinite(v) || !Number.isInteger(v)) {
+            throw new TypeError('All elements must be finite integers');
+        }
+        if (v < 0 || v > 1e4) {
+            throw new RangeError('Element out of bounds [0, 1e4]');
+        }
     }
-    // 単調増加を保つように現在位置を push
-    stack[++top] = i;
-  }
 
-  return maxArea;
+    // --- 本処理（単調増加スタック） ---
+    // スタックは「インデックス」を保持。対応する高さは heights[idx]。
+    // curr < heights[stack[top]] になったら、pop して面積を確定。
+    // 番兵として i==n のとき curr=0 とみなすことで一括排出。
+    const stack = new Int32Array(n + 1); // 固定長、GC圧縮
+    let top = -1;
+    let maxArea = 0;
+
+    for (let i = 0; i <= n; i++) {
+        const curr = i === n ? 0 : heights[i];
+
+        // 現在の高さがスタック頂点より低い → 頂点を高さとする長方形の幅が確定
+        while (top >= 0 && curr < heights[stack[top]]) {
+            const h = heights[stack[top--]];
+            const leftIndex = top >= 0 ? stack[top] : -1; // 左境界（直前に残った更に低い棒）
+            const width = i - leftIndex - 1; // (右境界 i-1) - (左境界) の距離
+            const area = h * width;
+            if (area > maxArea) maxArea = area;
+        }
+        // 単調増加を保つように現在位置を push
+        stack[++top] = i;
+    }
+
+    return maxArea;
 }
 
 module.exports = { largestRectangleArea };

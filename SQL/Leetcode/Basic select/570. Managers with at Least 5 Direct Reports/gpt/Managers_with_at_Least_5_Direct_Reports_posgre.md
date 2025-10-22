@@ -13,19 +13,18 @@
 
 - 入力:
 
-  **Employee**
+    **Employee**
 
-  | column     | type    | note                           |
-  | ---------- | ------- | ------------------------------ |
-  | id         | int     | PK                             |
-  | name       | varchar | 従業員名                       |
-  | department | varchar | 部署                           |
-  | managerId  | int     | 直属上長の id（NULL なら無し） |
+    | column     | type    | note                           |
+    | ---------- | ------- | ------------------------------ |
+    | id         | int     | PK                             |
+    | name       | varchar | 従業員名                       |
+    | department | varchar | 部署                           |
+    | managerId  | int     | 直属上長の id（NULL なら無し） |
 
 - 出力:
-
-  - 列: `name`（**直属部下が 5 人以上いる**マネージャの名前）
-  - 順序は任意
+    - 列: `name`（**直属部下が 5 人以上いる**マネージャの名前）
+    - 順序は任意
 
 ## 2) 最適解（単一クエリ）
 

@@ -30,8 +30,8 @@ TypeScript での Text Justification アルゴリズムの詳細な README.md �
 
 ```typescript
 interface JustificationInput {
-  readonly words: readonly string[];
-  readonly maxWidth: number;
+    readonly words: readonly string[];
+    readonly maxWidth: number;
 }
 
 type JustifiedLine = string;
@@ -42,12 +42,12 @@ type JustificationResult = readonly JustifiedLine[];
 
 ```typescript
 const CONSTRAINTS = {
-  MIN_WORDS: 1, // 最小単語数
-  MAX_WORDS: 300, // 最大単語数
-  MIN_WIDTH: 1, // 最小行幅
-  MAX_WIDTH: 100, // 最大行幅
-  MIN_WORD_LENGTH: 1, // 最小単語長
-  MAX_WORD_LENGTH: 20, // 最大単語長
+    MIN_WORDS: 1, // 最小単語数
+    MAX_WORDS: 300, // 最大単語数
+    MIN_WIDTH: 1, // 最小行幅
+    MAX_WIDTH: 100, // 最大行幅
+    MIN_WORD_LENGTH: 1, // 最小単語長
+    MAX_WORD_LENGTH: 20, // 最大単語長
 } as const;
 ```
 
@@ -163,10 +163,10 @@ const extraSpaces = 7 % 2 = 1;            // 余りスペース数
 ## 📊 計算量解析
 
 - **時間計算量**: O(n × m)
-  - n: 単語数
-  - m: 平均的な行あたりの単語数
+    - n: 単語数
+    - m: 平均的な行あたりの単語数
 - **空間計算量**: O(n × m)
-  - 結果配列のサイズに依存
+    - 結果配列のサイズに依存
 
 ## 🛡️ 型安全性の特徴
 
@@ -175,14 +175,12 @@ const extraSpaces = 7 % 2 = 1;            // 余りスペース数
 ```typescript
 // readonly修飾子による不変性保証
 interface JustificationInput {
-  readonly words: readonly string[];
-  readonly maxWidth: number;
+    readonly words: readonly string[];
+    readonly maxWidth: number;
 }
 
 // 型アサーション関数
-function validateInput(
-  input: JustificationInput
-): asserts input is Required<JustificationInput>;
+function validateInput(input: JustificationInput): asserts input is Required<JustificationInput>;
 ```
 
 ### 2. 型ガード関数
@@ -190,7 +188,7 @@ function validateInput(
 ```typescript
 // 空配列の型ガード
 function isEmptyInput(words: readonly string[]): words is readonly [] {
-  return words.length === 0;
+    return words.length === 0;
 }
 ```
 
@@ -198,13 +196,13 @@ function isEmptyInput(words: readonly string[]): words is readonly [] {
 
 ```typescript
 // 型エラー
-if (typeof word !== "string") {
-  throw new TypeError(`words[${index}] must be a string`);
+if (typeof word !== 'string') {
+    throw new TypeError(`words[${index}] must be a string`);
 }
 
 // 範囲エラー
 if (word.length > maxWidth) {
-  throw new RangeError(`words[${index}] length exceeds maxWidth`);
+    throw new RangeError(`words[${index}] length exceeds maxWidth`);
 }
 ```
 
@@ -213,7 +211,7 @@ if (word.length > maxWidth) {
 ### 入力
 
 ```typescript
-const words = ["This", "is", "an", "example", "of", "text", "justification."];
+const words = ['This', 'is', 'an', 'example', 'of', 'text', 'justification.'];
 const maxWidth = 16;
 ```
 
@@ -246,28 +244,28 @@ After:  "justification.  "
 ### 最終結果
 
 ```typescript
-["This    is    an", "example  of text", "justification.  "];
+['This    is    an', 'example  of text', 'justification.  '];
 ```
 
 ## 🚀 使用方法
 
 ```typescript
-import { fullJustify } from "./text-justification";
+import { fullJustify } from './text-justification';
 
-const words = ["Science", "is", "what", "we", "understand"];
+const words = ['Science', 'is', 'what', 'we', 'understand'];
 const maxWidth = 20;
 
 try {
-  const result = fullJustify(words, maxWidth, {
-    validateInput: true,
-    enableDebug: false,
-  });
+    const result = fullJustify(words, maxWidth, {
+        validateInput: true,
+        enableDebug: false,
+    });
 
-  console.log(result);
-  // ["Science  is  what we",
-  //  "understand          "]
+    console.log(result);
+    // ["Science  is  what we",
+    //  "understand          "]
 } catch (error) {
-  console.error("Justification failed:", error.message);
+    console.error('Justification failed:', error.message);
 }
 ```
 
@@ -277,7 +275,7 @@ LeetCode 環境向けの軽量版も提供：
 
 ```typescript
 function fullJustifyLeetCode(words: string[], maxWidth: number): string[] {
-  // 型安全性を保ちつつ、LeetCodeの制約に最適化
+    // 型安全性を保ちつつ、LeetCodeの制約に最適化
 }
 ```
 
@@ -285,8 +283,8 @@ function fullJustifyLeetCode(words: string[], maxWidth: number): string[] {
 
 ```typescript
 interface AlgorithmOptions {
-  readonly validateInput?: boolean; // 入力検証の有効化
-  readonly enableDebug?: boolean; // デバッグログの有効化
+    readonly validateInput?: boolean; // 入力検証の有効化
+    readonly enableDebug?: boolean; // デバッグログの有効化
 }
 ```
 
@@ -303,11 +301,11 @@ interface AlgorithmOptions {
 ```typescript
 // エッジケース
 fullJustify([], 10); // []
-fullJustify(["a"], 5); // ["a    "]
-fullJustify(["a", "b"], 5); // ["a   b"]
+fullJustify(['a'], 5); // ["a    "]
+fullJustify(['a', 'b'], 5); // ["a   b"]
 
 // 通常ケース
-fullJustify(["What", "must", "be"], 12); // ["What must be  "]
+fullJustify(['What', 'must', 'be'], 12); // ["What must be  "]
 ```
 
 ---

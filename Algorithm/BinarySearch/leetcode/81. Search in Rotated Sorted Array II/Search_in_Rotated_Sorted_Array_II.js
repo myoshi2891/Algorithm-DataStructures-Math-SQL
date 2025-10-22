@@ -52,7 +52,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * Search in Rotated Sorted Array II
@@ -64,56 +64,56 @@
  * @complexity Time: O(log n) average, O(n) worst (due to duplicates), Space: O(1)
  */
 function search(nums, target) {
-  // ---- 入力検証 ----
-  if (!Array.isArray(nums)) {
-    throw new TypeError("nums must be an array");
-  }
-  const n = nums.length;
-  if (n < 1 || n > 5000) {
-    throw new RangeError("nums length out of range");
-  }
-  if (typeof target !== "number" || !Number.isFinite(target)) {
-    throw new TypeError("target must be a finite number");
-  }
-  for (let i = 0; i < n; i++) {
-    const v = nums[i];
-    if (typeof v !== "number" || !Number.isFinite(v) || v < -1e4 || v > 1e4) {
-      throw new RangeError("nums contains invalid number");
+    // ---- 入力検証 ----
+    if (!Array.isArray(nums)) {
+        throw new TypeError('nums must be an array');
     }
-  }
-
-  // ---- 二分探索 (duplicates 対応) ----
-  let left = 0;
-  let right = n - 1;
-
-  while (left <= right) {
-    const mid = (left + right) >> 1;
-    if (nums[mid] === target) return true;
-
-    // 重複排除
-    if (nums[left] === nums[mid] && nums[mid] === nums[right]) {
-      left++;
-      right--;
+    const n = nums.length;
+    if (n < 1 || n > 5000) {
+        throw new RangeError('nums length out of range');
     }
-    // 左半分がソート済み
-    else if (nums[left] <= nums[mid]) {
-      if (nums[left] <= target && target < nums[mid]) {
-        right = mid - 1;
-      } else {
-        left = mid + 1;
-      }
+    if (typeof target !== 'number' || !Number.isFinite(target)) {
+        throw new TypeError('target must be a finite number');
     }
-    // 右半分がソート済み
-    else {
-      if (nums[mid] < target && target <= nums[right]) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
+    for (let i = 0; i < n; i++) {
+        const v = nums[i];
+        if (typeof v !== 'number' || !Number.isFinite(v) || v < -1e4 || v > 1e4) {
+            throw new RangeError('nums contains invalid number');
+        }
     }
-  }
 
-  return false;
+    // ---- 二分探索 (duplicates 対応) ----
+    let left = 0;
+    let right = n - 1;
+
+    while (left <= right) {
+        const mid = (left + right) >> 1;
+        if (nums[mid] === target) return true;
+
+        // 重複排除
+        if (nums[left] === nums[mid] && nums[mid] === nums[right]) {
+            left++;
+            right--;
+        }
+        // 左半分がソート済み
+        else if (nums[left] <= nums[mid]) {
+            if (nums[left] <= target && target < nums[mid]) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        // 右半分がソート済み
+        else {
+            if (nums[mid] < target && target <= nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+
+    return false;
 }
 
 module.exports = { search };

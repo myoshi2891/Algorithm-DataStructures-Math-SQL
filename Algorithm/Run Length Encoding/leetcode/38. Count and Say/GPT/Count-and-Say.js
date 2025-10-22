@@ -26,33 +26,33 @@
 // ```javascript
 /**
  * countAndSay 関数は、与えられた整数 n に対する Count-and-Say シーケンスの n 番目の要素を返す
- * 
+ *
  * @param {number} n - 1以上30以下の正の整数
  * @returns {string} - Count-and-Say シーケンスの n 番目の要素（文字列）
- * 
+ *
  * 時間計算量: O(n * m) ただし m は文字列長（最悪で指数増加）
  * 空間計算量: O(m)
  */
 function countAndSay(n) {
-  if (n === 1) return "1";
+    if (n === 1) return '1';
 
-  let result = "1";
+    let result = '1';
 
-  for (let i = 2; i <= n; i++) {
-    let temp = "";
-    let count = 1;
-    for (let j = 1; j <= result.length; j++) {
-      if (result[j] === result[j - 1]) {
-        count++;
-      } else {
-        temp += count.toString() + result[j - 1];
-        count = 1;
-      }
+    for (let i = 2; i <= n; i++) {
+        let temp = '';
+        let count = 1;
+        for (let j = 1; j <= result.length; j++) {
+            if (result[j] === result[j - 1]) {
+                count++;
+            } else {
+                temp += count.toString() + result[j - 1];
+                count = 1;
+            }
+        }
+        result = temp;
     }
-    result = temp;
-  }
 
-  return result;
+    return result;
 }
 // ```
 

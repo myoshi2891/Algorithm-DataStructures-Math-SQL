@@ -67,7 +67,7 @@
 // ローカルNode.jsで実行可能なように `export {}` を追加（LeetCodeでは無視されます）。
 
 // ```typescript
-"use strict";
+'use strict';
 
 /**
  * Sort Colors (Dutch National Flag Problem)
@@ -79,38 +79,38 @@
  * @complexity Time: O(n), Space: O(1)
  */
 function sortColors(nums: number[]): void {
-  // 実行時ガード（LeetCodeでは不要だが業務開発視点で追加）
-  if (!Array.isArray(nums)) {
-    throw new TypeError("Input must be an array");
-  }
-  if (nums.length < 1 || nums.length > 300) {
-    throw new RangeError("Array size out of allowed range (1 <= n <= 300)");
-  }
-  for (const v of nums) {
-    if (v !== 0 && v !== 1 && v !== 2) {
-      throw new RangeError("Array values must be 0, 1, or 2");
+    // 実行時ガード（LeetCodeでは不要だが業務開発視点で追加）
+    if (!Array.isArray(nums)) {
+        throw new TypeError('Input must be an array');
     }
-  }
-
-  // Dutch National Flag アルゴリズム
-  let low = 0;
-  let mid = 0;
-  let high = nums.length - 1;
-
-  while (mid <= high) {
-    if (nums[mid] === 0) {
-      // swap(nums[low], nums[mid])
-      [nums[low], nums[mid]] = [nums[mid], nums[low]];
-      low++;
-      mid++;
-    } else if (nums[mid] === 1) {
-      mid++;
-    } else {
-      // nums[mid] === 2
-      [nums[mid], nums[high]] = [nums[high], nums[mid]];
-      high--;
+    if (nums.length < 1 || nums.length > 300) {
+        throw new RangeError('Array size out of allowed range (1 <= n <= 300)');
     }
-  }
+    for (const v of nums) {
+        if (v !== 0 && v !== 1 && v !== 2) {
+            throw new RangeError('Array values must be 0, 1, or 2');
+        }
+    }
+
+    // Dutch National Flag アルゴリズム
+    let low = 0;
+    let mid = 0;
+    let high = nums.length - 1;
+
+    while (mid <= high) {
+        if (nums[mid] === 0) {
+            // swap(nums[low], nums[mid])
+            [nums[low], nums[mid]] = [nums[mid], nums[low]];
+            low++;
+            mid++;
+        } else if (nums[mid] === 1) {
+            mid++;
+        } else {
+            // nums[mid] === 2
+            [nums[mid], nums[high]] = [nums[high], nums[mid]];
+            high--;
+        }
+    }
 }
 
 export {}; // Node.js v18 ESM互換（LeetCodeでは無視される）

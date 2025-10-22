@@ -16,55 +16,55 @@ const fs = require('fs');
  * @returns {void}
  */
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
 
-  const N = input[0];        // カードの枚数
-  const S = input[1];        // 目標の合計
-  const A = input.slice(2);  // 各カードに書かれた値（長さN）
+    const N = input[0]; // カードの枚数
+    const S = input[1]; // 目標の合計
+    const A = input.slice(2); // 各カードに書かれた値（長さN）
 
-  /** 
-   * dp[s] = [i, prevSum] : 合計sは、カードi（0-indexed）を使って、prevSumから作った
-   * @type {Map<number, [number, number]>}
-   */
-  const dp = new Map();
-  dp.set(0, null);  // 合計0は何も使わずに作れる
+    /**
+     * dp[s] = [i, prevSum] : 合計sは、カードi（0-indexed）を使って、prevSumから作った
+     * @type {Map<number, [number, number]>}
+     */
+    const dp = new Map();
+    dp.set(0, null); // 合計0は何も使わずに作れる
 
-  for (let i = 0; i < N; i++) {
-    const nextDp = new Map(dp);  // 現在の状態をコピー
+    for (let i = 0; i < N; i++) {
+        const nextDp = new Map(dp); // 現在の状態をコピー
 
-    for (const [s, val] of dp.entries()) {
-      const newSum = s + A[i];
-      if (newSum <= S && !nextDp.has(newSum)) {
-        nextDp.set(newSum, [i, s]);  // s+A[i] は カードi で作った
-      }
+        for (const [s, val] of dp.entries()) {
+            const newSum = s + A[i];
+            if (newSum <= S && !nextDp.has(newSum)) {
+                nextDp.set(newSum, [i, s]); // s+A[i] は カードi で作った
+            }
+        }
+
+        // 更新
+        for (const [key, val] of nextDp.entries()) {
+            dp.set(key, val);
+        }
     }
 
-    // 更新
-    for (const [key, val] of nextDp.entries()) {
-      dp.set(key, val);
+    // 合計Sを作れるかチェック
+    if (!dp.has(S)) {
+        console.log(-1);
+        return;
     }
-  }
 
-  // 合計Sを作れるかチェック
-  if (!dp.has(S)) {
-    console.log(-1);
-    return;
-  }
+    // 経路復元
+    /** @type {number[]} */
+    const result = [];
+    let currSum = S;
 
-  // 経路復元
-  /** @type {number[]} */
-  const result = [];
-  let currSum = S;
+    while (currSum !== 0) {
+        const [i, prevSum] = dp.get(currSum);
+        result.push(i + 1); // 1-indexed に変換
+        currSum = prevSum;
+    }
 
-  while (currSum !== 0) {
-    const [i, prevSum] = dp.get(currSum);
-    result.push(i + 1);  // 1-indexed に変換
-    currSum = prevSum;
-  }
-
-  result.reverse();
-  console.log(result.length);
-  console.log(result.join(' '));
+    result.reverse();
+    console.log(result.length);
+    console.log(result.join(' '));
 }
 
 main();
@@ -99,4 +99,3 @@ main();
 // ```
 
 // ---
-

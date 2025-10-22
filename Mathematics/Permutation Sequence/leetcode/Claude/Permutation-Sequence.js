@@ -14,7 +14,7 @@
 // ## 動作例（n=4, k=9の場合）
 // 1. `k=8` (0-indexed), `factorial=[1,1,2,6]`, `numbers=[1,2,3,4]`
 // 2. 1桁目: `8÷6=1` → `numbers[1]=2` を選択、`k=8%6=2`
-// 3. 2桁目: `2÷2=1` → `numbers[1]=3` を選択、`k=2%2=0`  
+// 3. 2桁目: `2÷2=1` → `numbers[1]=3` を選択、`k=2%2=0`
 // 4. 3桁目: `0÷1=0` → `numbers[0]=1` を選択、`k=0%1=0`
 // 5. 4桁目: `numbers[0]=4` を選択
 // 6. 結果: `"2314"`
@@ -33,32 +33,32 @@ function getPermutation(n, k) {
     for (let i = 1; i < n; i++) {
         factorial[i] = factorial[i - 1] * i;
     }
-    
+
     // 使用可能な数字のリスト
     const numbers = [];
     for (let i = 1; i <= n; i++) {
         numbers.push(i);
     }
-    
+
     // k を 0-indexed に変換
     k--;
-    
+
     let result = '';
-    
+
     // 各桁を順番に決定
     for (let i = 0; i < n; i++) {
         // 現在の桁で選択すべき数字のインデックスを計算
         const index = Math.floor(k / factorial[n - 1 - i]);
-        
+
         // 選択した数字を結果に追加
         result += numbers[index];
-        
+
         // 使用した数字を削除
         numbers.splice(index, 1);
-        
+
         // k を更新（残りの順列での位置）
         k %= factorial[n - 1 - i];
     }
-    
+
     return result;
 }

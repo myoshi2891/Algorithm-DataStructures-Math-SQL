@@ -58,16 +58,14 @@ def managers_with_at_least_five_direct_reports(employee: pd.DataFrame) -> pd.Dat
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `DataFrame.groupby(...).size()`：`managerId` ごとの直属部下数を集計
-  - ブールフィルタ `notna()`：NULL の除外
-  - `DataFrame.merge()`：`managerId` と `id` を結合して `name` を解決
+    - `DataFrame.groupby(...).size()`：`managerId` ごとの直属部下数を集計
+    - ブールフィルタ `notna()`：NULL の除外
+    - `DataFrame.merge()`：`managerId` と `id` を結合して `name` を解決
 
 - **NULL / 重複 / 型**
-
-  - `managerId` が `NaN` の行は部下行ではないため除外
-  - `groupby.size()` で `managerId` ごとに **一意**にカウント
-  - `merge` は `id` が重複しない PK 前提で行数膨張を避ける（前段でキーをユニーク化済み）
+    - `managerId` が `NaN` の行は部下行ではないため除外
+    - `groupby.size()` で `managerId` ごとに **一意**にカウント
+    - `merge` は `id` が重複しない PK 前提で行数膨張を避ける（前段でキーをユニーク化済み）
 
 ## 4) 計算量（概算）
 

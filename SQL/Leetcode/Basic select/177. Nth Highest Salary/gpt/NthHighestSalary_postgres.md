@@ -158,51 +158,48 @@ flowchart LR
 ## ✅ エラーの原因と対策
 
 1. **関数がまだ作られていない**
+    - `CREATE FUNCTION` を実行していない
+    - 別セッション／別データベースに作成した
 
-   - `CREATE FUNCTION` を実行していない
-   - 別セッション／別データベースに作成した
+    → 必ず **同じ DB/同じスキーマ** で関数を作ってから呼び出してください。
 
-   → 必ず **同じ DB/同じスキーマ** で関数を作ってから呼び出してください。
-
-   ```sql
-   CREATE OR REPLACE FUNCTION getnthhighestsalary(n integer)
-   RETURNS integer
-   LANGUAGE sql
-   STABLE
-   AS $$
-     SELECT salary
-     FROM (
-       SELECT DISTINCT salary
-       FROM employee
-       ORDER BY salary DESC
-       OFFSET GREATEST(n-1,0)
-       LIMIT 1
-     ) t;
-   $$;
-   ```
+    ```sql
+    CREATE OR REPLACE FUNCTION getnthhighestsalary(n integer)
+    RETURNS integer
+    LANGUAGE sql
+    STABLE
+    AS $$
+      SELECT salary
+      FROM (
+        SELECT DISTINCT salary
+        FROM employee
+        ORDER BY salary DESC
+        OFFSET GREATEST(n-1,0)
+        LIMIT 1
+      ) t;
+    $$;
+    ```
 
 2. **名前の大小文字が違う**
+    - PostgreSQL は **デフォルトで小文字化**します
+      `CREATE FUNCTION getNthHighestSalary(...)` → 実際には `getnthhighestsalary` として登録されます。
+    - 呼び出し時に `"getNthHighestSalary"(2)` と **ダブルクオート付き**で書けば大文字も維持できますが、普通は小文字で統一します。
 
-   - PostgreSQL は **デフォルトで小文字化**します
-     `CREATE FUNCTION getNthHighestSalary(...)` → 実際には `getnthhighestsalary` として登録されます。
-   - 呼び出し時に `"getNthHighestSalary"(2)` と **ダブルクオート付き**で書けば大文字も維持できますが、普通は小文字で統一します。
+    → なので呼び出しは **小文字**でこうしてください：
 
-   → なので呼び出しは **小文字**でこうしてください：
-
-   ```sql
-   SELECT getnthhighestsalary(2);
-   ```
+    ```sql
+    SELECT getnthhighestsalary(2);
+    ```
 
 3. **型が合わない**
+    - 定義は `integer` なのに、`'2'` （文字列）を渡していると合いません。
+    - 数値リテラルで呼び出してください：
 
-   - 定義は `integer` なのに、`'2'` （文字列）を渡していると合いません。
-   - 数値リテラルで呼び出してください：
+        ```sql
+        SELECT getnthhighestsalary(2);
+        ```
 
-     ```sql
-     SELECT getnthhighestsalary(2);
-     ```
-
-   - もし `bigint` で定義したのなら、引数も `2::bigint` のようにキャスト。
+    - もし `bigint` で定義したのなら、引数も `2::bigint` のようにキャスト。
 
 ---
 
@@ -274,22 +271,22 @@ WHERE proname = 'getnthhighestsalary';
 
 1. 関数を作成
 
-   ```sql
-   CREATE OR REPLACE FUNCTION getnthhighestsalary(n integer)
-   RETURNS integer
-   LANGUAGE sql
-   STABLE
-   AS $$
-   SELECT salary
-   FROM (
-       SELECT DISTINCT salary
-       FROM employee
-       ORDER BY salary DESC
-       OFFSET GREATEST(n-1,0)
-       LIMIT 1
-   ) t;
-   $$;
-   ```
+    ```sql
+    CREATE OR REPLACE FUNCTION getnthhighestsalary(n integer)
+    RETURNS integer
+    LANGUAGE sql
+    STABLE
+    AS $$
+    SELECT salary
+    FROM (
+        SELECT DISTINCT salary
+        FROM employee
+        ORDER BY salary DESC
+        OFFSET GREATEST(n-1,0)
+        LIMIT 1
+    ) t;
+    $$;
+    ```
 
 2. 呼び出す（必ず小文字で）
 
@@ -395,9 +392,8 @@ OK、LeetCode の **PostgreSQL** 実行環境で確実に通る形を“その�
 
 1. 問題ページの **DB 方言を「PostgreSQL」** に切り替える
 2. 下のスニペットを **そのまま実行**
-
-   - 小文字関数 `getnthhighestsalary` を本体にし、
-     互換用に **CamelCase の別名** `"getNthHighestSalary"` も作っています（どちらで呼ばれても OK）。
+    - 小文字関数 `getnthhighestsalary` を本体にし、
+      互換用に **CamelCase の別名** `"getNthHighestSalary"` も作っています（どちらで呼ばれても OK）。
 
 ```sql
 -- 本体（小文字名）: LeetCode側が小文字として解決できるようにしておく
@@ -515,12 +511,12 @@ $$;
 2. **同名関数の衝突**
    古い定義が残っていると意図しない解決になることがあります。必要なら一度落としてから再作成：
 
-   ```sql
-   DROP FUNCTION IF EXISTS "NthHighestSalary"(INT);
-   DROP FUNCTION IF EXISTS nthhighestsalary(INT);
-   ```
+    ```sql
+    DROP FUNCTION IF EXISTS "NthHighestSalary"(INT);
+    DROP FUNCTION IF EXISTS nthhighestsalary(INT);
+    ```
 
-   → その後、上の `CREATE OR REPLACE` を実行。
+    → その後、上の `CREATE OR REPLACE` を実行。
 
 3. **テーブル名の大文字クオート問題**
    もし採点環境の実体が `"Employee"`（ダブルクオート付き）で作られていると、未クオート `employee` は見つかりません。

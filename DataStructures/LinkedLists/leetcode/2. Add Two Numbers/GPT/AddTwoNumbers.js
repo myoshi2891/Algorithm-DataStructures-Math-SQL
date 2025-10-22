@@ -74,7 +74,7 @@
 // # 5. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * 単方向連結リストノード（LeetCode 互換）
@@ -83,8 +83,8 @@
  * @param {ListNode|null} [next=null]
  */
 function ListNode(val, next = null) {
-  this.val = val;
-  this.next = next;
+    this.val = val;
+    this.next = next;
 }
 
 /**
@@ -95,34 +95,34 @@ function ListNode(val, next = null) {
  * @throws {TypeError|RangeError}
  */
 function validateList(head, name) {
-  // 型
-  if (head == null || typeof head !== "object") {
-    throw new TypeError(`${name} must be a ListNode`);
-  }
-  // 走査してノード数と値域
-  let cnt = 0;
-  let node = head;
-  while (node) {
-    cnt++;
-    if (cnt > 100) {
-      throw new RangeError(`${name} length exceeds 100`);
+    // 型
+    if (head == null || typeof head !== 'object') {
+        throw new TypeError(`${name} must be a ListNode`);
     }
-    const v = node.val;
-    if (!Number.isInteger(v)) {
-      throw new TypeError(`${name} contains non-integer value`);
+    // 走査してノード数と値域
+    let cnt = 0;
+    let node = head;
+    while (node) {
+        cnt++;
+        if (cnt > 100) {
+            throw new RangeError(`${name} length exceeds 100`);
+        }
+        const v = node.val;
+        if (!Number.isInteger(v)) {
+            throw new TypeError(`${name} contains non-integer value`);
+        }
+        if (v < 0 || v > 9) {
+            throw new RangeError(`${name} contains digit out of [0,9]`);
+        }
+        // 次ポインタ型の緩やかな検証
+        if (node.next !== null && typeof node.next !== 'object') {
+            throw new TypeError(`${name}.next must be ListNode or null`);
+        }
+        node = node.next;
     }
-    if (v < 0 || v > 9) {
-      throw new RangeError(`${name} contains digit out of [0,9]`);
+    if (cnt === 0) {
+        throw new RangeError(`${name} must be non-empty`);
     }
-    // 次ポインタ型の緩やかな検証
-    if (node.next !== null && typeof node.next !== "object") {
-      throw new TypeError(`${name}.next must be ListNode or null`);
-    }
-    node = node.next;
-  }
-  if (cnt === 0) {
-    throw new RangeError(`${name} must be non-empty`);
-  }
 }
 
 /**
@@ -137,37 +137,37 @@ function validateList(head, name) {
  * @complexity 時間計算量 O(n)、空間計算量 O(1)（出力ノードを除く）
  */
 function addTwoNumbers(l1, l2) {
-  // ---- 入力検証（ホットパス外：最初に一度だけ）----
-  validateList(l1, "l1");
-  validateList(l2, "l2");
+    // ---- 入力検証（ホットパス外：最初に一度だけ）----
+    validateList(l1, 'l1');
+    validateList(l2, 'l2');
 
-  // ---- 本処理（単一パス）----
-  let p = l1;
-  let q = l2;
-  let carry = 0;
+    // ---- 本処理（単一パス）----
+    let p = l1;
+    let q = l2;
+    let carry = 0;
 
-  const dummy = new ListNode(0);
-  let tail = dummy;
+    const dummy = new ListNode(0);
+    let tail = dummy;
 
-  while (p || q || carry !== 0) {
-    const x = p ? p.val : 0;
-    const y = q ? q.val : 0;
+    while (p || q || carry !== 0) {
+        const x = p ? p.val : 0;
+        const y = q ? q.val : 0;
 
-    // 桁和 + 繰り上がり
-    const sum = x + y + carry;
-    carry = (sum / 10) | 0; // 10 での整数除算（ビット演算で高速化）
-    const digit = sum % 10;
+        // 桁和 + 繰り上がり
+        const sum = x + y + carry;
+        carry = (sum / 10) | 0; // 10 での整数除算（ビット演算で高速化）
+        const digit = sum % 10;
 
-    // 新規ノードを一つだけ生成し末尾に繋ぐ
-    tail.next = new ListNode(digit);
-    tail = tail.next;
+        // 新規ノードを一つだけ生成し末尾に繋ぐ
+        tail.next = new ListNode(digit);
+        tail = tail.next;
 
-    // 次へ
-    if (p) p = p.next;
-    if (q) q = q.next;
-  }
+        // 次へ
+        if (p) p = p.next;
+        if (q) q = q.next;
+    }
 
-  return dummy.next;
+    return dummy.next;
 }
 
 module.exports = { ListNode, addTwoNumbers };

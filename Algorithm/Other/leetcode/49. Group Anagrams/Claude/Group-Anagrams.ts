@@ -11,7 +11,7 @@
 // - **効率的なメモリ使用**: 不要な中間配列を作成しない実装
 
 // ## 計算量（変更なし）
-// - **時間計算量**: `O(N * K log K)` 
+// - **時間計算量**: `O(N * K log K)`
 // - **空間計算量**: `O(N * K)`
 
 // このTypeScript実装は型安全性を提供しながら、LeetCodeでの実行においても元のJavaScriptバージョンと同等の高いパフォーマンスを維持します。TypeScript 5.1の機能を活用して、コードの可読性と保守性も向上しています。
@@ -25,7 +25,7 @@ function groupAnagrams(strs: string[]): string[][] {
     // Mapオブジェクトを使用してアナグラムをグループ化
     // キー: ソートされた文字列、値: アナグラムの配列
     const anagramMap = new Map<string, string[]>();
-    
+
     for (const str of strs) {
         // 文字列をソートしてキーとして使用
         // split('')で文字配列に変換 → sort()でソート → join('')で文字列に戻す
@@ -52,7 +52,7 @@ function groupAnagrams(strs: string[]): string[][] {
     //      existingGroup.push(str);
     //      anagramMap.set(sortedStr, existingGroup);
     //  }
-    
+
     // Mapの値（アナグラムのグループ）を配列として返却
     return Array.from(anagramMap.values());
-};
+}

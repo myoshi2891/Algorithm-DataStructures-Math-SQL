@@ -7,7 +7,7 @@
  * @param {number[][]} matrix - The input square matrix (n x n).
  * @return {void} - Modifies the input matrix directly, no return value.
  *
- * Time Complexity: O(n^2) 
+ * Time Complexity: O(n^2)
  *   - We traverse all elements once (transpose + reverse rows).
  * Memory Usage: O(1)
  *   - In-place modification without extra matrix allocation.

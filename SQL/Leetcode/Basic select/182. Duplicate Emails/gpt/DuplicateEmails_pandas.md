@@ -97,9 +97,9 @@ Beats
 - いずれも概ね **O(n)**（ハッシュベースのグルーピング）
 - 入力が大きい場合は `email` を `string` dtype に統一しておくとメモリ効率が良いことが多いです
 
-  ```python
-  person = person.astype({"email": "string"})
-  ```
+    ```python
+    person = person.astype({"email": "string"})
+    ```
 
 - 問題文より `email` は **小文字のみ・NULL なし** → 前処理は不要
 

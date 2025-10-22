@@ -1,488 +1,488 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>編集距離アルゴリズム - 技術解説</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>編集距離アルゴリズム - 技術解説</title>
 
-    <!-- External CSS Libraries -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+        <!-- External CSS Libraries -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
 
-    <style>
-      :root {
-        --primary-color: #667eea;
-        --secondary-color: #764ba2;
-        --accent-color: #f093fb;
-        --bg-primary: #0f0f23;
-        --bg-secondary: #1a1b26;
-        --bg-tertiary: #24283b;
-        --text-primary: #c0caf5;
-        --text-secondary: #9aa5ce;
-        --border-color: #414868;
-        --success-color: #9ece6a;
-        --warning-color: #e0af68;
-        --error-color: #f7768e;
-      }
+        <style>
+            :root {
+                --primary-color: #667eea;
+                --secondary-color: #764ba2;
+                --accent-color: #f093fb;
+                --bg-primary: #0f0f23;
+                --bg-secondary: #1a1b26;
+                --bg-tertiary: #24283b;
+                --text-primary: #c0caf5;
+                --text-secondary: #9aa5ce;
+                --border-color: #414868;
+                --success-color: #9ece6a;
+                --warning-color: #e0af68;
+                --error-color: #f7768e;
+            }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-      body {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-        background: linear-gradient(
-          135deg,
-          var(--bg-primary) 0%,
-          var(--bg-secondary) 100%
-        );
-        color: var(--text-primary);
-        line-height: 1.6;
-        min-height: 100vh;
-      }
+            body {
+                font-family:
+                    'Inter',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    sans-serif;
+                background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+                color: var(--text-primary);
+                line-height: 1.6;
+                min-height: 100vh;
+            }
 
-      /* Header Styles */
-      .header {
-        background: linear-gradient(
-          135deg,
-          var(--primary-color) 0%,
-          var(--secondary-color) 100%
-        );
-        padding: 2rem 0;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      }
+            /* Header Styles */
+            .header {
+                background: linear-gradient(
+                    135deg,
+                    var(--primary-color) 0%,
+                    var(--secondary-color) 100%
+                );
+                padding: 2rem 0;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
 
-      .header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      }
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
 
-      .header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-      }
+            .header p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
 
-      /* Container */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
+            /* Container */
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
 
-      /* Section Styles */
-      .section {
-        background: var(--bg-secondary);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
+            /* Section Styles */
+            .section {
+                background: var(--bg-secondary);
+                border-radius: 16px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
 
-      .section:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-      }
+            .section:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            }
 
-      .section-title {
-        font-size: 1.8rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: var(--accent-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .section-title {
+                font-size: 1.8rem;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+                color: var(--accent-color);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      /* Code Block Styles */
-      pre,
-      code {
-        font-family: "Courier New", Consolas, "Liberation Mono", Menlo,
-          monospace !important;
-        white-space: pre !important;
-        overflow-x: auto;
-        line-height: 1.5;
-      }
+            /* Code Block Styles */
+            pre,
+            code {
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.5;
+            }
 
-      .code-container {
-        position: relative;
-        margin: 1.5rem 0;
-        border-radius: 12px;
-        background: var(--bg-primary);
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-      }
+            .code-container {
+                position: relative;
+                margin: 1.5rem 0;
+                border-radius: 12px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border-color);
+                overflow: hidden;
+            }
 
-      .code-header {
-        background: var(--bg-tertiary);
-        padding: 0.75rem 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--border-color);
-      }
+            .code-header {
+                background: var(--bg-tertiary);
+                padding: 0.75rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color);
+            }
 
-      .code-title {
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-      }
+            .code-title {
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: var(--text-secondary);
+            }
 
-      .copy-btn {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .copy-btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .copy-btn:hover {
-        background: var(--secondary-color);
-        transform: translateY(-2px);
-      }
+            .copy-btn:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+            }
 
-      .code-content {
-        padding: 0;
-        position: relative;
-      }
+            .code-content {
+                padding: 0;
+                position: relative;
+            }
 
-      .line-numbers {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 50px;
-        background: rgba(0, 0, 0, 0.2);
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        text-align: center;
-        padding: 1rem 0.5rem;
-        border-right: 1px solid var(--border-color);
-        user-select: none;
-      }
+            .line-numbers {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 50px;
+                background: rgba(0, 0, 0, 0.2);
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+                text-align: center;
+                padding: 1rem 0.5rem;
+                border-right: 1px solid var(--border-color);
+                user-select: none;
+            }
 
-      .code-text {
-        padding: 1rem 1rem 1rem 60px;
-        font-size: 0.9rem;
-        color: var(--text-primary);
-        background: var(--bg-primary);
-        min-height: 100px;
-        display: block;
-        margin: 0;
-      }
+            .code-text {
+                padding: 1rem 1rem 1rem 60px;
+                font-size: 0.9rem;
+                color: var(--text-primary);
+                background: var(--bg-primary);
+                min-height: 100px;
+                display: block;
+                margin: 0;
+            }
 
-      .code-text .line {
-        display: block;
-        padding: 0.1rem 0;
-        border-radius: 3px;
-        transition: background-color 0.2s ease, padding-left 0.2s ease;
-        position: relative;
-      }
+            .code-text .line {
+                display: block;
+                padding: 0.1rem 0;
+                border-radius: 3px;
+                transition:
+                    background-color 0.2s ease,
+                    padding-left 0.2s ease;
+                position: relative;
+            }
 
-      .code-text .line:hover {
-        background-color: rgba(102, 126, 234, 0.1);
-        padding-left: 0.5rem;
-      }
+            .code-text .line:hover {
+                background-color: rgba(102, 126, 234, 0.1);
+                padding-left: 0.5rem;
+            }
 
-      .code-text .line:before {
-        content: "";
-        position: absolute;
-        left: -70px;
-        top: 0;
-        width: 60px;
-        height: 100%;
-        background: rgba(102, 126, 234, 0.1);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-      }
+            .code-text .line:before {
+                content: '';
+                position: absolute;
+                left: -70px;
+                top: 0;
+                width: 60px;
+                height: 100%;
+                background: rgba(102, 126, 234, 0.1);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
 
-      .code-text .line:hover:before {
-        opacity: 1;
-      }
+            .code-text .line:hover:before {
+                opacity: 1;
+            }
 
-      /* Syntax Highlighting */
-      .keyword {
-        color: #bb9af7;
-        font-weight: 500;
-      }
-      .string {
-        color: #9ece6a;
-      }
-      .number {
-        color: #ff9e64;
-      }
-      .comment {
-        color: #565f89;
-        font-style: italic;
-      }
-      .function {
-        color: #7dcfff;
-      }
-      .operator {
-        color: #89ddff;
-      }
-      .variable {
-        color: var(--text-primary);
-      }
+            /* Syntax Highlighting */
+            .keyword {
+                color: #bb9af7;
+                font-weight: 500;
+            }
+            .string {
+                color: #9ece6a;
+            }
+            .number {
+                color: #ff9e64;
+            }
+            .comment {
+                color: #565f89;
+                font-style: italic;
+            }
+            .function {
+                color: #7dcfff;
+            }
+            .operator {
+                color: #89ddff;
+            }
+            .variable {
+                color: var(--text-primary);
+            }
 
-      /* Algorithm Visualization */
-      .visualization {
-        background: var(--bg-tertiary);
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        border: 1px solid var(--border-color);
-      }
+            /* Algorithm Visualization */
+            .visualization {
+                background: var(--bg-tertiary);
+                border-radius: 12px;
+                padding: 2rem;
+                margin: 1.5rem 0;
+                border: 1px solid var(--border-color);
+            }
 
-      .dp-table {
-        display: grid;
-        gap: 2px;
-        justify-content: center;
-        margin: 1rem 0;
-        font-family: monospace;
-      }
+            .dp-table {
+                display: grid;
+                gap: 2px;
+                justify-content: center;
+                margin: 1rem 0;
+                font-family: monospace;
+            }
 
-      .dp-cell {
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
+            .dp-cell {
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
 
-      .dp-cell.header {
-        background: var(--primary-color);
-        color: white;
-        font-weight: 600;
-      }
+            .dp-cell.header {
+                background: var(--primary-color);
+                color: white;
+                font-weight: 600;
+            }
 
-      .dp-cell.active {
-        background: var(--accent-color);
-        color: var(--bg-primary);
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
-      }
+            .dp-cell.active {
+                background: var(--accent-color);
+                color: var(--bg-primary);
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+            }
 
-      /* Flow Diagram */
-      .flow-diagram {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        align-items: center;
-        margin: 2rem 0;
-      }
+            /* Flow Diagram */
+            .flow-diagram {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+                margin: 2rem 0;
+            }
 
-      .flow-step {
-        background: var(--bg-secondary);
-        border: 2px solid var(--primary-color);
-        border-radius: 12px;
-        padding: 1rem 2rem;
-        min-width: 200px;
-        text-align: center;
-        position: relative;
-        transition: all 0.3s ease;
-      }
+            .flow-step {
+                background: var(--bg-secondary);
+                border: 2px solid var(--primary-color);
+                border-radius: 12px;
+                padding: 1rem 2rem;
+                min-width: 200px;
+                text-align: center;
+                position: relative;
+                transition: all 0.3s ease;
+            }
 
-      .flow-step:hover {
-        background: var(--primary-color);
-        transform: scale(1.05);
-      }
+            .flow-step:hover {
+                background: var(--primary-color);
+                transform: scale(1.05);
+            }
 
-      .flow-arrow {
-        width: 0;
-        height: 0;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-top: 15px solid var(--primary-color);
-        margin: 0.5rem 0;
-      }
+            .flow-arrow {
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-top: 15px solid var(--primary-color);
+                margin: 0.5rem 0;
+            }
 
-      /* Animation Controls */
-      .animation-controls {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin: 2rem 0;
-        flex-wrap: wrap;
-      }
+            /* Animation Controls */
+            .animation-controls {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                margin: 2rem 0;
+                flex-wrap: wrap;
+            }
 
-      .control-btn {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .control-btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .control-btn:hover {
-        background: var(--secondary-color);
-        transform: translateY(-2px);
-      }
+            .control-btn:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+            }
 
-      .control-btn:disabled {
-        background: var(--border-color);
-        cursor: not-allowed;
-        transform: none;
-      }
+            .control-btn:disabled {
+                background: var(--border-color);
+                cursor: not-allowed;
+                transform: none;
+            }
 
-      /* Complexity Analysis */
-      .complexity-box {
-        background: linear-gradient(
-          135deg,
-          var(--success-color),
-          var(--warning-color)
-        );
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        color: var(--bg-primary);
-        font-weight: 500;
-      }
+            /* Complexity Analysis */
+            .complexity-box {
+                background: linear-gradient(135deg, var(--success-color), var(--warning-color));
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin: 1rem 0;
+                color: var(--bg-primary);
+                font-weight: 500;
+            }
 
-      .complexity-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
+            .complexity-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            }
 
-      .complexity-item:last-child {
-        border-bottom: none;
-      }
+            .complexity-item:last-child {
+                border-bottom: none;
+            }
 
-      /* Responsive Design */
-      @media (max-width: 768px) {
-        .container {
-          padding: 1rem;
-        }
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
 
-        .header h1 {
-          font-size: 2rem;
-        }
+                .header h1 {
+                    font-size: 2rem;
+                }
 
-        .section {
-          padding: 1.5rem;
-        }
+                .section {
+                    padding: 1.5rem;
+                }
 
-        .dp-cell {
-          width: 40px;
-          height: 40px;
-          font-size: 0.8rem;
-        }
+                .dp-cell {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 0.8rem;
+                }
 
-        .animation-controls {
-          flex-direction: column;
-          align-items: center;
-        }
-      }
+                .animation-controls {
+                    flex-direction: column;
+                    align-items: center;
+                }
+            }
 
-      /* Smooth Scrolling */
-      html {
-        scroll-behavior: smooth;
-      }
+            /* Smooth Scrolling */
+            html {
+                scroll-behavior: smooth;
+            }
 
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
+            /* Custom Scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
 
-      ::-webkit-scrollbar-track {
-        background: var(--bg-secondary);
-      }
+            ::-webkit-scrollbar-track {
+                background: var(--bg-secondary);
+            }
 
-      ::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
-      }
+            ::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 4px;
+            }
 
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
-      }
-    </style>
-  </head>
-  <body>
-    <header class="header">
-      <h1><i class="fas fa-code"></i> 編集距離アルゴリズム</h1>
-      <p>Levenshtein Distance - 動的プログラミングによる効率的な実装</p>
-    </header>
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--secondary-color);
+            }
+        </style>
+    </head>
+    <body>
+        <header class="header">
+            <h1><i class="fas fa-code"></i> 編集距離アルゴリズム</h1>
+            <p>Levenshtein Distance - 動的プログラミングによる効率的な実装</p>
+        </header>
 
-    <div class="container">
-      <!-- アルゴリズム概要 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-info-circle"></i>
-          アルゴリズム概要
-        </h2>
-        <p>
-          編集距離（レーベンシュタイン距離）は、2つの文字列間での最小編集操作数を計算するアルゴリズムです。挿入・削除・置換の3つの操作を使用して、一つの文字列を別の文字列に変換するのに必要な最小回数を求めます。
-        </p>
+        <div class="container">
+            <!-- アルゴリズム概要 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    アルゴリズム概要
+                </h2>
+                <p>
+                    編集距離（レーベンシュタイン距離）は、2つの文字列間での最小編集操作数を計算するアルゴリズムです。挿入・削除・置換の3つの操作を使用して、一つの文字列を別の文字列に変換するのに必要な最小回数を求めます。
+                </p>
 
-        <div class="visualization">
-          <h3>基本概念の可視化</h3>
-          <div class="flow-diagram">
-            <div class="flow-step">文字列1: "cat"</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">編集操作を適用</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">文字列2: "bat"</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">結果: 1回の操作</div>
-          </div>
-        </div>
-      </section>
+                <div class="visualization">
+                    <h3>基本概念の可視化</h3>
+                    <div class="flow-diagram">
+                        <div class="flow-step">文字列1: "cat"</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">編集操作を適用</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">文字列2: "bat"</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">結果: 1回の操作</div>
+                    </div>
+                </div>
+            </section>
 
-      <!-- ソースコード解説 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-code"></i>
-          ソースコード解説
-        </h2>
+            <!-- ソースコード解説 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-code"></i>
+                    ソースコード解説
+                </h2>
 
-        <div class="code-container">
-          <div class="code-header">
-            <span class="code-title">minDistance メソッド（標準版）</span>
-            <button class="copy-btn" onclick="copyCode('code1')">
-              <i class="fas fa-copy"></i>
-              コピー
-            </button>
-          </div>
-          <div class="code-content">
-            <div class="line-numbers" id="line-numbers-1"></div>
-            <pre class="code-text" id="code1">
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">minDistance メソッド（標準版）</span>
+                        <button class="copy-btn" onclick="copyCode('code1')">
+                            <i class="fas fa-copy"></i>
+                            コピー
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <div class="line-numbers" id="line-numbers-1"></div>
+                        <pre class="code-text" id="code1">
 def minDistance(self, word1: str, word2: str) -> int:
     """
     編集距離 (Levenshtein Distance)
@@ -526,117 +526,117 @@ def minDistance(self, word1: str, word2: str) -> int:
         prev = curr
 
     return prev[n]</pre
-            >
-          </div>
-        </div>
-      </section>
+                        >
+                    </div>
+                </div>
+            </section>
 
-      <!-- 動的プログラミング可視化 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-table"></i>
-          動的プログラミングの可視化
-        </h2>
+            <!-- 動的プログラミング可視化 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-table"></i>
+                    動的プログラミングの可視化
+                </h2>
 
-        <div class="animation-controls">
-          <button class="control-btn" onclick="startAnimation()">
-            <i class="fas fa-play"></i>
-            アニメーション開始
-          </button>
-          <button class="control-btn" onclick="resetAnimation()">
-            <i class="fas fa-undo"></i>
-            リセット
-          </button>
-          <button class="control-btn" onclick="stepByStep()">
-            <i class="fas fa-step-forward"></i>
-            ステップ実行
-          </button>
-        </div>
+                <div class="animation-controls">
+                    <button class="control-btn" onclick="startAnimation()">
+                        <i class="fas fa-play"></i>
+                        アニメーション開始
+                    </button>
+                    <button class="control-btn" onclick="resetAnimation()">
+                        <i class="fas fa-undo"></i>
+                        リセット
+                    </button>
+                    <button class="control-btn" onclick="stepByStep()">
+                        <i class="fas fa-step-forward"></i>
+                        ステップ実行
+                    </button>
+                </div>
 
-        <div class="visualization">
-          <h3>例: "cat" → "bat" の変換過程</h3>
-          <div id="dp-visualization">
-            <div class="dp-table" id="dp-table"></div>
-          </div>
-          <div id="step-explanation">
-            <p>
-              上記のテーブルは動的プログラミングの各ステップを示します。各セルは、対応する部分文字列間の最小編集距離を表します。
-            </p>
-          </div>
-        </div>
-      </section>
+                <div class="visualization">
+                    <h3>例: "cat" → "bat" の変換過程</h3>
+                    <div id="dp-visualization">
+                        <div class="dp-table" id="dp-table"></div>
+                    </div>
+                    <div id="step-explanation">
+                        <p>
+                            上記のテーブルは動的プログラミングの各ステップを示します。各セルは、対応する部分文字列間の最小編集距離を表します。
+                        </p>
+                    </div>
+                </div>
+            </section>
 
-      <!-- 処理ステップ詳細 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-list-ol"></i>
-          処理ステップ詳細
-        </h2>
+            <!-- 処理ステップ詳細 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-list-ol"></i>
+                    処理ステップ詳細
+                </h2>
 
-        <div class="visualization">
-          <div class="flow-diagram" id="processing-steps">
-            <div class="flow-step">1. 入力検証と初期化</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">2. エッジケースの処理</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">3. 空間最適化（短い文字列を選択）</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">4. DPテーブルの初期化</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">5. 二重ループによるDP計算</div>
-            <div class="flow-arrow"></div>
-            <div class="flow-step">6. 最終結果の返却</div>
-          </div>
-        </div>
-      </section>
+                <div class="visualization">
+                    <div class="flow-diagram" id="processing-steps">
+                        <div class="flow-step">1. 入力検証と初期化</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">2. エッジケースの処理</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">3. 空間最適化（短い文字列を選択）</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">4. DPテーブルの初期化</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">5. 二重ループによるDP計算</div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-step">6. 最終結果の返却</div>
+                    </div>
+                </div>
+            </section>
 
-      <!-- 計算量解析 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-chart-line"></i>
-          計算量解析
-        </h2>
+            <!-- 計算量解析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    計算量解析
+                </h2>
 
-        <div class="complexity-box">
-          <div class="complexity-item">
-            <span>時間計算量:</span>
-            <span>O(m × n)</span>
-          </div>
-          <div class="complexity-item">
-            <span>空間計算量:</span>
-            <span>O(min(m, n))</span>
-          </div>
-          <div class="complexity-item">
-            <span>最適化前の空間計算量:</span>
-            <span>O(m × n)</span>
-          </div>
-        </div>
+                <div class="complexity-box">
+                    <div class="complexity-item">
+                        <span>時間計算量:</span>
+                        <span>O(m × n)</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span>空間計算量:</span>
+                        <span>O(min(m, n))</span>
+                    </div>
+                    <div class="complexity-item">
+                        <span>最適化前の空間計算量:</span>
+                        <span>O(m × n)</span>
+                    </div>
+                </div>
 
-        <p>
-          この実装では、従来の2次元配列を使用したアプローチと比較して、空間計算量を大幅に削減しています。常に短い文字列をベースとして計算することで、メモリ使用量を最小化しています。
-        </p>
-      </section>
+                <p>
+                    この実装では、従来の2次元配列を使用したアプローチと比較して、空間計算量を大幅に削減しています。常に短い文字列をベースとして計算することで、メモリ使用量を最小化しています。
+                </p>
+            </section>
 
-      <!-- 高速版の解説 -->
-      <section class="section">
-        <h2 class="section-title">
-          <i class="fas fa-rocket"></i>
-          高速版実装
-        </h2>
+            <!-- 高速版の解説 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-rocket"></i>
+                    高速版実装
+                </h2>
 
-        <div class="code-container">
-          <div class="code-header">
-            <span class="code-title"
-              >minDistance_fast メソッド（競技プログラミング向け）</span
-            >
-            <button class="copy-btn" onclick="copyCode('code2')">
-              <i class="fas fa-copy"></i>
-              コピー
-            </button>
-          </div>
-          <div class="code-content">
-            <div class="line-numbers" id="line-numbers-2"></div>
-            <pre class="code-text" id="code2">
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title"
+                            >minDistance_fast メソッド（競技プログラミング向け）</span
+                        >
+                        <button class="copy-btn" onclick="copyCode('code2')">
+                            <i class="fas fa-copy"></i>
+                            コピー
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <div class="line-numbers" id="line-numbers-2"></div>
+                        <pre class="code-text" id="code2">
 def minDistance_fast(self, word1: str, word2: str) -> int:
     """
     競技プログラミング向け最適化版
@@ -659,515 +659,506 @@ def minDistance_fast(self, word1: str, word2: str) -> int:
         prev = curr
 
     return prev[n]</pre
-            >
-          </div>
+                        >
+                    </div>
+                </div>
+
+                <p>
+                    高速版では型チェックを省略し、より簡潔な実装となっています。競技プログラミングなど、パフォーマンスが重視される場面で使用されます。
+                </p>
+            </section>
         </div>
 
-        <p>
-          高速版では型チェックを省略し、より簡潔な実装となっています。競技プログラミングなど、パフォーマンスが重視される場面で使用されます。
-        </p>
-      </section>
-    </div>
+        <!-- External JavaScript Libraries -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 
-    <!-- External JavaScript Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script>
+            // Module: Code Management
+            const CodeManager = {
+                init() {
+                    this.addLineNumbers();
+                    this.applySyntaxHighlighting();
+                },
 
-    <script>
-      // Module: Code Management
-      const CodeManager = {
-        init() {
-          this.addLineNumbers();
-          this.applySyntaxHighlighting();
-        },
+                addLineNumbers() {
+                    const codeBlocks = document.querySelectorAll('.code-text');
+                    codeBlocks.forEach((block, index) => {
+                        const lines = block.textContent.split('\n');
+                        const lineNumbersContainer = document.getElementById(
+                            `line-numbers-${index + 1}`,
+                        );
 
-        addLineNumbers() {
-          const codeBlocks = document.querySelectorAll(".code-text");
-          codeBlocks.forEach((block, index) => {
-            const lines = block.textContent.split("\n");
-            const lineNumbersContainer = document.getElementById(
-              `line-numbers-${index + 1}`
-            );
+                        if (lineNumbersContainer) {
+                            const lineNumbers = lines.map((_, i) => i + 1).join('\n');
+                            lineNumbersContainer.textContent = lineNumbers;
+                        }
 
-            if (lineNumbersContainer) {
-              const lineNumbers = lines.map((_, i) => i + 1).join("\n");
-              lineNumbersContainer.textContent = lineNumbers;
+                        // Add line spans for individual highlighting
+                        const highlightedContent = lines
+                            .map(
+                                (line, i) =>
+                                    `<span class="line" data-line="${i + 1}">${this.escapeHtml(
+                                        line,
+                                    )}</span>`,
+                            )
+                            .join('\n');
+
+                        block.innerHTML = highlightedContent;
+                    });
+                },
+
+                applySyntaxHighlighting() {
+                    document.querySelectorAll('.code-text .line').forEach((line) => {
+                        let content = line.textContent;
+
+                        // Python keywords
+                        content = content.replace(
+                            /\b(def|class|if|else|elif|for|while|return|import|from|as|try|except|finally|with|lambda|yield|global|nonlocal|pass|break|continue|and|or|not|in|is|None|True|False)\b/g,
+                            '<span class="keyword">$1</span>',
+                        );
+
+                        // Strings
+                        content = content.replace(
+                            /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g,
+                            '<span class="string">$1$2$1</span>',
+                        );
+
+                        // Numbers
+                        content = content.replace(
+                            /\b(\d+(?:\.\d+)?)\b/g,
+                            '<span class="number">$1</span>',
+                        );
+
+                        // Comments
+                        content = content.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
+
+                        // Function names
+                        content = content.replace(
+                            /\b(\w+)(?=\s*\()/g,
+                            '<span class="function">$1</span>',
+                        );
+
+                        // Operators
+                        content = content.replace(
+                            /([+\-*/%=<>!&|^~])/g,
+                            '<span class="operator">$1</span>',
+                        );
+
+                        line.innerHTML = content;
+                    });
+                },
+
+                escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                },
+            };
+
+            // Module: Animation Control
+            const AnimationController = {
+                currentStep: 0,
+                isAnimating: false,
+                steps: [
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 0,
+                        j: 0,
+                        description: '初期状態: DPテーブルを初期化',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 1,
+                        j: 1,
+                        description: 'c vs b: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 1,
+                        j: 2,
+                        description: 'c vs a: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 1,
+                        j: 3,
+                        description: 'c vs t: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 2,
+                        j: 1,
+                        description: 'a vs b: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 2,
+                        j: 2,
+                        description: 'a vs a: 文字が一致するためコピー',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 2,
+                        j: 3,
+                        description: 'a vs t: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 3,
+                        j: 1,
+                        description: 't vs b: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 3,
+                        j: 2,
+                        description: 't vs a: 文字が異なるため +1',
+                    },
+                    {
+                        word1: 'cat',
+                        word2: 'bat',
+                        i: 3,
+                        j: 3,
+                        description: 't vs t: 文字が一致するためコピー',
+                    },
+                ],
+
+                init() {
+                    this.createDPTable();
+                },
+
+                createDPTable() {
+                    const table = document.getElementById('dp-table');
+                    const word1 = 'cat';
+                    const word2 = 'bat';
+
+                    // テーブルのグリッド設定
+                    table.style.gridTemplateColumns = `repeat(${word2.length + 2}, 50px)`;
+                    table.innerHTML = '';
+
+                    // ヘッダー行の作成
+                    const emptyCell = this.createCell('', 'header');
+                    table.appendChild(emptyCell);
+
+                    const emptyStrCell = this.createCell('""', 'header');
+                    table.appendChild(emptyStrCell);
+
+                    for (let char of word2) {
+                        const headerCell = this.createCell(char, 'header');
+                        table.appendChild(headerCell);
+                    }
+
+                    // データ行の作成
+                    for (let i = 0; i <= word1.length; i++) {
+                        // 行ヘッダー
+                        const rowHeader = i === 0 ? '""' : word1[i - 1];
+                        const headerCell = this.createCell(rowHeader, 'header');
+                        table.appendChild(headerCell);
+
+                        // データセル
+                        for (let j = 0; j <= word2.length; j++) {
+                            let value = '';
+                            if (i === 0) {
+                                value = j;
+                            } else if (j === 0) {
+                                value = i;
+                            } else {
+                                value = '?';
+                            }
+
+                            const cell = this.createCell(value);
+                            cell.id = `cell-${i}-${j}`;
+                            table.appendChild(cell);
+                        }
+                    }
+                },
+
+                createCell(content, className = '') {
+                    const cell = document.createElement('div');
+                    cell.className = `dp-cell ${className}`;
+                    cell.textContent = content;
+                    return cell;
+                },
+
+                async startAnimation() {
+                    if (this.isAnimating) return;
+
+                    this.isAnimating = true;
+                    this.currentStep = 0;
+
+                    for (let step of this.steps) {
+                        await this.animateStep(step);
+                        await this.delay(1000);
+                        this.currentStep++;
+                    }
+
+                    this.isAnimating = false;
+                },
+
+                async animateStep(step) {
+                    // 前のハイライトをクリア
+                    document.querySelectorAll('.dp-cell.active').forEach((cell) => {
+                        cell.classList.remove('active');
+                    });
+
+                    // 現在のセルをハイライト
+                    const cell = document.getElementById(`cell-${step.i}-${step.j}`);
+                    if (cell && step.i > 0 && step.j > 0) {
+                        cell.classList.add('active');
+
+                        // 値を計算して設定
+                        const value = this.calculateDPValue(step);
+                        cell.textContent = value;
+                    }
+
+                    // 説明を更新
+                    document.getElementById('step-explanation').innerHTML = `<p><strong>ステップ ${
+                        this.currentStep + 1
+                    }:</strong> ${step.description}</p>`;
+                },
+
+                calculateDPValue(step) {
+                    const { word1, word2, i, j } = step;
+
+                    if (i === 0) return j;
+                    if (j === 0) return i;
+
+                    const char1 = word1[i - 1];
+                    const char2 = word2[j - 1];
+
+                    if (char1 === char2) {
+                        return this.getPreviousDiagonalValue(i - 1, j - 1);
+                    } else {
+                        const deleteOp = this.getPreviousValue(i - 1, j);
+                        const insertOp = this.getPreviousValue(i, j - 1);
+                        const replaceOp = this.getPreviousDiagonalValue(i - 1, j - 1);
+                        return 1 + Math.min(deleteOp, insertOp, replaceOp);
+                    }
+                },
+
+                getPreviousValue(i, j) {
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    return cell ? parseInt(cell.textContent) || 0 : 0;
+                },
+
+                getPreviousDiagonalValue(i, j) {
+                    return this.getPreviousValue(i, j);
+                },
+
+                resetAnimation() {
+                    this.isAnimating = false;
+                    this.currentStep = 0;
+                    this.createDPTable();
+                    document.getElementById('step-explanation').innerHTML =
+                        '<p>上記のテーブルは動的プログラミングの各ステップを示します。各セルは、対応する部分文字列間の最小編集距離を表します。</p>';
+                },
+
+                stepByStep() {
+                    if (this.isAnimating) return;
+
+                    if (this.currentStep < this.steps.length) {
+                        this.animateStep(this.steps[this.currentStep]);
+                        this.currentStep++;
+                    }
+                },
+
+                delay(ms) {
+                    return new Promise((resolve) => setTimeout(resolve, ms));
+                },
+            };
+
+            // Module: Utility Functions
+            const Utils = {
+                copyCode(elementId) {
+                    const codeElement = document.getElementById(elementId);
+                    const text = codeElement.textContent;
+
+                    navigator.clipboard
+                        .writeText(text)
+                        .then(() => {
+                            this.showCopySuccess(elementId);
+                        })
+                        .catch((err) => {
+                            console.error('コピーに失敗しました:', err);
+                        });
+                },
+
+                showCopySuccess(elementId) {
+                    const button = document.querySelector(`[onclick="copyCode('${elementId}')"]`);
+                    const originalText = button.innerHTML;
+
+                    button.innerHTML = '<i class="fas fa-check"></i> コピー完了';
+                    button.style.background = 'var(--success-color)';
+
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = 'var(--primary-color)';
+                    }, 2000);
+                },
+            };
+
+            // Module: Interactive Features
+            const InteractiveFeatures = {
+                init() {
+                    this.addHoverEffects();
+                    this.addScrollEffects();
+                },
+
+                addHoverEffects() {
+                    // コードブロックのホバーエフェクト
+                    document.querySelectorAll('.code-text .line').forEach((line) => {
+                        line.addEventListener('mouseenter', () => {
+                            line.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                            line.style.paddingLeft = '0.5rem';
+                        });
+
+                        line.addEventListener('mouseleave', () => {
+                            line.style.backgroundColor = '';
+                            line.style.paddingLeft = '';
+                        });
+                    });
+
+                    // セクションのホバーエフェクト
+                    document.querySelectorAll('.section').forEach((section) => {
+                        section.addEventListener('mouseenter', () => {
+                            section.style.transform = 'translateY(-4px)';
+                            section.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)';
+                        });
+
+                        section.addEventListener('mouseleave', () => {
+                            section.style.transform = '';
+                            section.style.boxShadow = '';
+                        });
+                    });
+                },
+
+                addScrollEffects() {
+                    const observerOptions = {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -50px 0px',
+                    };
+
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.style.opacity = '1';
+                                entry.target.style.transform = 'translateY(0)';
+                            }
+                        });
+                    }, observerOptions);
+
+                    document.querySelectorAll('.section').forEach((section) => {
+                        section.style.opacity = '0';
+                        section.style.transform = 'translateY(30px)';
+                        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                        observer.observe(section);
+                    });
+                },
+            };
+
+            // Global Functions (for onclick handlers)
+            function copyCode(elementId) {
+                Utils.copyCode(elementId);
             }
 
-            // Add line spans for individual highlighting
-            const highlightedContent = lines
-              .map(
-                (line, i) =>
-                  `<span class="line" data-line="${i + 1}">${this.escapeHtml(
-                    line
-                  )}</span>`
-              )
-              .join("\n");
-
-            block.innerHTML = highlightedContent;
-          });
-        },
-
-        applySyntaxHighlighting() {
-          document.querySelectorAll(".code-text .line").forEach((line) => {
-            let content = line.textContent;
-
-            // Python keywords
-            content = content.replace(
-              /\b(def|class|if|else|elif|for|while|return|import|from|as|try|except|finally|with|lambda|yield|global|nonlocal|pass|break|continue|and|or|not|in|is|None|True|False)\b/g,
-              '<span class="keyword">$1</span>'
-            );
-
-            // Strings
-            content = content.replace(
-              /(["'])((?:\\.|(?!\1)[^\\])*?)\1/g,
-              '<span class="string">$1$2$1</span>'
-            );
-
-            // Numbers
-            content = content.replace(
-              /\b(\d+(?:\.\d+)?)\b/g,
-              '<span class="number">$1</span>'
-            );
-
-            // Comments
-            content = content.replace(
-              /(#.*$)/gm,
-              '<span class="comment">$1</span>'
-            );
-
-            // Function names
-            content = content.replace(
-              /\b(\w+)(?=\s*\()/g,
-              '<span class="function">$1</span>'
-            );
-
-            // Operators
-            content = content.replace(
-              /([+\-*/%=<>!&|^~])/g,
-              '<span class="operator">$1</span>'
-            );
-
-            line.innerHTML = content;
-          });
-        },
-
-        escapeHtml(text) {
-          const div = document.createElement("div");
-          div.textContent = text;
-          return div.innerHTML;
-        },
-      };
-
-      // Module: Animation Control
-      const AnimationController = {
-        currentStep: 0,
-        isAnimating: false,
-        steps: [
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 0,
-            j: 0,
-            description: "初期状態: DPテーブルを初期化",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 1,
-            j: 1,
-            description: "c vs b: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 1,
-            j: 2,
-            description: "c vs a: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 1,
-            j: 3,
-            description: "c vs t: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 2,
-            j: 1,
-            description: "a vs b: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 2,
-            j: 2,
-            description: "a vs a: 文字が一致するためコピー",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 2,
-            j: 3,
-            description: "a vs t: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 3,
-            j: 1,
-            description: "t vs b: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 3,
-            j: 2,
-            description: "t vs a: 文字が異なるため +1",
-          },
-          {
-            word1: "cat",
-            word2: "bat",
-            i: 3,
-            j: 3,
-            description: "t vs t: 文字が一致するためコピー",
-          },
-        ],
-
-        init() {
-          this.createDPTable();
-        },
-
-        createDPTable() {
-          const table = document.getElementById("dp-table");
-          const word1 = "cat";
-          const word2 = "bat";
-
-          // テーブルのグリッド設定
-          table.style.gridTemplateColumns = `repeat(${word2.length + 2}, 50px)`;
-          table.innerHTML = "";
-
-          // ヘッダー行の作成
-          const emptyCell = this.createCell("", "header");
-          table.appendChild(emptyCell);
-
-          const emptyStrCell = this.createCell('""', "header");
-          table.appendChild(emptyStrCell);
-
-          for (let char of word2) {
-            const headerCell = this.createCell(char, "header");
-            table.appendChild(headerCell);
-          }
-
-          // データ行の作成
-          for (let i = 0; i <= word1.length; i++) {
-            // 行ヘッダー
-            const rowHeader = i === 0 ? '""' : word1[i - 1];
-            const headerCell = this.createCell(rowHeader, "header");
-            table.appendChild(headerCell);
-
-            // データセル
-            for (let j = 0; j <= word2.length; j++) {
-              let value = "";
-              if (i === 0) {
-                value = j;
-              } else if (j === 0) {
-                value = i;
-              } else {
-                value = "?";
-              }
-
-              const cell = this.createCell(value);
-              cell.id = `cell-${i}-${j}`;
-              table.appendChild(cell);
+            function startAnimation() {
+                AnimationController.startAnimation();
             }
-          }
-        },
 
-        createCell(content, className = "") {
-          const cell = document.createElement("div");
-          cell.className = `dp-cell ${className}`;
-          cell.textContent = content;
-          return cell;
-        },
-
-        async startAnimation() {
-          if (this.isAnimating) return;
-
-          this.isAnimating = true;
-          this.currentStep = 0;
-
-          for (let step of this.steps) {
-            await this.animateStep(step);
-            await this.delay(1000);
-            this.currentStep++;
-          }
-
-          this.isAnimating = false;
-        },
-
-        async animateStep(step) {
-          // 前のハイライトをクリア
-          document.querySelectorAll(".dp-cell.active").forEach((cell) => {
-            cell.classList.remove("active");
-          });
-
-          // 現在のセルをハイライト
-          const cell = document.getElementById(`cell-${step.i}-${step.j}`);
-          if (cell && step.i > 0 && step.j > 0) {
-            cell.classList.add("active");
-
-            // 値を計算して設定
-            const value = this.calculateDPValue(step);
-            cell.textContent = value;
-          }
-
-          // 説明を更新
-          document.getElementById(
-            "step-explanation"
-          ).innerHTML = `<p><strong>ステップ ${
-            this.currentStep + 1
-          }:</strong> ${step.description}</p>`;
-        },
-
-        calculateDPValue(step) {
-          const { word1, word2, i, j } = step;
-
-          if (i === 0) return j;
-          if (j === 0) return i;
-
-          const char1 = word1[i - 1];
-          const char2 = word2[j - 1];
-
-          if (char1 === char2) {
-            return this.getPreviousDiagonalValue(i - 1, j - 1);
-          } else {
-            const deleteOp = this.getPreviousValue(i - 1, j);
-            const insertOp = this.getPreviousValue(i, j - 1);
-            const replaceOp = this.getPreviousDiagonalValue(i - 1, j - 1);
-            return 1 + Math.min(deleteOp, insertOp, replaceOp);
-          }
-        },
-
-        getPreviousValue(i, j) {
-          const cell = document.getElementById(`cell-${i}-${j}`);
-          return cell ? parseInt(cell.textContent) || 0 : 0;
-        },
-
-        getPreviousDiagonalValue(i, j) {
-          return this.getPreviousValue(i, j);
-        },
-
-        resetAnimation() {
-          this.isAnimating = false;
-          this.currentStep = 0;
-          this.createDPTable();
-          document.getElementById("step-explanation").innerHTML =
-            "<p>上記のテーブルは動的プログラミングの各ステップを示します。各セルは、対応する部分文字列間の最小編集距離を表します。</p>";
-        },
-
-        stepByStep() {
-          if (this.isAnimating) return;
-
-          if (this.currentStep < this.steps.length) {
-            this.animateStep(this.steps[this.currentStep]);
-            this.currentStep++;
-          }
-        },
-
-        delay(ms) {
-          return new Promise((resolve) => setTimeout(resolve, ms));
-        },
-      };
-
-      // Module: Utility Functions
-      const Utils = {
-        copyCode(elementId) {
-          const codeElement = document.getElementById(elementId);
-          const text = codeElement.textContent;
-
-          navigator.clipboard
-            .writeText(text)
-            .then(() => {
-              this.showCopySuccess(elementId);
-            })
-            .catch((err) => {
-              console.error("コピーに失敗しました:", err);
-            });
-        },
-
-        showCopySuccess(elementId) {
-          const button = document.querySelector(
-            `[onclick="copyCode('${elementId}')"]`
-          );
-          const originalText = button.innerHTML;
-
-          button.innerHTML = '<i class="fas fa-check"></i> コピー完了';
-          button.style.background = "var(--success-color)";
-
-          setTimeout(() => {
-            button.innerHTML = originalText;
-            button.style.background = "var(--primary-color)";
-          }, 2000);
-        },
-      };
-
-      // Module: Interactive Features
-      const InteractiveFeatures = {
-        init() {
-          this.addHoverEffects();
-          this.addScrollEffects();
-        },
-
-        addHoverEffects() {
-          // コードブロックのホバーエフェクト
-          document.querySelectorAll(".code-text .line").forEach((line) => {
-            line.addEventListener("mouseenter", () => {
-              line.style.backgroundColor = "rgba(102, 126, 234, 0.1)";
-              line.style.paddingLeft = "0.5rem";
-            });
-
-            line.addEventListener("mouseleave", () => {
-              line.style.backgroundColor = "";
-              line.style.paddingLeft = "";
-            });
-          });
-
-          // セクションのホバーエフェクト
-          document.querySelectorAll(".section").forEach((section) => {
-            section.addEventListener("mouseenter", () => {
-              section.style.transform = "translateY(-4px)";
-              section.style.boxShadow = "0 12px 40px rgba(0,0,0,0.3)";
-            });
-
-            section.addEventListener("mouseleave", () => {
-              section.style.transform = "";
-              section.style.boxShadow = "";
-            });
-          });
-        },
-
-        addScrollEffects() {
-          const observerOptions = {
-            threshold: 0.1,
-            rootMargin: "0px 0px -50px 0px",
-          };
-
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.style.opacity = "1";
-                entry.target.style.transform = "translateY(0)";
-              }
-            });
-          }, observerOptions);
-
-          document.querySelectorAll(".section").forEach((section) => {
-            section.style.opacity = "0";
-            section.style.transform = "translateY(30px)";
-            section.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-            observer.observe(section);
-          });
-        },
-      };
-
-      // Global Functions (for onclick handlers)
-      function copyCode(elementId) {
-        Utils.copyCode(elementId);
-      }
-
-      function startAnimation() {
-        AnimationController.startAnimation();
-      }
-
-      function resetAnimation() {
-        AnimationController.resetAnimation();
-      }
-
-      function stepByStep() {
-        AnimationController.stepByStep();
-      }
-
-      // Application Initialization
-      document.addEventListener("DOMContentLoaded", () => {
-        // Initialize all modules
-        CodeManager.init();
-        AnimationController.init();
-        InteractiveFeatures.init();
-
-        // Add smooth scrolling to navigation
-        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-          anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute("href"));
-            if (target) {
-              target.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
+            function resetAnimation() {
+                AnimationController.resetAnimation();
             }
-          });
-        });
 
-        // Performance optimization: Debounce resize events
-        let resizeTimer;
-        window.addEventListener("resize", () => {
-          clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            // Recalculate layout if needed
-            AnimationController.createDPTable();
-          }, 250);
-        });
-
-        // Add keyboard shortcuts
-        document.addEventListener("keydown", (e) => {
-          if (e.ctrlKey || e.metaKey) {
-            switch (e.key) {
-              case " ":
-                e.preventDefault();
-                startAnimation();
-                break;
-              case "r":
-                e.preventDefault();
-                resetAnimation();
-                break;
-              case "ArrowRight":
-                e.preventDefault();
-                stepByStep();
-                break;
+            function stepByStep() {
+                AnimationController.stepByStep();
             }
-          }
-        });
 
-        console.log(
-          "編集距離アルゴリズム技術解説ページが正常に初期化されました。"
-        );
-        console.log("キーボードショートカット:");
-        console.log("- Ctrl/Cmd + Space: アニメーション開始");
-        console.log("- Ctrl/Cmd + R: リセット");
-        console.log("- Ctrl/Cmd + →: ステップ実行");
-      });
+            // Application Initialization
+            document.addEventListener('DOMContentLoaded', () => {
+                // Initialize all modules
+                CodeManager.init();
+                AnimationController.init();
+                InteractiveFeatures.init();
 
-      // Error handling
-      window.addEventListener("error", (e) => {
-        console.error("アプリケーションエラー:", e.error);
-      });
+                // Add smooth scrolling to navigation
+                document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                            });
+                        }
+                    });
+                });
 
-      // Performance monitoring
-      if ("performance" in window) {
-        window.addEventListener("load", () => {
-          setTimeout(() => {
-            const perfData = performance.getEntriesByType("navigation")[0];
-            console.log(
-              `ページ読み込み時間: ${
-                perfData.loadEventEnd - perfData.loadEventStart
-              }ms`
-            );
-          }, 0);
-        });
-      }
-    </script>
-  </body>
+                // Performance optimization: Debounce resize events
+                let resizeTimer;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(() => {
+                        // Recalculate layout if needed
+                        AnimationController.createDPTable();
+                    }, 250);
+                });
+
+                // Add keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case ' ':
+                                e.preventDefault();
+                                startAnimation();
+                                break;
+                            case 'r':
+                                e.preventDefault();
+                                resetAnimation();
+                                break;
+                            case 'ArrowRight':
+                                e.preventDefault();
+                                stepByStep();
+                                break;
+                        }
+                    }
+                });
+
+                console.log('編集距離アルゴリズム技術解説ページが正常に初期化されました。');
+                console.log('キーボードショートカット:');
+                console.log('- Ctrl/Cmd + Space: アニメーション開始');
+                console.log('- Ctrl/Cmd + R: リセット');
+                console.log('- Ctrl/Cmd + →: ステップ実行');
+            });
+
+            // Error handling
+            window.addEventListener('error', (e) => {
+                console.error('アプリケーションエラー:', e.error);
+            });
+
+            // Performance monitoring
+            if ('performance' in window) {
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        const perfData = performance.getEntriesByType('navigation')[0];
+                        console.log(
+                            `ページ読み込み時間: ${
+                                perfData.loadEventEnd - perfData.loadEventStart
+                            }ms`,
+                        );
+                    }, 0);
+                });
+            }
+        </script>
+    </body>
 </html>

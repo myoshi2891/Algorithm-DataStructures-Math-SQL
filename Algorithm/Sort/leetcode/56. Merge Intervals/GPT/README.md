@@ -29,7 +29,7 @@ intervals.sort((a, b) => a[0] - b[0]);
 
 ```ts
 const merged: number[][] = [];
-let current: number[] = intervals[0];  // [1,3]
+let current: number[] = intervals[0]; // [1,3]
 ```
 
 ```
@@ -44,9 +44,10 @@ current: [1,3]
 ### i = 1 → \[2,6]
 
 ```ts
-const [start, end] = [2,6];
-if (start <= current[1]) {  // 2 <= 3 → true
-    current[1] = Math.max(3,6) = 6;
+const [start, end] = [2, 6];
+if (start <= current[1]) {
+    // 2 <= 3 → true
+    current[1] = Math.max(3, 6) = 6;
 }
 ```
 
@@ -60,11 +61,12 @@ merged: []
 ### i = 2 → \[8,10]
 
 ```ts
-const [start, end] = [8,10];
-if (8 <= 6) { false }
-else {
-    merged.push(current);  // merged = [[1,6]]
-    current = [8,10];
+const [start, end] = [8, 10];
+if (8 <= 6) {
+    false;
+} else {
+    merged.push(current); // merged = [[1,6]]
+    current = [8, 10];
 }
 ```
 
@@ -78,11 +80,12 @@ current: [8,10]
 ### i = 3 → \[15,18]
 
 ```ts
-const [start, end] = [15,18];
-if (15 <= 10) { false }
-else {
-    merged.push(current);  // merged = [[1,6],[8,10]]
-    current = [15,18];
+const [start, end] = [15, 18];
+if (15 <= 10) {
+    false;
+} else {
+    merged.push(current); // merged = [[1,6],[8,10]]
+    current = [15, 18];
 }
 ```
 
@@ -119,17 +122,15 @@ return merged;
 
 ## メモリ・処理時間の解析
 
-* **処理時間**
+- **処理時間**
+    - ソート: O(n log n)
+    - ループ: O(n)
+      → 全体 O(n log n)
 
-  * ソート: O(n log n)
-  * ループ: O(n)
-    → 全体 O(n log n)
-
-* **メモリ使用量**
-
-  * `merged`: 最大 O(n)
-  * `current`: 参照で持つだけ
-    → 全体 O(n)
+- **メモリ使用量**
+    - `merged`: 最大 O(n)
+    - `current`: 参照で持つだけ
+      → 全体 O(n)
 
 ---
 

@@ -57,7 +57,7 @@
 // # 4. コード実装（solution.js, CommonJS）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * アイドルグループ管理とイベント処理
@@ -68,62 +68,62 @@
  * @complexity O(N + K log N)
  */
 function solve(input) {
-  if (typeof input !== "string") throw new TypeError("Input must be a string");
-  const lines = input.trim().split("\n");
-  if (lines.length === 0) return "";
+    if (typeof input !== 'string') throw new TypeError('Input must be a string');
+    const lines = input.trim().split('\n');
+    if (lines.length === 0) return '';
 
-  const [nStr, kStr] = lines[0].split(" ");
-  const N = Number(nStr),
-    K = Number(kStr);
+    const [nStr, kStr] = lines[0].split(' ');
+    const N = Number(nStr),
+        K = Number(kStr);
 
-  if (!Number.isInteger(N) || !Number.isInteger(K)) {
-    throw new TypeError("N and K must be integers");
-  }
-  if (N < 1 || K < 1 || N > 1e5 || K > 1e5) {
-    throw new RangeError("N or K out of range");
-  }
-
-  const members = new Set();
-  let idx = 1;
-
-  // 初期メンバー
-  for (let i = 0; i < N; i++, idx++) {
-    const name = lines[idx];
-    members.add(name);
-  }
-
-  let output = [];
-
-  // イベント処理
-  for (let i = 0; i < K; i++, idx++) {
-    const parts = lines[idx].split(" ");
-    const cmd = parts[0];
-
-    if (cmd === "join") {
-      const name = parts[1];
-      members.add(name);
-    } else if (cmd === "leave") {
-      const name = parts[1];
-      members.delete(name);
-    } else if (cmd === "handshake") {
-      if (members.size > 0) {
-        const sorted = Array.from(members).sort();
-        for (const name of sorted) output.push(name);
-      }
-    } else {
-      throw new RangeError(`Unknown command: ${cmd}`);
+    if (!Number.isInteger(N) || !Number.isInteger(K)) {
+        throw new TypeError('N and K must be integers');
     }
-  }
+    if (N < 1 || K < 1 || N > 1e5 || K > 1e5) {
+        throw new RangeError('N or K out of range');
+    }
 
-  return output.join("\n");
+    const members = new Set();
+    let idx = 1;
+
+    // 初期メンバー
+    for (let i = 0; i < N; i++, idx++) {
+        const name = lines[idx];
+        members.add(name);
+    }
+
+    let output = [];
+
+    // イベント処理
+    for (let i = 0; i < K; i++, idx++) {
+        const parts = lines[idx].split(' ');
+        const cmd = parts[0];
+
+        if (cmd === 'join') {
+            const name = parts[1];
+            members.add(name);
+        } else if (cmd === 'leave') {
+            const name = parts[1];
+            members.delete(name);
+        } else if (cmd === 'handshake') {
+            if (members.size > 0) {
+                const sorted = Array.from(members).sort();
+                for (const name of sorted) output.push(name);
+            }
+        } else {
+            throw new RangeError(`Unknown command: ${cmd}`);
+        }
+    }
+
+    return output.join('\n');
 }
 
 // 標準入出力 (leetcode形式)
 if (require.main === module) {
-  const fs = require("fs");
-  const input = fs.readFileSync(0, "utf8");
-  const result = solve(input);
-  if (result.length > 0) console.log(result);
+    const fs = require('fs');
+    const input = fs.readFileSync(0, 'utf8');
+    const result = solve(input);
+    if (result.length > 0) console.log(result);
 }
 
 module.exports = { solve };

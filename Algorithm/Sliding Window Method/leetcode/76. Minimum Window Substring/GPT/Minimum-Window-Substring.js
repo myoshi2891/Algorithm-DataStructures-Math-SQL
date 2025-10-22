@@ -51,7 +51,7 @@
 // ## 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Minimum Window Substring
@@ -63,46 +63,46 @@
  * @complexity Time O(m+n), Space O(1)
  */
 function minWindow(s, t) {
-  // 入力検証
-  if (typeof s !== "string" || typeof t !== "string") {
-    throw new TypeError("Inputs must be strings");
-  }
-  const m = s.length,
-    n = t.length;
-  if (m < 1 || n < 1 || m > 1e5 || n > 1e5) {
-    throw new RangeError("Input size out of bounds");
-  }
-
-  // 文字頻度配列 (ASCII 128)
-  const need = new Array(128).fill(0);
-  for (let i = 0; i < n; i++) {
-    need[t.charCodeAt(i)]++;
-  }
-
-  let required = n; // 満たすべき残りの文字数
-  let left = 0;
-  let minLen = Infinity;
-  let start = 0;
-
-  for (let right = 0; right < m; right++) {
-    const rCode = s.charCodeAt(right);
-    if (need[rCode] > 0) required--;
-    need[rCode]--;
-
-    // すべて満たした場合、左を縮める
-    while (required === 0) {
-      if (right - left + 1 < minLen) {
-        minLen = right - left + 1;
-        start = left;
-      }
-      const lCode = s.charCodeAt(left);
-      need[lCode]++;
-      if (need[lCode] > 0) required++;
-      left++;
+    // 入力検証
+    if (typeof s !== 'string' || typeof t !== 'string') {
+        throw new TypeError('Inputs must be strings');
     }
-  }
+    const m = s.length,
+        n = t.length;
+    if (m < 1 || n < 1 || m > 1e5 || n > 1e5) {
+        throw new RangeError('Input size out of bounds');
+    }
 
-  return minLen === Infinity ? "" : s.slice(start, start + minLen);
+    // 文字頻度配列 (ASCII 128)
+    const need = new Array(128).fill(0);
+    for (let i = 0; i < n; i++) {
+        need[t.charCodeAt(i)]++;
+    }
+
+    let required = n; // 満たすべき残りの文字数
+    let left = 0;
+    let minLen = Infinity;
+    let start = 0;
+
+    for (let right = 0; right < m; right++) {
+        const rCode = s.charCodeAt(right);
+        if (need[rCode] > 0) required--;
+        need[rCode]--;
+
+        // すべて満たした場合、左を縮める
+        while (required === 0) {
+            if (right - left + 1 < minLen) {
+                minLen = right - left + 1;
+                start = left;
+            }
+            const lCode = s.charCodeAt(left);
+            need[lCode]++;
+            if (need[lCode] > 0) required++;
+            left++;
+        }
+    }
+
+    return minLen === Infinity ? '' : s.slice(start, start + minLen);
 }
 
 module.exports = { minWindow };

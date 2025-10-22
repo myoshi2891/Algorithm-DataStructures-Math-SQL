@@ -47,16 +47,14 @@ Analyze Complexity
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `pd.to_datetime`: 型の安全化（不正値は `NaT`）
-  - `Series.map`: **単一キー → 値**（`recordDate → temperature`）の軽量結合
-  - `Series.notna` と ブールインデックス: 条件抽出
+    - `pd.to_datetime`: 型の安全化（不正値は `NaT`）
+    - `Series.map`: **単一キー → 値**（`recordDate → temperature`）の軽量結合
+    - `Series.notna` と ブールインデックス: 条件抽出
 
 - **NULL / 重複 / 型**
-
-  - 前日が無い行は `map` 結果が `NaN` となり除外されるため安全
-  - `recordDate` がユニーク前提のためインデックス化は一意に決まる
-  - `recordDate` は `datetime64[ns]` に統一してから `Timedelta` 演算を行う
+    - 前日が無い行は `map` 結果が `NaN` となり除外されるため安全
+    - `recordDate` がユニーク前提のためインデックス化は一意に決まる
+    - `recordDate` は `datetime64[ns]` に統一してから `Timedelta` 演算を行う
 
 ## 4) 計算量（概算）
 

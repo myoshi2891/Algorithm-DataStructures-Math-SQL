@@ -6,29 +6,29 @@
 
 ```ts
 function longestPalindrome(s: string): string {
-  if (s.length <= 1) return s;
+    if (s.length <= 1) return s;
 
-  let start = 0;
-  let end = 0;
+    let start = 0;
+    let end = 0;
 
-  const expandAroundCenter = (left: number, right: number): void => {
-    while (left >= 0 && right < s.length && s[left] === s[right]) {
-      left--;
-      right++;
+    const expandAroundCenter = (left: number, right: number): void => {
+        while (left >= 0 && right < s.length && s[left] === s[right]) {
+            left--;
+            right++;
+        }
+        // [left+1, right-1] が現在の回文
+        if (right - left - 1 > end - start) {
+            start = left + 1;
+            end = right - 1;
+        }
+    };
+
+    for (let i = 0; i < s.length; i++) {
+        expandAroundCenter(i, i); // 奇数長の回文中心
+        expandAroundCenter(i, i + 1); // 偶数長の回文中心
     }
-    // [left+1, right-1] が現在の回文
-    if (right - left - 1 > end - start) {
-      start = left + 1;
-      end = right - 1;
-    }
-  };
 
-  for (let i = 0; i < s.length; i++) {
-    expandAroundCenter(i, i);     // 奇数長の回文中心
-    expandAroundCenter(i, i + 1); // 偶数長の回文中心
-  }
-
-  return s.slice(start, end + 1);
+    return s.slice(start, end + 1);
 }
 ```
 
@@ -40,8 +40,8 @@ function longestPalindrome(s: string): string {
 
 文字列の各インデックス `i` を中心として、左右に文字が対称かどうかを確認して最長の回文を探す方法です。回文には以下の2パターンがあります：
 
-* 奇数長（例: `"aba"`） → 中心は1文字
-* 偶数長（例: `"abba"`）→ 中心は2文字
+- 奇数長（例: `"aba"`） → 中心は1文字
+- 偶数長（例: `"abba"`）→ 中心は2文字
 
 #### 🔸処理フロー図（例: `"babad"`）
 
@@ -59,18 +59,18 @@ i = 3: 中心 = "a" → "a"
 ### 🧪 テスト
 
 ```ts
-console.log(longestPalindrome("babad")); // "bab" or "aba"
-console.log(longestPalindrome("cbbd"));  // "bb"
-console.log(longestPalindrome("a"));     // "a"
-console.log(longestPalindrome("ac"));    // "a" or "c"
+console.log(longestPalindrome('babad')); // "bab" or "aba"
+console.log(longestPalindrome('cbbd')); // "bb"
+console.log(longestPalindrome('a')); // "a"
+console.log(longestPalindrome('ac')); // "a" or "c"
 ```
 
 ---
 
 ### ⏱️ 計算量
 
-* 時間計算量：O(N²)
-* 空間計算量：O(1)
+- 時間計算量：O(N²)
+- 空間計算量：O(1)
 
 ---
 
@@ -83,41 +83,41 @@ console.log(longestPalindrome("ac"));    // "a" or "c"
 
 ```ts
 function longestPalindrome(s: string): string {
-  const n = s.length;
-  if (n < 2) return s;
+    const n = s.length;
+    if (n < 2) return s;
 
-  // dp[i][j] = s[i..j] が回文かどうか
-  const dp: boolean[][] = Array.from({ length: n }, () => Array(n).fill(false));
+    // dp[i][j] = s[i..j] が回文かどうか
+    const dp: boolean[][] = Array.from({ length: n }, () => Array(n).fill(false));
 
-  let start = 0;
-  let maxLen = 1;
+    let start = 0;
+    let maxLen = 1;
 
-  // 1文字は必ず回文
-  for (let i = 0; i < n; i++) {
-    dp[i][i] = true;
-  }
-
-  // 長さ2以上の部分文字列を検討
-  for (let len = 2; len <= n; len++) {
-    for (let i = 0; i <= n - len; i++) {
-      const j = i + len - 1;
-
-      if (s[i] === s[j]) {
-        if (len === 2) {
-          dp[i][j] = true;
-        } else {
-          dp[i][j] = dp[i + 1][j - 1];
-        }
-
-        if (dp[i][j] && len > maxLen) {
-          start = i;
-          maxLen = len;
-        }
-      }
+    // 1文字は必ず回文
+    for (let i = 0; i < n; i++) {
+        dp[i][i] = true;
     }
-  }
 
-  return s.substring(start, start + maxLen);
+    // 長さ2以上の部分文字列を検討
+    for (let len = 2; len <= n; len++) {
+        for (let i = 0; i <= n - len; i++) {
+            const j = i + len - 1;
+
+            if (s[i] === s[j]) {
+                if (len === 2) {
+                    dp[i][j] = true;
+                } else {
+                    dp[i][j] = dp[i + 1][j - 1];
+                }
+
+                if (dp[i][j] && len > maxLen) {
+                    start = i;
+                    maxLen = len;
+                }
+            }
+        }
+    }
+
+    return s.substring(start, start + maxLen);
 }
 ```
 
@@ -127,15 +127,14 @@ function longestPalindrome(s: string): string {
 
 ### 🧠 dp\[i]\[j] の定義：
 
-* `dp[i][j] = true` なら `s[i..j]` が回文
+- `dp[i][j] = true` なら `s[i..j]` が回文
 
 ### 🔄 状態遷移：
 
-* `s[i] !== s[j]` → `dp[i][j] = false`
-* `s[i] === s[j]`：
-
-  * 長さ2 → `dp[i][j] = true`
-  * 長さ3以上 → `dp[i][j] = dp[i+1][j-1]`
+- `s[i] !== s[j]` → `dp[i][j] = false`
+- `s[i] === s[j]`：
+    - 長さ2 → `dp[i][j] = true`
+    - 長さ3以上 → `dp[i][j] = dp[i+1][j-1]`
 
 ---
 
@@ -151,18 +150,18 @@ i=1, j=3 -> "aba" => dp[1][3] = dp[2][2] = true → 回文
 
 ## ⏱️ 計算量
 
-* 時間計算量：`O(N²)`
-* 空間計算量：`O(N²)`（2次元配列）
+- 時間計算量：`O(N²)`
+- 空間計算量：`O(N²)`（2次元配列）
 
 ---
 
 ## ✅ テスト例
 
 ```ts
-console.log(longestPalindrome("babad")); // "bab" または "aba"
-console.log(longestPalindrome("cbbd"));  // "bb"
-console.log(longestPalindrome("a"));     // "a"
-console.log(longestPalindrome("ac"));    // "a" または "c"
+console.log(longestPalindrome('babad')); // "bab" または "aba"
+console.log(longestPalindrome('cbbd')); // "bb"
+console.log(longestPalindrome('a')); // "a"
+console.log(longestPalindrome('ac')); // "a" または "c"
 ```
 
 ---

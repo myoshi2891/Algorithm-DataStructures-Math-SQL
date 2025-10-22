@@ -10,17 +10,22 @@
  * 与えられた数字文字列から、考えられる全ての文字列の組み合わせを返す
  * @param digits - 数字文字列（0 <= digits.length <= 4）
  * @returns 可能な文字列組み合わせの配列
- * 
- * 時間計算量: O(3^N × 4^M)  
+ *
+ * 時間計算量: O(3^N × 4^M)
  * 空間計算量: O(出力サイズ + 再帰スタック)
  */
 function letterCombinations(digits: string): string[] {
     if (digits.length === 0) return [];
 
     const phoneMap: Record<string, string> = {
-        '2': "abc", '3': "def", '4': "ghi",
-        '5': "jkl", '6': "mno", '7': "pqrs",
-        '8': "tuv", '9': "wxyz"
+        '2': 'abc',
+        '3': 'def',
+        '4': 'ghi',
+        '5': 'jkl',
+        '6': 'mno',
+        '7': 'pqrs',
+        '8': 'tuv',
+        '9': 'wxyz',
     };
 
     const result: string[] = [];
@@ -39,7 +44,7 @@ function letterCombinations(digits: string): string[] {
         }
     }
 
-    backtrack(0, "");
+    backtrack(0, '');
     return result;
 }
 // ```

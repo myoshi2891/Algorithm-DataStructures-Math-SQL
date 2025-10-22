@@ -20,27 +20,27 @@
  * @returns 最長の well-formed な部分文字列の長さ
  */
 function longestValidParenthesesDP(s: string): number {
-  const n: number = s.length;
-  const dp: number[] = new Array(n).fill(0);
-  let maxLength: number = 0;
+    const n: number = s.length;
+    const dp: number[] = new Array(n).fill(0);
+    let maxLength: number = 0;
 
-  for (let i = 1; i < n; i++) {
-    if (s[i] === ')') {
-      if (s[i - 1] === '(') {
-        // 直前が '(', 対応ペアなので +2
-        dp[i] = (i >= 2 ? dp[i - 2] : 0) + 2;
-      } else if (i - dp[i - 1] - 1 >= 0 && s[i - dp[i - 1] - 1] === '(') {
-        // 直前も ')', さらにその前に対応する '(' がある
-        dp[i] = dp[i - 1] + 2;
-        if (i - dp[i - 1] - 2 >= 0) {
-          dp[i] += dp[i - dp[i - 1] - 2]; // 前の連結部分も足す
+    for (let i = 1; i < n; i++) {
+        if (s[i] === ')') {
+            if (s[i - 1] === '(') {
+                // 直前が '(', 対応ペアなので +2
+                dp[i] = (i >= 2 ? dp[i - 2] : 0) + 2;
+            } else if (i - dp[i - 1] - 1 >= 0 && s[i - dp[i - 1] - 1] === '(') {
+                // 直前も ')', さらにその前に対応する '(' がある
+                dp[i] = dp[i - 1] + 2;
+                if (i - dp[i - 1] - 2 >= 0) {
+                    dp[i] += dp[i - dp[i - 1] - 2]; // 前の連結部分も足す
+                }
+            }
+            maxLength = Math.max(maxLength, dp[i]);
         }
-      }
-      maxLength = Math.max(maxLength, dp[i]);
     }
-  }
 
-  return maxLength;
+    return maxLength;
 }
 // ```
 

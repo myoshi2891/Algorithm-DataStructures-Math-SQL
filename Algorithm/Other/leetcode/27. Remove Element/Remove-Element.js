@@ -13,17 +13,17 @@
  * 空間計算量: O(1)  — 追加メモリは使用しない
  */
 function removeElementJs(nums, val) {
-  let k = 0; // val 以外の値を書き込む位置
+    let k = 0; // val 以外の値を書き込む位置
 
-  for (let i = 0; i < nums.length; i++) {
-    if (nums[i] !== val) {
-      nums[k] = nums[i]; // val でない場合、前方に詰める
-      k++;
+    for (let i = 0; i < nums.length; i++) {
+        if (nums[i] !== val) {
+            nums[k] = nums[i]; // val でない場合、前方に詰める
+            k++;
+        }
     }
-  }
 
-  // nums の k 以降の値は問題により重要ではない（そのままでOK）
-  return k;
+    // nums の k 以降の値は問題により重要ではない（そのままでOK）
+    return k;
 }
 // ```
 
@@ -37,7 +37,7 @@ function removeElementJs(nums, val) {
 
 // const k = removeElement(nums, val);
 // console.log("k:", k); // 出力: 5
-// console.log("modified nums (first k elements):", nums.slice(0, k)); 
+// console.log("modified nums (first k elements):", nums.slice(0, k));
 // 出力例: [0,1,3,0,4] のような順不同の val ≠ 2 の要素たち
 // ```
 

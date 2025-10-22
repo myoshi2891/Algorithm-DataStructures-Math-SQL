@@ -65,13 +65,13 @@ import { performance } from 'perf_hooks';
 
 /** 単方向連結リストのノード */
 export class ListNode {
-  public val: number;
-  public next: ListNode | null;
+    public val: number;
+    public next: ListNode | null;
 
-  constructor(val: number = 0, next: ListNode | null = null) {
-    this.val = val;
-    this.next = next;
-  }
+    constructor(val: number = 0, next: ListNode | null = null) {
+        this.val = val;
+        this.next = next;
+    }
 }
 
 /**
@@ -83,42 +83,42 @@ export class ListNode {
  * @complexity Time: O(n), Space: O(1)
  */
 export function rotateRight(head: ListNode | null, k: number): ListNode | null {
-  // 実行時型ガード
-  if (head !== null && !(head instanceof ListNode)) {
-    throw new TypeError('head must be ListNode or null');
-  }
-  if (typeof k !== 'number' || !Number.isFinite(k) || k < 0) {
-    throw new TypeError('k must be a non-negative finite number');
-  }
+    // 実行時型ガード
+    if (head !== null && !(head instanceof ListNode)) {
+        throw new TypeError('head must be ListNode or null');
+    }
+    if (typeof k !== 'number' || !Number.isFinite(k) || k < 0) {
+        throw new TypeError('k must be a non-negative finite number');
+    }
 
-  if (head === null || head.next === null || k === 0) return head;
+    if (head === null || head.next === null || k === 0) return head;
 
-  // 長さ n と tail を取得
-  let n = 1;
-  let tail: ListNode = head;
-  while (tail.next !== null) {
-    tail = tail.next;
-    n++;
-  }
+    // 長さ n と tail を取得
+    let n = 1;
+    let tail: ListNode = head;
+    while (tail.next !== null) {
+        tail = tail.next;
+        n++;
+    }
 
-  const shift = k % n;
-  if (shift === 0) return head;
+    const shift = k % n;
+    if (shift === 0) return head;
 
-  // 環状化
-  tail.next = head;
+    // 環状化
+    tail.next = head;
 
-  // 新しい tail は (n - shift - 1) ステップ先
-  let steps = n - shift - 1;
-  let newTail: ListNode = head;
-  while (steps > 0) {
-    // steps は n<=1e6 程度想定、ループで十分
-    newTail = newTail.next as ListNode;
-    steps--;
-  }
+    // 新しい tail は (n - shift - 1) ステップ先
+    let steps = n - shift - 1;
+    let newTail: ListNode = head;
+    while (steps > 0) {
+        // steps は n<=1e6 程度想定、ループで十分
+        newTail = newTail.next as ListNode;
+        steps--;
+    }
 
-  const newHead = newTail.next as ListNode;
-  newTail.next = null; // 環を切断
-  return newHead;
+    const newHead = newTail.next as ListNode;
+    newTail.next = null; // 環を切断
+    return newHead;
 }
 
 /* ===========================
@@ -127,29 +127,29 @@ export function rotateRight(head: ListNode | null, k: number): ListNode | null {
 
 /** 配列から連結リストを構築（テスト補助） */
 export function buildList(nums: readonly number[]): ListNode | null {
-  if (!Array.isArray(nums)) {
-    throw new TypeError('nums must be an array');
-  }
-  if (nums.length === 0) return null;
-  let head: ListNode = new ListNode(nums[0]);
-  let cur = head;
-  for (let i = 1; i < nums.length; i++) {
-    const node = new ListNode(nums[i]);
-    cur.next = node;
-    cur = node;
-  }
-  return head;
+    if (!Array.isArray(nums)) {
+        throw new TypeError('nums must be an array');
+    }
+    if (nums.length === 0) return null;
+    let head: ListNode = new ListNode(nums[0]);
+    let cur = head;
+    for (let i = 1; i < nums.length; i++) {
+        const node = new ListNode(nums[i]);
+        cur.next = node;
+        cur = node;
+    }
+    return head;
 }
 
 /** 連結リストを配列へ（テスト補助） */
 export function listToArray(head: ListNode | null): number[] {
-  const out: number[] = [];
-  let cur = head;
-  while (cur !== null) {
-    out.push(cur.val);
-    cur = cur.next;
-  }
-  return out;
+    const out: number[] = [];
+    let cur = head;
+    while (cur !== null) {
+        out.push(cur.val);
+        cur = cur.next;
+    }
+    return out;
 }
 
 /* ===========================
@@ -157,50 +157,44 @@ export function listToArray(head: ListNode | null): number[] {
  * =========================== */
 
 export interface BenchmarkResult {
-  readonly avg: string;
-  readonly min: string;
-  readonly max: string;
+    readonly avg: string;
+    readonly min: string;
+    readonly max: string;
 }
 
-export function measureTime<T extends unknown[], R>(
-  fn: (...args: T) => R,
-  ...args: T
-): R {
-  const start = performance.now();
-  const result = fn(...args);
-  const end = performance.now();
-  console.log(`実行時間: ${(end - start).toFixed(3)}ms`);
-  return result;
+export function measureTime<T extends unknown[], R>(fn: (...args: T) => R, ...args: T): R {
+    const start = performance.now();
+    const result = fn(...args);
+    const end = performance.now();
+    console.log(`実行時間: ${(end - start).toFixed(3)}ms`);
+    return result;
 }
 
-export function measureMemory<T extends unknown[], R>(
-  fn: (...args: T) => R,
-  ...args: T
-): R {
-  const before = process.memoryUsage();
-  const result = fn(...args);
-  const after = process.memoryUsage();
-  const heapDiffMB = (after.heapUsed - before.heapUsed) / 1024 / 1024;
-  console.log(`ヒープ使用量差分: ${heapDiffMB.toFixed(3)}MB`);
-  return result;
+export function measureMemory<T extends unknown[], R>(fn: (...args: T) => R, ...args: T): R {
+    const before = process.memoryUsage();
+    const result = fn(...args);
+    const after = process.memoryUsage();
+    const heapDiffMB = (after.heapUsed - before.heapUsed) / 1024 / 1024;
+    console.log(`ヒープ使用量差分: ${heapDiffMB.toFixed(3)}MB`);
+    return result;
 }
 
 export function benchmark<T extends unknown[]>(
-  fn: (...args: T) => unknown,
-  args: T,
-  iterations: number = 100
+    fn: (...args: T) => unknown,
+    args: T,
+    iterations: number = 100,
 ): BenchmarkResult {
-  const times: number[] = [];
-  for (let i = 0; i < iterations; i++) {
-    const start = performance.now();
-    fn(...args);
-    const end = performance.now();
-    times.push(end - start);
-  }
-  const avg = times.reduce((a, b) => a + b, 0) / times.length;
-  const min = Math.min(...times);
-  const max = Math.max(...times);
-  return { avg: avg.toFixed(3), min: min.toFixed(3), max: max.toFixed(3) };
+    const times: number[] = [];
+    for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        fn(...args);
+        const end = performance.now();
+        times.push(end - start);
+    }
+    const avg = times.reduce((a, b) => a + b, 0) / times.length;
+    const min = Math.min(...times);
+    const max = Math.max(...times);
+    return { avg: avg.toFixed(3), min: min.toFixed(3), max: max.toFixed(3) };
 }
 
 /* ===========================
@@ -208,71 +202,71 @@ export function benchmark<T extends unknown[]>(
  * =========================== */
 
 function runBasicTests(): void {
-  console.log('=== 基本テスト ===');
-  assert.deepStrictEqual(
-    listToArray(rotateRight(buildList([1, 2, 3, 4, 5]), 2)),
-    [4, 5, 1, 2, 3],
-    'Example 1'
-  );
-  assert.deepStrictEqual(
-    listToArray(rotateRight(buildList([0, 1, 2]), 4)),
-    [2, 0, 1],
-    'Example 2'
-  );
-  console.log('✅ 基本テスト通過');
+    console.log('=== 基本テスト ===');
+    assert.deepStrictEqual(
+        listToArray(rotateRight(buildList([1, 2, 3, 4, 5]), 2)),
+        [4, 5, 1, 2, 3],
+        'Example 1',
+    );
+    assert.deepStrictEqual(
+        listToArray(rotateRight(buildList([0, 1, 2]), 4)),
+        [2, 0, 1],
+        'Example 2',
+    );
+    console.log('✅ 基本テスト通過');
 }
 
 function runBoundaryTests(): void {
-  console.log('=== 境界値テスト ===');
-  // 空
-  assert.deepStrictEqual(listToArray(rotateRight(buildList([]), 10)), []);
-  // 単一要素
-  assert.deepStrictEqual(listToArray(rotateRight(buildList([42]), 999)), [42]);
-  // k=0
-  assert.deepStrictEqual(listToArray(rotateRight(buildList([1, 2, 3]), 0)), [1, 2, 3]);
-  // k が n の倍数
-  assert.deepStrictEqual(listToArray(rotateRight(buildList([1, 2, 3]), 3)), [1, 2, 3]);
-  console.log('✅ 境界値テスト通過');
+    console.log('=== 境界値テスト ===');
+    // 空
+    assert.deepStrictEqual(listToArray(rotateRight(buildList([]), 10)), []);
+    // 単一要素
+    assert.deepStrictEqual(listToArray(rotateRight(buildList([42]), 999)), [42]);
+    // k=0
+    assert.deepStrictEqual(listToArray(rotateRight(buildList([1, 2, 3]), 0)), [1, 2, 3]);
+    // k が n の倍数
+    assert.deepStrictEqual(listToArray(rotateRight(buildList([1, 2, 3]), 3)), [1, 2, 3]);
+    console.log('✅ 境界値テスト通過');
 }
 
 function runErrorTests(): void {
-  console.log('=== エラーケーステスト ===');
-  // 型不正
-  assert.throws(() => rotateRight('invalid' as any, 1), TypeError);
-  assert.throws(() => rotateRight(buildList([1, 2, 3]), -1), TypeError);
-  // head 型不正（オブジェクトだが ListNode でない）
-  assert.throws(() => rotateRight({} as any, 0), TypeError);
-  console.log('✅ エラーケーステスト通過');
+    console.log('=== エラーケーステスト ===');
+    // 型不正
+    assert.throws(() => rotateRight('invalid' as any, 1), TypeError);
+    assert.throws(() => rotateRight(buildList([1, 2, 3]), -1), TypeError);
+    // head 型不正（オブジェクトだが ListNode でない）
+    assert.throws(() => rotateRight({} as any, 0), TypeError);
+    console.log('✅ エラーケーステスト通過');
 }
 
 function runPerformanceTests(): void {
-  console.log('=== 大規模データテスト ===');
-  const sizes = [1_000, 10_000, 100_000] as const;
-  for (const size of sizes) {
-    const data = Array.from({ length: size }, (_, i) => i);
-    const head = buildList(data);
-    const start = performance.now();
-    const result = rotateRight(head, 123_456_789);
-    const end = performance.now();
-    const elapsed = end - start;
-    assert(elapsed < 1000, `タイムアウト制約違反 (${size}要素: ${elapsed}ms)`);
-    // 軽い整合性チェック（長さ保持）
-    assert.strictEqual(listToArray(result).length, size);
-    console.log(`✅ サイズ${size}: ${elapsed.toFixed(3)}ms`);
-  }
+    console.log('=== 大規模データテスト ===');
+    const sizes = [1_000, 10_000, 100_000] as const;
+    for (const size of sizes) {
+        const data = Array.from({ length: size }, (_, i) => i);
+        const head = buildList(data);
+        const start = performance.now();
+        const result = rotateRight(head, 123_456_789);
+        const end = performance.now();
+        const elapsed = end - start;
+        assert(elapsed < 1000, `タイムアウト制約違反 (${size}要素: ${elapsed}ms)`);
+        // 軽い整合性チェック（長さ保持）
+        assert.strictEqual(listToArray(result).length, size);
+        console.log(`✅ サイズ${size}: ${elapsed.toFixed(3)}ms`);
+    }
 }
 
 export function runAllTests(): void {
-  try {
-    runBasicTests();
-    runBoundaryTests();
-    runErrorTests();
-    runPerformanceTests();
-    console.log('\n🎉 全テストケース成功');
-  } catch (e) {
-    console.error('❌ テスト失敗:', (e as Error).message);
-    process.exit(1);
-  }
+    try {
+        runBasicTests();
+        runBoundaryTests();
+        runErrorTests();
+        runPerformanceTests();
+        console.log('\n🎉 全テストケース成功');
+    } catch (e) {
+        console.error('❌ テスト失敗:', (e as Error).message);
+        process.exit(1);
+    }
 }
 
 /* ===========================

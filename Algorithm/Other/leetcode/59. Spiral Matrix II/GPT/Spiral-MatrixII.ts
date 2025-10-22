@@ -12,11 +12,11 @@ function generateMatrix(n: number): number[][] {
     // n x n の空の行列を作成
     const matrix: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
 
-    let num: number = 1;       // 入れる値
-    let left: number = 0;      // 左境界
+    let num: number = 1; // 入れる値
+    let left: number = 0; // 左境界
     let right: number = n - 1; // 右境界
-    let top: number = 0;       // 上境界
-    let bottom: number = n - 1;// 下境界
+    let top: number = 0; // 上境界
+    let bottom: number = n - 1; // 下境界
 
     // 全セルを埋めるまでループ
     while (left <= right && top <= bottom) {

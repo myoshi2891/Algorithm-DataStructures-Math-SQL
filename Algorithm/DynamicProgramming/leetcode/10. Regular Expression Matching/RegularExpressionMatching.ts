@@ -24,8 +24,8 @@ const fs = require('fs');
 
 // 入力読み込み
 const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-const s = input[0];  // 入力文字列 s
-const p = input[1];  // パターン文字列 p
+const s = input[0]; // 入力文字列 s
+const p = input[1]; // パターン文字列 p
 
 function isMatch(s, p) {
     const m = s.length;

@@ -69,12 +69,12 @@ flowchart TD
 
 - 推奨インデックス（存在しない場合）
 
-  ```sql
-  CREATE INDEX idx_employee_managerId ON Employee(managerId);
-  -- id は主キー前提（PRIMARY KEY）で OK
-  ```
+    ```sql
+    CREATE INDEX idx_employee_managerId ON Employee(managerId);
+    -- id は主キー前提（PRIMARY KEY）で OK
+    ```
 
-  - `e.managerId = m.id` の結合に効きます。
+    - `e.managerId = m.id` の結合に効きます。
 
 - 計算量の目安：インデックスがあれば `O(n)` 相当（片側ルックアップ）。
 - 行数が多い場合は `EXPLAIN` で実行計画を確認しましょう。

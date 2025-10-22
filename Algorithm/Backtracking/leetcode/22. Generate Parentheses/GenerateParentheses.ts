@@ -30,15 +30,15 @@ function generateParenthesis(n: number): string[] {
         }
 
         if (open > 0) {
-            backtrack(current + "(", open - 1, close);
+            backtrack(current + '(', open - 1, close);
         }
 
         if (close > open) {
-            backtrack(current + ")", open, close - 1);
+            backtrack(current + ')', open, close - 1);
         }
     }
 
-    backtrack("", n, n);
+    backtrack('', n, n);
 
     return result;
 }

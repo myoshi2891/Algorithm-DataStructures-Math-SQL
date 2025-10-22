@@ -73,4 +73,3 @@ function nextPermutation(nums: number[]): void {
 
 // * **O(n)** で最大 100 要素まで高速に処理
 // * **O(1)** 追加メモリで in-place 処理
-

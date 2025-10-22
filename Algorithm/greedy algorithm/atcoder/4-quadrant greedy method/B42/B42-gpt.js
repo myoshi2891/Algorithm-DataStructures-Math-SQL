@@ -318,7 +318,8 @@ function maxScoreAccurate(cards) {
     ];
 
     for (const [sa, sb] of signs) {
-        let sumA = 0, sumB = 0;
+        let sumA = 0,
+            sumB = 0;
         for (const [a, b] of cards) {
             const va = sa * a;
             const vb = sb * b;
@@ -338,7 +339,7 @@ function maxScoreAccurate(cards) {
 function main() {
     const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
     const N = Number(input[0]);
-    const cards = input.slice(1).map(line => line.split(' ').map(Number));
+    const cards = input.slice(1).map((line) => line.split(' ').map(Number));
 
     const result = maxScoreAccurate(cards);
     console.log(result);

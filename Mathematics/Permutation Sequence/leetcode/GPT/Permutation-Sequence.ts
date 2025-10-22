@@ -25,7 +25,7 @@ function getPermutation(n: number, k: number): string {
     // k を 0-indexed に変換
     k--;
 
-    let result = "";
+    let result = '';
 
     // 各桁を決定
     for (let i = n; i >= 1; i--) {
@@ -37,4 +37,3 @@ function getPermutation(n: number, k: number): string {
 
     return result;
 }
-

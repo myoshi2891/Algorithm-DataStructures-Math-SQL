@@ -6,16 +6,16 @@
 // ```typescript
 // TypeScript 5.1 / Node.js 18.16.1
 // fs を用いて高速入出力を行う
-import * as fs from "fs";
+import * as fs from 'fs';
 
-const input: number[] = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+const input: number[] = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 
 /**
  * 条件を満たす (i, j) の組数を数える関数
  * @param N - 配列の要素数
  * @param arr - 整数配列 A1...AN
  * @returns 条件を満たす (i, j) の組数
- * 
+ *
  * 時間計算量: O(N)
  * 空間計算量: O(U) (Uは配列内の異なる値の数、最大でN)
  */

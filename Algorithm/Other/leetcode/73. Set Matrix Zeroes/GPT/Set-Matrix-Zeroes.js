@@ -55,7 +55,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * LeetCode形式: Set Matrix Zeroes
@@ -66,81 +66,81 @@
  * @complexity 時間 O(mn), 空間 O(1)
  */
 var setZeroes = function (matrix) {
-  // --- 入力検証 ---
-  if (!Array.isArray(matrix)) {
-    throw new TypeError("Input must be a 2D array");
-  }
-  const m = matrix.length;
-  if (m === 0) return;
-  if (m > 200) throw new RangeError("Row size exceeds 200");
-  const n = matrix[0].length;
-  if (n === 0) return;
-  if (n > 200) throw new RangeError("Column size exceeds 200");
-
-  for (let i = 0; i < m; i++) {
-    if (!Array.isArray(matrix[i]) || matrix[i].length !== n) {
-      throw new TypeError("Input must be a well-formed 2D array");
+    // --- 入力検証 ---
+    if (!Array.isArray(matrix)) {
+        throw new TypeError('Input must be a 2D array');
     }
-    for (let j = 0; j < n; j++) {
-      const v = matrix[i][j];
-      if (typeof v !== "number" || !Number.isFinite(v)) {
-        throw new TypeError("Matrix must contain finite numbers");
-      }
-    }
-  }
+    const m = matrix.length;
+    if (m === 0) return;
+    if (m > 200) throw new RangeError('Row size exceeds 200');
+    const n = matrix[0].length;
+    if (n === 0) return;
+    if (n > 200) throw new RangeError('Column size exceeds 200');
 
-  // --- 本処理 ---
-  let firstRowZero = false;
-  let firstColZero = false;
-
-  // 1列目にゼロがあるか
-  for (let i = 0; i < m; i++) {
-    if (matrix[i][0] === 0) {
-      firstColZero = true;
-      break;
-    }
-  }
-
-  // 1行目にゼロがあるか
-  for (let j = 0; j < n; j++) {
-    if (matrix[0][j] === 0) {
-      firstRowZero = true;
-      break;
-    }
-  }
-
-  // マーキング
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      if (matrix[i][j] === 0) {
-        matrix[i][0] = 0;
-        matrix[0][j] = 0;
-      }
-    }
-  }
-
-  // 内部をゼロ化
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      if (matrix[i][0] === 0 || matrix[0][j] === 0) {
-        matrix[i][j] = 0;
-      }
-    }
-  }
-
-  // 1列目
-  if (firstColZero) {
     for (let i = 0; i < m; i++) {
-      matrix[i][0] = 0;
+        if (!Array.isArray(matrix[i]) || matrix[i].length !== n) {
+            throw new TypeError('Input must be a well-formed 2D array');
+        }
+        for (let j = 0; j < n; j++) {
+            const v = matrix[i][j];
+            if (typeof v !== 'number' || !Number.isFinite(v)) {
+                throw new TypeError('Matrix must contain finite numbers');
+            }
+        }
     }
-  }
 
-  // 1行目
-  if (firstRowZero) {
-    for (let j = 0; j < n; j++) {
-      matrix[0][j] = 0;
+    // --- 本処理 ---
+    let firstRowZero = false;
+    let firstColZero = false;
+
+    // 1列目にゼロがあるか
+    for (let i = 0; i < m; i++) {
+        if (matrix[i][0] === 0) {
+            firstColZero = true;
+            break;
+        }
     }
-  }
+
+    // 1行目にゼロがあるか
+    for (let j = 0; j < n; j++) {
+        if (matrix[0][j] === 0) {
+            firstRowZero = true;
+            break;
+        }
+    }
+
+    // マーキング
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][j] === 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+
+    // 内部をゼロ化
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][0] === 0 || matrix[0][j] === 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+
+    // 1列目
+    if (firstColZero) {
+        for (let i = 0; i < m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+
+    // 1行目
+    if (firstRowZero) {
+        for (let j = 0; j < n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
 };
 
 module.exports = { setZeroes };

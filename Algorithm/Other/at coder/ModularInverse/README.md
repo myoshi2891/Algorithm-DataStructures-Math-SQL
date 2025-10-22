@@ -19,7 +19,7 @@ a = 3 の逆元を探す → 3 \* x ≡ 1 (mod 7)
 
 試してみると：
 
-* 3 × 5 = 15 ≡ 1 (mod 7)
+- 3 × 5 = 15 ≡ 1 (mod 7)
 
 なので `3⁻¹ ≡ 5 (mod 7)`
 
@@ -69,20 +69,20 @@ a⁻¹ ≡ a^(M-2) (mod M)
 
 ```javascript
 function modInverse(a, mod) {
-  return modPow(a, mod - 2, mod); // フェルマーの小定理
+    return modPow(a, mod - 2, mod); // フェルマーの小定理
 }
 
 function modPow(a, b, mod) {
-  let res = 1n;
-  a = BigInt(a);
-  b = BigInt(b);
-  mod = BigInt(mod);
-  while (b > 0) {
-    if (b % 2n === 1n) res = (res * a) % mod;
-    a = (a * a) % mod;
-    b = b / 2n;
-  }
-  return res;
+    let res = 1n;
+    a = BigInt(a);
+    b = BigInt(b);
+    mod = BigInt(mod);
+    while (b > 0) {
+        if (b % 2n === 1n) res = (res * a) % mod;
+        a = (a * a) % mod;
+        b = b / 2n;
+    }
+    return res;
 }
 ```
 
@@ -90,18 +90,18 @@ function modPow(a, b, mod) {
 
 ## ✅ 5. 注意点
 
-* **M は必ず素数である必要があります！**
+- **M は必ず素数である必要があります！**
   フェルマーの小定理は「M が素数」という前提で成り立っています。
-* M が素数でない場合は「拡張ユークリッドの互除法」で逆元を求める必要があります。
+- M が素数でない場合は「拡張ユークリッドの互除法」で逆元を求める必要があります。
 
 ---
 
 ## ✅ まとめ
 
-| 用語        | 内容                               |
-| --------- | -------------------------------- |
-| モジュロ逆元    | a \* a⁻¹ ≡ 1 mod M を満たす整数        |
-| フェルマーの小定理 | M が素数なら、a^(M-1) ≡ 1 mod M        |
-| 逆元の求め方    | a⁻¹ ≡ a^(M-2) mod M （M が素数のときのみ） |
+| 用語               | 内容                                       |
+| ------------------ | ------------------------------------------ |
+| モジュロ逆元       | a \* a⁻¹ ≡ 1 mod M を満たす整数            |
+| フェルマーの小定理 | M が素数なら、a^(M-1) ≡ 1 mod M            |
+| 逆元の求め方       | a⁻¹ ≡ a^(M-2) mod M （M が素数のときのみ） |
 
 ---

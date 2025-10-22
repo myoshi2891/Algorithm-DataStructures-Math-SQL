@@ -19,21 +19,21 @@
  * @param {string} s - 英字とスペースで構成された文字列
  * @return {number} - 最後の単語の長さ
  */
-var lengthOfLastWord = function(s) {
+var lengthOfLastWord = function (s) {
     // 文字列の末尾から開始して、スペースをスキップ
     let i = s.length - 1;
-    
+
     // 末尾のスペースをスキップ
     while (i >= 0 && s[i] === ' ') {
         i--;
     }
-    
+
     // 最後の単語の長さをカウント
     let length = 0;
     while (i >= 0 && s[i] !== ' ') {
         length++;
         i--;
     }
-    
+
     return length;
 };

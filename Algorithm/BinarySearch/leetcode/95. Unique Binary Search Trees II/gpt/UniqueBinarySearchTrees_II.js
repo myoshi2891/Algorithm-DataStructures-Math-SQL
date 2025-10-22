@@ -60,7 +60,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 // Module: CommonJS（指定がない場合の既定に従う）
 // Node.js v18+, 外部ライブラリ不使用
 
@@ -69,16 +69,16 @@
  * Hidden Class 安定化のため、コンストラクタでプロパティを固定順に定義。
  */
 class TreeNode {
-  /**
-   * @param {number} val
-   * @param {TreeNode|null} [left=null]
-   * @param {TreeNode|null} [right=null]
-   */
-  constructor(val, left = null, right = null) {
-    this.val = val; // 1st
-    this.left = left; // 2nd
-    this.right = right; // 3rd
-  }
+    /**
+     * @param {number} val
+     * @param {TreeNode|null} [left=null]
+     * @param {TreeNode|null} [right=null]
+     */
+    constructor(val, left = null, right = null) {
+        this.val = val; // 1st
+        this.left = left; // 2nd
+        this.right = right; // 3rd
+    }
 }
 
 /**
@@ -97,61 +97,61 @@ class TreeNode {
  * // console.log(generateTrees(3).length); // 5
  */
 function generateTrees(n) {
-  // ---- 入力検証（早期・軽量）----
-  if (typeof n !== "number" || Number.isNaN(n)) {
-    throw new TypeError("n must be a number");
-  }
-  if (!Number.isInteger(n)) {
-    throw new TypeError("n must be an integer");
-  }
-  if (n < 0 || n > 8) {
-    throw new RangeError("n must satisfy 0 <= n <= 8");
-  }
-
-  // 仕様上 1 <= n だが、防御的に n===0 は空配列を返す
-  if (n === 0) return [];
-
-  // ---- メモ化: key は "l,r" ----
-  /** @type {Map<string, TreeNode[]>} */
-  const memo = new Map();
-
-  /**
-   * 区間 [l, r] の全BST根を列挙
-   * @param {number} l
-   * @param {number} r
-   * @returns {TreeNode[]} roots
-   */
-  function build(l, r) {
-    if (l > r) {
-      // 空部分木は「null 一通り」
-      return [null];
+    // ---- 入力検証（早期・軽量）----
+    if (typeof n !== 'number' || Number.isNaN(n)) {
+        throw new TypeError('n must be a number');
     }
-    const key = l + "," + r;
-    const cached = memo.get(key);
-    if (cached !== undefined) return cached;
+    if (!Number.isInteger(n)) {
+        throw new TypeError('n must be an integer');
+    }
+    if (n < 0 || n > 8) {
+        throw new RangeError('n must satisfy 0 <= n <= 8');
+    }
 
-    /** @type {TreeNode[]} */
-    const res = [];
-    // ループは素朴な for（V8 に優しい）
-    for (let rootVal = l; rootVal <= r; rootVal++) {
-      const leftTrees = build(l, rootVal - 1);
-      const rightTrees = build(rootVal + 1, r);
+    // 仕様上 1 <= n だが、防御的に n===0 は空配列を返す
+    if (n === 0) return [];
 
-      // 直積で全組合せ
-      for (let i = 0; i < leftTrees.length; i++) {
-        const left = leftTrees[i];
-        for (let j = 0; j < rightTrees.length; j++) {
-          const right = rightTrees[j];
-          // 新規ノードを生成（参照共有はしない）
-          res.push(new TreeNode(rootVal, left, right));
+    // ---- メモ化: key は "l,r" ----
+    /** @type {Map<string, TreeNode[]>} */
+    const memo = new Map();
+
+    /**
+     * 区間 [l, r] の全BST根を列挙
+     * @param {number} l
+     * @param {number} r
+     * @returns {TreeNode[]} roots
+     */
+    function build(l, r) {
+        if (l > r) {
+            // 空部分木は「null 一通り」
+            return [null];
         }
-      }
-    }
-    memo.set(key, res);
-    return res;
-  }
+        const key = l + ',' + r;
+        const cached = memo.get(key);
+        if (cached !== undefined) return cached;
 
-  return build(1, n);
+        /** @type {TreeNode[]} */
+        const res = [];
+        // ループは素朴な for（V8 に優しい）
+        for (let rootVal = l; rootVal <= r; rootVal++) {
+            const leftTrees = build(l, rootVal - 1);
+            const rightTrees = build(rootVal + 1, r);
+
+            // 直積で全組合せ
+            for (let i = 0; i < leftTrees.length; i++) {
+                const left = leftTrees[i];
+                for (let j = 0; j < rightTrees.length; j++) {
+                    const right = rightTrees[j];
+                    // 新規ノードを生成（参照共有はしない）
+                    res.push(new TreeNode(rootVal, left, right));
+                }
+            }
+        }
+        memo.set(key, res);
+        return res;
+    }
+
+    return build(1, n);
 }
 
 module.exports = { generateTrees, TreeNode };

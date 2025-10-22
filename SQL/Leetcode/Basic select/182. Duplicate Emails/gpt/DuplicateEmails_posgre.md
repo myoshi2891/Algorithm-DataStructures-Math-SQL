@@ -101,10 +101,10 @@ Beats
 
 - 大量データなら `email` に B-Tree インデックスが有効（集約・結合キーのため）。
 
-  ```sql
-  -- オンライン作成（本番系は CONCURRENTLY が安全）
-  CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_person_email ON Person(email);
-  ```
+    ```sql
+    -- オンライン作成（本番系は CONCURRENTLY が安全）
+    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_person_email ON Person(email);
+    ```
 
 - 今回のオンライン判定環境では DDL は不要。提出は **標準解のみ** で OK。
 - 問題文より「email は小文字・NULL なし」なのでケース変換や `IS NOT NULL` は不要。

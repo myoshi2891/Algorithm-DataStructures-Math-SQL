@@ -66,7 +66,7 @@
 // # 4. コード実装
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * LeetCode形式の解答関数
@@ -78,43 +78,39 @@
  * @complexity 時間計算量 O(n), 空間計算量 O(n)
  */
 var fullJustify = function (words, maxWidth) {
-  // --- 入力検証 ---
-  if (!Array.isArray(words)) throw new TypeError("words must be an array");
-  if (
-    typeof maxWidth !== "number" ||
-    !Number.isInteger(maxWidth) ||
-    maxWidth <= 0
-  ) {
-    throw new TypeError("maxWidth must be a positive integer");
-  }
-  if (maxWidth > 100) throw new RangeError("maxWidth exceeds constraint 100");
-  for (let i = 0; i < words.length; i++) {
-    if (typeof words[i] !== "string") {
-      throw new TypeError("Each word must be a string");
+    // --- 入力検証 ---
+    if (!Array.isArray(words)) throw new TypeError('words must be an array');
+    if (typeof maxWidth !== 'number' || !Number.isInteger(maxWidth) || maxWidth <= 0) {
+        throw new TypeError('maxWidth must be a positive integer');
     }
-    if (words[i].length > maxWidth) {
-      throw new RangeError("A word length exceeds maxWidth");
+    if (maxWidth > 100) throw new RangeError('maxWidth exceeds constraint 100');
+    for (let i = 0; i < words.length; i++) {
+        if (typeof words[i] !== 'string') {
+            throw new TypeError('Each word must be a string');
+        }
+        if (words[i].length > maxWidth) {
+            throw new RangeError('A word length exceeds maxWidth');
+        }
     }
-  }
 
-  const res = [];
-  let line = [];
-  let lineLen = 0;
+    const res = [];
+    let line = [];
+    let lineLen = 0;
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    // この単語を追加した場合にスペース含め超過するか
-    if (lineLen + line.length + word.length > maxWidth) {
-      res.push(buildLine(line, lineLen, maxWidth, false));
-      line = [];
-      lineLen = 0;
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        // この単語を追加した場合にスペース含め超過するか
+        if (lineLen + line.length + word.length > maxWidth) {
+            res.push(buildLine(line, lineLen, maxWidth, false));
+            line = [];
+            lineLen = 0;
+        }
+        line.push(word);
+        lineLen += word.length;
     }
-    line.push(word);
-    lineLen += word.length;
-  }
-  // 最終行は左寄せ
-  res.push(buildLine(line, lineLen, maxWidth, true));
-  return res;
+    // 最終行は左寄せ
+    res.push(buildLine(line, lineLen, maxWidth, true));
+    return res;
 };
 
 /**
@@ -126,26 +122,26 @@ var fullJustify = function (words, maxWidth) {
  * @returns {string} - 完成行
  */
 function buildLine(line, lineLen, maxWidth, isLast) {
-  const n = line.length;
-  if (n === 1 || isLast) {
-    // 単語間にスペース1個で結合し、右端を埋める
-    const joined = line.join(" ");
-    return joined + " ".repeat(maxWidth - joined.length);
-  }
+    const n = line.length;
+    if (n === 1 || isLast) {
+        // 単語間にスペース1個で結合し、右端を埋める
+        const joined = line.join(' ');
+        return joined + ' '.repeat(maxWidth - joined.length);
+    }
 
-  // 均等分配
-  const totalSpaces = maxWidth - lineLen;
-  const spaceEach = Math.floor(totalSpaces / (n - 1));
-  let extra = totalSpaces % (n - 1);
+    // 均等分配
+    const totalSpaces = maxWidth - lineLen;
+    const spaceEach = Math.floor(totalSpaces / (n - 1));
+    let extra = totalSpaces % (n - 1);
 
-  let res = "";
-  for (let i = 0; i < n - 1; i++) {
-    res += line[i];
-    res += " ".repeat(spaceEach + (extra > 0 ? 1 : 0));
-    if (extra > 0) extra--;
-  }
-  res += line[n - 1];
-  return res;
+    let res = '';
+    for (let i = 0; i < n - 1; i++) {
+        res += line[i];
+        res += ' '.repeat(spaceEach + (extra > 0 ? 1 : 0));
+        if (extra > 0) extra--;
+    }
+    res += line[n - 1];
+    return res;
 }
 
 module.exports = { fullJustify };

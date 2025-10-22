@@ -22,7 +22,7 @@
  * 最大部分配列の和を求める関数（Kadane's Algorithm）
  * @param nums - 整数配列
  * @returns 最大部分配列の和
- * 
+ *
  * 時間計算量: O(n)
  * 空間計算量: O(1)
  */
@@ -31,17 +31,17 @@ function maxSubArray(nums: number[]): number {
     let currentSum: number = nums[0];
     // これまでに見つけた最大の部分配列の和
     let maxSum: number = nums[0];
-    
+
     // 配列の2番目の要素から開始
     for (let i = 1; i < nums.length; i++) {
         // 現在の要素から新しく開始するか、既存の部分配列に追加するかを選択
         // より大きい値を選ぶ
         currentSum = Math.max(nums[i], currentSum + nums[i]);
-        
+
         // 最大和を更新
         maxSum = Math.max(maxSum, currentSum);
     }
-    
+
     return maxSum;
 }
 
@@ -49,7 +49,7 @@ function maxSubArray(nums: number[]): number {
  * 最大部分配列の和を求める関数（分割統治法）
  * @param nums - 整数配列
  * @returns 最大部分配列の和
- * 
+ *
  * 時間計算量: O(n log n)
  * 空間計算量: O(log n) - 再帰呼び出しのスタック
  */
@@ -66,16 +66,16 @@ function maxSubArrayDivideConquer(nums: number[]): number {
         if (left === right) {
             return nums[left];
         }
-        
+
         // 中点を計算（ビット演算で高速化）
         const mid: number = left + ((right - left) >> 1);
-        
+
         // 左半分の最大部分配列の和
         const leftMax: number = divideConquer(nums, left, mid);
-        
+
         // 右半分の最大部分配列の和
         const rightMax: number = divideConquer(nums, mid + 1, right);
-        
+
         // 中点をまたぐ最大部分配列の和を計算
         let leftSum: number = Number.NEGATIVE_INFINITY;
         let sum: number = 0;
@@ -83,20 +83,20 @@ function maxSubArrayDivideConquer(nums: number[]): number {
             sum += nums[i];
             leftSum = Math.max(leftSum, sum);
         }
-        
+
         let rightSum: number = Number.NEGATIVE_INFINITY;
         sum = 0;
         for (let i = mid + 1; i <= right; i++) {
             sum += nums[i];
             rightSum = Math.max(rightSum, sum);
         }
-        
+
         const crossSum: number = leftSum + rightSum;
-        
+
         // 3つの候補の中から最大値を返す
         return Math.max(leftMax, rightMax, crossSum);
     }
-    
+
     return divideConquer(nums, 0, nums.length - 1);
 }
 
@@ -104,22 +104,22 @@ function maxSubArrayDivideConquer(nums: number[]): number {
  * 最大部分配列の和を求める関数（メモリ最適化版）
  * @param nums - 整数配列
  * @returns 最大部分配列の和
- * 
+ *
  * 時間計算量: O(n)
  * 空間計算量: O(1)
- * 
+ *
  * LeetCode提出用推奨版：変数宣言を最小化してメモリ使用量をさらに削減
  */
 function maxSubArrayOptimized(nums: number[]): number {
     let maxSum: number = nums[0];
     let currentSum: number = nums[0];
-    
+
     for (let i = 1; i < nums.length; i++) {
         currentSum = currentSum > 0 ? currentSum + nums[i] : nums[i];
         if (currentSum > maxSum) {
             maxSum = currentSum;
         }
     }
-    
+
     return maxSum;
 }

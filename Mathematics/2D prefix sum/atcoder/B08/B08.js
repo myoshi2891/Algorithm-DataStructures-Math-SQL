@@ -20,21 +20,18 @@ const grid = Array.from({ length: gridSize }, () => new Array(gridSize).fill(0))
 
 // 点の入力
 for (let i = 0; i < N; i++) {
-  const [x, y] = input[idx++].split(' ').map(Number);
-  grid[x][y]++;
+    const [x, y] = input[idx++].split(' ').map(Number);
+    grid[x][y]++;
 }
 
 // 2次元累積和を作成
 const prefixSum = Array.from({ length: gridSize }, () => new Array(gridSize).fill(0));
 
 for (let x = 1; x < gridSize; x++) {
-  for (let y = 1; y < gridSize; y++) {
-    prefixSum[x][y] =
-      grid[x][y] +
-      prefixSum[x - 1][y] +
-      prefixSum[x][y - 1] -
-      prefixSum[x - 1][y - 1];
-  }
+    for (let y = 1; y < gridSize; y++) {
+        prefixSum[x][y] =
+            grid[x][y] + prefixSum[x - 1][y] + prefixSum[x][y - 1] - prefixSum[x - 1][y - 1];
+    }
 }
 
 // Q: クエリ数
@@ -44,15 +41,12 @@ const Q = parseInt(input[idx++]);
 const output = [];
 
 for (let i = 0; i < Q; i++) {
-  const [a, b, c, d] = input[idx++].split(' ').map(Number);
+    const [a, b, c, d] = input[idx++].split(' ').map(Number);
 
-  const result =
-    prefixSum[c][d] -
-    prefixSum[a - 1][d] -
-    prefixSum[c][b - 1] +
-    prefixSum[a - 1][b - 1];
+    const result =
+        prefixSum[c][d] - prefixSum[a - 1][d] - prefixSum[c][b - 1] + prefixSum[a - 1][b - 1];
 
-  output.push(result);
+    output.push(result);
 }
 
 // 結果出力

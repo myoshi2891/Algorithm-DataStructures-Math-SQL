@@ -163,9 +163,8 @@ def gameWithCells(n: int, m: int) -> int:
 <h2 id="cpython">CPython 最適化ポイント</h2>
 
 - **整数演算のみ**で完結（`math.ceil` 不要）
-
-  - `ceil(x/2)` の代替として `(x+1)//2` を使用
-  - 依存削減・高速・分岐なし
+    - `ceil(x/2)` の代替として `(x+1)//2` を使用
+    - 依存削減・高速・分岐なし
 
 - **定数時間**・**定数メモリ**でブランチミス最小化
 - ループ・配列確保・関数呼び出しのオーバーヘッド皆無
@@ -175,25 +174,20 @@ def gameWithCells(n: int, m: int) -> int:
 <h2 id="edgecases">エッジケースと検証</h2>
 
 - **最小値**
-
-  - $n=1, m=1 \Rightarrow \lceil 1/2\rceil\cdot \lceil 1/2\rceil = 1$
+    - $n=1, m=1 \Rightarrow \lceil 1/2\rceil\cdot \lceil 1/2\rceil = 1$
 
 - **片側が 1**
-
-  - $n=1, m=5 \Rightarrow 1\cdot 3 = 3$
+    - $n=1, m=5 \Rightarrow 1\cdot 3 = 3$
 
 - **奇偶混在**
-
-  - $n=2, m=3 \Rightarrow 1\cdot 2 = 2$
-  - $n=3, m=4 \Rightarrow 2\cdot 2 = 4$
+    - $n=2, m=3 \Rightarrow 1\cdot 2 = 2$
+    - $n=3, m=4 \Rightarrow 2\cdot 2 = 4$
 
 - **両方奇数**
-
-  - $n=3, m=3 \Rightarrow 2\cdot 2 = 4$
+    - $n=3, m=3 \Rightarrow 2\cdot 2 = 4$
 
 - **大規模**
-
-  - $n, m$ が非常に大きくても任意精度整数で安全、時間 $O(1)$
+    - $n, m$ が非常に大きくても任意精度整数で安全、時間 $O(1)$
 
 ---
 
@@ -201,14 +195,14 @@ def gameWithCells(n: int, m: int) -> int:
 
 - **Q. なぜ $,\lceil nm/4\rceil,$ ではなく $,\lceil n/2\rceil\cdot \lceil m/2\rceil,$ なのか**
 
-  **A.** 下界として $,\lceil nm/4\rceil,$ は妥当だが、端の余り（片側だけ 1 行余る等）で実現不能なケースがある。
-  一方、$,\lceil n/2\rceil\cdot \lceil m/2\rceil,$ は常に構成可能で、下界を満たすため**ちょうど最小**となる。
+    **A.** 下界として $,\lceil nm/4\rceil,$ は妥当だが、端の余り（片側だけ 1 行余る等）で実現不能なケースがある。
+    一方、$,\lceil n/2\rceil\cdot \lceil m/2\rceil,$ は常に構成可能で、下界を満たすため**ちょうど最小**となる。
 
 - **Q. 実装で `math.ceil` を使わない理由**
 
-  **A.** `(x+1)//2` の方が import 不要で速く、I/O ハーネス上でも安定。可読性も十分。
+    **A.** `(x+1)//2` の方が import 不要で速く、I/O ハーネス上でも安定。可読性も十分。
 
 - **Q. 2×2 以外のブロックで考えるとどうなるか**
 
-  **A.** 問題の供給モデル上、1 投下の最大効果が $2\times 2$ である。
-  これより大きいブロックは 1 投下ではカバーできないため意味がない。
+    **A.** 問題の供給モデル上、1 投下の最大効果が $2\times 2$ である。
+    これより大きいブロックは 1 投下ではカバーできないため意味がない。

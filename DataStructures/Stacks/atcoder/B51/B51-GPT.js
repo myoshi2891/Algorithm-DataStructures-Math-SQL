@@ -49,7 +49,7 @@ function findMatchingBrackets(S) {
 function main() {
     const S = fs.readFileSync('/dev/stdin', 'utf8').trim();
     const result = findMatchingBrackets(S);
-    const output = result.map(pair => `${pair[0]} ${pair[1]}`).join('\n');
+    const output = result.map((pair) => `${pair[0]} ${pair[1]}`).join('\n');
     console.log(output);
 }
 

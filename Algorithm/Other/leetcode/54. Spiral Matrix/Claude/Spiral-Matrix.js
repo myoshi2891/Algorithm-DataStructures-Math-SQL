@@ -25,35 +25,35 @@
  * @param {number[][]} matrix - m x n の整数行列
  * @return {number[]} - 螺旋状に読み取った要素の配列
  */
-var spiralOrder = function(matrix) {
+var spiralOrder = function (matrix) {
     // 空の行列チェック
     if (!matrix || matrix.length === 0 || matrix[0].length === 0) {
         return [];
     }
-    
+
     const m = matrix.length;
     const n = matrix[0].length;
     const result = [];
-    
+
     // 境界を定義
     let top = 0;
     let bottom = m - 1;
     let left = 0;
     let right = n - 1;
-    
+
     while (top <= bottom && left <= right) {
         // 上の行を左から右へ
         for (let j = left; j <= right; j++) {
             result.push(matrix[top][j]);
         }
         top++;
-        
+
         // 右の列を上から下へ
         for (let i = top; i <= bottom; i++) {
             result.push(matrix[i][right]);
         }
         right--;
-        
+
         // 下の行を右から左へ（残りの行がある場合）
         if (top <= bottom) {
             for (let j = right; j >= left; j--) {
@@ -61,7 +61,7 @@ var spiralOrder = function(matrix) {
             }
             bottom--;
         }
-        
+
         // 左の列を下から上へ（残りの列がある場合）
         if (left <= right) {
             for (let i = bottom; i >= top; i--) {
@@ -70,6 +70,6 @@ var spiralOrder = function(matrix) {
             left++;
         }
     }
-    
+
     return result;
 };

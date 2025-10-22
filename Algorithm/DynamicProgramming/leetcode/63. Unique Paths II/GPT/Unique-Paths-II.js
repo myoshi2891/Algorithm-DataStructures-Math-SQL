@@ -66,76 +66,103 @@
  * @complexity Time: O(mn), Space: O(n)
  */
 function uniquePathsWithObstacles(obstacleGrid) {
-  // --- 入力検証 ---
-  if (!Array.isArray(obstacleGrid)) throw new TypeError('Input must be a 2D array');
-  const m = obstacleGrid.length;
-  if (m < 1 || m > 100) throw new RangeError('Row count out of range');
-  const n = obstacleGrid[0].length;
-  if (n < 1 || n > 100) throw new RangeError('Column count out of range');
+    // --- 入力検証 ---
+    if (!Array.isArray(obstacleGrid)) throw new TypeError('Input must be a 2D array');
+    const m = obstacleGrid.length;
+    if (m < 1 || m > 100) throw new RangeError('Row count out of range');
+    const n = obstacleGrid[0].length;
+    if (n < 1 || n > 100) throw new RangeError('Column count out of range');
 
-  for (let i = 0; i < m; i++) {
-    if (!Array.isArray(obstacleGrid[i]) || obstacleGrid[i].length !== n) {
-      throw new TypeError('Each row must be an array of equal length');
+    for (let i = 0; i < m; i++) {
+        if (!Array.isArray(obstacleGrid[i]) || obstacleGrid[i].length !== n) {
+            throw new TypeError('Each row must be an array of equal length');
+        }
+        for (let j = 0; j < n; j++) {
+            const v = obstacleGrid[i][j];
+            if (v !== 0 && v !== 1) throw new RangeError('Grid values must be 0 or 1');
+        }
     }
-    for (let j = 0; j < n; j++) {
-      const v = obstacleGrid[i][j];
-      if (v !== 0 && v !== 1) throw new RangeError('Grid values must be 0 or 1');
+
+    // --- DP 初期化 ---
+    const dp = new Array(n).fill(0);
+    dp[0] = obstacleGrid[0][0] === 0 ? 1 : 0;
+
+    // --- DP 更新 ---
+    for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+            if (obstacleGrid[i][j] === 1) {
+                dp[j] = 0;
+            } else if (j > 0) {
+                dp[j] += dp[j - 1];
+            }
+        }
     }
-  }
 
-  // --- DP 初期化 ---
-  const dp = new Array(n).fill(0);
-  dp[0] = obstacleGrid[0][0] === 0 ? 1 : 0;
-
-  // --- DP 更新 ---
-  for (let i = 0; i < m; i++) {
-    for (let j = 0; j < n; j++) {
-      if (obstacleGrid[i][j] === 1) {
-        dp[j] = 0;
-      } else if (j > 0) {
-        dp[j] += dp[j - 1];
-      }
-    }
-  }
-
-  return dp[n - 1];
+    return dp[n - 1];
 }
 
 // ---- 簡易テスト / ベンチ ----
 if (require.main === module) {
-  const assert = require('node:assert');
-  const { performance } = require('node:perf_hooks');
+    const assert = require('node:assert');
+    const { performance } = require('node:perf_hooks');
 
-  // サンプル
-  assert.strictEqual(uniquePathsWithObstacles([[0,0,0],[0,1,0],[0,0,0]]), 2);
-  assert.strictEqual(uniquePathsWithObstacles([[0,1],[0,0]]), 1);
+    // サンプル
+    assert.strictEqual(
+        uniquePathsWithObstacles([
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0],
+        ]),
+        2,
+    );
+    assert.strictEqual(
+        uniquePathsWithObstacles([
+            [0, 1],
+            [0, 0],
+        ]),
+        1,
+    );
 
-  // 境界
-  assert.strictEqual(uniquePathsWithObstacles([[0]]), 1);
-  assert.strictEqual(uniquePathsWithObstacles([[1]]), 0);
-  assert.strictEqual(uniquePathsWithObstacles([[0,0,0,0]]), 1);
+    // 境界
+    assert.strictEqual(uniquePathsWithObstacles([[0]]), 1);
+    assert.strictEqual(uniquePathsWithObstacles([[1]]), 0);
+    assert.strictEqual(uniquePathsWithObstacles([[0, 0, 0, 0]]), 1);
 
-  // 例外系
-  try { uniquePathsWithObstacles('x'); assert.fail(); } catch (e) { assert.ok(e instanceof TypeError); }
-  try { uniquePathsWithObstacles([[2]]); assert.fail(); } catch (e) { assert.ok(e instanceof RangeError); }
+    // 例外系
+    try {
+        uniquePathsWithObstacles('x');
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof TypeError);
+    }
+    try {
+        uniquePathsWithObstacles([[2]]);
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof RangeError);
+    }
 
-  // ベンチ
-  const rows = 100, cols = 100;
-  const big = Array.from({ length: rows }, () => Array(cols).fill(0));
-  big[50][50] = 1; // 障害物
+    // ベンチ
+    const rows = 100,
+        cols = 100;
+    const big = Array.from({ length: rows }, () => Array(cols).fill(0));
+    big[50][50] = 1; // 障害物
 
-  // ウォームアップ
-  uniquePathsWithObstacles(big);
+    // ウォームアップ
+    uniquePathsWithObstacles(big);
 
-  const t0 = performance.now();
-  const res = uniquePathsWithObstacles(big);
-  const t1 = performance.now();
+    const t0 = performance.now();
+    const res = uniquePathsWithObstacles(big);
+    const t1 = performance.now();
 
-  console.log(JSON.stringify({
-    result: res,
-    ms: +(t1 - t0).toFixed(3),
-    rows, cols
-  }));
+    console.log(
+        JSON.stringify({
+            result: res,
+            ms: +(t1 - t0).toFixed(3),
+            rows,
+            cols,
+        }),
+    );
 }
 
 module.exports = { uniquePathsWithObstacles };

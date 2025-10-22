@@ -4,7 +4,7 @@
  * @param {number} n - 配列の長さ
  * @param {number[]} A - 長さnの整数配列
  * @returns {number[]} - BIT配列 (長さ n+1、先頭は0)
- * 
+ *
  * 計算量: O(n log n) だが、BIT構築に限れば O(n log n) 以内で高速
  * メモリ使用量: O(n)
  */

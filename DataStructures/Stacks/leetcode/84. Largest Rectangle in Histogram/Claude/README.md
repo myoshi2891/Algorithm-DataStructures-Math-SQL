@@ -134,9 +134,9 @@ flowchart TD
 **Step 4**: i=4, height=2 ⭐ **重要ステップ**
 
 - 2 < heights[3]=6 なので index 3 をポップして計算
-  - **計算 1**: height=6, left=2, width=4-2-1=1 → area=6×1=6
+    - **計算 1**: height=6, left=2, width=4-2-1=1 → area=6×1=6
 - 2 < heights[2]=5 なので index 2 もポップして計算
-  - **計算 2**: height=5, left=1, width=4-1-1=2 → area=5×2=**10** ← 最大値更新
+    - **計算 2**: height=5, left=1, width=4-1-1=2 → area=5×2=**10** ← 最大値更新
 - 2 ≥ heights[1]=1 なので index 4 をプッシュ
 - Stack: [1,4] → heights: [1,2]
 
@@ -148,9 +148,9 @@ flowchart TD
 **Step 6**: 番兵処理 (height=0)
 
 - すべての要素をポップして計算
-  - **計算 1**: height=3, left=4, width=6-4-1=1 → area=3×1=3
-  - **計算 2**: height=2, left=1, width=6-1-1=4 → area=2×4=8
-  - **計算 3**: height=1, left=-1, width=6-(-1)-1=6 → area=1×6=6
+    - **計算 1**: height=3, left=4, width=6-4-1=1 → area=3×1=3
+    - **計算 2**: height=2, left=1, width=6-1-1=4 → area=2×4=8
+    - **計算 3**: height=1, left=-1, width=6-(-1)-1=6 → area=1×6=6
 - Stack: []
 
 ### 視覚的解説
@@ -349,9 +349,8 @@ mermaid は英語で記述し、解説文は日本語で統一しています。
 4. **視覚的解説を修正**：正しいインデックスと高さでケーススタディを作成
 
 5. **エッジケースの計算を修正**：
-
-   - 単調増加 `[1,2,3,4,5]` → 最大面積 9（高さ 3× 幅 3）
-   - 単調減少 `[5,4,3,2,1]` → 最大面積 9（高さ 3× 幅 3）
+    - 単調増加 `[1,2,3,4,5]` → 最大面積 9（高さ 3× 幅 3）
+    - 単調減少 `[5,4,3,2,1]` → 最大面積 9（高さ 3× 幅 3）
 
 6. **使用例を更新**：正しい期待値を記載
 
@@ -375,23 +374,20 @@ Mermaid のパースエラーを修正しました。問題は以下の点でし
 1. **ステップごとの詳細説明**：各ステップを独立したブロックで説明し、何が起こっているかを明確化
 
 2. **計算式の詳細化**：
-
-   - `left`の値（スタックの直前の要素 or -1）を明示
-   - `width = i - left - 1` の計算過程を表示
-   - 各面積計算を段階的に説明
+    - `left`の値（スタックの直前の要素 or -1）を明示
+    - `width = i - left - 1` の計算過程を表示
+    - 各面積計算を段階的に説明
 
 3. **重要ポイントの強調**：
-
-   - Step 4 を ⭐ マークで強調（最大値が決まる重要なステップ）
-   - 最大面積更新時に太字で表示
+    - Step 4 を ⭐ マークで強調（最大値が決まる重要なステップ）
+    - 最大面積更新時に太字で表示
 
 4. **スタックの状態を視覚化**：
-
-   - `Stack: [インデックス] → heights: [対応する高さ]` の形式で現在のスタック状態を明示
+    - `Stack: [インデックス] → heights: [対応する高さ]` の形式で現在のスタック状態を明示
 
 5. **論理的な流れ**：
-   - 条件判定（`<`, `≥`）を明確に記載
-   - なぜその処理が実行されるのかの理由を併記
+    - 条件判定（`<`, `≥`）を明確に記載
+    - なぜその処理が実行されるのかの理由を併記
 
 これにより、アルゴリズムの動作がステップバイステップで理解しやすくなり、特に重要な Step 4 で面積 10 が計算される過程が明確になりました。
 
@@ -421,9 +417,9 @@ Mermaid のパースエラーを修正しました。問題は以下の点でし
 - **ステップバイステップ**: アルゴリズムの各段階を詳細解説
 - **ホバーエフェクト**: マウス操作で詳細情報表示
 - **キーボードショートカット**:
-  - `スペース/Enter`: デモ開始
-  - `R`: リセット
-  - `→`: 次のステップ
+    - `スペース/Enter`: デモ開始
+    - `R`: リセット
+    - `→`: 次のステップ
 - **コピー機能**: ワンクリックでコードコピー
 
 ### 📊 **アルゴリズム解説**
@@ -464,31 +460,31 @@ Tailwind + 既存ページに _そのまま追記_ できるパッチです。
 
 ```html
 <style>
-  :root {
-    --code-lh: 1.6;
-  } /* ← 上の leading-[1.6] と同じ値にする */
+    :root {
+        --code-lh: 1.6;
+    } /* ← 上の leading-[1.6] と同じ値にする */
 
-  /* コード側の行高と wrap を固定 */
-  pre[class*="language-"],
-  pre[class*="language-"] > code {
-    line-height: var(--code-lh) !important;
-    white-space: pre !important;
-    word-break: normal !important;
-    overflow-wrap: normal !important;
-  }
+    /* コード側の行高と wrap を固定 */
+    pre[class*='language-'],
+    pre[class*='language-'] > code {
+        line-height: var(--code-lh) !important;
+        white-space: pre !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
 
-  /* 行番号側の1行の高さをコードと一致させる */
-  .line-numbers .line-numbers-rows > span {
-    height: calc(var(--code-lh) * 1em);
-  }
+    /* 行番号側の1行の高さをコードと一致させる */
+    .line-numbers .line-numbers-rows > span {
+        height: calc(var(--code-lh) * 1em);
+    }
 
-  /* 行番号ガターの幅と pre の左パディングを揃える（お好みで） */
-  pre.line-numbers {
-    padding-left: 3.2em !important;
-  }
-  .line-numbers .line-numbers-rows {
-    width: 3.2em;
-  }
+    /* 行番号ガターの幅と pre の左パディングを揃える（お好みで） */
+    pre.line-numbers {
+        padding-left: 3.2em !important;
+    }
+    .line-numbers .line-numbers-rows {
+        width: 3.2em;
+    }
 </style>
 ```
 
@@ -526,35 +522,35 @@ Prism の行番号は **折り返し行** と **数字** を 1:1 に対応でき
 
 ```html
 <link
-  href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-  rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+    rel="stylesheet"
 />
 <link
-  href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
-  rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+    rel="stylesheet"
 />
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  :root {
-    --code-lh: 1.6;
-  }
-  pre[class*="language-"],
-  pre[class*="language-"] > code {
-    line-height: var(--code-lh) !important;
-    white-space: pre !important;
-    word-break: normal !important;
-    overflow-wrap: normal !important;
-  }
-  .line-numbers .line-numbers-rows > span {
-    height: calc(var(--code-lh) * 1em);
-  }
-  pre.line-numbers {
-    padding-left: 3.2em !important;
-  }
-  .line-numbers .line-numbers-rows {
-    width: 3.2em;
-  }
+    :root {
+        --code-lh: 1.6;
+    }
+    pre[class*='language-'],
+    pre[class*='language-'] > code {
+        line-height: var(--code-lh) !important;
+        white-space: pre !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+    }
+    .line-numbers .line-numbers-rows > span {
+        height: calc(var(--code-lh) * 1em);
+    }
+    pre.line-numbers {
+        padding-left: 3.2em !important;
+    }
+    .line-numbers .line-numbers-rows {
+        width: 3.2em;
+    }
 </style>
 
 <pre class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto">
@@ -567,7 +563,7 @@ function demo(){ console.log("hello world"); }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script>
-  Prism.highlightAll();
+    Prism.highlightAll();
 </script>
 ```
 

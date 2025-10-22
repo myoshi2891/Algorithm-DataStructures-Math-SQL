@@ -30,18 +30,18 @@
  * @param {number} n - 取得したい数列の位置（1以上30以下）
  * @return {string} - n番目のcount-and-say数列の文字列
  */
-var countAndSay = function(n) {
+var countAndSay = function (n) {
     // ベースケース: n=1の場合は"1"を返す
-    let current = "1";
-    
+    let current = '1';
+
     // n=1の場合はそのまま返す
     if (n === 1) return current;
-    
+
     // 2からnまで反復的に数列を構築
     for (let i = 2; i <= n; i++) {
         current = runLengthEncode(current);
     }
-    
+
     return current;
 };
 
@@ -51,10 +51,10 @@ var countAndSay = function(n) {
  * @return {string} - エンコード後の文字列
  */
 function runLengthEncode(str) {
-    let result = "";
+    let result = '';
     let count = 1;
     let currentChar = str[0];
-    
+
     // 文字列を左から右にスキャン
     for (let i = 1; i < str.length; i++) {
         if (str[i] === currentChar) {
@@ -67,9 +67,9 @@ function runLengthEncode(str) {
             count = 1;
         }
     }
-    
+
     // 最後の文字グループを追加
     result += count + currentChar;
-    
+
     return result;
 }

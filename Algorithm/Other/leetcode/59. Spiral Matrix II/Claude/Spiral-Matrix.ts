@@ -24,24 +24,29 @@
  */
 function generateMatrix(n: number): number[][] {
     // n×nマトリックスを0で初期化
-    const matrix: number[][] = Array(n).fill(null).map(() => Array(n).fill(0));
-    
-    let top: number = 0, bottom: number = n - 1, left: number = 0, right: number = n - 1;
+    const matrix: number[][] = Array(n)
+        .fill(null)
+        .map(() => Array(n).fill(0));
+
+    let top: number = 0,
+        bottom: number = n - 1,
+        left: number = 0,
+        right: number = n - 1;
     let num: number = 1;
-    
+
     while (top <= bottom && left <= right) {
         // 上の行を左から右へ
         for (let col: number = left; col <= right; col++) {
             matrix[top][col] = num++;
         }
         top++;
-        
+
         // 右の列を上から下へ
         for (let row: number = top; row <= bottom; row++) {
             matrix[row][right] = num++;
         }
         right--;
-        
+
         // 下の行を右から左へ（行が残っている場合）
         if (top <= bottom) {
             for (let col: number = right; col >= left; col--) {
@@ -49,7 +54,7 @@ function generateMatrix(n: number): number[][] {
             }
             bottom--;
         }
-        
+
         // 左の列を下から上へ（列が残っている場合）
         if (left <= right) {
             for (let row: number = bottom; row >= top; row--) {
@@ -58,8 +63,8 @@ function generateMatrix(n: number): number[][] {
             left++;
         }
     }
-    
+
     return matrix;
-};
+}
 
 export { generateMatrix };

@@ -61,108 +61,102 @@
  */
 
 function isScramble(s1: string, s2: string): boolean {
-  // --- 入力検証（LeetCodeでは常に正当だが、業務品質として保持） ---
-  if (typeof s1 !== "string" || typeof s2 !== "string") {
-    throw new TypeError("Inputs must be strings");
-  }
-  const n: number = s1.length;
-  if (n !== s2.length) throw new RangeError("Length mismatch");
-  if (n < 1 || n > 30) throw new RangeError("Length out of range (1..30)");
-
-  // 文字種チェック（a-z）
-  for (let i = 0; i < n; i++) {
-    const c1 = s1.charCodeAt(i);
-    const c2 = s2.charCodeAt(i);
-    if (c1 < 97 || c1 > 122 || c2 < 97 || c2 > 122) {
-      throw new RangeError("Only lowercase letters a-z are allowed");
+    // --- 入力検証（LeetCodeでは常に正当だが、業務品質として保持） ---
+    if (typeof s1 !== 'string' || typeof s2 !== 'string') {
+        throw new TypeError('Inputs must be strings');
     }
-  }
+    const n: number = s1.length;
+    if (n !== s2.length) throw new RangeError('Length mismatch');
+    if (n < 1 || n > 30) throw new RangeError('Length out of range (1..30)');
 
-  if (s1 === s2) return true;
-
-  // グローバル頻度が違えば即 false
-  if (!sameMultiset(s1, 0, s2, 0, n)) return false;
-
-  // メモ: key = "i1,i2,len"
-  const memo = new Map<string, boolean>();
-
-  /**
-   * s1[i1..i1+len), s2[i2..i2+len) が scramble で一致するか
-   * @complexity Time: O(n^4) worst, Space: O(n^3)
-   */
-  function dfs(i1: number, i2: number, len: number): boolean {
-    const key = `${i1},${i2},${len}`;
-    const cached = memo.get(key);
-    if (cached !== undefined) return cached;
-
-    // 完全一致の早期判定
-    let allEq = true;
-    for (let k = 0; k < len; k++) {
-      if (s1.charCodeAt(i1 + k) !== s2.charCodeAt(i2 + k)) {
-        allEq = false;
-        break;
-      }
-    }
-    if (allEq) {
-      memo.set(key, true);
-      return true;
+    // 文字種チェック（a-z）
+    for (let i = 0; i < n; i++) {
+        const c1 = s1.charCodeAt(i);
+        const c2 = s2.charCodeAt(i);
+        if (c1 < 97 || c1 > 122 || c2 < 97 || c2 > 122) {
+            throw new RangeError('Only lowercase letters a-z are allowed');
+        }
     }
 
-    // 頻度枝刈り（区間 multiset 不一致なら false）
-    if (!sameMultiset(s1, i1, s2, i2, len)) {
-      memo.set(key, false);
-      return false;
+    if (s1 === s2) return true;
+
+    // グローバル頻度が違えば即 false
+    if (!sameMultiset(s1, 0, s2, 0, n)) return false;
+
+    // メモ: key = "i1,i2,len"
+    const memo = new Map<string, boolean>();
+
+    /**
+     * s1[i1..i1+len), s2[i2..i2+len) が scramble で一致するか
+     * @complexity Time: O(n^4) worst, Space: O(n^3)
+     */
+    function dfs(i1: number, i2: number, len: number): boolean {
+        const key = `${i1},${i2},${len}`;
+        const cached = memo.get(key);
+        if (cached !== undefined) return cached;
+
+        // 完全一致の早期判定
+        let allEq = true;
+        for (let k = 0; k < len; k++) {
+            if (s1.charCodeAt(i1 + k) !== s2.charCodeAt(i2 + k)) {
+                allEq = false;
+                break;
+            }
+        }
+        if (allEq) {
+            memo.set(key, true);
+            return true;
+        }
+
+        // 頻度枝刈り（区間 multiset 不一致なら false）
+        if (!sameMultiset(s1, i1, s2, i2, len)) {
+            memo.set(key, false);
+            return false;
+        }
+
+        // 分割点を総当り（1..len-1）
+        for (let cut = 1; cut < len; cut++) {
+            // 非スワップ
+            if (
+                sameMultiset(s1, i1, s2, i2, cut) &&
+                sameMultiset(s1, i1 + cut, s2, i2 + cut, len - cut) &&
+                dfs(i1, i2, cut) &&
+                dfs(i1 + cut, i2 + cut, len - cut)
+            ) {
+                memo.set(key, true);
+                return true;
+            }
+            // スワップ
+            if (
+                sameMultiset(s1, i1, s2, i2 + (len - cut), cut) &&
+                sameMultiset(s1, i1 + cut, s2, i2, len - cut) &&
+                dfs(i1, i2 + (len - cut), cut) &&
+                dfs(i1 + cut, i2, len - cut)
+            ) {
+                memo.set(key, true);
+                return true;
+            }
+        }
+
+        memo.set(key, false);
+        return false;
     }
 
-    // 分割点を総当り（1..len-1）
-    for (let cut = 1; cut < len; cut++) {
-      // 非スワップ
-      if (
-        sameMultiset(s1, i1, s2, i2, cut) &&
-        sameMultiset(s1, i1 + cut, s2, i2 + cut, len - cut) &&
-        dfs(i1, i2, cut) &&
-        dfs(i1 + cut, i2 + cut, len - cut)
-      ) {
-        memo.set(key, true);
+    return dfs(0, 0, n);
+
+    /**
+     * 2つの部分文字列（[ia, ia+len), [ib, ib+len)）の文字 multiset が一致するか
+     * 文字は a..z を想定。固定長 26 のカウント配列で差分チェック。
+     */
+    function sameMultiset(a: string, ia: number, b: string, ib: number, len2: number): boolean {
+        const cnt: number[] = new Array<number>(26).fill(0);
+        for (let k = 0; k < len2; k++) {
+            cnt[a.charCodeAt(ia + k) - 97]++;
+            cnt[b.charCodeAt(ib + k) - 97]--;
+        }
+        for (let i = 0; i < 26; i++) if (cnt[i] !== 0) return false;
         return true;
-      }
-      // スワップ
-      if (
-        sameMultiset(s1, i1, s2, i2 + (len - cut), cut) &&
-        sameMultiset(s1, i1 + cut, s2, i2, len - cut) &&
-        dfs(i1, i2 + (len - cut), cut) &&
-        dfs(i1 + cut, i2, len - cut)
-      ) {
-        memo.set(key, true);
-        return true;
-      }
     }
-
-    memo.set(key, false);
-    return false;
-  }
-
-  return dfs(0, 0, n);
-
-  /**
-   * 2つの部分文字列（[ia, ia+len), [ib, ib+len)）の文字 multiset が一致するか
-   * 文字は a..z を想定。固定長 26 のカウント配列で差分チェック。
-   */
-  function sameMultiset(
-    a: string,
-    ia: number,
-    b: string,
-    ib: number,
-    len2: number
-  ): boolean {
-    const cnt: number[] = new Array<number>(26).fill(0);
-    for (let k = 0; k < len2; k++) {
-      cnt[a.charCodeAt(ia + k) - 97]++;
-      cnt[b.charCodeAt(ib + k) - 97]--;
-    }
-    for (let i = 0; i < 26; i++) if (cnt[i] !== 0) return false;
-    return true;
-  }
 }
 
 export { isScramble }; // LeetCode では関数定義のみでOK、ESMとしても利用可

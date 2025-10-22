@@ -11,20 +11,20 @@
 // ### ✅ コード（`fs` 利用、処理時間・メモリに配慮）
 
 // ```javascript
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 入力を標準入力から読み込み、各操作を処理して取得結果を出力する
  */
 function main() {
-    const input = fs.readFileSync("/dev/stdin", "utf8").split(/\s+/);
+    const input = fs.readFileSync('/dev/stdin', 'utf8').split(/\s+/);
     let idx = 0;
 
     const N = parseInt(input[idx++]); // グリッドサイズ
 
     // 初期の行列を読み込む
-    const grid = Array.from({ length: N }, () => 
-        Array.from({ length: N }, () => parseInt(input[idx++]))
+    const grid = Array.from({ length: N }, () =>
+        Array.from({ length: N }, () => parseInt(input[idx++])),
     );
 
     const Q = parseInt(input[idx++]); // クエリ数
@@ -48,7 +48,7 @@ function main() {
         }
     }
 
-    console.log(output.join("\n"));
+    console.log(output.join('\n'));
 }
 
 main();

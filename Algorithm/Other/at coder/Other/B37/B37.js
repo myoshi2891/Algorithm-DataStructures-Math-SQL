@@ -22,41 +22,41 @@ const fs = require('fs');
  * @returns {bigint} - 総和
  */
 function sumOfDigitSums(N) {
-  let total = 0n;
-  let base = 1n;
+    let total = 0n;
+    let base = 1n;
 
-  while (base <= N) {
-    const higher = N / (base * 10n);             // 左側の桁
-    const current = (N / base) % 10n;            // 今注目している桁
-    const lower = N % base;                      // 右側の桁
+    while (base <= N) {
+        const higher = N / (base * 10n); // 左側の桁
+        const current = (N / base) % 10n; // 今注目している桁
+        const lower = N % base; // 右側の桁
 
-    for (let digit = 1n; digit <= 9n; digit++) {
-      let count;
+        for (let digit = 1n; digit <= 9n; digit++) {
+            let count;
 
-      if (digit < current) {
-        count = (higher + 1n) * base;
-      } else if (digit === current) {
-        count = higher * base + lower + 1n;
-      } else {
-        count = higher * base;
-      }
+            if (digit < current) {
+                count = (higher + 1n) * base;
+            } else if (digit === current) {
+                count = higher * base + lower + 1n;
+            } else {
+                count = higher * base;
+            }
 
-      total += count * digit;
+            total += count * digit;
+        }
+
+        base *= 10n;
     }
 
-    base *= 10n;
-  }
-
-  return total;
+    return total;
 }
 
 // ------------------ 入出力処理 ------------------
 
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const N = BigInt(input);
-  const result = sumOfDigitSums(N);
-  console.log(result.toString());
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const N = BigInt(input);
+    const result = sumOfDigitSums(N);
+    console.log(result.toString());
 }
 
 main();

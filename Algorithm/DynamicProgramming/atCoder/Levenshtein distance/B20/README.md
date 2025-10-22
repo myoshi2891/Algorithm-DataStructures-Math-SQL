@@ -29,15 +29,15 @@ TypeScriptコードで使用した**編集距離（Levenshtein距離）**アル�
 
 ```ts
 for (let j = 0; j <= m; j++) {
-  dp[0][j] = j;
+    dp[0][j] = j;
 }
 ```
 
 ### 📊 状態遷移図（初期化）
 
-| i＼j | 0 | 1 | 2 | 3 | ... | m |
-| --- | - | - | - | - | --- | - |
-| 0   | 0 | 1 | 2 | 3 | ... | m |
+| i＼j | 0   | 1   | 2   | 3   | ... | m   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 0    | 0   | 1   | 2   | 3   | ... | m   |
 
 意味：`S`が空のとき、`T`の先頭 `j` 文字にするには `j` 回の**挿入**が必要。
 
@@ -49,20 +49,20 @@ for (let j = 0; j <= m; j++) {
 
 ```ts
 for (let i = 1; i <= n; i++) {
-  const curr = i % 2;
-  const prev = 1 - curr;
-  dp[curr][0] = i;
-  for (let j = 1; j <= m; j++) {
-    if (s[i - 1] === t[j - 1]) {
-      dp[curr][j] = dp[prev][j - 1];
-    } else {
-      dp[curr][j] = Math.min(
-        dp[prev][j] + 1,     // 削除
-        dp[curr][j - 1] + 1, // 挿入
-        dp[prev][j - 1] + 1  // 変更
-      );
+    const curr = i % 2;
+    const prev = 1 - curr;
+    dp[curr][0] = i;
+    for (let j = 1; j <= m; j++) {
+        if (s[i - 1] === t[j - 1]) {
+            dp[curr][j] = dp[prev][j - 1];
+        } else {
+            dp[curr][j] = Math.min(
+                dp[prev][j] + 1, // 削除
+                dp[curr][j - 1] + 1, // 挿入
+                dp[prev][j - 1] + 1, // 変更
+            );
+        }
     }
-  }
 }
 ```
 
@@ -79,14 +79,14 @@ T = k y o t o
 
 DPテーブル構築の様子：
 
-| i＼j  | 0 | 1 | 2 | 3 | 4 | 5 |
-| ---- | - | - | - | - | - | - |
-| 0    | 0 | 1 | 2 | 3 | 4 | 5 |
-| 1(t) | 1 | ? |   |   |   |   |
-| 2(o) | 2 |   |   |   |   |   |
-| 3(k) | 3 |   |   |   |   |   |
-| 4(y) | 4 |   |   |   |   |   |
-| 5(o) | 5 |   |   |   |   |   |
+| i＼j | 0   | 1   | 2   | 3   | 4   | 5   |
+| ---- | --- | --- | --- | --- | --- | --- |
+| 0    | 0   | 1   | 2   | 3   | 4   | 5   |
+| 1(t) | 1   | ?   |     |     |     |     |
+| 2(o) | 2   |     |     |     |     |     |
+| 3(k) | 3   |     |     |     |     |     |
+| 4(y) | 4   |     |     |     |     |     |
+| 5(o) | 5   |     |     |     |     |     |
 
 ---
 
@@ -94,14 +94,14 @@ DPテーブル構築の様子：
 
 たとえば `dp[3][1]`（`tok` vs `k`）を求めるとき：
 
-* `S[2] = k`, `T[0] = k` → **同じ文字**なので **変更不要**
-* よって `dp[3][1] = dp[2][0] = 2`
+- `S[2] = k`, `T[0] = k` → **同じ文字**なので **変更不要**
+- よって `dp[3][1] = dp[2][0] = 2`
 
 挿入・削除・変更の例も以下のように選ばれます：
 
-* `dp[i-1][j] + 1`: S の文字削除（上の行）
-* `dp[i][j-1] + 1`: T に合わせて挿入（左の列）
-* `dp[i-1][j-1] + 1`: S の文字を T に置き換え（斜め左上）
+- `dp[i-1][j] + 1`: S の文字削除（上の行）
+- `dp[i][j-1] + 1`: T に合わせて挿入（左の列）
+- `dp[i-1][j-1] + 1`: S の文字を T に置き換え（斜め左上）
 
 ---
 
@@ -111,15 +111,15 @@ DPテーブル構築の様子：
 
 途中のDP表（部分）:
 
-| i＼j  | 0 | 1 (b) | 2 (d) | 3 (f) |
-| ---- | - | ----- | ----- | ----- |
-| 0    | 0 | 1     | 2     | 3     |
-| 1(a) | 1 | 1     | 2     | 3     |
-| 2(b) | 2 | 1     | 2     | 3     |
-| 3(c) | 3 | 2     | 2     | 3     |
-| 4(d) | 4 | 3     | 2     | 3     |
-| 5(e) | 5 | 4     | 3     | 3     |
-| 6(f) | 6 | 5     | 4     | 3     |
+| i＼j | 0   | 1 (b) | 2 (d) | 3 (f) |
+| ---- | --- | ----- | ----- | ----- |
+| 0    | 0   | 1     | 2     | 3     |
+| 1(a) | 1   | 1     | 2     | 3     |
+| 2(b) | 2   | 1     | 2     | 3     |
+| 3(c) | 3   | 2     | 2     | 3     |
+| 4(d) | 4   | 3     | 2     | 3     |
+| 5(e) | 5   | 4     | 3     | 3     |
+| 6(f) | 6   | 5     | 4     | 3     |
 
 答え → `dp[6][3] = 3`
 
@@ -128,7 +128,7 @@ DPテーブル構築の様子：
 ## ✅ 最終結果の取得
 
 ```ts
-return dp[n % 2][m];  // 最終操作回数
+return dp[n % 2][m]; // 最終操作回数
 ```
 
 ---
@@ -153,9 +153,11 @@ return dp[n % 2][m];  // 最終操作回数
 ```
 
 ---
+
 🔁 DPの状態遷移処理
 コード該当箇所のコードは、**編集距離（Levenshtein距離）を求めるDP処理**の中核部分です。
 以下に処理の全体像を**詳細に段階分けして解説**します。加えて、**図とともに直感的な理解**も深めます。
+
 ---
 
 ## 🧠 処理目的
@@ -166,11 +168,11 @@ return dp[n % 2][m];  // 最終操作回数
 
 ## 🧩 前提：変数の意味
 
-* `s`: 元の文字列
-* `t`: 目標の文字列
-* `n = s.length`
-* `m = t.length`
-* `dp`: 2行 (幅 m+1) の配列で、`dp[0][j]`と`dp[1][j]`の2つを交互に使う（**メモリ節約**）
+- `s`: 元の文字列
+- `t`: 目標の文字列
+- `n = s.length`
+- `m = t.length`
+- `dp`: 2行 (幅 m+1) の配列で、`dp[0][j]`と`dp[1][j]`の2つを交互に使う（**メモリ節約**）
 
 ---
 
@@ -178,17 +180,16 @@ return dp[n % 2][m];  // 最終操作回数
 
 ### ✅ 1. 外側ループ `for (let i = 1; i <= n; i++)`
 
-* `s[0..i-1]` を使って、`t[0..j-1]` に変換する最小操作を求める。
-* 1文字ずつ `s` の文字を順に処理していくループ。
+- `s[0..i-1]` を使って、`t[0..j-1]` に変換する最小操作を求める。
+- 1文字ずつ `s` の文字を順に処理していくループ。
 
 ---
 
 ### ✅ 2. `const curr = i % 2; const prev = 1 - curr;`
 
-* `dp` を2行（0番と1番）だけで交互に使う（**ローリング配列**）
-
-  * `curr`: 現在の行
-  * `prev`: 1つ前の行
+- `dp` を2行（0番と1番）だけで交互に使う（**ローリング配列**）
+    - `curr`: 現在の行
+    - `prev`: 1つ前の行
 
 これにより、**空間計算量を O(m)** に抑えることができます。
 
@@ -203,19 +204,19 @@ dp[curr] = 現在処理中の行（i文字目まで）
 
 ### ✅ 3. `dp[curr][0] = i`
 
-* `t` が空文字（`j = 0`）のとき、`s` の `i` 文字をすべて削除して一致させる必要があるため、`i` 回の削除。
+- `t` が空文字（`j = 0`）のとき、`s` の `i` 文字をすべて削除して一致させる必要があるため、`i` 回の削除。
 
 ---
 
 ### ✅ 4. 内側ループ `for (let j = 1; j <= m; j++)`
 
-* `t` の1文字目から `j` 文字目までを使って変換の最小操作を求める。
+- `t` の1文字目から `j` 文字目までを使って変換の最小操作を求める。
 
 ---
 
 ### ✅ 5. `if (s[i - 1] === t[j - 1])`
 
-* `s` の `(i-1)` 文字目と `t` の `(j-1)` 文字目が**一致している**場合：
+- `s` の `(i-1)` 文字目と `t` の `(j-1)` 文字目が**一致している**場合：
 
 #### 処理内容：
 
@@ -241,16 +242,16 @@ dp[curr][j] = dp[prev][j - 1];
 
 ```ts
 dp[curr][j] = Math.min(
-  dp[prev][j] + 1,     // 削除（delete s[i-1]）
-  dp[curr][j - 1] + 1, // 挿入（insert t[j-1]）
-  dp[prev][j - 1] + 1  // 変更（replace s[i-1] → t[j-1]）
+    dp[prev][j] + 1, // 削除（delete s[i-1]）
+    dp[curr][j - 1] + 1, // 挿入（insert t[j-1]）
+    dp[prev][j - 1] + 1, // 変更（replace s[i-1] → t[j-1]）
 );
 ```
 
 #### 🧠 各操作の意味と参照元：
 
-| 操作 | 意味                                                   | 参照先               | 必要な操作     |
-| -- | ---------------------------------------------------- | ----------------- | --------- |
+| 操作 | 意味                                                         | 参照先            | 必要な操作      |
+| ---- | ------------------------------------------------------------ | ----------------- | --------------- |
 | 削除 | `s[i-1]` を削除して `s[0..i-2] → t[0..j-1]` にする           | `dp[prev][j]`     | +1 操作（削除） |
 | 挿入 | `t[j-1]` を挿入して `s[0..i-1] → t[0..j-2]` にする           | `dp[curr][j - 1]` | +1 操作（挿入） |
 | 変更 | `s[i-1]` を `t[j-1]` に変えて `s[0..i-2] → t[0..j-2]` にする | `dp[prev][j - 1]` | +1 操作（置換） |
@@ -259,11 +260,11 @@ dp[curr][j] = Math.min(
 
 ### 📊 小さい例で視覚的に確認（`s = ab`, `t = ac`）
 
-| i＼j | 0 | a | c |                                    |
-| --- | - | - | - | ---------------------------------- |
-| 0   | 0 | 1 | 2 |                                    |
-| a   | 1 | 0 | 1 |                                    |
-| b   | 2 | 1 | 1 | ← `s[1]=b`, `t[1]=c` → replace b→c |
+| i＼j | 0   | a   | c   |                                    |
+| ---- | --- | --- | --- | ---------------------------------- |
+| 0    | 0   | 1   | 2   |                                    |
+| a    | 1   | 0   | 1   |                                    |
+| b    | 2   | 1   | 1   | ← `s[1]=b`, `t[1]=c` → replace b→c |
 
 ---
 
@@ -294,10 +295,10 @@ for i = 1 to n:
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-14 14:03:46 | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1555 Byte |  | 24 ms | 1660 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594322) |
-| 2025-07-14 14:01:07 | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1414 Byte |  | 286 ms | 21664 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594284) |
-| 2025-07-14 13:56:07 | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1367 Byte |  | 705 ms | 9072 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594180) |
-| 2025-07-14 13:25:22 | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1511 Byte |  | 101 ms | 47940 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67593642) |
-| 2025-07-14 13:20:27 | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1245 Byte |  | 102 ms | 47852 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67593557) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                  | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-14 14:03:46                                                                           | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1555 Byte                                                                                 |      | 24 ms                                                                                        | 1660 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594322) |
+| 2025-07-14 14:01:07                                                                           | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1414 Byte                                                                                 |      | 286 ms                                                                                       | 21664 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594284) |
+| 2025-07-14 13:56:07                                                                           | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1367 Byte                                                                                 |      | 705 ms                                                                                       | 9072 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67594180) |
+| 2025-07-14 13:25:22                                                                           | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1511 Byte                                                                                 |      | 101 ms                                                                                       | 47940 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67593642) |
+| 2025-07-14 13:20:27                                                                           | [B20 - Edit Distance](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cs) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1245 Byte                                                                                 |      | 102 ms                                                                                       | 47852 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67593557) |

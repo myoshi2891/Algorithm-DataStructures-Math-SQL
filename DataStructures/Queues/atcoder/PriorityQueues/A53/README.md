@@ -1,4 +1,3 @@
-
 ---
 
 ## ✅ 完全なコード（`fs`使用）
@@ -163,18 +162,18 @@ heap = [2420, 3000]
 
 ## 📌 時間計算量まとめ
 
-| 操作   | 処理        | 時間計算量    |
-| ---- | --------- | -------- |
-| クエリ1 | insert    | O(log N) |
-| クエリ2 | getMin    | O(1)     |
-| クエリ3 | removeMin | O(log N) |
+| 操作    | 処理      | 時間計算量 |
+| ------- | --------- | ---------- |
+| クエリ1 | insert    | O(log N)   |
+| クエリ2 | getMin    | O(1)       |
+| クエリ3 | removeMin | O(log N)   |
 
 ---
 
 ## 📎 注意事項（競技環境で使う場合）
 
-* `fs.readFileSync('/dev/stdin', 'utf-8')` は AtCoder や競プロサイト用です。
-* ローカルテストでは `fs.readFileSync('input.txt', 'utf-8')` などで代用できます。
+- `fs.readFileSync('/dev/stdin', 'utf-8')` は AtCoder や競プロサイト用です。
+- ローカルテストでは `fs.readFileSync('input.txt', 'utf-8')` などで代用できます。
 
 ---
 
@@ -208,10 +207,10 @@ removeMin       → []
 
 ---
 
-提出日時	問題	ユーザ	言語	得点	コード長	結果	実行時間	メモリ	
-2025-06-07 15:26:52	A53 - Priority Queue	myoshizumi 	PHP (php 8.2.8)	1000	707 Byte		37 ms	23828 KiB	詳細
-2025-06-07 15:25:03	A53 - Priority Queue	myoshizumi 	Go (go 1.20.6)	1000	1269 Byte		19 ms	8008 KiB	詳細
-2025-06-07 15:22:55	A53 - Priority Queue	myoshizumi 	Python (CPython 3.11.4)	1000	589 Byte		42 ms	12760 KiB	詳細
-2025-06-07 15:21:17	A53 - Priority Queue	myoshizumi 	Python (CPython 3.11.4)	1000	501 Byte		47 ms	12856 KiB	詳細
-2025-06-07 15:18:45	A53 - Priority Queue	myoshizumi 	TypeScript 5.1 (Node.js 18.16.1)	1000	2495 Byte		105 ms	63592 KiB	詳細
-2025-06-07 15:09:07	A53 - Priority Queue	myoshizumi 	JavaScript (Node.js 18.16.1)	1000	2264 Byte		128 ms	64092 KiB	詳細
+提出日時 問題 ユーザ 言語 得点 コード長 結果 実行時間 メモリ
+2025-06-07 15:26:52 A53 - Priority Queue myoshizumi PHP (php 8.2.8) 1000 707 Byte 37 ms 23828 KiB 詳細
+2025-06-07 15:25:03 A53 - Priority Queue myoshizumi Go (go 1.20.6) 1000 1269 Byte 19 ms 8008 KiB 詳細
+2025-06-07 15:22:55 A53 - Priority Queue myoshizumi Python (CPython 3.11.4) 1000 589 Byte 42 ms 12760 KiB 詳細
+2025-06-07 15:21:17 A53 - Priority Queue myoshizumi Python (CPython 3.11.4) 1000 501 Byte 47 ms 12856 KiB 詳細
+2025-06-07 15:18:45 A53 - Priority Queue myoshizumi TypeScript 5.1 (Node.js 18.16.1) 1000 2495 Byte 105 ms 63592 KiB 詳細
+2025-06-07 15:09:07 A53 - Priority Queue myoshizumi JavaScript (Node.js 18.16.1) 1000 2264 Byte 128 ms 64092 KiB 詳細

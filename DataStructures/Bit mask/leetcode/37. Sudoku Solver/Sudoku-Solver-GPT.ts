@@ -32,7 +32,7 @@ function solveSudokuGPT(board: string[][]): void {
     for (let i = 0; i < N; i++) {
         for (let j = 0; j < N; j++) {
             const cell = board[i][j];
-            if (cell === ".") {
+            if (cell === '.') {
                 emptyCells.push([i, j]);
             } else {
                 const num: number = parseInt(cell, 10);
@@ -59,7 +59,7 @@ function solveSudokuGPT(board: string[][]): void {
         // 1~9まで試す
         for (let num = 1; num <= 9; num++) {
             const bit: number = 1 << num;
-            if ((rowMask[i] & bit) || (colMask[j] & bit) || (boxMask[bIdx] & bit)) {
+            if (rowMask[i] & bit || colMask[j] & bit || boxMask[bIdx] & bit) {
                 continue; // 使用済みはスキップ
             }
 
@@ -72,7 +72,7 @@ function solveSudokuGPT(board: string[][]): void {
             if (dfs(idx + 1)) return true; // 次へ進む
 
             // 戻す
-            board[i][j] = ".";
+            board[i][j] = '.';
             rowMask[i] ^= bit;
             colMask[j] ^= bit;
             boxMask[bIdx] ^= bit;

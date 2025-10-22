@@ -57,7 +57,7 @@
 // ## 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * Word Search - 判断関数
@@ -69,63 +69,63 @@
  * @complexity 時間計算量: O(m * n * 4^L), 空間計算量: O(1) (再帰スタック除く)
  */
 function exist(board, word) {
-  // --- 入力検証 ---
-  if (!Array.isArray(board) || board.length === 0) {
-    throw new TypeError("board must be a non-empty 2D array");
-  }
-  const m = board.length;
-  const n = board[0].length;
-  if (!Number.isInteger(m) || !Number.isInteger(n)) {
-    throw new TypeError("board must be a 2D array of strings");
-  }
-  if (m < 1 || m > 6 || n < 1 || n > 6) {
-    throw new RangeError("board size out of range (1 <= m,n <= 6)");
-  }
-  for (let i = 0; i < m; i++) {
-    if (!Array.isArray(board[i]) || board[i].length !== n) {
-      throw new TypeError("board must be rectangular 2D array");
+    // --- 入力検証 ---
+    if (!Array.isArray(board) || board.length === 0) {
+        throw new TypeError('board must be a non-empty 2D array');
     }
-    for (let j = 0; j < n; j++) {
-      if (typeof board[i][j] !== "string" || board[i][j].length !== 1) {
-        throw new TypeError("board cells must be single characters");
-      }
+    const m = board.length;
+    const n = board[0].length;
+    if (!Number.isInteger(m) || !Number.isInteger(n)) {
+        throw new TypeError('board must be a 2D array of strings');
     }
-  }
-  if (typeof word !== "string" || word.length < 1 || word.length > 15) {
-    throw new RangeError("word length must be 1 <= len <= 15");
-  }
-
-  // --- DFS 本体 ---
-  function dfs(row, col, idx) {
-    if (idx === word.length) return true; // 完成
-    if (row < 0 || col < 0 || row >= m || col >= n) return false;
-    if (board[row][col] !== word[idx]) return false;
-
-    // 使用済みにマーキング
-    const tmp = board[row][col];
-    board[row][col] = "#";
-
-    // 上下左右探索
-    const found =
-      dfs(row + 1, col, idx + 1) ||
-      dfs(row - 1, col, idx + 1) ||
-      dfs(row, col + 1, idx + 1) ||
-      dfs(row, col - 1, idx + 1);
-
-    // 復元
-    board[row][col] = tmp;
-
-    return found;
-  }
-
-  // 全セルから開始
-  for (let i = 0; i < m; i++) {
-    for (let j = 0; j < n; j++) {
-      if (dfs(i, j, 0)) return true;
+    if (m < 1 || m > 6 || n < 1 || n > 6) {
+        throw new RangeError('board size out of range (1 <= m,n <= 6)');
     }
-  }
+    for (let i = 0; i < m; i++) {
+        if (!Array.isArray(board[i]) || board[i].length !== n) {
+            throw new TypeError('board must be rectangular 2D array');
+        }
+        for (let j = 0; j < n; j++) {
+            if (typeof board[i][j] !== 'string' || board[i][j].length !== 1) {
+                throw new TypeError('board cells must be single characters');
+            }
+        }
+    }
+    if (typeof word !== 'string' || word.length < 1 || word.length > 15) {
+        throw new RangeError('word length must be 1 <= len <= 15');
+    }
 
-  return false;
+    // --- DFS 本体 ---
+    function dfs(row, col, idx) {
+        if (idx === word.length) return true; // 完成
+        if (row < 0 || col < 0 || row >= m || col >= n) return false;
+        if (board[row][col] !== word[idx]) return false;
+
+        // 使用済みにマーキング
+        const tmp = board[row][col];
+        board[row][col] = '#';
+
+        // 上下左右探索
+        const found =
+            dfs(row + 1, col, idx + 1) ||
+            dfs(row - 1, col, idx + 1) ||
+            dfs(row, col + 1, idx + 1) ||
+            dfs(row, col - 1, idx + 1);
+
+        // 復元
+        board[row][col] = tmp;
+
+        return found;
+    }
+
+    // 全セルから開始
+    for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+            if (dfs(i, j, 0)) return true;
+        }
+    }
+
+    return false;
 }
 
 module.exports = { exist };

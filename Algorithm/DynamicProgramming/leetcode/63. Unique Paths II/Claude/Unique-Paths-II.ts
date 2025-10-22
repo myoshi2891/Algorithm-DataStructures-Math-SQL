@@ -106,22 +106,22 @@ type ObstacleGrid = readonly (readonly CellValue[])[];
 
 /** アルゴリズムオプション */
 interface AlgorithmOptions {
-  readonly validateInput?: boolean;
-  readonly useSpaceOptimized?: boolean;
-  readonly enableDebug?: boolean;
+    readonly validateInput?: boolean;
+    readonly useSpaceOptimized?: boolean;
+    readonly enableDebug?: boolean;
 }
 
 /** グリッドの次元情報 */
 interface GridDimensions {
-  readonly rows: number;
-  readonly cols: number;
+    readonly rows: number;
+    readonly cols: number;
 }
 
 /** アルゴリズム結果 */
 interface AlgorithmResult {
-  readonly pathCount: number;
-  readonly executionTime?: number;
-  readonly memoryUsed?: string;
+    readonly pathCount: number;
+    readonly executionTime?: number;
+    readonly memoryUsed?: string;
 }
 
 // ============================================================================
@@ -138,54 +138,54 @@ interface AlgorithmResult {
  * @complexity Time: O(m*n), Space: O(n) or O(m*n)
  */
 function uniquePathsWithObstacles(
-  obstacleGrid: ObstacleGrid,
-  options: AlgorithmOptions = {}
+    obstacleGrid: ObstacleGrid,
+    options: AlgorithmOptions = {},
 ): number {
-  // デフォルトオプション
-  const config: Required<AlgorithmOptions> = {
-    validateInput: true,
-    useSpaceOptimized: true,
-    enableDebug: false,
-    ...options
-  };
+    // デフォルトオプション
+    const config: Required<AlgorithmOptions> = {
+        validateInput: true,
+        useSpaceOptimized: true,
+        enableDebug: false,
+        ...options,
+    };
 
-  // 入力検証
-  if (config.validateInput) {
-    validateObstacleGrid(obstacleGrid);
-  }
+    // 入力検証
+    if (config.validateInput) {
+        validateObstacleGrid(obstacleGrid);
+    }
 
-  const dimensions = getGridDimensions(obstacleGrid);
-  
-  // エッジケース処理
-  if (isPathBlocked(obstacleGrid, dimensions)) {
-    return 0;
-  }
+    const dimensions = getGridDimensions(obstacleGrid);
 
-  // アルゴリズム選択
-  return config.useSpaceOptimized
-    ? calculatePathsOptimized(obstacleGrid, dimensions)
-    : calculatePaths2D(obstacleGrid, dimensions);
+    // エッジケース処理
+    if (isPathBlocked(obstacleGrid, dimensions)) {
+        return 0;
+    }
+
+    // アルゴリズム選択
+    return config.useSpaceOptimized
+        ? calculatePathsOptimized(obstacleGrid, dimensions)
+        : calculatePaths2D(obstacleGrid, dimensions);
 }
 
 /**
  * 詳細な結果を返すバージョン
  */
 function uniquePathsWithObstaclesDetailed(
-  obstacleGrid: ObstacleGrid,
-  options: AlgorithmOptions = {}
+    obstacleGrid: ObstacleGrid,
+    options: AlgorithmOptions = {},
 ): AlgorithmResult {
-  const startTime = performance.now();
-  
-  const pathCount = uniquePathsWithObstacles(obstacleGrid, options);
-  
-  const endTime = performance.now();
-  const executionTime = endTime - startTime;
+    const startTime = performance.now();
 
-  return {
-    pathCount,
-    executionTime,
-    memoryUsed: options.useSpaceOptimized ? 'O(n)' : 'O(m*n)'
-  };
+    const pathCount = uniquePathsWithObstacles(obstacleGrid, options);
+
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+
+    return {
+        pathCount,
+        executionTime,
+        memoryUsed: options.useSpaceOptimized ? 'O(n)' : 'O(m*n)',
+    };
 }
 
 // ============================================================================
@@ -196,72 +196,63 @@ function uniquePathsWithObstaclesDetailed(
  * 1D DP実装（空間最適化版）
  * @complexity Time: O(m*n), Space: O(n)
  */
-function calculatePathsOptimized(
-  grid: ObstacleGrid,
-  { rows, cols }: GridDimensions
-): number {
-  // DPテーブル（1行分のみ）
-  const dp: number[] = new Array(cols).fill(0);
-  dp[0] = 1; // スタート地点
+function calculatePathsOptimized(grid: ObstacleGrid, { rows, cols }: GridDimensions): number {
+    // DPテーブル（1行分のみ）
+    const dp: number[] = new Array(cols).fill(0);
+    dp[0] = 1; // スタート地点
 
-  for (let i = 0; i < rows; i++) {
-    // 各行の最初の列を処理
-    if (grid[i][0] === 1) {
-      dp[0] = 0; // 障害物があれば到達不可
+    for (let i = 0; i < rows; i++) {
+        // 各行の最初の列を処理
+        if (grid[i][0] === 1) {
+            dp[0] = 0; // 障害物があれば到達不可
+        }
+
+        // 残りの列を処理
+        for (let j = 1; j < cols; j++) {
+            if (grid[i][j] === 1) {
+                dp[j] = 0; // 障害物があれば0
+            } else {
+                dp[j] = dp[j] + dp[j - 1]; // 上から + 左から
+            }
+        }
     }
 
-    // 残りの列を処理
-    for (let j = 1; j < cols; j++) {
-      if (grid[i][j] === 1) {
-        dp[j] = 0; // 障害物があれば0
-      } else {
-        dp[j] = dp[j] + dp[j - 1]; // 上から + 左から
-      }
-    }
-  }
-
-  return dp[cols - 1];
+    return dp[cols - 1];
 }
 
 /**
  * 2D DP実装（可読性重視版）
  * @complexity Time: O(m*n), Space: O(m*n)
  */
-function calculatePaths2D(
-  grid: ObstacleGrid,
-  { rows, cols }: GridDimensions
-): number {
-  // DPテーブル初期化
-  const dp: number[][] = Array.from(
-    { length: rows },
-    () => new Array(cols).fill(0)
-  );
+function calculatePaths2D(grid: ObstacleGrid, { rows, cols }: GridDimensions): number {
+    // DPテーブル初期化
+    const dp: number[][] = Array.from({ length: rows }, () => new Array(cols).fill(0));
 
-  // 初期化：スタート地点
-  dp[0][0] = 1;
+    // 初期化：スタート地点
+    dp[0][0] = 1;
 
-  // 最初の行の初期化
-  for (let j = 1; j < cols; j++) {
-    dp[0][j] = grid[0][j] === 1 ? 0 : dp[0][j - 1];
-  }
-
-  // 最初の列の初期化
-  for (let i = 1; i < rows; i++) {
-    dp[i][0] = grid[i][0] === 1 ? 0 : dp[i - 1][0];
-  }
-
-  // メインのDP計算
-  for (let i = 1; i < rows; i++) {
+    // 最初の行の初期化
     for (let j = 1; j < cols; j++) {
-      if (grid[i][j] === 1) {
-        dp[i][j] = 0;
-      } else {
-        dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
-      }
+        dp[0][j] = grid[0][j] === 1 ? 0 : dp[0][j - 1];
     }
-  }
 
-  return dp[rows - 1][cols - 1];
+    // 最初の列の初期化
+    for (let i = 1; i < rows; i++) {
+        dp[i][0] = grid[i][0] === 1 ? 0 : dp[i - 1][0];
+    }
+
+    // メインのDP計算
+    for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+            if (grid[i][j] === 1) {
+                dp[i][j] = 0;
+            } else {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+    }
+
+    return dp[rows - 1][cols - 1];
 }
 
 // ============================================================================
@@ -272,64 +263,61 @@ function calculatePaths2D(
  * 型安全な入力検証
  */
 function validateObstacleGrid(grid: unknown): asserts grid is ObstacleGrid {
-  if (!Array.isArray(grid)) {
-    throw new TypeError('obstacleGrid must be an array');
-  }
-
-  if (grid.length === 0) {
-    throw new RangeError('Grid must not be empty');
-  }
-
-  const rows = grid.length;
-  const cols = grid[0]?.length ?? 0;
-
-  // 制約チェック
-  if (rows < 1 || rows > 100 || cols < 1 || cols > 100) {
-    throw new RangeError('Grid dimensions must be between 1 and 100');
-  }
-
-  // グリッド内容チェック
-  for (let i = 0; i < rows; i++) {
-    const row = grid[i];
-    
-    if (!Array.isArray(row) || row.length !== cols) {
-      throw new TypeError('All rows must be arrays of same length');
+    if (!Array.isArray(grid)) {
+        throw new TypeError('obstacleGrid must be an array');
     }
 
-    for (let j = 0; j < cols; j++) {
-      const val = row[j];
-      if (!isCellValue(val)) {
-        throw new RangeError(`Grid values must be 0 or 1, got ${val} at [${i},${j}]`);
-      }
+    if (grid.length === 0) {
+        throw new RangeError('Grid must not be empty');
     }
-  }
+
+    const rows = grid.length;
+    const cols = grid[0]?.length ?? 0;
+
+    // 制約チェック
+    if (rows < 1 || rows > 100 || cols < 1 || cols > 100) {
+        throw new RangeError('Grid dimensions must be between 1 and 100');
+    }
+
+    // グリッド内容チェック
+    for (let i = 0; i < rows; i++) {
+        const row = grid[i];
+
+        if (!Array.isArray(row) || row.length !== cols) {
+            throw new TypeError('All rows must be arrays of same length');
+        }
+
+        for (let j = 0; j < cols; j++) {
+            const val = row[j];
+            if (!isCellValue(val)) {
+                throw new RangeError(`Grid values must be 0 or 1, got ${val} at [${i},${j}]`);
+            }
+        }
+    }
 }
 
 /**
  * セル値の型ガード
  */
 function isCellValue(value: unknown): value is CellValue {
-  return value === 0 || value === 1;
+    return value === 0 || value === 1;
 }
 
 /**
  * グリッドの次元情報を取得
  */
 function getGridDimensions(grid: ObstacleGrid): GridDimensions {
-  return {
-    rows: grid.length,
-    cols: grid[0].length
-  } as const;
+    return {
+        rows: grid.length,
+        cols: grid[0].length,
+    } as const;
 }
 
 /**
  * スタート・ゴールが障害物かチェック
  */
-function isPathBlocked(
-  grid: ObstacleGrid,
-  { rows, cols }: GridDimensions
-): boolean {
-  return grid[0][0] === 1 || grid[rows - 1][cols - 1] === 1;
+function isPathBlocked(grid: ObstacleGrid, { rows, cols }: GridDimensions): boolean {
+    return grid[0][0] === 1 || grid[rows - 1][cols - 1] === 1;
 }
 
 // ============================================================================
@@ -337,115 +325,121 @@ function isPathBlocked(
 // ============================================================================
 
 interface TestCase {
-  readonly input: ObstacleGrid;
-  readonly expected: number;
-  readonly description: string;
+    readonly input: ObstacleGrid;
+    readonly expected: number;
+    readonly description: string;
 }
 
 const TEST_CASES: readonly TestCase[] = [
-  {
-    input: [[0, 0, 0], [0, 1, 0], [0, 0, 0]] as const,
-    expected: 2,
-    description: "Example 1: 3x3 grid with middle obstacle"
-  },
-  {
-    input: [[0, 1], [0, 0]] as const,
-    expected: 1,
-    description: "Example 2: 2x2 grid with top-right obstacle"
-  },
-  {
-    input: [[1]] as const,
-    expected: 0,
-    description: "Edge case: Start point blocked"
-  },
-  {
-    input: [[0, 0], [1, 0]] as const,
-    expected: 0,
-    description: "Edge case: End point blocked"
-  },
-  {
-    input: [[0]] as const,
-    expected: 1,
-    description: "Edge case: Single cell, no obstacle"
-  }
+    {
+        input: [
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0],
+        ] as const,
+        expected: 2,
+        description: 'Example 1: 3x3 grid with middle obstacle',
+    },
+    {
+        input: [
+            [0, 1],
+            [0, 0],
+        ] as const,
+        expected: 1,
+        description: 'Example 2: 2x2 grid with top-right obstacle',
+    },
+    {
+        input: [[1]] as const,
+        expected: 0,
+        description: 'Edge case: Start point blocked',
+    },
+    {
+        input: [
+            [0, 0],
+            [1, 0],
+        ] as const,
+        expected: 0,
+        description: 'Edge case: End point blocked',
+    },
+    {
+        input: [[0]] as const,
+        expected: 1,
+        description: 'Edge case: Single cell, no obstacle',
+    },
 ] as const;
 
 /**
  * テスト実行関数
  */
 function runTests(): void {
-  console.log("=== TypeScript テスト実行結果 ===");
-  
-  for (const [index, test] of TEST_CASES.entries()) {
-    const result1D = uniquePathsWithObstacles(test.input, { useSpaceOptimized: true });
-    const result2D = uniquePathsWithObstacles(test.input, { useSpaceOptimized: false });
-    const passed = result1D === test.expected && result2D === test.expected;
+    console.log('=== TypeScript テスト実行結果 ===');
 
-    console.log(`Test ${index + 1}: ${passed ? "✓ PASS" : "✗ FAIL"}`);
-    console.log(`  ${test.description}`);
-    console.log(`  Input: ${JSON.stringify(test.input)}`);
-    console.log(`  Expected: ${test.expected}, Got: 1D=${result1D}, 2D=${result2D}`);
-    console.log();
-  }
+    for (const [index, test] of TEST_CASES.entries()) {
+        const result1D = uniquePathsWithObstacles(test.input, { useSpaceOptimized: true });
+        const result2D = uniquePathsWithObstacles(test.input, { useSpaceOptimized: false });
+        const passed = result1D === test.expected && result2D === test.expected;
+
+        console.log(`Test ${index + 1}: ${passed ? '✓ PASS' : '✗ FAIL'}`);
+        console.log(`  ${test.description}`);
+        console.log(`  Input: ${JSON.stringify(test.input)}`);
+        console.log(`  Expected: ${test.expected}, Got: 1D=${result1D}, 2D=${result2D}`);
+        console.log();
+    }
 }
 
 /**
  * パフォーマンステスト
  */
 function performanceTest(): void {
-  // 大きなグリッドを生成（型安全）
-  function createLargeGrid(
-    rows: number, 
-    cols: number, 
-    obstacleRate: number = 0.1
-  ): ObstacleGrid {
-    const grid: CellValue[][] = Array.from(
-      { length: rows }, 
-      () => Array.from(
-        { length: cols }, 
-        () => (Math.random() < obstacleRate ? 1 : 0) as CellValue
-      )
+    // 大きなグリッドを生成（型安全）
+    function createLargeGrid(rows: number, cols: number, obstacleRate: number = 0.1): ObstacleGrid {
+        const grid: CellValue[][] = Array.from({ length: rows }, () =>
+            Array.from({ length: cols }, () => (Math.random() < obstacleRate ? 1 : 0) as CellValue),
+        );
+
+        // スタート・ゴール確保
+        grid[0][0] = 0;
+        grid[rows - 1][cols - 1] = 0;
+
+        return grid;
+    }
+
+    const testGrid = createLargeGrid(100, 100);
+
+    console.log('=== TypeScript パフォーマンステスト ===');
+
+    // 詳細結果でテスト
+    const result1D = uniquePathsWithObstaclesDetailed(testGrid, { useSpaceOptimized: true });
+    const result2D = uniquePathsWithObstaclesDetailed(testGrid, { useSpaceOptimized: false });
+
+    console.log(
+        `1D DP版: ${result1D.executionTime?.toFixed(2)}ms, Result: ${result1D.pathCount}, Memory: ${result1D.memoryUsed}`,
     );
-    
-    // スタート・ゴール確保
-    grid[0][0] = 0;
-    grid[rows - 1][cols - 1] = 0;
-    
-    return grid;
-  }
+    console.log(
+        `2D DP版: ${result2D.executionTime?.toFixed(2)}ms, Result: ${result2D.pathCount}, Memory: ${result2D.memoryUsed}`,
+    );
 
-  const testGrid = createLargeGrid(100, 100);
-
-  console.log("=== TypeScript パフォーマンステスト ===");
-
-  // 詳細結果でテスト
-  const result1D = uniquePathsWithObstaclesDetailed(testGrid, { useSpaceOptimized: true });
-  const result2D = uniquePathsWithObstaclesDetailed(testGrid, { useSpaceOptimized: false });
-
-  console.log(`1D DP版: ${result1D.executionTime?.toFixed(2)}ms, Result: ${result1D.pathCount}, Memory: ${result1D.memoryUsed}`);
-  console.log(`2D DP版: ${result2D.executionTime?.toFixed(2)}ms, Result: ${result2D.pathCount}, Memory: ${result2D.memoryUsed}`);
-  
-  const memoryReduction = (100 * 100 * 4 - 100 * 4) / 1024;
-  console.log(`空間効率改善: 約${memoryReduction.toFixed(2)}KB削減`);
+    const memoryReduction = (100 * 100 * 4 - 100 * 4) / 1024;
+    console.log(`空間効率改善: 約${memoryReduction.toFixed(2)}KB削減`);
 }
 
 /**
  * 型安全性デモンストレーション
  */
 function typeSafetyDemo(): void {
-  console.log("=== TypeScript 型安全性デモ ===");
-  
-  try {
-    // コンパイルエラーになる例（実際は以下はコメントアウト）
-    // uniquePathsWithObstacles("invalid input" as any);
-    // uniquePathsWithObstacles([[0, 2, 0]] as any); // 2は無効な値
-    
-    console.log("✓ 型チェックにより不正な入力をコンパイル時に検出");
-  } catch (error) {
-    // TypeScript 4.4+ では error は unknown 型
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.log(`✗ 実行時エラー: ${errorMessage}`);
-  }
+    console.log('=== TypeScript 型安全性デモ ===');
+
+    try {
+        // コンパイルエラーになる例（実際は以下はコメントアウト）
+        // uniquePathsWithObstacles("invalid input" as any);
+        // uniquePathsWithObstacles([[0, 2, 0]] as any); // 2は無効な値
+
+        console.log('✓ 型チェックにより不正な入力をコンパイル時に検出');
+    } catch (error) {
+        // TypeScript 4.4+ では error は unknown 型
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`✗ 実行時エラー: ${errorMessage}`);
+    }
 }
 
 // ============================================================================
@@ -453,16 +447,16 @@ function typeSafetyDemo(): void {
 // ============================================================================
 
 export {
-  uniquePathsWithObstacles,
-  uniquePathsWithObstaclesDetailed,
-  type ObstacleGrid,
-  type AlgorithmOptions,
-  type AlgorithmResult
+    uniquePathsWithObstacles,
+    uniquePathsWithObstaclesDetailed,
+    type ObstacleGrid,
+    type AlgorithmOptions,
+    type AlgorithmResult,
 };
 
 // 実行（ブラウザ環境での動作確認）
 if (typeof window !== 'undefined') {
-  runTests();
-  performanceTest();
-  typeSafetyDemo();
+    runTests();
+    performanceTest();
+    typeSafetyDemo();
 }

@@ -1,4 +1,3 @@
-
 ---
 
 ## 🎯 問題再掲（要点）
@@ -42,7 +41,7 @@
 students.sort((s1, s2) => s1.a - s2.a);
 ```
 
-* **目的**：体力の差がK以下になるウィンドウを効率的に作るため
+- **目的**：体力の差がK以下になるウィンドウを効率的に作るため
 
 ---
 
@@ -58,8 +57,8 @@ for (let i = 0; i < N; i++) {
   }
 ```
 
-* **目的**：`students[i]` を始点とし、体力差が `K` 以下の範囲にいる生徒を `temp` に集める
-* 体力の差がKを超えたら `break` することで、探索範囲を効率化
+- **目的**：`students[i]` を始点とし、体力差が `K` 以下の範囲にいる生徒を `temp` に集める
+- 体力の差がKを超えたら `break` することで、探索範囲を効率化
 
 📌 この時点で、temp\[] は体力が `[students[i].a, students[i].a + K]` の範囲にある生徒のリスト
 
@@ -71,10 +70,10 @@ for (let i = 0; i < N; i++) {
 temp.sort((s1, s2) => s1.b - s2.b); // 気力でソート
 
 for (let l = 0; l < temp.length; l++) {
-  for (let r = l; r < temp.length; r++) {
-    if (temp[r].b - temp[l].b > K) break;
-    maxCount = Math.max(maxCount, r - l + 1);
-  }
+    for (let r = l; r < temp.length; r++) {
+        if (temp[r].b - temp[l].b > K) break;
+        maxCount = Math.max(maxCount, r - l + 1);
+    }
 }
 ```
 
@@ -112,10 +111,10 @@ for (let l = 0; l < temp.length; l++) {
 
 ## ⚡ 効率性について
 
-* 外側のループ：`O(N)`
-* 内側の体力フィルター：最大 `O(N)`
-* 気力ソート：`O(N log N)`
-* 気力フィルター：最大 `O(N)`
+- 外側のループ：`O(N)`
+- 内側の体力フィルター：最大 `O(N)`
+- 気力ソート：`O(N log N)`
+- 気力フィルター：最大 `O(N)`
 
 ➡ 全体で `O(N^2 log N)` ほどで解け、N=300 でも余裕で間に合います。
 
@@ -123,11 +122,11 @@ for (let l = 0; l < temp.length; l++) {
 
 ## ✅ この手法の強み
 
-| ポイント | 説明                     |
-| ---- | ---------------------- |
-| 正確性  | 条件（最大 - 最小 ≤ K）を厳密に満たす |
-| 汎用性  | 気力と体力がどのような分布でも対応可能    |
-| 効率性  | 不必要な全探索を避け、ソートと区間探索で処理 |
+| ポイント | 説明                                         |
+| -------- | -------------------------------------------- |
+| 正確性   | 条件（最大 - 最小 ≤ K）を厳密に満たす        |
+| 汎用性   | 気力と体力がどのような分布でも対応可能       |
+| 効率性   | 不必要な全探索を避け、ソートと区間探索で処理 |
 
 ---
 
@@ -135,26 +134,26 @@ for (let l = 0; l < temp.length; l++) {
 
 この問題は以下のような問題にも応用可能です：
 
-* 2次元空間での「最大密度エリア」問題
-* スケジューリングにおける「許容差内でのグループ化」
-* 商品レコメンドなどでの「類似度が近いグループの最大化」
+- 2次元空間での「最大密度エリア」問題
+- スケジューリングにおける「許容差内でのグループ化」
+- 商品レコメンドなどでの「類似度が近いグループの最大化」
 
 ---
 
 ## 📦 まとめ
 
-| ステップ | 処理            | 効果               |
-| ---- | ------------- | ---------------- |
-| 1️⃣  | 生徒を体力順にソート    | 体力差K以内を効率的に抽出    |
-| 2️⃣  | 体力差K以内の生徒を収集  | 候補集合の縮小          |
-| 3️⃣  | その中で気力差K以内を探索 | 条件を厳密に満たす最大人数を取得 |
+| ステップ | 処理                      | 効果                             |
+| -------- | ------------------------- | -------------------------------- |
+| 1️⃣       | 生徒を体力順にソート      | 体力差K以内を効率的に抽出        |
+| 2️⃣       | 体力差K以内の生徒を収集   | 候補集合の縮小                   |
+| 3️⃣       | その中で気力差K以内を探索 | 条件を厳密に満たす最大人数を取得 |
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-05-30 11:24:50 | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005) | 1000 | 1567 Byte | **AC** | 164 ms | 42532 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261340) |
-| 2025-05-30 11:23:38 | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 662 Byte | **AC** | 34 ms | 8584 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261317) |
-| 2025-05-30 11:19:25 | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1624 Byte | **AC** | 10 ms | 3836 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261236) |
-| 2025-05-30 11:15:36 | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1196 Byte | **AC** | 239 ms | 21664 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261160) |
-| 2025-05-30 11:09:09 | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 945 Byte | **AC** | 74 ms | 48784 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261041) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                           | ユーザ                                            | 言語                                                                                                    | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-05-30 11:24:50                                                                           | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005)            | 1000                                                                                    | 1567 Byte                                                                                 | **AC** | 164 ms                                                                                       | 42532 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261340) |
+| 2025-05-30 11:23:38                                                                           | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)      | 1000                                                                                    | 662 Byte                                                                                  | **AC** | 34 ms                                                                                        | 8584 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261317) |
+| 2025-05-30 11:19:25                                                                           | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)               | 1000                                                                                    | 1624 Byte                                                                                 | **AC** | 10 ms                                                                                        | 3836 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261236) |
+| 2025-05-30 11:15:36                                                                           | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)              | 1000                                                                                    | 1196 Byte                                                                                 | **AC** | 239 ms                                                                                       | 21664 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261160) |
+| 2025-05-30 11:09:09                                                                           | [A42 - Soccer](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000                                                                                    | 945 Byte                                                                                  | **AC** | 74 ms                                                                                        | 48784 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66261041) |

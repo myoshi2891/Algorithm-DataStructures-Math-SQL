@@ -46,7 +46,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Definition for singly-linked list.
@@ -55,10 +55,10 @@
  * @param {ListNode|null} next
  */
 function ListNode(val, next = null) {
-  /** @type {number} */
-  this.val = val;
-  /** @type {ListNode|null} */
-  this.next = next;
+    /** @type {number} */
+    this.val = val;
+    /** @type {ListNode|null} */
+    this.next = next;
 }
 
 /**
@@ -70,40 +70,40 @@ function ListNode(val, next = null) {
  * @complexity Time O(n), Space O(1)
  */
 function deleteDuplicates(head) {
-  if (head !== null && !(head instanceof ListNode)) {
-    throw new TypeError("Input must be a ListNode or null");
-  }
-
-  // Count nodes & validate values
-  let count = 0;
-  for (let p = head; p !== null; p = p.next) {
-    count++;
-    if (count > 300) throw new RangeError("Node count exceeds 300");
-    if (typeof p.val !== "number" || !Number.isInteger(p.val)) {
-      throw new TypeError("Node value must be an integer");
+    if (head !== null && !(head instanceof ListNode)) {
+        throw new TypeError('Input must be a ListNode or null');
     }
-    if (p.val < -100 || p.val > 100) {
-      throw new RangeError("Node value out of range [-100,100]");
+
+    // Count nodes & validate values
+    let count = 0;
+    for (let p = head; p !== null; p = p.next) {
+        count++;
+        if (count > 300) throw new RangeError('Node count exceeds 300');
+        if (typeof p.val !== 'number' || !Number.isInteger(p.val)) {
+            throw new TypeError('Node value must be an integer');
+        }
+        if (p.val < -100 || p.val > 100) {
+            throw new RangeError('Node value out of range [-100,100]');
+        }
     }
-  }
 
-  const dummy = new ListNode(0, head);
-  let prev = dummy;
+    const dummy = new ListNode(0, head);
+    let prev = dummy;
 
-  while (head !== null) {
-    if (head.next !== null && head.val === head.next.val) {
-      // Skip all nodes with the same value
-      while (head.next !== null && head.val === head.next.val) {
+    while (head !== null) {
+        if (head.next !== null && head.val === head.next.val) {
+            // Skip all nodes with the same value
+            while (head.next !== null && head.val === head.next.val) {
+                head = head.next;
+            }
+            prev.next = head.next; // cut out duplicates
+        } else {
+            prev = prev.next;
+        }
         head = head.next;
-      }
-      prev.next = head.next; // cut out duplicates
-    } else {
-      prev = prev.next;
     }
-    head = head.next;
-  }
 
-  return dummy.next;
+    return dummy.next;
 }
 
 module.exports = { ListNode, deleteDuplicates };

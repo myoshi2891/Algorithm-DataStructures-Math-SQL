@@ -32,7 +32,7 @@ function calculateCorrectAnswers(N: number, M: number, A: number[]): number[] {
     }
 
     // 各生徒の正解数 = M - 間違えた回数
-    return wrongCounts.map(wrong => M - wrong);
+    return wrongCounts.map((wrong) => M - wrong);
 }
 
 /**

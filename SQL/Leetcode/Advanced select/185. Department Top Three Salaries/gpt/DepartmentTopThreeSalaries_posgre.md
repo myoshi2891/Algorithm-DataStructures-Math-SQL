@@ -143,36 +143,33 @@ JOIN Department d
 ## 3) 要点解説
 
 - **PostgreSQL 流の表現**
-
-  - 過剰な `DISTINCT ON` は使わず、**必要な箇所だけユニーク化**（最適解の `uniq`）→ `DENSE_RANK`。
-  - LATERAL は「部門単位で少量だけ取りたい」時に有効（2-1）。
-  - 配列・`ANY` はセミジョイン代替としてスッキリ書ける（2-3）。
+    - 過剰な `DISTINCT ON` は使わず、**必要な箇所だけユニーク化**（最適解の `uniq`）→ `DENSE_RANK`。
+    - LATERAL は「部門単位で少量だけ取りたい」時に有効（2-1）。
+    - 配列・`ANY` はセミジョイン代替としてスッキリ書ける（2-3）。
 
 - **NULL / 重複 / タイブレーク**
-
-  - `salary` が NULL の場合：`ORDER BY salary DESC` では NULL は最後尾（デフォルト）。上位 3 には通常含まれない。
-  - **重複給与**：`DENSE_RANK` により同順位扱い。上位 3**ユニーク給与**に属する全員を返すため仕様に一致。
-  - 判定は **ID 基準**だが、抽出条件は「給与水準 ∈ 上位 3（ユニーク）」で行い、投影列は仕様準拠（部門名・社員名・給与）。
+    - `salary` が NULL の場合：`ORDER BY salary DESC` では NULL は最後尾（デフォルト）。上位 3 には通常含まれない。
+    - **重複給与**：`DENSE_RANK` により同順位扱い。上位 3**ユニーク給与**に属する全員を返すため仕様に一致。
+    - 判定は **ID 基準**だが、抽出条件は「給与水準 ∈ 上位 3（ユニーク）」で行い、投影列は仕様準拠（部門名・社員名・給与）。
 
 - **インデックス最適化（実務で強力）**
 
-  ```sql
-  -- 部門・給与の探索と並びに合致
-  CREATE INDEX ON Employee (departmentId, salary DESC) INCLUDE (name, id);
-  CREATE INDEX ON Department (id);
-  ```
+    ```sql
+    -- 部門・給与の探索と並びに合致
+    CREATE INDEX ON Employee (departmentId, salary DESC) INCLUDE (name, id);
+    CREATE INDEX ON Department (id);
+    ```
 
-  - INCLUDE で**カバリング**度を上げ、テーブルアクセスを減らす（PostgreSQL 11+）。
+    - INCLUDE で**カバリング**度を上げ、テーブルアクセスを減らす（PostgreSQL 11+）。
 
 ---
 
 ## 5) 計算量（概算）
 
 - **最適解（CTE でユニーク → DENSE_RANK）**
-
-  - ユニーク化：部門ごとユニーク給与数を **U** とすると、並べ替えは概ね `O(U log U)` を部門分。
-  - 全体では `O(N)`（ハッシュ or インデックスでの重複除去）＋ `O(Σ U log U)`＋ 最終結合 `O(N)` 程度。
-  - 適切な索引で **Hash/Semi/Index Scan** が選ばれ、実務体感は `O(N+M)` 近似。
+    - ユニーク化：部門ごとユニーク給与数を **U** とすると、並べ替えは概ね `O(U log U)` を部門分。
+    - 全体では `O(N)`（ハッシュ or インデックスでの重複除去）＋ `O(Σ U log U)`＋ 最終結合 `O(N)` 程度。
+    - 適切な索引で **Hash/Semi/Index Scan** が選ばれ、実務体感は `O(N+M)` 近似。
 
 - **3-2（全件ウィンドウ）**：各部門で `O(n_d log n_d)`（`n_d` は部門件数）。ユニーク化がない分、同額が多いと不利。
 - **3-1（LATERAL）**：各部門で `ORDER BY salary DESC LIMIT 3` の範囲探索。

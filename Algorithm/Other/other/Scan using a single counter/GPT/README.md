@@ -5,10 +5,9 @@
 与えられた括弧列 `S` が **正しい括弧列** かを判定する。
 
 - **正しい括弧列の定義**
-
-  1. 空文字は正しい。
-  2. `s` が正しいなら `(s)` も正しい。
-  3. `s, t` が正しいなら `st` も正しい。
+    1. 空文字は正しい。
+    2. `s` が正しいなら `(s)` も正しい。
+    3. `s, t` が正しいなら `st` も正しい。
 
 例:
 ✅ `()` , `(())` , `()()` , `(()())`
@@ -87,16 +86,15 @@ balance != 0 → "No"
 - **計算量**: O(N) （1 回の走査）
 - **メモリ**: O(1) （整数カウンタのみ）
 - **実装構成**
-
-  - Pure Function `isValidParentheses`
-  - 入力/出力を担当する `main`
+    - Pure Function `isValidParentheses`
+    - 入力/出力を担当する `main`
 
 ---
 
 ## 5. コード（solution.js）
 
 ```js
-"use strict";
+'use strict';
 
 /**
  * 正しい括弧列かを判定する Pure Function
@@ -107,42 +105,42 @@ balance != 0 → "No"
  * @complexity 時間 O(N), 空間 O(1)
  */
 function isValidParentheses(s) {
-  if (typeof s !== "string") throw new TypeError("Input must be string");
-  const n = s.length;
-  if (n < 1 || n >= 50000) throw new RangeError("String length out of range");
+    if (typeof s !== 'string') throw new TypeError('Input must be string');
+    const n = s.length;
+    if (n < 1 || n >= 50000) throw new RangeError('String length out of range');
 
-  let balance = 0;
-  for (let i = 0; i < n; i++) {
-    const ch = s[i];
-    if (ch === "(") {
-      balance++;
-    } else if (ch === ")") {
-      balance--;
-    } else {
-      throw new TypeError("Invalid character in input");
+    let balance = 0;
+    for (let i = 0; i < n; i++) {
+        const ch = s[i];
+        if (ch === '(') {
+            balance++;
+        } else if (ch === ')') {
+            balance--;
+        } else {
+            throw new TypeError('Invalid character in input');
+        }
+        if (balance < 0) return false; // 閉じすぎ
     }
-    if (balance < 0) return false; // 閉じすぎ
-  }
-  return balance === 0;
+    return balance === 0;
 }
 
 /**
  * メイン処理 (標準入力/標準出力)
  */
 function main() {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  const n = parseInt(input[0], 10);
-  const s = input[1];
-  if (s.length !== n) {
-    throw new RangeError("Input length does not match N");
-  }
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    const n = parseInt(input[0], 10);
+    const s = input[1];
+    if (s.length !== n) {
+        throw new RangeError('Input length does not match N');
+    }
 
-  const result = isValidParentheses(s);
-  console.log(result ? "Yes" : "No");
+    const result = isValidParentheses(s);
+    console.log(result ? 'Yes' : 'No');
 }
 
 if (require.main === module) {
-  main();
+    main();
 }
 
 module.exports = { isValidParentheses };
@@ -155,9 +153,8 @@ module.exports = { isValidParentheses };
 - **競技プログラミング視点**: O(N), O(1) で最速
 - **業務開発視点**: Pure Function + 入力検証 + JSDoc で保守性担保
 - **JavaScript 最適化**:
-
-  - 配列やスタックを使わず整数カウンタのみ
-  - GC 負荷最小
-  - `for` ループによる安定した処理
+    - 配列やスタックを使わず整数カウンタのみ
+    - GC 負荷最小
+    - `for` ループによる安定した処理
 
 ---

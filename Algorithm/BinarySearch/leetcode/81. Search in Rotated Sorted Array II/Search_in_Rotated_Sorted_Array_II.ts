@@ -74,45 +74,45 @@
  * @complexity Time: O(log n) average, O(n) worst due to duplicates; Space: O(1)
  */
 export function search(nums: readonly number[], target: number): boolean {
-  // ---- 入力検証 ----
-  if (!Array.isArray(nums)) {
-    throw new TypeError("nums must be an array");
-  }
-  if (typeof target !== "number" || !Number.isFinite(target)) {
-    throw new TypeError("target must be a finite number");
-  }
-
-  let left = 0;
-  let right = nums.length - 1;
-
-  while (left <= right) {
-    const mid = (left + right) >> 1;
-    if (nums[mid] === target) return true;
-
-    // duplicates skip
-    if (nums[left] === nums[mid] && nums[mid] === nums[right]) {
-      left++;
-      right--;
+    // ---- 入力検証 ----
+    if (!Array.isArray(nums)) {
+        throw new TypeError('nums must be an array');
     }
-    // 左半分がソート済み
-    else if (nums[left] <= nums[mid]) {
-      if (nums[left] <= target && target < nums[mid]) {
-        right = mid - 1;
-      } else {
-        left = mid + 1;
-      }
+    if (typeof target !== 'number' || !Number.isFinite(target)) {
+        throw new TypeError('target must be a finite number');
     }
-    // 右半分がソート済み
-    else {
-      if (nums[mid] < target && target <= nums[right]) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
-    }
-  }
 
-  return false;
+    let left = 0;
+    let right = nums.length - 1;
+
+    while (left <= right) {
+        const mid = (left + right) >> 1;
+        if (nums[mid] === target) return true;
+
+        // duplicates skip
+        if (nums[left] === nums[mid] && nums[mid] === nums[right]) {
+            left++;
+            right--;
+        }
+        // 左半分がソート済み
+        else if (nums[left] <= nums[mid]) {
+            if (nums[left] <= target && target < nums[mid]) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        // 右半分がソート済み
+        else {
+            if (nums[mid] < target && target <= nums[right]) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+    }
+
+    return false;
 }
 // ```
 

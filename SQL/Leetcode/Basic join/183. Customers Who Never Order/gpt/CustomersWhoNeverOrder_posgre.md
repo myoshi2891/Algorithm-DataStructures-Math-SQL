@@ -5,9 +5,8 @@
 - エンジン: PostgreSQL 12+（ウィンドウ関数可。ただし本問は不要）
 - 並び順: 任意（ここでは読みやすさのため `ORDER BY` を付けていますが、不要なら削除可）
 - NULL・重複の扱い方針:
-
-  - `Orders.customerId` に `NULL` が混ざっても安全に動く書き方を採用（`NOT IN` は使用しない）。
-  - 同姓同名が別顧客として存在し得るため、**ID 単位で未注文を判定**し、表示列は問題どおり `name`（必要に応じて `DISTINCT` を付与）。
+    - `Orders.customerId` に `NULL` が混ざっても安全に動く書き方を採用（`NOT IN` は使用しない）。
+    - 同姓同名が別顧客として存在し得るため、**ID 単位で未注文を判定**し、表示列は問題どおり `name`（必要に応じて `DISTINCT` を付与）。
 
 ---
 
@@ -86,34 +85,30 @@ Wrong Answer
 9 / 12 testcases passed
 
 - **長所・短所・採否基準**
-
-  - `NOT EXISTS`：`NULL` に強く、PostgreSQL でセミ/アンチセミジョイン最適化が効きやすい。推奨。
-  - `LEFT JOIN ... IS NULL`：可読性が高い。結合条件・フィルタを見通しやすい。
-  - `EXCEPT`：集合演算で簡潔。ただし「名前での差集合」になる点に注意（同名異人をまとめる可能性）。
+    - `NOT EXISTS`：`NULL` に強く、PostgreSQL でセミ/アンチセミジョイン最適化が効きやすい。推奨。
+    - `LEFT JOIN ... IS NULL`：可読性が高い。結合条件・フィルタを見通しやすい。
+    - `EXCEPT`：集合演算で簡潔。ただし「名前での差集合」になる点に注意（同名異人をまとめる可能性）。
 
 ---
 
 ## 4) 要点解説
 
 - **PostgreSQL 流の書き方**
-
-  - アンチセミジョインは `NOT EXISTS` が素直で最適化も効きやすい。
-  - 本問で `DISTINCT ON` や `FILTER`、`GENERATE_SERIES` は不要（過剰表現になるため不採用）。
+    - アンチセミジョインは `NOT EXISTS` が素直で最適化も効きやすい。
+    - 本問で `DISTINCT ON` や `FILTER`、`GENERATE_SERIES` は不要（過剰表現になるため不採用）。
 
 - **NULL・タイブレーク・重複**
-
-  - `NOT IN (SELECT customerId ...)` はサブクエリに `NULL` が含まれると “未知” となり全体が落ちる可能性があるため非推奨。
-  - 同名異人があり得るが、**未注文の判定は ID 基準**で実施。表示は問題仕様に合わせて `name` のみ。
+    - `NOT IN (SELECT customerId ...)` はサブクエリに `NULL` が含まれると “未知” となり全体が落ちる可能性があるため非推奨。
+    - 同名異人があり得るが、**未注文の判定は ID 基準**で実施。表示は問題仕様に合わせて `name` のみ。
 
 ---
 
 ## 5) 計算量（概算）
 
 - `Customers` を **N 件**、`Orders` を **M 件** とすると：
-
-  - `NOT EXISTS` / `LEFT JOIN IS NULL`：
-    適切な索引（`Orders(customerId)`）があれば概ね **O(N + M)**（Hash/Semi Join 想定）。
-  - 索引が無い場合：ネストループに近く **O(N × M)** になり得る。
+    - `NOT EXISTS` / `LEFT JOIN IS NULL`：
+      適切な索引（`Orders(customerId)`）があれば概ね **O(N + M)**（Hash/Semi Join 想定）。
+    - 索引が無い場合：ネストループに近く **O(N × M)** になり得る。
 
 - 実務では `CREATE INDEX ON Orders(customerId);` が効く（LeetCode では DDL は通常不要だが知識として）。
 

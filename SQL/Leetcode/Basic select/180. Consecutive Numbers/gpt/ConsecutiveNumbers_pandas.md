@@ -346,24 +346,19 @@ print(consecutive_numbers(logs))
 ## よく落ちる原因トップ 5
 
 1. **`num` 型の不一致（int と str の混在）**
-
-   - SQL では `num` は `varchar`。pandas 側で `1`（int）と `"1"`（str）が混在すると、**同値判定がズレて連続を見落とす**/余計に拾う。
+    - SQL では `num` は `varchar`。pandas 側で `1`（int）と `"1"`（str）が混在すると、**同値判定がズレて連続を見落とす**/余計に拾う。
 
 2. **前後スペース等の汚れ（" 1 " vs "1"）**
-
-   - SQL の `varchar` 由来だと稀に混入。**strip 不足**で不一致。
+    - SQL の `varchar` 由来だと稀に混入。**strip 不足**で不一致。
 
 3. **NaN/None の扱い**
-
-   - `NaN != NaN` のため、**誤った分割**や**'nan' 文字**として残してしまう。
+    - `NaN != NaN` のため、**誤った分割**や**'nan' 文字**として残してしまう。
 
 4. **並び順の取り違え**
-
-   - 連続の定義は `id` 昇順。**未ソート**/別キーでソートすると全部ズレます。
+    - 連続の定義は `id` 昇順。**未ソート**/別キーでソートすると全部ズレます。
 
 5. **出力の“決定性”**
-
-   - 採点側が内部で厳格比較していると、**dtype（文字列で返すべき）や並び**が原因で NG になることがある。
+    - 採点側が内部で厳格比較していると、**dtype（文字列で返すべき）や並び**が原因で NG になることがある。
 
 ---
 
@@ -614,10 +609,10 @@ def consecutive_numbers(logs: pd.DataFrame) -> pd.DataFrame:
 - 自分で `logs = pd.DataFrame({...})` を用意してから `print(consecutive_numbers(logs))` を呼ぶ。
 - 型・汚れを確認するときは：
 
-  ```python
-  print(logs.dtypes)
-  print({type(x) for x in logs["num"].dropna().unique()})
-  ```
+    ```python
+    print(logs.dtypes)
+    print({type(x) for x in logs["num"].dropna().unique()})
+    ```
 
 これで `NameError` は解消し、採点環境でも動くはずです。
 

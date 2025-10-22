@@ -23,38 +23,38 @@ const fs = require('fs');
  * @returns {string} - "First" または "Second"
  */
 function solveStoneGame(N, a) {
-  const dp = new Array(N + 1).fill(false); // dp[i] = その状態が先手必勝なら true
+    const dp = new Array(N + 1).fill(false); // dp[i] = その状態が先手必勝なら true
 
-  for (let stones = 1; stones <= N; stones++) {
-    for (let move of a) {
-      if (stones - move >= 0 && !dp[stones - move]) {
-        dp[stones] = true; // 相手が負ける手があるので先手勝ち
-        break;
-      }
+    for (let stones = 1; stones <= N; stones++) {
+        for (let move of a) {
+            if (stones - move >= 0 && !dp[stones - move]) {
+                dp[stones] = true; // 相手が負ける手があるので先手勝ち
+                break;
+            }
+        }
     }
-  }
 
-  return dp[N] ? "First" : "Second";
+    return dp[N] ? 'First' : 'Second';
 }
 
 // 標準入力読み込み＋処理時間、メモリ計測
 function main() {
-  const startTime = process.hrtime.bigint(); // 開始時間（ナノ秒）
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
-  
-  const N = input[0];
-  const K = input[1];
-  const a = input.slice(2, 2 + K);
+    const startTime = process.hrtime.bigint(); // 開始時間（ナノ秒）
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/).map(Number);
 
-  const result = solveStoneGame(N, a);
-  console.log(result);
+    const N = input[0];
+    const K = input[1];
+    const a = input.slice(2, 2 + K);
 
-  const endTime = process.hrtime.bigint(); // 終了時間（ナノ秒）
-  const elapsedTimeMs = Number(endTime - startTime) / 1e6;
-  const memoryUsageMB = process.memoryUsage().heapUsed / 1024 / 1024;
+    const result = solveStoneGame(N, a);
+    console.log(result);
 
-  console.error(`Time: ${elapsedTimeMs.toFixed(3)} ms`);
-  console.error(`Memory: ${memoryUsageMB.toFixed(3)} MB`);
+    const endTime = process.hrtime.bigint(); // 終了時間（ナノ秒）
+    const elapsedTimeMs = Number(endTime - startTime) / 1e6;
+    const memoryUsageMB = process.memoryUsage().heapUsed / 1024 / 1024;
+
+    console.error(`Time: ${elapsedTimeMs.toFixed(3)} ms`);
+    console.error(`Memory: ${memoryUsageMB.toFixed(3)} MB`);
 }
 
 main();

@@ -6,9 +6,9 @@ TypeScriptによるフィボナッチ数列の漸化式 `a₁ = 1, a₂ = 1, a�
 
 ### 定義：
 
-* $a_1 = 1$
-* $a_2 = 1$
-* $a_n = a_{n-1} + a_{n-2} \quad (n \geq 3)$
+- $a_1 = 1$
+- $a_2 = 1$
+- $a_n = a_{n-1} + a_{n-2} \quad (n \geq 3)$
 
 ---
 
@@ -120,10 +120,10 @@ prev = 5   curr = 8 ← ✅ 答え
 
 ```ts
 // メモリ効率が悪い例（NG）
-let fib = Array(N+1).fill(0);
+let fib = Array(N + 1).fill(0);
 fib[1] = fib[2] = 1;
 for (let i = 3; i <= N; i++) {
-  fib[i] = (fib[i-1] + fib[i-2]) % MOD;
+    fib[i] = (fib[i - 1] + fib[i - 2]) % MOD;
 }
 return fib[N]; // O(N)メモリ使用
 ```
@@ -140,8 +140,8 @@ const MOD = 1_000_000_007;
 const next = (prev + curr) % MOD;
 ```
 
-* JavaScriptの数値は64bit浮動小数点ですが、整数の加算を繰り返すと **オーバーフローが発生**します。
-* よって、**各ステップで `% MOD` を取ることで安全に整数値を維持**します。
+- JavaScriptの数値は64bit浮動小数点ですが、整数の加算を繰り返すと **オーバーフローが発生**します。
+- よって、**各ステップで `% MOD` を取ることで安全に整数値を維持**します。
 
 ---
 
@@ -165,28 +165,28 @@ const next = (prev + curr) % MOD;
 
 ## 🧠 補足：なぜ O(log N) にしないのか？
 
-* 行列累乗法（O(log N)）は理論上速いが、実装・定数時間がやや重く、**最大 N = 10^7 なら O(N) の方が高速・安定**。
-* メモリ制限1GB、時間10秒なら **今回の手法で十分高性能かつ安定**。
+- 行列累乗法（O(log N)）は理論上速いが、実装・定数時間がやや重く、**最大 N = 10^7 なら O(N) の方が高速・安定**。
+- メモリ制限1GB、時間10秒なら **今回の手法で十分高性能かつ安定**。
 
 ---
 
 ## ✅ 結論：提案手法の利点まとめ
 
-| 項目    | 内容                |
-| ----- | ----------------- |
-| 時間計算量 | `O(N)` でループ一回     |
-| 空間計算量 | `O(1)`（配列使用せず）    |
-| 安定性   | 非常に高く、ミスの少ない実装    |
-| 実用性   | AtCoder等ジャッジでも即通る |
+| 項目       | 内容                         |
+| ---------- | ---------------------------- |
+| 時間計算量 | `O(N)` でループ一回          |
+| 空間計算量 | `O(1)`（配列使用せず）       |
+| 安定性     | 非常に高く、ミスの少ない実装 |
+| 実用性     | AtCoder等ジャッジでも即通る  |
 
 ---
 
 ご希望あれば、**O(log N) の高速版（行列累乗法）** の図解付き解説も可能です。
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-20 15:23:05 | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 700 Byte |  | 36 ms | 1704 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777171) |
-| 2025-07-20 15:20:03 | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 718 Byte |  | 146 ms | 21268 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777124) |
-| 2025-07-20 15:17:08 | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 803 Byte |  | 551 ms | 8556 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777069) |
-| 2025-07-20 15:10:51 | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 839 Byte |  | 90 ms | 46136 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67776939) |
-| 2025-07-20 15:06:17 | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 693 Byte |  | 113 ms | 46036 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67776819) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                                          | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-20 15:23:05                                                                           | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 700 Byte                                                                                  |      | 36 ms                                                                                        | 1704 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777171) |
+| 2025-07-20 15:20:03                                                                           | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 718 Byte                                                                                  |      | 146 ms                                                                                       | 21268 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777124) |
+| 2025-07-20 15:17:08                                                                           | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 803 Byte                                                                                  |      | 551 ms                                                                                       | 8556 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67777069) |
+| 2025-07-20 15:10:51                                                                           | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 839 Byte                                                                                  |      | 90 ms                                                                                        | 46136 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67776939) |
+| 2025-07-20 15:06:17                                                                           | [B28 - Fibonacci Easy (mod 1000000007)](https://atcoder.jp/contests/tessoku-book/tasks/math_and_algorithm_ap) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 693 Byte                                                                                  |      | 113 ms                                                                                       | 46036 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67776819) |

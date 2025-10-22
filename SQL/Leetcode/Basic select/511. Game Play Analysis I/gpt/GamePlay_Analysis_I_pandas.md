@@ -66,15 +66,13 @@ def first_login(Activity: pd.DataFrame) -> pd.DataFrame:
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `DataFrame.__getitem__`：必要列へ縮約
-  - `groupby(...).agg({'col':'min'})`：グループ最小日を算出
+    - `DataFrame.__getitem__`：必要列へ縮約
+    - `groupby(...).agg({'col':'min'})`：グループ最小日を算出
 
 - **NULL / 重複 / 型**
-
-  - `event_date` に `NaT` が混在しても `min` は非 `NaT` を優先（全て `NaT` のグループは `NaT`）
-  - `(player_id, event_date)` が元々一意でも、本解は重複の有無に依らず正しく最小日を返す
-  - `event_date` は `datetime64[ns]` or `datetime64[ns, tz-naive]` 前提（`date` 由来でも `min` 可）
+    - `event_date` に `NaT` が混在しても `min` は非 `NaT` を優先（全て `NaT` のグループは `NaT`）
+    - `(player_id, event_date)` が元々一意でも、本解は重複の有無に依らず正しく最小日を返す
+    - `event_date` は `datetime64[ns]` or `datetime64[ns, tz-naive]` 前提（`date` 由来でも `min` 可）
 
 ## 4) 計算量（概算）
 
@@ -187,10 +185,10 @@ def first_login(Activity: pd.DataFrame) -> pd.DataFrame:
 
 - **`player_id` がカテゴリとして管理されている**場合は、未使用カテゴリを事前に落とす：
 
-  ```python
-  if pd.api.types.is_categorical_dtype(Activity['player_id']):
-      Activity = Activity.assign(player_id=Activity['player_id'].cat.remove_unused_categories())
-  ```
+    ```python
+    if pd.api.types.is_categorical_dtype(Activity['player_id']):
+        Activity = Activity.assign(player_id=Activity['player_id'].cat.remove_unused_categories())
+    ```
 
 ---
 

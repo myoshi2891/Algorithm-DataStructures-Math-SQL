@@ -23,7 +23,7 @@ const N: number = parseInt(input[idx++]);
 const A: number[] = [];
 
 for (let i = 0; i < N; i++) {
-  A.push(parseInt(input[idx++]));
+    A.push(parseInt(input[idx++]));
 }
 
 A.sort((a, b) => a - b); // 昇順ソート
@@ -33,23 +33,23 @@ const results: number[] = [];
 
 // 各クエリに対して lowerBound を実行
 for (let i = 0; i < Q; i++) {
-  const X: number = parseInt(input[idx++]);
-  results.push(lowerBound(A, X));
+    const X: number = parseInt(input[idx++]);
+    results.push(lowerBound(A, X));
 }
 
 // 二分探索：X より小さい要素の数を返す
 function lowerBound(arr: number[], target: number): number {
-  let left = 0;
-  let right = arr.length;
-  while (left < right) {
-    const mid = (left + right) >>> 1; // unsigned right shift で高速化
-    if (arr[mid] < target) {
-      left = mid + 1;
-    } else {
-      right = mid;
+    let left = 0;
+    let right = arr.length;
+    while (left < right) {
+        const mid = (left + right) >>> 1; // unsigned right shift で高速化
+        if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
     }
-  }
-  return left;
+    return left;
 }
 
 // 結果出力

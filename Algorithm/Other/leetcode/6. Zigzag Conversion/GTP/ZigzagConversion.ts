@@ -64,37 +64,35 @@
  * @complexity Time: O(n), Space: O(1)  ※出力を除く補助領域
  */
 function convert(s: string, numRows: number): string {
-  // ---- 入力検証（軽量＆早期）----
-  if (typeof s !== "string") throw new TypeError("s must be a string");
-  if (!Number.isInteger(numRows))
-    throw new TypeError("numRows must be an integer");
+    // ---- 入力検証（軽量＆早期）----
+    if (typeof s !== 'string') throw new TypeError('s must be a string');
+    if (!Number.isInteger(numRows)) throw new TypeError('numRows must be an integer');
 
-  const n = s.length;
-  if (n < 1 || n > 1000) throw new RangeError("s.length must be in [1, 1000]");
-  if (numRows < 1 || numRows > 1000)
-    throw new RangeError("numRows must be in [1, 1000]");
+    const n = s.length;
+    if (n < 1 || n > 1000) throw new RangeError('s.length must be in [1, 1000]');
+    if (numRows < 1 || numRows > 1000) throw new RangeError('numRows must be in [1, 1000]');
 
-  // 特殊ケース：行数が1、または行数が文字数以上
-  if (numRows === 1 || numRows >= n) return s;
+    // 特殊ケース：行数が1、または行数が文字数以上
+    if (numRows === 1 || numRows >= n) return s;
 
-  // ---- 本処理 ----
-  // 周期：縦 numRows + 斜め (numRows - 2) を合わせて 2*(numRows-1)
-  const cycle = (numRows - 1) << 1; // 2*(numRows-1)
-  const out: string[] = new Array<string>(n);
-  let k = 0; // out への書き込み位置
+    // ---- 本処理 ----
+    // 周期：縦 numRows + 斜め (numRows - 2) を合わせて 2*(numRows-1)
+    const cycle = (numRows - 1) << 1; // 2*(numRows-1)
+    const out: string[] = new Array<string>(n);
+    let k = 0; // out への書き込み位置
 
-  for (let row = 0; row < numRows; row++) {
-    for (let i = row; i < n; i += cycle) {
-      out[k++] = s[i]; // 縦列成分
+    for (let row = 0; row < numRows; row++) {
+        for (let i = row; i < n; i += cycle) {
+            out[k++] = s[i]; // 縦列成分
 
-      // 中間行のみ斜め成分が存在
-      if (row !== 0 && row !== numRows - 1) {
-        const diagIdx = i + (cycle - (row << 1)); // i + (cycle - 2*row)
-        if (diagIdx < n) out[k++] = s[diagIdx];
-      }
+            // 中間行のみ斜め成分が存在
+            if (row !== 0 && row !== numRows - 1) {
+                const diagIdx = i + (cycle - (row << 1)); // i + (cycle - 2*row)
+                if (diagIdx < n) out[k++] = s[diagIdx];
+            }
+        }
     }
-  }
-  return out.join("");
+    return out.join('');
 }
 
 // ESM モジュールと明示するためのダミー export（LeetCode 実行には影響なし）

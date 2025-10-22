@@ -28,23 +28,23 @@
  * @returns {ListNode} - スワップ後の新しい先頭ノード
  */
 function swapPairsJs(head) {
-  const dummy = new ListNode(0, head); // 仮の先頭ノード
-  let prev = dummy;
+    const dummy = new ListNode(0, head); // 仮の先頭ノード
+    let prev = dummy;
 
-  while (prev.next !== null && prev.next.next !== null) {
-    const first = prev.next;
-    const second = first.next;
+    while (prev.next !== null && prev.next.next !== null) {
+        const first = prev.next;
+        const second = first.next;
 
-    // スワップ処理
-    first.next = second.next;
-    second.next = first;
-    prev.next = second;
+        // スワップ処理
+        first.next = second.next;
+        second.next = first;
+        prev.next = second;
 
-    // 次のペアへ移動
-    prev = first;
-  }
+        // 次のペアへ移動
+        prev = first;
+    }
 
-  return dummy.next;
+    return dummy.next;
 }
 // ```
 

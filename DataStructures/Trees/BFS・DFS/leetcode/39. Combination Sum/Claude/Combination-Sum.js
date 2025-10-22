@@ -34,13 +34,13 @@
  * @param {number} target - 目標となる合計値
  * @return {number[][]} - targetに合計が等しくなる全ての組み合わせの配列
  */
-var combinationSum = function(candidates, target) {
+var combinationSum = function (candidates, target) {
     const result = [];
     const currentCombination = [];
-    
+
     // パフォーマンス向上のため配列をソート（小さい数から試すことで早期終了を促進）
     candidates.sort((a, b) => a - b);
-    
+
     /**
      * DFS + バックトラッキングによる再帰探索
      * @param {number} startIndex - 探索開始インデックス（重複回避のため）
@@ -52,35 +52,35 @@ var combinationSum = function(candidates, target) {
             result.push([...currentCombination]); // 配列のコピーを作成
             return;
         }
-        
+
         // 残りの目標値が負の場合は無効なパス
         if (remainingTarget < 0) {
             return;
         }
-        
+
         // 現在のインデックスから配列の末尾まで探索
         for (let i = startIndex; i < candidates.length; i++) {
             const candidate = candidates[i];
-            
+
             // 早期終了：ソート済み配列なので、現在の候補が残り目標値より大きい場合
             // それ以降の候補も全て大きいため探索を打ち切る
             if (candidate > remainingTarget) {
                 break;
             }
-            
+
             // 現在の候補を組み合わせに追加
             currentCombination.push(candidate);
-            
+
             // 再帰呼び出し：同じ数字を何度でも使えるためstartIndexはiのまま
             dfs(i, remainingTarget - candidate);
-            
+
             // バックトラッキング：追加した候補を削除して次の候補を試す
             currentCombination.pop();
         }
     }
-    
+
     // DFS探索を開始
     dfs(0, target);
-    
+
     return result;
 };

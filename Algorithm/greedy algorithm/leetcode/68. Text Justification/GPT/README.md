@@ -23,10 +23,9 @@
 - **入力**: 単語の配列 `words` と整数 `maxWidth`
 - **出力**: 各行を **幅 `maxWidth` に揃えた文字列配列**
 - **制約条件**:
-
-  1. 各行は文字数が **ちょうど `maxWidth`**
-  2. 両端揃え (Justified)
-  3. **最終行は左寄せ**
+    1. 各行は文字数が **ちょうど `maxWidth`**
+    2. 両端揃え (Justified)
+    3. **最終行は左寄せ**
 
 **カテゴリ**: Greedy Algorithm / String Manipulation
 **難易度**: Hard
@@ -43,35 +42,30 @@
  * @param maxWidth - 各行の最大幅
  * @returns 揃えられた文字列配列
  */
-export function fullJustify(
-  words: readonly string[],
-  maxWidth: number
-): string[] {
-  const result: string[] = [];
-  let line: string[] = [];
-  let lineLength = 0;
+export function fullJustify(words: readonly string[], maxWidth: number): string[] {
+    const result: string[] = [];
+    let line: string[] = [];
+    let lineLength = 0;
 
-  for (const word of words) {
-    // 次の単語を追加すると maxWidth を超えるなら行を確定
-    if (lineLength + word.length + line.length > maxWidth) {
-      let spaces = maxWidth - lineLength;
-      for (let i = 0; i < spaces; i++) {
-        line[i % (line.length - 1 || 1)] += " ";
-      }
-      result.push(line.join(""));
-      line = [];
-      lineLength = 0;
+    for (const word of words) {
+        // 次の単語を追加すると maxWidth を超えるなら行を確定
+        if (lineLength + word.length + line.length > maxWidth) {
+            let spaces = maxWidth - lineLength;
+            for (let i = 0; i < spaces; i++) {
+                line[i % (line.length - 1 || 1)] += ' ';
+            }
+            result.push(line.join(''));
+            line = [];
+            lineLength = 0;
+        }
+        line.push(word);
+        lineLength += word.length;
     }
-    line.push(word);
-    lineLength += word.length;
-  }
 
-  // 最後の行は左寄せ
-  result.push(
-    line.join(" ") + " ".repeat(maxWidth - lineLength - (line.length - 1))
-  );
+    // 最後の行は左寄せ
+    result.push(line.join(' ') + ' '.repeat(maxWidth - lineLength - (line.length - 1)));
 
-  return result;
+    return result;
 }
 ```
 
@@ -101,7 +95,7 @@ flowchart TD
 例:
 
 ```ts
-words = ["This", "is", "an"];
+words = ['This', 'is', 'an'];
 maxWidth = 16;
 ```
 
@@ -134,7 +128,7 @@ justification.␣␣
 入力:
 
 ```ts
-const words = ["This", "is", "an", "example", "of", "text", "justification."];
+const words = ['This', 'is', 'an', 'example', 'of', 'text', 'justification.'];
 const maxWidth = 16;
 console.log(fullJustify(words, maxWidth));
 ```
@@ -142,7 +136,7 @@ console.log(fullJustify(words, maxWidth));
 出力:
 
 ```ts
-["This    is    an", "example  of text", "justification.  "];
+['This    is    an', 'example  of text', 'justification.  '];
 ```
 
 ---

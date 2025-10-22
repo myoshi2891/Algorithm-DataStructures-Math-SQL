@@ -7,7 +7,7 @@
 // - **必要計算量**: O(m×n) が最適（全セル1回ずつ訪問必須）
 // - **メモリ**: O(n) で実現可能（1行分のDPテーブル）
 
-// ### 業務開発視点  
+// ### 業務開発視点
 // - **入力検証**: グリッドの妥当性チェック必須
 // - **エラーハンドリング**: 不正な入力への対応
 // - **可読性**: DPの状態遷移を明確に表現
@@ -32,7 +32,7 @@
 
 // **理由**:
 // - 時間計算量 O(m×n) で最適
-// - 空間計算量 O(n) でメモリ効率良好  
+// - 空間計算量 O(n) でメモリ効率良好
 // - V8の配列最適化を活用可能
 // - 業務開発での保守性も十分
 
@@ -71,21 +71,21 @@
 // var minPathSum = function(grid) {
 //     const m = grid.length;
 //     const n = grid[0].length;
-    
+
 //     const dp = new Array(n);
 //     dp[0] = grid[0][0];
-    
+
 //     for (let j = 1; j < n; j++) {
 //         dp[j] = dp[j - 1] + grid[0][j];
 //     }
-    
+
 //     for (let i = 1; i < m; i++) {
 //         dp[0] += grid[i][0];
 //         for (let j = 1; j < n; j++) {
 //             dp[j] = Math.min(dp[j], dp[j - 1]) + grid[i][j];
 //         }
 //     }
-    
+
 //     return dp[n - 1];
 // };
 // ```
@@ -101,45 +101,45 @@
 /**
  * Minimum Path Sum の解決関数
  * グリッド内で左上から右下への最小コストパスを求める
- * 
+ *
  * @param {number[][]} grid - m×n の非負整数グリッド
  * @returns {number} 最小パス合計値
  * @throws {TypeError} 入力型エラー
- * @throws {RangeError} 制約違反エラー  
+ * @throws {RangeError} 制約違反エラー
  * @complexity Time: O(m×n), Space: O(n)
  */
 function minPathSum(grid) {
     // 1. 入力検証
     validateInput(grid);
-    
+
     const m = grid.length;
     const n = grid[0].length;
-    
+
     // 2. エッジケース処理
     if (m === 1 && n === 1) {
         return grid[0][0];
     }
-    
+
     // 3. 1D DP配列初期化（V8最適化: 事前サイズ確保）
     const dp = new Array(n);
-    
+
     // 4. 第1行の初期化
     dp[0] = grid[0][0];
     for (let j = 1; j < n; j++) {
         dp[j] = dp[j - 1] + grid[0][j];
     }
-    
+
     // 5. メインアルゴリズム（行ごとにDP更新）
     for (let i = 1; i < m; i++) {
         // 各行の左端: 上からのみ来れる
         dp[0] += grid[i][0];
-        
+
         // 各行の中間・右端: min(上, 左) + 現在値
         for (let j = 1; j < n; j++) {
             dp[j] = Math.min(dp[j], dp[j - 1]) + grid[i][j];
         }
     }
-    
+
     return dp[n - 1];
 }
 
@@ -152,29 +152,31 @@ function validateInput(grid) {
     if (!Array.isArray(grid) || grid.length === 0) {
         throw new TypeError('Grid must be a non-empty 2D array');
     }
-    
+
     if (!Array.isArray(grid[0]) || grid[0].length === 0) {
         throw new TypeError('Grid rows must be non-empty arrays');
     }
-    
+
     const m = grid.length;
     const n = grid[0].length;
-    
+
     // 制約チェック
     if (m > 200 || n > 200) {
         throw new RangeError('Grid dimensions must not exceed 200×200');
     }
-    
+
     // グリッド整合性チェック
     for (let i = 0; i < m; i++) {
         if (!Array.isArray(grid[i]) || grid[i].length !== n) {
             throw new TypeError('All grid rows must have the same length');
         }
-        
+
         for (let j = 0; j < n; j++) {
             const val = grid[i][j];
             if (typeof val !== 'number' || val < 0 || val > 200 || !Number.isInteger(val)) {
-                throw new RangeError(`Grid values must be integers between 0-200, got ${val} at [${i}][${j}]`);
+                throw new RangeError(
+                    `Grid values must be integers between 0-200, got ${val} at [${i}][${j}]`,
+                );
             }
         }
     }
@@ -188,36 +190,46 @@ function validateInput(grid) {
 function runTests() {
     const testCases = [
         {
-            input: [[1,3,1],[1,5,1],[4,2,1]], 
+            input: [
+                [1, 3, 1],
+                [1, 5, 1],
+                [4, 2, 1],
+            ],
             expected: 7,
-            description: "Example 1: 3×3 grid"
+            description: 'Example 1: 3×3 grid',
         },
         {
-            input: [[1,2,3],[4,5,6]], 
+            input: [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
             expected: 12,
-            description: "Example 2: 2×3 grid"
+            description: 'Example 2: 2×3 grid',
         },
         {
-            input: [[1]], 
+            input: [[1]],
             expected: 1,
-            description: "Edge case: Single cell"
+            description: 'Edge case: Single cell',
         },
         {
-            input: [[1,2],[1,1]], 
+            input: [
+                [1, 2],
+                [1, 1],
+            ],
             expected: 3,
-            description: "Small case: 2×2 grid"
-        }
+            description: 'Small case: 2×2 grid',
+        },
     ];
-    
+
     console.log('=== Minimum Path Sum Tests ===\n');
-    
+
     for (let i = 0; i < testCases.length; i++) {
         const { input, expected, description } = testCases[i];
-        
+
         try {
             const result = minPathSum(input);
             const passed = result === expected;
-            
+
             console.log(`Test ${i + 1}: ${description}`);
             console.log(`Input: ${JSON.stringify(input)}`);
             console.log(`Expected: ${expected}, Got: ${result}`);
@@ -248,20 +260,20 @@ function generateLargeGrid(m, n) {
  */
 function performanceTest() {
     console.log('=== Performance Test ===');
-    
+
     const sizes = [
         [50, 50],
-        [100, 100], 
-        [200, 200]
+        [100, 100],
+        [200, 200],
     ];
-    
+
     for (const [m, n] of sizes) {
         const grid = generateLargeGrid(m, n);
-        
+
         const startTime = performance.now();
         const result = minPathSum(grid);
         const endTime = performance.now();
-        
+
         console.log(`Grid ${m}×${n}: ${(endTime - startTime).toFixed(2)}ms, Result: ${result}`);
     }
 }

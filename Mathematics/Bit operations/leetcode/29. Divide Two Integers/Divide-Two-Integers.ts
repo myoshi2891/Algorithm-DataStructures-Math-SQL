@@ -1,4 +1,3 @@
-
 // 次に、同じ問題を **TypeScript 5.1（Node.js 18.16.1）** に対応した関数として実装します。
 // クラスは使用せず、**関数ベースで実装**し、**引数と戻り値の型アノテーション**も含め、\*\*LeetCode向け最適化（時間・メモリ）\*\*を考慮しています。
 
@@ -14,33 +13,33 @@
  * @returns 商（小数部分は切り捨て、32ビット符号付き整数範囲で制限）
  */
 function divide(dividend: number, divisor: number): number {
-  const INT_MAX = 2 ** 31 - 1;
-  const INT_MIN = -(2 ** 31);
+    const INT_MAX = 2 ** 31 - 1;
+    const INT_MIN = -(2 ** 31);
 
-  // オーバーフロー対策
-  if (dividend === INT_MIN && divisor === -1) return INT_MAX;
+    // オーバーフロー対策
+    if (dividend === INT_MIN && divisor === -1) return INT_MAX;
 
-  // 絶対値を BigInt で扱う（JSの number は 2^31 を安全に扱えないため）
-  let a: bigint = BigInt(Math.abs(dividend));
-  let b: bigint = BigInt(Math.abs(divisor));
-  let result: bigint = 0n;
+    // 絶対値を BigInt で扱う（JSの number は 2^31 を安全に扱えないため）
+    let a: bigint = BigInt(Math.abs(dividend));
+    let b: bigint = BigInt(Math.abs(divisor));
+    let result: bigint = 0n;
 
-  // ビットシフトを使った引き算ベースの除算
-  for (let i = 31; i >= 0; i--) {
-    if (a >= (b << BigInt(i))) {
-      a -= b << BigInt(i);
-      result += 1n << BigInt(i);
+    // ビットシフトを使った引き算ベースの除算
+    for (let i = 31; i >= 0; i--) {
+        if (a >= b << BigInt(i)) {
+            a -= b << BigInt(i);
+            result += 1n << BigInt(i);
+        }
     }
-  }
 
-  // 符号の決定
-  const isNegative: boolean = (dividend > 0) !== (divisor > 0);
-  if (isNegative) result = -result;
+    // 符号の決定
+    const isNegative: boolean = dividend > 0 !== divisor > 0;
+    if (isNegative) result = -result;
 
-  // 32ビット範囲に収めて返す
-  if (result > BigInt(INT_MAX)) return INT_MAX;
-  if (result < BigInt(INT_MIN)) return INT_MIN;
-  return Number(result);
+    // 32ビット範囲に収めて返す
+    if (result > BigInt(INT_MAX)) return INT_MAX;
+    if (result < BigInt(INT_MIN)) return INT_MIN;
+    return Number(result);
 }
 // ```
 

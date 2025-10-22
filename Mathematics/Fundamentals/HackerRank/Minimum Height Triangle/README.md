@@ -20,18 +20,15 @@
   底辺の長さ $b$、高さ $h$ の三角形の面積は $A=\dfrac{b\cdot h}{2}$。
   面積が少なくとも $a$ となるような三角形の**最小の整数高さ** $h_{\min}$ を求める。
 - **入出力仕様（簡潔）**:
-
-  - 入力: 1 行、空白区切りの 2 整数 $b,\ a$
-  - 出力: 条件を満たす最小の整数高さ $h_{\min}$
+    - 入力: 1 行、空白区切りの 2 整数 $b,\ a$
+    - 出力: 条件を満たす最小の整数高さ $h_{\min}$
 
 - **関数シグネチャ（HackerRank 準拠）**:
-
-  - `lowestTriangle(trianglebase: int, area: int) -> int`
+    - `lowestTriangle(trianglebase: int, area: int) -> int`
 
 - **代表例**:
-
-  - 例 1: 入力 $b=2,\ a=2$ → 出力 $2$
-  - 例 2: 入力 $b=17,\ a=100$ → 出力 $12$
+    - 例 1: 入力 $b=2,\ a=2$ → 出力 $2$
+    - 例 2: 入力 $b=17,\ a=100$ → 出力 $12$
 
 ---
 
@@ -91,19 +88,19 @@ _説明_: $b,a$ から $2a$ を作り、天井演算を整数の割り算へ変�
 
 - **不変条件**: 面積は常に $A=\dfrac{b\cdot h}{2}$。
 - **導出**: 面積下限 $A\ge a$ より
-  $$
-  \frac{b\cdot h}{2} \ge a ;\Longleftrightarrow; h \ge \frac{2a}{b}.
-  $$
+    $$
+    \frac{b\cdot h}{2} \ge a ;\Longleftrightarrow; h \ge \frac{2a}{b}.
+    $$
 - **最小整数の存在**: 右辺は実数。したがって最小の整数 $h$ は
-  $$
-  h_{\min}=\left\lceil \frac{2a}{b} \right\rceil
-  $$
-  で一意に定まる。
+    $$
+    h_{\min}=\left\lceil \frac{2a}{b} \right\rceil
+    $$
+    で一意に定まる。
 - **整数天井の等価変形**: 正の整数 $x,y$ に対し
-  $$
-  \left\lceil \frac{x}{y} \right\rceil = \frac{x+y-1}{y}
-  $$
-  が成り立つ（$x$ を $y$ で割るときの切り上げを余りで分類すれば示せる）。
+    $$
+    \left\lceil \frac{x}{y} \right\rceil = \frac{x+y-1}{y}
+    $$
+    が成り立つ（$x$ を $y$ で割るときの切り上げを余りで分類すれば示せる）。
 - **終了性**: 単一の四則演算と整数除算のみで有限回で終了。
 
 ---

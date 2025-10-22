@@ -32,39 +32,40 @@ import * as fs from 'fs';
  * @returns 操作回数と、各操作後の (x, y) の履歴を含む文字列
  */
 function findOperations(X: number, Y: number): string {
-  const path: [number, number][] = [];
-  let x = X, y = Y;
+    const path: [number, number][] = [];
+    let x = X,
+        y = Y;
 
-  // (x, y) が (1, 1) になるまで逆操作
-  while (!(x === 1 && y === 1)) {
-    path.push([x, y]);
-    if (x > y) {
-      x -= y;
-    } else {
-      y -= x;
+    // (x, y) が (1, 1) になるまで逆操作
+    while (!(x === 1 && y === 1)) {
+        path.push([x, y]);
+        if (x > y) {
+            x -= y;
+        } else {
+            y -= x;
+        }
     }
-  }
 
-  // 逆順にして、(1,1) → ... → (X,Y) の順に
-  path.reverse();
+    // 逆順にして、(1,1) → ... → (X,Y) の順に
+    path.reverse();
 
-  const K = path.length;
-  const output: string[] = [K.toString()];
-  for (const [a, b] of path) {
-    output.push(`${a} ${b}`);
-  }
+    const K = path.length;
+    const output: string[] = [K.toString()];
+    for (const [a, b] of path) {
+        output.push(`${a} ${b}`);
+    }
 
-  return output.join('\n');
+    return output.join('\n');
 }
 
 /**
  * メイン処理：標準入力からX,Yを読み取り、操作列を標準出力に出力。
  */
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const [X, Y] = input.split(/\s+/).map(Number);
-  const result: string = findOperations(X, Y);
-  console.log(result);
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const [X, Y] = input.split(/\s+/).map(Number);
+    const result: string = findOperations(X, Y);
+    console.log(result);
 }
 
 main();

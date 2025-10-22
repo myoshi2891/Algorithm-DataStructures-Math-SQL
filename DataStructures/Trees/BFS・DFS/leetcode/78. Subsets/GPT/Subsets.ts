@@ -62,70 +62,66 @@
  * @complexity Time: O(n * 2^n), Space: O(2^n) (出力) + O(n) (再帰スタック)
  */
 export function subsetsTypescript(nums: readonly number[]): number[][] {
-  // 実行時入力検証（早期にエラーを投げる）
-  if (!Array.isArray(nums)) {
-    throw new TypeError("Input must be an array");
-  }
-
-  const n = nums.length;
-  if (n < 1 || n > 10) {
-    throw new RangeError("Array length must be between 1 and 10");
-  }
-
-  // 要素検査: number, integer, 範囲, 一意性
-  const seen = new Set<number>();
-  for (let i = 0; i < n; ++i) {
-    const v = nums[i];
-    if (typeof v !== "number" || !Number.isFinite(v)) {
-      throw new TypeError(
-        `Array elements must be finite numbers. Invalid at index ${i}`
-      );
+    // 実行時入力検証（早期にエラーを投げる）
+    if (!Array.isArray(nums)) {
+        throw new TypeError('Input must be an array');
     }
-    // 問題は整数を想定しているため整数性を確認（LeetCode の入力は整数）
-    if (!Number.isInteger(v)) {
-      throw new TypeError(
-        `Array elements must be integers. Invalid at index ${i}`
-      );
-    }
-    if (v < -10 || v > 10) {
-      throw new RangeError(
-        `Array elements must be in [-10, 10]. Invalid value ${v} at index ${i}`
-      );
-    }
-    if (seen.has(v)) {
-      throw new RangeError(
-        `Array elements must be unique. Duplicate value ${v} at index ${i}`
-      );
-    }
-    seen.add(v);
-  }
 
-  // 出力領域
-  const res: number[][] = [];
-  // 再利用する一時配列（バックトラック用）
-  const temp: number[] = [];
-
-  /**
-   * dfs
-   * @param idx - 次に考慮するインデックス
-   */
-  function dfs(idx: number): void {
-    if (idx === n) {
-      // 複製して結果に格納（必須：参照を渡すと後で変更されてしまう）
-      res.push(temp.slice());
-      return;
+    const n = nums.length;
+    if (n < 1 || n > 10) {
+        throw new RangeError('Array length must be between 1 and 10');
     }
-    // 1) idx を選ばない場合
-    dfs(idx + 1);
 
-    // 2) idx を選ぶ場合
-    temp.push(nums[idx]);
-    dfs(idx + 1);
-    temp.pop();
-  }
+    // 要素検査: number, integer, 範囲, 一意性
+    const seen = new Set<number>();
+    for (let i = 0; i < n; ++i) {
+        const v = nums[i];
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+            throw new TypeError(`Array elements must be finite numbers. Invalid at index ${i}`);
+        }
+        // 問題は整数を想定しているため整数性を確認（LeetCode の入力は整数）
+        if (!Number.isInteger(v)) {
+            throw new TypeError(`Array elements must be integers. Invalid at index ${i}`);
+        }
+        if (v < -10 || v > 10) {
+            throw new RangeError(
+                `Array elements must be in [-10, 10]. Invalid value ${v} at index ${i}`,
+            );
+        }
+        if (seen.has(v)) {
+            throw new RangeError(
+                `Array elements must be unique. Duplicate value ${v} at index ${i}`,
+            );
+        }
+        seen.add(v);
+    }
 
-  dfs(0);
-  return res;
+    // 出力領域
+    const res: number[][] = [];
+    // 再利用する一時配列（バックトラック用）
+    const temp: number[] = [];
+
+    /**
+     * dfs
+     * @param idx - 次に考慮するインデックス
+     */
+    function dfs(idx: number): void {
+        if (idx === n) {
+            // 複製して結果に格納（必須：参照を渡すと後で変更されてしまう）
+            res.push(temp.slice());
+            return;
+        }
+        // 1) idx を選ばない場合
+        dfs(idx + 1);
+
+        // 2) idx を選ぶ場合
+        temp.push(nums[idx]);
+        dfs(idx + 1);
+        temp.pop();
+    }
+
+    dfs(0);
+    return res;
 }
 
 // default export for convenience (ESM)

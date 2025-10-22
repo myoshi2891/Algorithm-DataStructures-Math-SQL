@@ -78,89 +78,101 @@
  * @complexity Time: O(n), Space: O(1)
  */
 function isNumber(s) {
-  if (typeof s !== 'string') throw new TypeError('Input must be a string');
-  const n = s.length;
-  if (n < 1 || n > 20) throw new RangeError('Input length out of bounds');
+    if (typeof s !== 'string') throw new TypeError('Input must be a string');
+    const n = s.length;
+    if (n < 1 || n > 20) throw new RangeError('Input length out of bounds');
 
-  let seenDigit = false;
-  let seenDot = false;
-  let seenExp = false;
+    let seenDigit = false;
+    let seenDot = false;
+    let seenExp = false;
 
-  for (let i = 0; i < n; i++) {
-    const c = s[i];
+    for (let i = 0; i < n; i++) {
+        const c = s[i];
 
-    if (c >= '0' && c <= '9') {
-      seenDigit = true;
-    } else if (c === '+' || c === '-') {
-      // sign allowed only at start or right after e/E
-      if (i > 0 && !(s[i - 1] === 'e' || s[i - 1] === 'E')) {
-        return false;
-      }
-    } else if (c === '.') {
-      if (seenDot || seenExp) return false;
-      seenDot = true;
-    } else if (c === 'e' || c === 'E') {
-      if (seenExp || !seenDigit) return false;
-      seenExp = true;
-      seenDigit = false; // must see digits after exponent
-    } else {
-      return false;
+        if (c >= '0' && c <= '9') {
+            seenDigit = true;
+        } else if (c === '+' || c === '-') {
+            // sign allowed only at start or right after e/E
+            if (i > 0 && !(s[i - 1] === 'e' || s[i - 1] === 'E')) {
+                return false;
+            }
+        } else if (c === '.') {
+            if (seenDot || seenExp) return false;
+            seenDot = true;
+        } else if (c === 'e' || c === 'E') {
+            if (seenExp || !seenDigit) return false;
+            seenExp = true;
+            seenDigit = false; // must see digits after exponent
+        } else {
+            return false;
+        }
     }
-  }
 
-  return seenDigit;
+    return seenDigit;
 }
 
 module.exports = { isNumber };
 
 // ---- 簡易テスト / ベンチ ----
 if (require.main === module) {
-  const assert = require('node:assert');
-  const { performance } = require('node:perf_hooks');
+    const assert = require('node:assert');
+    const { performance } = require('node:perf_hooks');
 
-  // 正常系
-  assert.strictEqual(isNumber("0"), true);
-  assert.strictEqual(isNumber("0089"), true);
-  assert.strictEqual(isNumber("-0.1"), true);
-  assert.strictEqual(isNumber("+3.14"), true);
-  assert.strictEqual(isNumber("4."), true);
-  assert.strictEqual(isNumber("-.9"), true);
-  assert.strictEqual(isNumber("2e10"), true);
-  assert.strictEqual(isNumber("53.5e93"), true);
+    // 正常系
+    assert.strictEqual(isNumber('0'), true);
+    assert.strictEqual(isNumber('0089'), true);
+    assert.strictEqual(isNumber('-0.1'), true);
+    assert.strictEqual(isNumber('+3.14'), true);
+    assert.strictEqual(isNumber('4.'), true);
+    assert.strictEqual(isNumber('-.9'), true);
+    assert.strictEqual(isNumber('2e10'), true);
+    assert.strictEqual(isNumber('53.5e93'), true);
 
-  // 異常系
-  assert.strictEqual(isNumber("e"), false);
-  assert.strictEqual(isNumber("."), false);
-  assert.strictEqual(isNumber("abc"), false);
-  assert.strictEqual(isNumber("1a"), false);
-  assert.strictEqual(isNumber("1e"), false);
-  assert.strictEqual(isNumber("99e2.5"), false);
-  assert.strictEqual(isNumber("--6"), false);
+    // 異常系
+    assert.strictEqual(isNumber('e'), false);
+    assert.strictEqual(isNumber('.'), false);
+    assert.strictEqual(isNumber('abc'), false);
+    assert.strictEqual(isNumber('1a'), false);
+    assert.strictEqual(isNumber('1e'), false);
+    assert.strictEqual(isNumber('99e2.5'), false);
+    assert.strictEqual(isNumber('--6'), false);
 
-  // 例外系
-  try { isNumber(123); assert.fail(); } catch (e) { assert.ok(e instanceof TypeError); }
-  try { isNumber(""); assert.fail(); } catch (e) { assert.ok(e instanceof RangeError); }
+    // 例外系
+    try {
+        isNumber(123);
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof TypeError);
+    }
+    try {
+        isNumber('');
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof RangeError);
+    }
 
-  // 簡易ベンチ
-  const N = 1_000_000;
-  const input = "53.5e93";
-  let ok = true;
+    // 簡易ベンチ
+    const N = 1_000_000;
+    const input = '53.5e93';
+    let ok = true;
 
-  // ウォームアップ
-  isNumber(input);
+    // ウォームアップ
+    isNumber(input);
 
-  const t0 = performance.now();
-  for (let i = 0; i < N; i++) {
-    ok &= isNumber(input);
-  }
-  const t1 = performance.now();
+    const t0 = performance.now();
+    for (let i = 0; i < N; i++) {
+        ok &= isNumber(input);
+    }
+    const t1 = performance.now();
 
-  console.log(JSON.stringify({
-    sample: input,
-    result: ok,
-    ms: +(t1 - t0).toFixed(3),
-    n: N
-  }));
+    console.log(
+        JSON.stringify({
+            sample: input,
+            result: ok,
+            ms: +(t1 - t0).toFixed(3),
+            n: N,
+        }),
+    );
 }
 // ```
 
@@ -180,5 +192,3 @@ if (require.main === module) {
 // ✅ LeetCode フォーマットに準拠（`module.exports` → `class Solution` に差し替えればそのまま提出可能）
 
 // ---
-
-

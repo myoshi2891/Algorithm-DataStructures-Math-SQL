@@ -1,590 +1,598 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Operations Visualization</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .demo-section {
-            margin: 40px 0;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #3498db;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .demo-section h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        
-        .grid-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 30px;
-            margin: 20px 0;
-        }
-        
-        .grid-display {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            min-width: 200px;
-        }
-        
-        .grid-title {
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #34495e;
-            font-size: 1.1em;
-        }
-        
-        .grid {
-            display: inline-block;
-            border: 3px solid #3498db;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .grid-row {
-            display: flex;
-        }
-        
-        .grid-cell {
-            width: 50px;
-            height: 50px;
-            border: 1px solid #bdc3c7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            transition: all 0.3s ease;
-        }
-        
-        .grid-cell.highlight {
-            background-color: #f39c12;
-            color: white;
-            transform: scale(1.1);
-            z-index: 1;
-            position: relative;
-        }
-        
-        .grid-cell.row-highlight {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .mapping-display {
-            margin: 20px 0;
-            padding: 15px;
-            background: #ecf0f1;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .mapping-array {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .mapping-cell {
-            width: 60px;
-            height: 40px;
-            border: 2px solid #95a5a6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ffffff;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .mapping-cell.changed {
-            background-color: #e67e22;
-            color: white;
-            border-color: #d35400;
-            transform: scale(1.05);
-        }
-        
-        .operation-log {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            margin: 20px 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .controls {
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        .btn {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .step-counter {
-            text-align: center;
-            font-size: 1.3em;
-            color: #2c3e50;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        
-        .complexity-info {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-        
-        .complexity-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        
-        .complexity-table th,
-        .complexity-table td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        
-        .complexity-table th {
-            background: #34495e;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .complexity-table tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .result-display {
-            background: #27ae60;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🔄 Grid Operations Visualization</h1>
-        
-        <div class="demo-section">
-            <h2>📊 アルゴリズムの効率性分析</h2>
-            <div class="complexity-info">
-                <h3>時間・空間計算量</h3>
-                <table class="complexity-table">
-                    <thead>
-                        <tr>
-                            <th>操作</th>
-                            <th>従来手法（物理的交換）</th>
-                            <th>本手法（マッピング配列）</th>
-                            <th>改善効果</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>行交換</td>
-                            <td>O(N)</td>
-                            <td>O(1)</td>
-                            <td>🚀 N倍高速化</td>
-                        </tr>
-                        <tr>
-                            <td>値取得</td>
-                            <td>O(1)</td>
-                            <td>O(1)</td>
-                            <td>✅ 同等</td>
-                        </tr>
-                        <tr>
-                            <td>空間使用量</td>
-                            <td>O(N²)</td>
-                            <td>O(N² + N)</td>
-                            <td>📈 +O(N)のトレードオフ</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="demo-section">
-            <h2>🎮 インタラクティブデモ</h2>
-            <div class="step-counter" id="stepCounter">ステップ 0 / 7</div>
-            
-            <div class="grid-container">
-                <div class="grid-display">
-                    <div class="grid-title">論理的な表示</div>
-                    <div class="grid" id="logicalGrid"></div>
-                </div>
-                
-                <div class="grid-display">
-                    <div class="grid-title">物理的なメモリ</div>
-                    <div class="grid" id="physicalGrid"></div>
-                </div>
-            </div>
-            
-            <div class="mapping-display">
-                <div style="text-align: center; font-weight: bold; margin-bottom: 10px;">
-                    rowMapping 配列（論理行 → 物理行）
-                </div>
-                <div class="mapping-array" id="mappingArray"></div>
-            </div>
-            
-            <div class="controls">
-                <button class="btn" onclick="previousStep()">⬅️ 前のステップ</button>
-                <button class="btn" onclick="nextStep()">次のステップ ➡️</button>
-                <button class="btn" onclick="resetDemo()">🔄 リセット</button>
-                <button class="btn" onclick="autoPlay()">▶️ 自動再生</button>
-            </div>
-            
-            <div class="operation-log" id="operationLog"></div>
-            
-            <div class="result-display" id="resultDisplay" style="display: none;"></div>
-        </div>
-        
-        <div class="demo-section">
-            <h2>🔍 メモリアクセスパターン分析</h2>
-            <div class="complexity-info">
-                <h3>キャッシュ効率の最適化</h3>
-                <ul>
-                    <li><strong>局所性の保持:</strong> rowMapping配列は小さく、頻繁にアクセスされるためキャッシュに常駐</li>
-                    <li><strong>データの不変性:</strong> 実際のgrid配列は変更されないため、メモリの断片化を防止</li>
-                    <li><strong>最小限のアクセス:</strong> 交換操作では2つの配列要素のみを操作</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Grid Operations Visualization</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+            }
 
-    <script>
-        // データ構造
-        let physicalGrid = [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]
-        ];
-        
-        let rowMapping = [0, 1, 2];
-        let currentStep = 0;
-        let results = [];
-        let autoPlayInterval = null;
-        
-        // 操作シーケンス
-        const operations = [
-            { type: 'init', desc: '初期状態: N=3のグリッドとrowMapping配列を初期化' },
-            { type: 'query', row: 2, col: 1, desc: '取得操作: (2,1)の値を取得 → 4' },
-            { type: 'swap', row1: 1, row2: 2, desc: '交換操作: 1行目と2行目を交換' },
-            { type: 'query', row: 2, col: 1, desc: '取得操作: (2,1)の値を取得 → 1' },
-            { type: 'query', row: 1, col: 3, desc: '取得操作: (1,3)の値を取得 → 6' },
-            { type: 'swap', row1: 2, row2: 3, desc: '交換操作: 2行目と3行目を交換' },
-            { type: 'query', row: 2, col: 3, desc: '取得操作: (2,3)の値を取得 → 9' },
-            { type: 'query', row: 3, col: 2, desc: '取得操作: (3,2)の値を取得 → 2' }
-        ];
-        
-        function initializeDisplay() {
-            updateGridDisplay();
-            updateMappingDisplay();
-            updateOperationLog();
-            updateStepCounter();
-        }
-        
-        function updateGridDisplay() {
-            // 論理的なグリッド表示
-            const logicalGrid = document.getElementById('logicalGrid');
-            logicalGrid.innerHTML = '';
-            
-            for (let i = 0; i < 3; i++) {
-                const row = document.createElement('div');
-                row.className = 'grid-row';
-                for (let j = 0; j < 3; j++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    const physicalRowIndex = rowMapping[i];
-                    cell.textContent = physicalGrid[physicalRowIndex][j];
-                    
-                    // ハイライト処理
-                    const currentOp = operations[currentStep];
-                    if (currentOp && currentOp.type === 'query') {
-                        if (i === currentOp.row - 1 && j === currentOp.col - 1) {
-                            cell.classList.add('highlight');
-                        }
-                    } else if (currentOp && currentOp.type === 'swap') {
-                        if (i === currentOp.row1 - 1 || i === currentOp.row2 - 1) {
-                            cell.classList.add('row-highlight');
-                        }
-                    }
-                    
-                    row.appendChild(cell);
-                }
-                logicalGrid.appendChild(row);
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             }
-            
-            // 物理的なグリッド表示
-            const physicalGridEl = document.getElementById('physicalGrid');
-            physicalGridEl.innerHTML = '';
-            
-            for (let i = 0; i < 3; i++) {
-                const row = document.createElement('div');
-                row.className = 'grid-row';
-                for (let j = 0; j < 3; j++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    cell.textContent = physicalGrid[i][j];
-                    row.appendChild(cell);
-                }
-                physicalGridEl.appendChild(row);
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
             }
-        }
-        
-        function updateMappingDisplay() {
-            const mappingArray = document.getElementById('mappingArray');
-            mappingArray.innerHTML = '';
-            
-            // インデックスラベル
-            const indexRow = document.createElement('div');
-            indexRow.style.display = 'flex';
-            indexRow.style.justifyContent = 'center';
-            indexRow.style.gap = '10px';
-            indexRow.style.marginBottom = '5px';
-            indexRow.style.fontSize = '12px';
-            indexRow.style.color = '#7f8c8d';
-            
-            for (let i = 0; i < 3; i++) {
-                const indexLabel = document.createElement('div');
-                indexLabel.style.width = '60px';
-                indexLabel.style.textAlign = 'center';
-                indexLabel.textContent = `[${i}]`;
-                indexRow.appendChild(indexLabel);
+
+            .demo-section {
+                margin: 40px 0;
+                padding: 25px;
+                background: #f8f9fa;
+                border-radius: 15px;
+                border-left: 5px solid #3498db;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             }
-            mappingArray.appendChild(indexRow);
-            
-            // マッピング値
-            const valueRow = document.createElement('div');
-            valueRow.style.display = 'flex';
-            valueRow.style.justifyContent = 'center';
-            valueRow.style.gap = '10px';
-            
-            for (let i = 0; i < 3; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'mapping-cell';
-                cell.textContent = rowMapping[i];
-                
-                // 変更されたセルをハイライト
-                const currentOp = operations[currentStep];
-                const prevOp = currentStep > 0 ? operations[currentStep - 1] : null;
-                if (prevOp && prevOp.type === 'swap') {
-                    if (i === prevOp.row1 - 1 || i === prevOp.row2 - 1) {
-                        cell.classList.add('changed');
-                    }
-                }
-                
-                valueRow.appendChild(cell);
+
+            .demo-section h2 {
+                color: #2c3e50;
+                margin-bottom: 20px;
+                font-size: 1.8em;
             }
-            mappingArray.appendChild(valueRow);
-        }
-        
-        function updateOperationLog() {
-            const log = document.getElementById('operationLog');
-            let logText = '';
-            
-            for (let i = 0; i <= currentStep && i < operations.length; i++) {
-                const op = operations[i];
-                const isActive = i === currentStep;
-                
-                logText += `${isActive ? '🔸' : '✅'} ステップ ${i}: ${op.desc}\n`;
-                
-                if (op.type === 'query' && i <= currentStep) {
-                    const row = op.row - 1;
-                    const col = op.col - 1;
-                    const physicalRowIndex = rowMapping[row];
-                    const value = physicalGrid[physicalRowIndex][col];
-                    results.push(value);
-                    logText += `   → rowMapping[${row}] = ${physicalRowIndex}\n`;
-                    logText += `   → grid[${physicalRowIndex}][${col}] = ${value}\n`;
-                    logText += `   → 結果: ${value}\n`;
-                } else if (op.type === 'swap' && i <= currentStep) {
-                    const row1 = op.row1 - 1;
-                    const row2 = op.row2 - 1;
-                    logText += `   → rowMapping[${row1}] と rowMapping[${row2}] を交換\n`;
-                    logText += `   → 新しいマッピング: [${rowMapping.join(', ')}]\n`;
-                }
-                
-                logText += '\n';
+
+            .grid-container {
+                display: flex;
+                justify-content: space-around;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 30px;
+                margin: 20px 0;
             }
-            
-            log.textContent = logText;
-            log.scrollTop = log.scrollHeight;
-        }
-        
-        function updateStepCounter() {
-            const counter = document.getElementById('stepCounter');
-            counter.textContent = `ステップ ${currentStep} / ${operations.length - 1}`;
-        }
-        
-        function updateResultDisplay() {
-            const resultDiv = document.getElementById('resultDisplay');
-            if (results.length > 0) {
-                resultDiv.style.display = 'block';
-                resultDiv.textContent = `取得操作の結果: [${results.join(', ')}]`;
-            } else {
-                resultDiv.style.display = 'none';
+
+            .grid-display {
+                text-align: center;
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                min-width: 200px;
             }
-        }
-        
-        function nextStep() {
-            if (currentStep < operations.length - 1) {
-                currentStep++;
-                const op = operations[currentStep];
-                
-                if (op.type === 'swap') {
-                    // 交換操作を実行
-                    const row1 = op.row1 - 1;
-                    const row2 = op.row2 - 1;
-                    const temp = rowMapping[row1];
-                    rowMapping[row1] = rowMapping[row2];
-                    rowMapping[row2] = temp;
-                }
-                
-                updateGridDisplay();
-                updateMappingDisplay();
-                updateOperationLog();
-                updateStepCounter();
-                updateResultDisplay();
+
+            .grid-title {
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #34495e;
+                font-size: 1.1em;
             }
-        }
-        
-        function previousStep() {
-            if (currentStep > 0) {
-                const currentOp = operations[currentStep];
-                
-                if (currentOp.type === 'swap') {
-                    // 交換操作を元に戻す
-                    const row1 = currentOp.row1 - 1;
-                    const row2 = currentOp.row2 - 1;
-                    const temp = rowMapping[row1];
-                    rowMapping[row1] = rowMapping[row2];
-                    rowMapping[row2] = temp;
-                } else if (currentOp.type === 'query') {
-                    // 結果配列から最後の要素を削除
-                    results.pop();
-                }
-                
-                currentStep--;
-                updateGridDisplay();
-                updateMappingDisplay();
-                updateOperationLog();
-                updateStepCounter();
-                updateResultDisplay();
+
+            .grid {
+                display: inline-block;
+                border: 3px solid #3498db;
+                border-radius: 8px;
+                overflow: hidden;
             }
-        }
-        
-        function resetDemo() {
-            if (autoPlayInterval) {
-                clearInterval(autoPlayInterval);
-                autoPlayInterval = null;
+
+            .grid-row {
+                display: flex;
             }
-            
-            currentStep = 0;
-            rowMapping = [0, 1, 2];
-            results = [];
-            physicalGrid = [
+
+            .grid-cell {
+                width: 50px;
+                height: 50px;
+                border: 1px solid #bdc3c7;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 18px;
+                transition: all 0.3s ease;
+            }
+
+            .grid-cell.highlight {
+                background-color: #f39c12;
+                color: white;
+                transform: scale(1.1);
+                z-index: 1;
+                position: relative;
+            }
+
+            .grid-cell.row-highlight {
+                background-color: #e74c3c;
+                color: white;
+            }
+
+            .mapping-display {
+                margin: 20px 0;
+                padding: 15px;
+                background: #ecf0f1;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+            }
+
+            .mapping-array {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin: 10px 0;
+            }
+
+            .mapping-cell {
+                width: 60px;
+                height: 40px;
+                border: 2px solid #95a5a6;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #ffffff;
+                border-radius: 6px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .mapping-cell.changed {
+                background-color: #e67e22;
+                color: white;
+                border-color: #d35400;
+                transform: scale(1.05);
+            }
+
+            .operation-log {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                margin: 20px 0;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .controls {
+                text-align: center;
+                margin: 30px 0;
+            }
+
+            .btn {
+                background: linear-gradient(45deg, #3498db, #2980b9);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 5px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            .step-counter {
+                text-align: center;
+                font-size: 1.3em;
+                color: #2c3e50;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+
+            .complexity-info {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 12px;
+                text-align: center;
+                border-bottom: 1px solid #ecf0f1;
+            }
+
+            .complexity-table th {
+                background: #34495e;
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table tr:hover {
+                background: #f8f9fa;
+            }
+
+            .result-display {
+                background: #27ae60;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                text-align: center;
+                font-size: 1.2em;
+                font-weight: bold;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔄 Grid Operations Visualization</h1>
+
+            <div class="demo-section">
+                <h2>📊 アルゴリズムの効率性分析</h2>
+                <div class="complexity-info">
+                    <h3>時間・空間計算量</h3>
+                    <table class="complexity-table">
+                        <thead>
+                            <tr>
+                                <th>操作</th>
+                                <th>従来手法（物理的交換）</th>
+                                <th>本手法（マッピング配列）</th>
+                                <th>改善効果</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>行交換</td>
+                                <td>O(N)</td>
+                                <td>O(1)</td>
+                                <td>🚀 N倍高速化</td>
+                            </tr>
+                            <tr>
+                                <td>値取得</td>
+                                <td>O(1)</td>
+                                <td>O(1)</td>
+                                <td>✅ 同等</td>
+                            </tr>
+                            <tr>
+                                <td>空間使用量</td>
+                                <td>O(N²)</td>
+                                <td>O(N² + N)</td>
+                                <td>📈 +O(N)のトレードオフ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h2>🎮 インタラクティブデモ</h2>
+                <div class="step-counter" id="stepCounter">ステップ 0 / 7</div>
+
+                <div class="grid-container">
+                    <div class="grid-display">
+                        <div class="grid-title">論理的な表示</div>
+                        <div class="grid" id="logicalGrid"></div>
+                    </div>
+
+                    <div class="grid-display">
+                        <div class="grid-title">物理的なメモリ</div>
+                        <div class="grid" id="physicalGrid"></div>
+                    </div>
+                </div>
+
+                <div class="mapping-display">
+                    <div style="text-align: center; font-weight: bold; margin-bottom: 10px">
+                        rowMapping 配列（論理行 → 物理行）
+                    </div>
+                    <div class="mapping-array" id="mappingArray"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="previousStep()">⬅️ 前のステップ</button>
+                    <button class="btn" onclick="nextStep()">次のステップ ➡️</button>
+                    <button class="btn" onclick="resetDemo()">🔄 リセット</button>
+                    <button class="btn" onclick="autoPlay()">▶️ 自動再生</button>
+                </div>
+
+                <div class="operation-log" id="operationLog"></div>
+
+                <div class="result-display" id="resultDisplay" style="display: none"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>🔍 メモリアクセスパターン分析</h2>
+                <div class="complexity-info">
+                    <h3>キャッシュ効率の最適化</h3>
+                    <ul>
+                        <li>
+                            <strong>局所性の保持:</strong>
+                            rowMapping配列は小さく、頻繁にアクセスされるためキャッシュに常駐
+                        </li>
+                        <li>
+                            <strong>データの不変性:</strong>
+                            実際のgrid配列は変更されないため、メモリの断片化を防止
+                        </li>
+                        <li>
+                            <strong>最小限のアクセス:</strong> 交換操作では2つの配列要素のみを操作
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // データ構造
+            let physicalGrid = [
                 [1, 2, 3],
                 [4, 5, 6],
-                [7, 8, 9]
+                [7, 8, 9],
             ];
-            
-            updateGridDisplay();
-            updateMappingDisplay();
-            updateOperationLog();
-            updateStepCounter();
-            updateResultDisplay();
-        }
-        
-        function autoPlay() {
-            if (autoPlayInterval) {
-                clearInterval(autoPlayInterval);
-                autoPlayInterval = null;
-                return;
+
+            let rowMapping = [0, 1, 2];
+            let currentStep = 0;
+            let results = [];
+            let autoPlayInterval = null;
+
+            // 操作シーケンス
+            const operations = [
+                { type: 'init', desc: '初期状態: N=3のグリッドとrowMapping配列を初期化' },
+                { type: 'query', row: 2, col: 1, desc: '取得操作: (2,1)の値を取得 → 4' },
+                { type: 'swap', row1: 1, row2: 2, desc: '交換操作: 1行目と2行目を交換' },
+                { type: 'query', row: 2, col: 1, desc: '取得操作: (2,1)の値を取得 → 1' },
+                { type: 'query', row: 1, col: 3, desc: '取得操作: (1,3)の値を取得 → 6' },
+                { type: 'swap', row1: 2, row2: 3, desc: '交換操作: 2行目と3行目を交換' },
+                { type: 'query', row: 2, col: 3, desc: '取得操作: (2,3)の値を取得 → 9' },
+                { type: 'query', row: 3, col: 2, desc: '取得操作: (3,2)の値を取得 → 2' },
+            ];
+
+            function initializeDisplay() {
+                updateGridDisplay();
+                updateMappingDisplay();
+                updateOperationLog();
+                updateStepCounter();
             }
-            
-            autoPlayInterval = setInterval(() => {
-                if (currentStep < operations.length - 1) {
-                    nextStep();
+
+            function updateGridDisplay() {
+                // 論理的なグリッド表示
+                const logicalGrid = document.getElementById('logicalGrid');
+                logicalGrid.innerHTML = '';
+
+                for (let i = 0; i < 3; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'grid-row';
+                    for (let j = 0; j < 3; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        const physicalRowIndex = rowMapping[i];
+                        cell.textContent = physicalGrid[physicalRowIndex][j];
+
+                        // ハイライト処理
+                        const currentOp = operations[currentStep];
+                        if (currentOp && currentOp.type === 'query') {
+                            if (i === currentOp.row - 1 && j === currentOp.col - 1) {
+                                cell.classList.add('highlight');
+                            }
+                        } else if (currentOp && currentOp.type === 'swap') {
+                            if (i === currentOp.row1 - 1 || i === currentOp.row2 - 1) {
+                                cell.classList.add('row-highlight');
+                            }
+                        }
+
+                        row.appendChild(cell);
+                    }
+                    logicalGrid.appendChild(row);
+                }
+
+                // 物理的なグリッド表示
+                const physicalGridEl = document.getElementById('physicalGrid');
+                physicalGridEl.innerHTML = '';
+
+                for (let i = 0; i < 3; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'grid-row';
+                    for (let j = 0; j < 3; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.textContent = physicalGrid[i][j];
+                        row.appendChild(cell);
+                    }
+                    physicalGridEl.appendChild(row);
+                }
+            }
+
+            function updateMappingDisplay() {
+                const mappingArray = document.getElementById('mappingArray');
+                mappingArray.innerHTML = '';
+
+                // インデックスラベル
+                const indexRow = document.createElement('div');
+                indexRow.style.display = 'flex';
+                indexRow.style.justifyContent = 'center';
+                indexRow.style.gap = '10px';
+                indexRow.style.marginBottom = '5px';
+                indexRow.style.fontSize = '12px';
+                indexRow.style.color = '#7f8c8d';
+
+                for (let i = 0; i < 3; i++) {
+                    const indexLabel = document.createElement('div');
+                    indexLabel.style.width = '60px';
+                    indexLabel.style.textAlign = 'center';
+                    indexLabel.textContent = `[${i}]`;
+                    indexRow.appendChild(indexLabel);
+                }
+                mappingArray.appendChild(indexRow);
+
+                // マッピング値
+                const valueRow = document.createElement('div');
+                valueRow.style.display = 'flex';
+                valueRow.style.justifyContent = 'center';
+                valueRow.style.gap = '10px';
+
+                for (let i = 0; i < 3; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'mapping-cell';
+                    cell.textContent = rowMapping[i];
+
+                    // 変更されたセルをハイライト
+                    const currentOp = operations[currentStep];
+                    const prevOp = currentStep > 0 ? operations[currentStep - 1] : null;
+                    if (prevOp && prevOp.type === 'swap') {
+                        if (i === prevOp.row1 - 1 || i === prevOp.row2 - 1) {
+                            cell.classList.add('changed');
+                        }
+                    }
+
+                    valueRow.appendChild(cell);
+                }
+                mappingArray.appendChild(valueRow);
+            }
+
+            function updateOperationLog() {
+                const log = document.getElementById('operationLog');
+                let logText = '';
+
+                for (let i = 0; i <= currentStep && i < operations.length; i++) {
+                    const op = operations[i];
+                    const isActive = i === currentStep;
+
+                    logText += `${isActive ? '🔸' : '✅'} ステップ ${i}: ${op.desc}\n`;
+
+                    if (op.type === 'query' && i <= currentStep) {
+                        const row = op.row - 1;
+                        const col = op.col - 1;
+                        const physicalRowIndex = rowMapping[row];
+                        const value = physicalGrid[physicalRowIndex][col];
+                        results.push(value);
+                        logText += `   → rowMapping[${row}] = ${physicalRowIndex}\n`;
+                        logText += `   → grid[${physicalRowIndex}][${col}] = ${value}\n`;
+                        logText += `   → 結果: ${value}\n`;
+                    } else if (op.type === 'swap' && i <= currentStep) {
+                        const row1 = op.row1 - 1;
+                        const row2 = op.row2 - 1;
+                        logText += `   → rowMapping[${row1}] と rowMapping[${row2}] を交換\n`;
+                        logText += `   → 新しいマッピング: [${rowMapping.join(', ')}]\n`;
+                    }
+
+                    logText += '\n';
+                }
+
+                log.textContent = logText;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            function updateStepCounter() {
+                const counter = document.getElementById('stepCounter');
+                counter.textContent = `ステップ ${currentStep} / ${operations.length - 1}`;
+            }
+
+            function updateResultDisplay() {
+                const resultDiv = document.getElementById('resultDisplay');
+                if (results.length > 0) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.textContent = `取得操作の結果: [${results.join(', ')}]`;
                 } else {
+                    resultDiv.style.display = 'none';
+                }
+            }
+
+            function nextStep() {
+                if (currentStep < operations.length - 1) {
+                    currentStep++;
+                    const op = operations[currentStep];
+
+                    if (op.type === 'swap') {
+                        // 交換操作を実行
+                        const row1 = op.row1 - 1;
+                        const row2 = op.row2 - 1;
+                        const temp = rowMapping[row1];
+                        rowMapping[row1] = rowMapping[row2];
+                        rowMapping[row2] = temp;
+                    }
+
+                    updateGridDisplay();
+                    updateMappingDisplay();
+                    updateOperationLog();
+                    updateStepCounter();
+                    updateResultDisplay();
+                }
+            }
+
+            function previousStep() {
+                if (currentStep > 0) {
+                    const currentOp = operations[currentStep];
+
+                    if (currentOp.type === 'swap') {
+                        // 交換操作を元に戻す
+                        const row1 = currentOp.row1 - 1;
+                        const row2 = currentOp.row2 - 1;
+                        const temp = rowMapping[row1];
+                        rowMapping[row1] = rowMapping[row2];
+                        rowMapping[row2] = temp;
+                    } else if (currentOp.type === 'query') {
+                        // 結果配列から最後の要素を削除
+                        results.pop();
+                    }
+
+                    currentStep--;
+                    updateGridDisplay();
+                    updateMappingDisplay();
+                    updateOperationLog();
+                    updateStepCounter();
+                    updateResultDisplay();
+                }
+            }
+
+            function resetDemo() {
+                if (autoPlayInterval) {
                     clearInterval(autoPlayInterval);
                     autoPlayInterval = null;
                 }
-            }, 2000);
-        }
-        
-        // 初期化
-        initializeDisplay();
-    </script>
-</body>
+
+                currentStep = 0;
+                rowMapping = [0, 1, 2];
+                results = [];
+                physicalGrid = [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ];
+
+                updateGridDisplay();
+                updateMappingDisplay();
+                updateOperationLog();
+                updateStepCounter();
+                updateResultDisplay();
+            }
+
+            function autoPlay() {
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                    return;
+                }
+
+                autoPlayInterval = setInterval(() => {
+                    if (currentStep < operations.length - 1) {
+                        nextStep();
+                    } else {
+                        clearInterval(autoPlayInterval);
+                        autoPlayInterval = null;
+                    }
+                }, 2000);
+            }
+
+            // 初期化
+            initializeDisplay();
+        </script>
+    </body>
 </html>

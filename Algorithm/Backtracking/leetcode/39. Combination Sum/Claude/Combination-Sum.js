@@ -15,7 +15,7 @@
 // 3. **インデックス管理**: 同じ要素を重複使用する際に`startIndex`を固定し、順序を保つことで重複組み合わせを防止
 // 4. **メモリ効率**: 組み合わせを動的に構築・削除することでメモリ使用量を最小化
 
-// **時間計算量**: O(N^(T/M)) 
+// **時間計算量**: O(N^(T/M))
 // - N: candidates配列の長さ
 // - T: target値
 // - M: candidatesの最小値
@@ -29,12 +29,12 @@
  * @param {number} target - 目標とする合計値
  * @return {number[][]} - 目標値に達する全ての組み合わせの配列
  */
-var combinationSum = function(candidates, target) {
+var combinationSum = function (candidates, target) {
     const result = [];
-    
+
     // 配列をソートして早期終了を可能にする
     candidates.sort((a, b) => a - b);
-    
+
     /**
      * バックトラッキングで組み合わせを探索
      * @param {number} startIndex - 探索開始インデックス
@@ -47,26 +47,26 @@ var combinationSum = function(candidates, target) {
             result.push([...currentCombination]);
             return;
         }
-        
+
         for (let i = startIndex; i < candidates.length; i++) {
             const candidate = candidates[i];
-            
+
             // 候補値が残り目標値より大きい場合、以降の候補も大きいので終了
             if (candidate > remainingTarget) {
                 break;
             }
-            
+
             // 現在の候補を組み合わせに追加
             currentCombination.push(candidate);
-            
+
             // 同じ候補を再度使用可能なので、startIndexは変更しない
             backtrack(i, currentCombination, remainingTarget - candidate);
-            
+
             // バックトラック：候補を削除
             currentCombination.pop();
         }
     }
-    
+
     backtrack(0, [], target);
     return result;
 };

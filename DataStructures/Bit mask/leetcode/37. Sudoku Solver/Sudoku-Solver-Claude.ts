@@ -48,16 +48,16 @@ function solve(board: string[][]): boolean {
                 // 1-9の数字を試す
                 for (let num = 1; num <= 9; num++) {
                     const char = num.toString();
-                    
+
                     // その数字が配置可能かチェック
                     if (isValid(board, row, col, char)) {
                         board[row][col] = char;
-                        
+
                         // 再帰的に次のセルを試す
                         if (solve(board)) {
                             return true;
                         }
-                        
+
                         // バックトラック：配置を取り消す
                         board[row][col] = '.';
                     }
@@ -84,18 +84,18 @@ function isValid(board: string[][], row: number, col: number, num: string): bool
             return false;
         }
     }
-    
+
     // 列のチェック
     for (let x = 0; x < 9; x++) {
         if (board[x][col] === num) {
             return false;
         }
     }
-    
+
     // 3x3サブボックスのチェック
     const startRow = Math.floor(row / 3) * 3;
     const startCol = Math.floor(col / 3) * 3;
-    
+
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
             if (board[startRow + i][startCol + j] === num) {
@@ -103,6 +103,6 @@ function isValid(board: string[][], row: number, col: number, num: string): bool
             }
         }
     }
-    
+
     return true;
 }

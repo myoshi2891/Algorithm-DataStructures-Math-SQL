@@ -7,7 +7,7 @@ const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const N = parseInt(input[0]);
 const A = input[1].split(' ').map(Number);
 const Q = parseInt(input[2]);
-const queries: [number, number][] = input.slice(3).map(line => {
+const queries: [number, number][] = input.slice(3).map((line) => {
     const [L, R] = line.split(' ').map(Number);
     return [L, R];
 });

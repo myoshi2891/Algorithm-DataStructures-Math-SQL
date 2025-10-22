@@ -347,19 +347,16 @@ flowchart LR
 ## それでも直らない場合のチェックリスト
 
 1. **貼り付けは必ずプレーンテキスト**で
-
-   - ブラウザやエディタの「Paste and Match Style / Paste as plain text」を使う
+    - ブラウザやエディタの「Paste and Match Style / Paste as plain text」を使う
 
 2. **エディタ設定**（例：VS Code）
-
-   - `"editor.fontLigatures": false`（合字を無効）
-   - Markdown 拡張の **スマート引用符/全角置換を無効** に
+    - `"editor.fontLigatures": false`（合字を無効）
+    - Markdown 拡張の **スマート引用符/全角置換を無効** に
 
 3. **ファイルエンコード**：UTF-8（BOM なし推奨）
 4. **問題記号の回避**
-
-   - 角かっこは `&#91;` `&#93;`
-   - バックスラッシュは必ず `\\` と二重
-   - シングル/ダブルクォートは極力使わないか、必要なら `&apos;` / `&quot;`
+    - 角かっこは `&#91;` `&#93;`
+    - バックスラッシュは必ず `\\` と二重
+    - シングル/ダブルクォートは極力使わないか、必要なら `&apos;` / `&quot;`
 
 このどちらかの安全版を使えば、`Lexical error on line 2. Unrecognized text.` は解消されるはずです。

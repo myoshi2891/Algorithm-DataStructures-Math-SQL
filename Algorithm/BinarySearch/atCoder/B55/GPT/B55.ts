@@ -7,7 +7,7 @@
 // TypeScript 5.1 (Node.js 18.16.1)
 // 高速入出力 + 処理時間・メモリ計測対応
 
-import * as fs from "fs";
+import * as fs from 'fs';
 
 /**
  * 二分探索で昇順配列にxを挿入すべき位置を返す
@@ -16,7 +16,8 @@ import * as fs from "fs";
  * @returns 挿入位置 (number)
  */
 function lowerBound(arr: number[], x: number): number {
-    let left = 0, right = arr.length;
+    let left = 0,
+        right = arr.length;
     while (left < right) {
         const mid = (left + right) >>> 1;
         if (arr[mid] < x) {
@@ -65,7 +66,7 @@ function processQueries(Q: number, queries: [number, number][]): number[] {
 const startTime = process.hrtime.bigint();
 const startMem = process.memoryUsage().heapUsed;
 
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 const Q = input[0];
 const queries: [number, number][] = [];
 let idx = 1;
@@ -75,7 +76,7 @@ for (let i = 0; i < Q; i++) {
 }
 
 const result = processQueries(Q, queries);
-console.log(result.join("\n"));
+console.log(result.join('\n'));
 
 const endTime = process.hrtime.bigint();
 const endMem = process.memoryUsage().heapUsed;

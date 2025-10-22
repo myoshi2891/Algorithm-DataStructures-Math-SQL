@@ -64,7 +64,8 @@ function minSubsetSum_01(N, K, A) {
     const res = [];
     let k = K;
     for (let i = N; i >= 1; i--) {
-        if (prev[i][k] !== k) { // i番目の要素を使った場合
+        if (prev[i][k] !== k) {
+            // i番目の要素を使った場合
             res.push(A[i - 1]);
             k = prev[i][k];
         }
@@ -130,4 +131,3 @@ console.error(`Memory: ${Math.round(used.heapUsed / 1024)} KB`);
 
 // * `process.hrtime.bigint()`でナノ秒計測
 // * `process.memoryUsage()`でヒープ使用量出力
-

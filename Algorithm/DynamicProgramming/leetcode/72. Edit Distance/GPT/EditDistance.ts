@@ -62,50 +62,50 @@
  * @complexity Time: O(n*m), Space: O(min(n,m))
  */
 function minDistanceGPT(word1: string, word2: string): number {
-  if (typeof word1 !== "string" || typeof word2 !== "string") {
-    throw new TypeError("Inputs must be strings");
-  }
-  const n: number = word1.length;
-  const m: number = word2.length;
-  if (n > 500 || m > 500) {
-    throw new RangeError("Input length exceeds limit (500)");
-  }
-
-  // 常に word1 の方を長くすることでメモリ O(min(n,m)) に削減
-  if (n < m) {
-    return minDistanceGPT(word2, word1);
-  }
-
-  const prev: number[] = new Array(m + 1);
-  const curr: number[] = new Array(m + 1);
-
-  // 初期化: word1 が空のとき
-  for (let j = 0; j <= m; j++) {
-    prev[j] = j;
-  }
-
-  for (let i = 1; i <= n; i++) {
-    curr[0] = i;
-    for (let j = 1; j <= m; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        curr[j] = prev[j - 1];
-      } else {
-        const del: number = prev[j] + 1; // 削除
-        const ins: number = curr[j - 1] + 1; // 挿入
-        const rep: number = prev[j - 1] + 1; // 置換
-        // Math.min の代わりに3値比較
-        let min: number = del < ins ? del : ins;
-        if (rep < min) min = rep;
-        curr[j] = min;
-      }
+    if (typeof word1 !== 'string' || typeof word2 !== 'string') {
+        throw new TypeError('Inputs must be strings');
     }
-    // prev ← curr をコピー（再利用）
+    const n: number = word1.length;
+    const m: number = word2.length;
+    if (n > 500 || m > 500) {
+        throw new RangeError('Input length exceeds limit (500)');
+    }
+
+    // 常に word1 の方を長くすることでメモリ O(min(n,m)) に削減
+    if (n < m) {
+        return minDistanceGPT(word2, word1);
+    }
+
+    const prev: number[] = new Array(m + 1);
+    const curr: number[] = new Array(m + 1);
+
+    // 初期化: word1 が空のとき
     for (let j = 0; j <= m; j++) {
-      prev[j] = curr[j];
+        prev[j] = j;
     }
-  }
 
-  return prev[m];
+    for (let i = 1; i <= n; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= m; j++) {
+            if (word1[i - 1] === word2[j - 1]) {
+                curr[j] = prev[j - 1];
+            } else {
+                const del: number = prev[j] + 1; // 削除
+                const ins: number = curr[j - 1] + 1; // 挿入
+                const rep: number = prev[j - 1] + 1; // 置換
+                // Math.min の代わりに3値比較
+                let min: number = del < ins ? del : ins;
+                if (rep < min) min = rep;
+                curr[j] = min;
+            }
+        }
+        // prev ← curr をコピー（再利用）
+        for (let j = 0; j <= m; j++) {
+            prev[j] = curr[j];
+        }
+    }
+
+    return prev[m];
 }
 
 // LeetCode 提出形式

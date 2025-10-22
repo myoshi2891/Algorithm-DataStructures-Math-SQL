@@ -63,18 +63,18 @@ export type NonEmptyString = string & { readonly __brand: 'NonEmptyString' };
  * @throws {RangeError} 英数字以外を含む
  */
 function assertValidInput(s: string): asserts s is NonEmptyString {
-  if (typeof s !== 'string') {
-    throw new TypeError('Input must be a string');
-  }
-  const n = s.length;
-  if (n < 1 || n > 1000) {
-    throw new RangeError('Input length must be in [1, 1000]');
-  }
-  // 問題制約: 英字・数字のみ
-  const re = /^[A-Za-z0-9]+$/;
-  if (!re.test(s)) {
-    throw new RangeError('Input must consist of digits and English letters only');
-  }
+    if (typeof s !== 'string') {
+        throw new TypeError('Input must be a string');
+    }
+    const n = s.length;
+    if (n < 1 || n > 1000) {
+        throw new RangeError('Input length must be in [1, 1000]');
+    }
+    // 問題制約: 英字・数字のみ
+    const re = /^[A-Za-z0-9]+$/;
+    if (!re.test(s)) {
+        throw new RangeError('Input must consist of digits and English letters only');
+    }
 }
 
 /**
@@ -85,13 +85,14 @@ function assertValidInput(s: string): asserts s is NonEmptyString {
  * @returns [L, R] inclusive
  */
 function expandAroundCenter(s: NonEmptyString, l: number, r: number): [number, number] {
-  const n = s.length;
-  // 文字比較は charCodeAt でプリミティブ比較（若干効率的）
-  while (l >= 0 && r < n && s.charCodeAt(l) === s.charCodeAt(r)) {
-    l--; r++;
-  }
-  // 1ステップ行き過ぎているので戻す（inclusive）
-  return [l + 1, r - 1];
+    const n = s.length;
+    // 文字比較は charCodeAt でプリミティブ比較（若干効率的）
+    while (l >= 0 && r < n && s.charCodeAt(l) === s.charCodeAt(r)) {
+        l--;
+        r++;
+    }
+    // 1ステップ行き過ぎているので戻す（inclusive）
+    return [l + 1, r - 1];
 }
 
 /**
@@ -102,34 +103,36 @@ function expandAroundCenter(s: NonEmptyString, l: number, r: number): [number, n
  * @complexity Time: O(n^2), Space: O(1)
  */
 export function longestPalindrome(s: string): string {
-  assertValidInput(s); // 実行時ガード（NonEmptyString に絞り込み）
+    assertValidInput(s); // 実行時ガード（NonEmptyString に絞り込み）
 
-  const n = s.length;
-  // 早期終了（長さ1はそれ自体が答え）
-  if (n === 1) return s;
+    const n = s.length;
+    // 早期終了（長さ1はそれ自体が答え）
+    if (n === 1) return s;
 
-  let bestL = 0;
-  let bestR = 0;
+    let bestL = 0;
+    let bestR = 0;
 
-  // 各 i を中心として奇数長・偶数長の両方を試す
-  for (let i = 0; i < n; i++) {
-    // 奇数長（単一中心）
-    {
-      const [L, R] = expandAroundCenter(s, i, i);
-      if (R - L > bestR - bestL) {
-        bestL = L; bestR = R;
-      }
+    // 各 i を中心として奇数長・偶数長の両方を試す
+    for (let i = 0; i < n; i++) {
+        // 奇数長（単一中心）
+        {
+            const [L, R] = expandAroundCenter(s, i, i);
+            if (R - L > bestR - bestL) {
+                bestL = L;
+                bestR = R;
+            }
+        }
+        // 偶数長（隣接2文字中心）
+        {
+            const [L, R] = expandAroundCenter(s, i, i + 1);
+            if (R - L > bestR - bestL) {
+                bestL = L;
+                bestR = R;
+            }
+        }
     }
-    // 偶数長（隣接2文字中心）
-    {
-      const [L, R] = expandAroundCenter(s, i, i + 1);
-      if (R - L > bestR - bestL) {
-        bestL = L; bestR = R;
-      }
-    }
-  }
-  // 返却時のみ substring 生成（副作用なしの Pure）
-  return s.substring(bestL, bestR + 1);
+    // 返却時のみ substring 生成（副作用なしの Pure）
+    return s.substring(bestL, bestR + 1);
 }
 
 // LeetCode 互換：デフォルトエクスポートも用意（環境差吸収）

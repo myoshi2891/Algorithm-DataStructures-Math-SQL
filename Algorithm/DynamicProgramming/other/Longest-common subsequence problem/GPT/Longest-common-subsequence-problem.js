@@ -24,9 +24,9 @@
 // ## 実装コード (Node.js v16.17.1)
 
 // ```javascript
-"use strict";
+'use strict';
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 最長の「逆背の順」区間の長さを求める
@@ -56,7 +56,7 @@ function longestNonIncreasingSegment(n, a) {
 
 // ---------------- main ----------------
 (function main() {
-    const input = fs.readFileSync(0, "utf8").trim().split("\n");
+    const input = fs.readFileSync(0, 'utf8').trim().split('\n');
     const n = Number(input[0]);
     const a = input.slice(1).map(Number);
 

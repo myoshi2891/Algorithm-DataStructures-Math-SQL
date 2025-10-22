@@ -78,9 +78,8 @@ WHERE b.empId IS NOT NULL
 - **OR 回避**: `bonus < 1000 OR bonus IS NULL` を **相互排他的な 2 集合**（`bonus<1000` と **未登録**）に分解して `UNION ALL`。
 - **起点テーブル**: しきい値で小さくなる集合は **Bonus 起点**、未登録検出は **Employee 起点 + NOT EXISTS** が自然。
 - **インデックス**:
-
-  - `Bonus(bonus, empId)`：① 枝で **範囲 → 結合**に効く並び。`bonus` だけ出力なら被覆になりやすい。
-  - `Employee(empId)` は PK で十分。
+    - `Bonus(bonus, empId)`：① 枝で **範囲 → 結合**に効く並び。`bonus` だけ出力なら被覆になりやすい。
+    - `Employee(empId)` は PK で十分。
 
 - **定常運用**: 統計の鮮度でプランが変わるため、定期的に `ANALYZE Employee, Bonus;` を推奨。
 - **多列・重複があり得るケース**（この課題では unique だが一般論）：Bonus 側が多行/重複なら、① 枝で `DISTINCT ON (b.empId)` などで整える。
@@ -112,10 +111,9 @@ flowchart TD
 2. 上記 `UNION ALL` クエリに差し替え
 3. `ANALYZE Employee, Bonus;` を実行
 4. `EXPLAIN (ANALYZE, BUFFERS)` で確認
-
-   - 枝 ①: `Index Scan using ix_bonus_bonus_empid ... WHERE bonus < 1000`
-   - 枝 ②: `Seq Scan on Employee ... Filter: (NOT (SubPlan ... Index Only Scan on Bonus ...))`
-   - 期待どおりなら大幅な行数削減になっています。
+    - 枝 ①: `Index Scan using ix_bonus_bonus_empid ... WHERE bonus < 1000`
+    - 枝 ②: `Seq Scan on Employee ... Filter: (NOT (SubPlan ... Index Only Scan on Bonus ...))`
+    - 期待どおりなら大幅な行数削減になっています。
 
 ## 0) 前提 2
 
@@ -197,17 +195,15 @@ CREATE INDEX IF NOT EXISTS ix_bonus_lt1000_cov
 ## 3) 要点解説 2
 
 - **なぜ CTE 版が速いか**
-
-  - `b` が「小さい表」になる → 先に縮小してから `Employee` に結合できる
-  - OR 排除により **sargable**（索引利用効率が高い）
+    - `b` が「小さい表」になる → 先に縮小してから `Employee` に結合できる
+    - OR 排除により **sargable**（索引利用効率が高い）
 
 - **さらに速くする鍵**
-
-  - **部分索引**：`Bonus(bonus, empId) WHERE bonus<1000` → 範囲 → 結合が軽い & 索引サイズが小さい
-  - **被覆索引（INCLUDE）**：テーブルアクセスを避けて Index Only Scan を狙う
-  - **統計の鮮度**：`ANALYZE Employee, Bonus;` でカーディナリティずれを回避
-  - **並列実行**：`UNION ALL` 版は `Parallel Append` が選ばれやすい。`max_parallel_workers_per_gather > 0`、テーブルが十分大きい場合に恩恵あり
-  - **可視性マップ**：`VACUUM (ANALYZE)` を適切に回すと Index Only Scan 成功率が上がる
+    - **部分索引**：`Bonus(bonus, empId) WHERE bonus<1000` → 範囲 → 結合が軽い & 索引サイズが小さい
+    - **被覆索引（INCLUDE）**：テーブルアクセスを避けて Index Only Scan を狙う
+    - **統計の鮮度**：`ANALYZE Employee, Bonus;` でカーディナリティずれを回避
+    - **並列実行**：`UNION ALL` 版は `Parallel Append` が選ばれやすい。`max_parallel_workers_per_gather > 0`、テーブルが十分大きい場合に恩恵あり
+    - **可視性マップ**：`VACUUM (ANALYZE)` を適切に回すと Index Only Scan 成功率が上がる
 
 - **NOT EXISTS と LEFT JOIN IS NULL** は本件ではほぼ同等。実測で速い方を採用。
 
@@ -245,9 +241,8 @@ flowchart TD
 2. CTE を **MATERIALIZED** に（上の最適解を使用）
 3. `ANALYZE Employee, Bonus;` を実行（統計更新）
 4. `EXPLAIN (ANALYZE, BUFFERS)` で確認
-
-   - `Index Scan/Index Only Scan using ix_bonus_lt1000... WHERE bonus < 1000`
-   - `Anti Join using NOT EXISTS` のサブプランが `Index(Only) Scan on Bonus (empId)`
+    - `Index Scan/Index Only Scan using ix_bonus_lt1000... WHERE bonus < 1000`
+    - `Anti Join using NOT EXISTS` のサブプランが `Index(Only) Scan on Bonus (empId)`
 
 5. 必要に応じて `VACUUM (ANALYZE)`、`max_parallel_workers_per_gather` の確認
 

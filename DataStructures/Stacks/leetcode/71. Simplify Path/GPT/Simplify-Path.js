@@ -54,7 +54,7 @@
 // # 4. コード実装（solution.js, CommonJS）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Simplify Unix-style absolute path
@@ -65,39 +65,39 @@
  * @complexity Time O(n), Space O(n)
  */
 var simplifyPath = function (path) {
-  // --- 入力検証 ---
-  if (typeof path !== "string") {
-    throw new TypeError("Input must be a string");
-  }
-  const n = path.length;
-  if (n < 1 || n > 3000) {
-    throw new RangeError("Path length out of bounds");
-  }
-  if (path[0] !== "/") {
-    throw new RangeError('Path must be absolute and start with "/"');
-  }
-
-  // --- 本処理 ---
-  const parts = path.split("/");
-  const stack = [];
-
-  for (let i = 0; i < parts.length; i++) {
-    const token = parts[i];
-    if (token === "" || token === ".") {
-      // 無視（空 or 現在ディレクトリ）
-      continue;
+    // --- 入力検証 ---
+    if (typeof path !== 'string') {
+        throw new TypeError('Input must be a string');
     }
-    if (token === "..") {
-      if (stack.length > 0) {
-        stack.pop();
-      }
-    } else {
-      // 通常のディレクトリ名（"..." など含む）
-      stack.push(token);
+    const n = path.length;
+    if (n < 1 || n > 3000) {
+        throw new RangeError('Path length out of bounds');
     }
-  }
+    if (path[0] !== '/') {
+        throw new RangeError('Path must be absolute and start with "/"');
+    }
 
-  return "/" + stack.join("/");
+    // --- 本処理 ---
+    const parts = path.split('/');
+    const stack = [];
+
+    for (let i = 0; i < parts.length; i++) {
+        const token = parts[i];
+        if (token === '' || token === '.') {
+            // 無視（空 or 現在ディレクトリ）
+            continue;
+        }
+        if (token === '..') {
+            if (stack.length > 0) {
+                stack.pop();
+            }
+        } else {
+            // 通常のディレクトリ名（"..." など含む）
+            stack.push(token);
+        }
+    }
+
+    return '/' + stack.join('/');
 };
 
 module.exports = { simplifyPath };

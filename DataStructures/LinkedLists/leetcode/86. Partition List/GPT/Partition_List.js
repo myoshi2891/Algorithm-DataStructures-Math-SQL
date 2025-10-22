@@ -51,7 +51,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 // Module system: CommonJS（ローカル実行: `node solution.js`）
 // LeetCode フォーマット準拠：ListNode と partition(head, x) をエクスポート相当で定義
 // 外部ライブラリ禁止（Node.js v18+ 標準のみ使用）
@@ -63,8 +63,8 @@
  * @param {ListNode|null} [next]
  */
 function ListNode(val, next) {
-  this.val = val === undefined ? 0 : val;
-  this.next = next === undefined ? null : next;
+    this.val = val === undefined ? 0 : val;
+    this.next = next === undefined ? null : next;
 }
 
 /**
@@ -83,58 +83,58 @@ function ListNode(val, next) {
  * 空間計算量: O(n)（Pure を満たすため新ノードを生成）
  */
 function partition(head, x) {
-  // ---- 入力検証（軽量＆早期）----
-  if (head !== null && (typeof head !== "object" || head === undefined)) {
-    throw new TypeError("head must be a ListNode or null");
-  }
-  if (typeof x !== "number" || !Number.isFinite(x)) {
-    throw new TypeError("x must be a finite number");
-  }
-  if (x < -200 || x > 200) {
-    throw new RangeError("x is out of allowed range [-200, 200]");
-  }
-
-  // 制約: ノード数 [0, 200], 値域 [-100, 100]
-  // 1 回走査内で件数と値域を検査しつつ分割用リストを構築（Pure のためコピー）
-  let lessDummy = new ListNode(0),
-    lessTail = lessDummy;
-  let geDummy = new ListNode(0),
-    geTail = geDummy;
-
-  let count = 0;
-  let curr = head;
-
-  while (curr !== null) {
-    count++;
-    if (count > 200) {
-      throw new RangeError("List size exceeds limit [0, 200]");
+    // ---- 入力検証（軽量＆早期）----
+    if (head !== null && (typeof head !== 'object' || head === undefined)) {
+        throw new TypeError('head must be a ListNode or null');
+    }
+    if (typeof x !== 'number' || !Number.isFinite(x)) {
+        throw new TypeError('x must be a finite number');
+    }
+    if (x < -200 || x > 200) {
+        throw new RangeError('x is out of allowed range [-200, 200]');
     }
 
-    const v = curr.val;
-    if (typeof v !== "number" || !Number.isFinite(v)) {
-      throw new TypeError("ListNode.val must be a finite number");
+    // 制約: ノード数 [0, 200], 値域 [-100, 100]
+    // 1 回走査内で件数と値域を検査しつつ分割用リストを構築（Pure のためコピー）
+    let lessDummy = new ListNode(0),
+        lessTail = lessDummy;
+    let geDummy = new ListNode(0),
+        geTail = geDummy;
+
+    let count = 0;
+    let curr = head;
+
+    while (curr !== null) {
+        count++;
+        if (count > 200) {
+            throw new RangeError('List size exceeds limit [0, 200]');
+        }
+
+        const v = curr.val;
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+            throw new TypeError('ListNode.val must be a finite number');
+        }
+        if (v < -100 || v > 100) {
+            throw new RangeError('ListNode.val is out of allowed range [-100, 100]');
+        }
+
+        // Pure のため新ノードを生成して追加（元ノードは変更しない）
+        if (v < x) {
+            lessTail.next = new ListNode(v);
+            lessTail = lessTail.next;
+        } else {
+            geTail.next = new ListNode(v);
+            geTail = geTail.next;
+        }
+
+        curr = curr.next;
     }
-    if (v < -100 || v > 100) {
-      throw new RangeError("ListNode.val is out of allowed range [-100, 100]");
-    }
 
-    // Pure のため新ノードを生成して追加（元ノードは変更しない）
-    if (v < x) {
-      lessTail.next = new ListNode(v);
-      lessTail = lessTail.next;
-    } else {
-      geTail.next = new ListNode(v);
-      geTail = geTail.next;
-    }
+    // 連結：(< x) リストの末尾に (>= x) リストをつなぐ
+    lessTail.next = geDummy.next;
+    geTail.next = null;
 
-    curr = curr.next;
-  }
-
-  // 連結：(< x) リストの末尾に (>= x) リストをつなぐ
-  lessTail.next = geDummy.next;
-  geTail.next = null;
-
-  return lessDummy.next;
+    return lessDummy.next;
 }
 
 // ---- LeetCode 提出時は関数定義のみで可。ローカル実行や他環境向けに CommonJS export も用意 ----

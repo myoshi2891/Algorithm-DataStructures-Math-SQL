@@ -42,17 +42,17 @@
 
 // 型定義
 interface EditDistanceInput {
-  readonly word1: string;
-  readonly word2: string;
+    readonly word1: string;
+    readonly word2: string;
 }
 
 interface EditDistanceOptions {
-  readonly validateInput?: boolean;
-  readonly enableOptimization?: boolean;
+    readonly validateInput?: boolean;
+    readonly enableOptimization?: boolean;
 }
 
 // 操作種別の型定義
-type EditOperation = "insert" | "delete" | "replace" | "match";
+type EditOperation = 'insert' | 'delete' | 'replace' | 'match';
 
 // DPテーブルの型定義
 type DPTable = readonly (readonly number[])[];
@@ -61,99 +61,97 @@ type DPTable = readonly (readonly number[])[];
  * Edit Distance計算の結果型
  */
 interface EditDistanceResult {
-  readonly distance: number;
-  readonly operations?: readonly EditOperation[];
+    readonly distance: number;
+    readonly operations?: readonly EditOperation[];
 }
 
 /**
  * 型安全な入力検証
  */
-function validateEditDistanceInput(
-  input: unknown
-): asserts input is EditDistanceInput {
-  if (typeof input !== "object" || input === null) {
-    throw new TypeError("Input must be an object");
-  }
+function validateEditDistanceInput(input: unknown): asserts input is EditDistanceInput {
+    if (typeof input !== 'object' || input === null) {
+        throw new TypeError('Input must be an object');
+    }
 
-  const obj = input as Record<string, unknown>;
+    const obj = input as Record<string, unknown>;
 
-  if (typeof obj.word1 !== "string") {
-    throw new TypeError("word1 must be a string");
-  }
+    if (typeof obj.word1 !== 'string') {
+        throw new TypeError('word1 must be a string');
+    }
 
-  if (typeof obj.word2 !== "string") {
-    throw new TypeError("word2 must be a string");
-  }
+    if (typeof obj.word2 !== 'string') {
+        throw new TypeError('word2 must be a string');
+    }
 
-  // 制約チェック
-  if (obj.word1.length > 500 || obj.word2.length > 500) {
-    throw new RangeError("Word length must not exceed 500 characters");
-  }
+    // 制約チェック
+    if (obj.word1.length > 500 || obj.word2.length > 500) {
+        throw new RangeError('Word length must not exceed 500 characters');
+    }
 }
 
 /**
  * エッジケース判定（型ガード）
  */
 function isEmptyStringCase(input: EditDistanceInput): boolean {
-  return input.word1.length === 0 || input.word2.length === 0;
+    return input.word1.length === 0 || input.word2.length === 0;
 }
 
 /**
  * エッジケース処理
  */
 function handleEmptyStringCase(input: EditDistanceInput): number {
-  return input.word1.length + input.word2.length;
+    return input.word1.length + input.word2.length;
 }
 
 /**
  * DPテーブル初期化（型安全）
  */
 function createDPTable(rows: number, cols: number): number[][] {
-  // V8最適化: 事前サイズ確保
-  const dp = new Array<number[]>(rows);
-  for (let i = 0; i < rows; i++) {
-    dp[i] = new Array<number>(cols);
-  }
-  return dp;
+    // V8最適化: 事前サイズ確保
+    const dp = new Array<number[]>(rows);
+    for (let i = 0; i < rows; i++) {
+        dp[i] = new Array<number>(cols);
+    }
+    return dp;
 }
 
 /**
  * メインアルゴリズム実装（型安全 + V8最適化）
  */
 function computeEditDistance(word1: string, word2: string): number {
-  const m = word1.length;
-  const n = word2.length;
+    const m = word1.length;
+    const n = word2.length;
 
-  // DPテーブル作成
-  const dp = createDPTable(m + 1, n + 1);
+    // DPテーブル作成
+    const dp = createDPTable(m + 1, n + 1);
 
-  // ベースケース初期化（型安全なループ）
-  for (let j = 0; j <= n; j++) {
-    dp[0]![j] = j;
-  }
-
-  for (let i = 0; i <= m; i++) {
-    dp[i]![0] = i;
-  }
-
-  // DPテーブル構築
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        // 文字一致: 追加操作不要
-        dp[i]![j] = dp[i - 1]![j - 1]!;
-      } else {
-        // 3つの操作の最小値を計算
-        const deleteOp = dp[i - 1]![j]!;
-        const insertOp = dp[i]![j - 1]!;
-        const replaceOp = dp[i - 1]![j - 1]!;
-
-        dp[i]![j] = Math.min(deleteOp, insertOp, replaceOp) + 1;
-      }
+    // ベースケース初期化（型安全なループ）
+    for (let j = 0; j <= n; j++) {
+        dp[0]![j] = j;
     }
-  }
 
-  return dp[m]![n]!;
+    for (let i = 0; i <= m; i++) {
+        dp[i]![0] = i;
+    }
+
+    // DPテーブル構築
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (word1[i - 1] === word2[j - 1]) {
+                // 文字一致: 追加操作不要
+                dp[i]![j] = dp[i - 1]![j - 1]!;
+            } else {
+                // 3つの操作の最小値を計算
+                const deleteOp = dp[i - 1]![j]!;
+                const insertOp = dp[i]![j - 1]!;
+                const replaceOp = dp[i - 1]![j - 1]!;
+
+                dp[i]![j] = Math.min(deleteOp, insertOp, replaceOp) + 1;
+            }
+        }
+    }
+
+    return dp[m]![n]!;
 }
 
 /**
@@ -164,41 +162,41 @@ function computeEditDistance(word1: string, word2: string): number {
  * @complexity Time: O(m×n), Space: O(m×n)
  */
 function minDistance(word1: string, word2: string): number {
-  // 型安全な入力検証
-  const input: EditDistanceInput = { word1, word2 } as const;
-  validateEditDistanceInput(input);
+    // 型安全な入力検証
+    const input: EditDistanceInput = { word1, word2 } as const;
+    validateEditDistanceInput(input);
 
-  // エッジケース処理
-  if (isEmptyStringCase(input)) {
-    return handleEmptyStringCase(input);
-  }
+    // エッジケース処理
+    if (isEmptyStringCase(input)) {
+        return handleEmptyStringCase(input);
+    }
 
-  // メインアルゴリズム実行
-  return computeEditDistance(word1, word2);
+    // メインアルゴリズム実行
+    return computeEditDistance(word1, word2);
 }
 
 /**
  * 拡張版: 操作履歴も含む計算（業務開発向け）
  */
 function minDistanceWithOperations(
-  word1: string,
-  word2: string,
-  options: EditDistanceOptions = {}
+    word1: string,
+    word2: string,
+    options: EditDistanceOptions = {},
 ): EditDistanceResult {
-  // オプション処理
-  const { validateInput = true } = options;
+    // オプション処理
+    const { validateInput = true } = options;
 
-  if (validateInput) {
-    validateEditDistanceInput({ word1, word2 });
-  }
+    if (validateInput) {
+        validateEditDistanceInput({ word1, word2 });
+    }
 
-  const distance = minDistance(word1, word2);
+    const distance = minDistance(word1, word2);
 
-  return {
-    distance,
-    // 操作履歴は必要に応じて実装
-    operations: undefined,
-  } as const;
+    return {
+        distance,
+        // 操作履歴は必要に応じて実装
+        operations: undefined,
+    } as const;
 }
 
 // LeetCode提出用のエクスポート
@@ -206,10 +204,10 @@ export { minDistance };
 
 // 業務開発用の拡張エクスポート
 export {
-  minDistanceWithOperations,
-  type EditDistanceInput,
-  type EditDistanceOptions,
-  type EditDistanceResult,
+    minDistanceWithOperations,
+    type EditDistanceInput,
+    type EditDistanceOptions,
+    type EditDistanceResult,
 };
 // ## 5. TypeScript特有最適化ポイント
 

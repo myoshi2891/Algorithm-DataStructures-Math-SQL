@@ -30,7 +30,7 @@
  */
 function totalNQueens(n: number): number {
     let count: number = 0;
-    
+
     /**
      * バックトラッキングを用いてN-Queens問題を解く再帰関数
      * @param row - 現在処理中の行
@@ -44,28 +44,28 @@ function totalNQueens(n: number): number {
             count++;
             return;
         }
-        
+
         // 現在の行で使用可能な位置を計算（ビット演算で高速化）
         let availablePositions: number = ((1 << n) - 1) & ~(cols | diag1 | diag2);
-        
+
         // 使用可能な各位置にクイーンを配置して再帰的に探索
         while (availablePositions) {
             // 最下位の1ビットを取得（次に配置可能な位置）
             const position: number = availablePositions & -availablePositions;
             // その位置のビットをクリア
             availablePositions ^= position;
-            
+
             // 次の行で再帰的に探索
             // diag1とdiag2は対角線の制約を表現（ビットシフトで位置調整）
             backtrack(
                 row + 1,
-                cols | position,           // 列の制約を更新
-                (diag1 | position) << 1,  // 左上-右下対角線の制約を更新
-                (diag2 | position) >> 1   // 右上-左下対角線の制約を更新
+                cols | position, // 列の制約を更新
+                (diag1 | position) << 1, // 左上-右下対角線の制約を更新
+                (diag2 | position) >> 1, // 右上-左下対角線の制約を更新
             );
         }
     }
-    
+
     // 最初の行から探索開始
     backtrack(0, 0, 0, 0);
     return count;

@@ -6,9 +6,8 @@
 
 - **DB**: MySQL 8.x
 - **テーブル**:
-
-  - `CITY (ID, Name, CountryCode, District, Population)`
-  - `COUNTRY (Code, Name, Continent, Region, SurfaceArea, IndepYear, Population, …)`
+    - `CITY (ID, Name, CountryCode, District, Population)`
+    - `COUNTRY (Code, Name, Continent, Region, SurfaceArea, IndepYear, Population, …)`
 
 ---
 

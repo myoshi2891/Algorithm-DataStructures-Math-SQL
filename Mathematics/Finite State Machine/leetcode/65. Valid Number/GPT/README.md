@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD041 -->
+
 先ほどの **有効な数字判定アルゴリズム (`isNumber`)** を題材にして、GitHub の `README.md` 用に **図解付きで解析・説明** をマークダウン形式でまとめました。
 （図はすべて [Mermaid](https://mermaid.js.org/) を使っているので、そのまま README.md に埋め込めます）
 
@@ -26,9 +27,9 @@
 
 文字列を **1文字ずつ走査** しながら以下を管理します:
 
-- `seen_digit`: 数字を見たかどうか  
-- `seen_dot`: 小数点を見たかどうか  
-- `seen_exp`: 指数 (`e` または `E`) を見たかどうか  
+- `seen_digit`: 数字を見たかどうか
+- `seen_dot`: 小数点を見たかどうか
+- `seen_exp`: 指数 (`e` または `E`) を見たかどうか
 
 ### 状態遷移図
 
@@ -54,7 +55,7 @@ stateDiagram-v2
 
     Sign --> Digit: '0-9'
     Sign --> Dot: '.'
-````
+```
 
 ---
 
@@ -143,8 +144,7 @@ flowchart TD
 ### 入力: `"e"`
 
 1. 最初の文字 `e` を読む
-
-   - `数字がないのに指数を読んだため Invalid`
+    - `数字がないのに指数を読んだため Invalid`
 
 ✅ 出力: `False`
 

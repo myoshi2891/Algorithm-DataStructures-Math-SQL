@@ -2,11 +2,11 @@ import * as fs from 'fs';
 
 const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const [H, W, K] = input[0].split(' ').map(Number);
-const grid: string[][] = input.slice(1).map(line => line.split(''));
+const grid: string[][] = input.slice(1).map((line) => line.split(''));
 
 let maxBlack = 0;
 
-for (let bit = 0; bit < (1 << H); bit++) {
+for (let bit = 0; bit < 1 << H; bit++) {
     const paintedRows: number[] = [];
     for (let i = 0; i < H; i++) {
         if ((bit >> i) & 1) paintedRows.push(i);
@@ -16,7 +16,7 @@ for (let bit = 0; bit < (1 << H); bit++) {
     if (rowPaintCount > K) continue;
 
     // 塗り操作のコピー
-    const painted: string[][] = grid.map(row => [...row]);
+    const painted: string[][] = grid.map((row) => [...row]);
 
     // 行を黒に塗る
     for (const row of paintedRows) {

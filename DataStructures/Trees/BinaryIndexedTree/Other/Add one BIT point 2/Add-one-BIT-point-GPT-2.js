@@ -39,7 +39,7 @@ class BIT {
 
     /**
      * A_1 ~ A_index までの累積和を取得（1-indexed）
-     * @param {number} index 
+     * @param {number} index
      * @returns {number} 累積和
      */
     sum(index) {
@@ -67,7 +67,7 @@ function main(input) {
     const n = parseInt(lines[0]);
     const A = lines[1].split(' ').map(Number);
     const Q = parseInt(lines[2]);
-    const queries = lines.slice(3).map(line => line.split(' ').map(Number));
+    const queries = lines.slice(3).map((line) => line.split(' ').map(Number));
 
     const bit = new BIT(n);
 

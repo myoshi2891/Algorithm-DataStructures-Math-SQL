@@ -40,7 +40,9 @@ function findFactors(n) {
 
 // 拡張ユークリッド互除法で逆元を求める
 function modInv(a, m) {
-    let m0 = m, x0 = 0n, x1 = 1n;
+    let m0 = m,
+        x0 = 0n,
+        x1 = 1n;
     while (a > 1n) {
         const q = a / m;
         [a, m] = [m, a % m];

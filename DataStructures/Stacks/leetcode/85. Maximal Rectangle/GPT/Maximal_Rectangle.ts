@@ -63,74 +63,72 @@
  * @throws {RangeError} 行数/列数が [1,200] を外れる、または列長が不揃い
  * @complexity Time: O(R*C), Space: O(C)
  */
-export default function maximalRectangle(
-  matrix: readonly (readonly string[])[]
-): number {
-  // ---- 入力検証（軽量＆早期；ホットパス外） ----
-  if (!Array.isArray(matrix)) {
-    throw new TypeError("matrix must be a 2D array");
-  }
-  const rows = matrix.length;
-  if (!(rows >= 1 && rows <= 200)) {
-    throw new RangeError("rows must be within [1, 200]");
-  }
-  if (!Array.isArray(matrix[0])) {
-    throw new TypeError("matrix must be a 2D array (array of arrays)");
-  }
-  const cols = matrix[0].length;
-  if (!(cols >= 1 && cols <= 200)) {
-    throw new RangeError("cols must be within [1, 200]");
-  }
-  for (let i = 0; i < rows; i++) {
-    const row = matrix[i];
-    if (!Array.isArray(row) || row.length !== cols) {
-      throw new RangeError("All rows must be arrays of identical length");
+export default function maximalRectangle(matrix: readonly (readonly string[])[]): number {
+    // ---- 入力検証（軽量＆早期；ホットパス外） ----
+    if (!Array.isArray(matrix)) {
+        throw new TypeError('matrix must be a 2D array');
     }
-    for (let j = 0; j < cols; j++) {
-      const v = row[j];
-      if (typeof v !== "string" || (v !== "0" && v !== "1")) {
-        throw new TypeError("matrix[i][j] must be '0' or '1'");
-      }
+    const rows = matrix.length;
+    if (!(rows >= 1 && rows <= 200)) {
+        throw new RangeError('rows must be within [1, 200]');
     }
-  }
-
-  // ---- 本処理：行ごとのヒストグラム + 単調増加スタック ----
-  // heights[j]: 現在行を底とする列 j の連続 1 の高さ
-  const heights: number[] = new Array<number>(cols).fill(0);
-  // スタックは「インデックス」を格納。push/pop を避け、top を手動管理で高速化。
-  const stack: number[] = new Array<number>(cols + 1);
-  let maxArea = 0;
-
-  // ヒストグラムの最大長方形を O(C) で計算（センチネルはループ境界で擬似化）
-  function largestRectangleInHistogram(h: readonly number[]): number {
-    let best = 0;
-    let top = -1; // スタックのトップ（-1 は空）
-
-    for (let j = 0; j <= cols; j++) {
-      const cur = j === cols ? 0 : h[j];
-      while (top >= 0 && cur < h[stack[top]]) {
-        const height = h[stack[top--]];
-        const leftLess = top >= 0 ? stack[top] : -1;
-        const width = j - leftLess - 1;
-        const area = height * width;
-        if (area > best) best = area;
-      }
-      stack[++top] = j;
+    if (!Array.isArray(matrix[0])) {
+        throw new TypeError('matrix must be a 2D array (array of arrays)');
     }
-    return best;
-  }
-
-  for (let i = 0; i < rows; i++) {
-    const row = matrix[i];
-    for (let j = 0; j < cols; j++) {
-      // '1' なら高さをインクリメント、'0' ならリセット
-      heights[j] = row[j] === "1" ? heights[j] + 1 : 0;
+    const cols = matrix[0].length;
+    if (!(cols >= 1 && cols <= 200)) {
+        throw new RangeError('cols must be within [1, 200]');
     }
-    const area = largestRectangleInHistogram(heights);
-    if (area > maxArea) maxArea = area;
-  }
+    for (let i = 0; i < rows; i++) {
+        const row = matrix[i];
+        if (!Array.isArray(row) || row.length !== cols) {
+            throw new RangeError('All rows must be arrays of identical length');
+        }
+        for (let j = 0; j < cols; j++) {
+            const v = row[j];
+            if (typeof v !== 'string' || (v !== '0' && v !== '1')) {
+                throw new TypeError("matrix[i][j] must be '0' or '1'");
+            }
+        }
+    }
 
-  return maxArea;
+    // ---- 本処理：行ごとのヒストグラム + 単調増加スタック ----
+    // heights[j]: 現在行を底とする列 j の連続 1 の高さ
+    const heights: number[] = new Array<number>(cols).fill(0);
+    // スタックは「インデックス」を格納。push/pop を避け、top を手動管理で高速化。
+    const stack: number[] = new Array<number>(cols + 1);
+    let maxArea = 0;
+
+    // ヒストグラムの最大長方形を O(C) で計算（センチネルはループ境界で擬似化）
+    function largestRectangleInHistogram(h: readonly number[]): number {
+        let best = 0;
+        let top = -1; // スタックのトップ（-1 は空）
+
+        for (let j = 0; j <= cols; j++) {
+            const cur = j === cols ? 0 : h[j];
+            while (top >= 0 && cur < h[stack[top]]) {
+                const height = h[stack[top--]];
+                const leftLess = top >= 0 ? stack[top] : -1;
+                const width = j - leftLess - 1;
+                const area = height * width;
+                if (area > best) best = area;
+            }
+            stack[++top] = j;
+        }
+        return best;
+    }
+
+    for (let i = 0; i < rows; i++) {
+        const row = matrix[i];
+        for (let j = 0; j < cols; j++) {
+            // '1' なら高さをインクリメント、'0' ならリセット
+            heights[j] = row[j] === '1' ? heights[j] + 1 : 0;
+        }
+        const area = largestRectangleInHistogram(heights);
+        if (area > maxArea) maxArea = area;
+    }
+
+    return maxArea;
 }
 
 // LeetCode 用の余計なエクスポート抑止（環境により不要）

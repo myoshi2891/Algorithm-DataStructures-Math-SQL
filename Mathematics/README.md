@@ -82,31 +82,22 @@
 ### 基本導入（CDN 例）
 
 ```html
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css"
-/>
-<script
-  defer
-  src="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"
-></script>
-<script
-  defer
-  src="https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js"
-></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css" />
+<script defer src="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js"></script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    renderMathInElement(document.body, {
-      delimiters: [
-        { left: "$$", right: "$$", display: true },
-        { left: "$", right: "$", display: false },
-        { left: "\\[", right: "\\]", display: true },
-        { left: "\\(", right: "\\)", display: false },
-      ],
-      throwOnError: false,
+    document.addEventListener('DOMContentLoaded', function () {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\[', right: '\\]', display: true },
+                { left: '\\(', right: '\\)', display: false },
+            ],
+            throwOnError: false,
+        });
     });
-  });
 </script>
 ```
 
@@ -116,19 +107,19 @@
 ### React などで使う（直レンダリング）
 
 ```jsx
-import "katex/dist/katex.min.css";
-import katex from "katex";
+import 'katex/dist/katex.min.css';
+import katex from 'katex';
 
 export function Formula({ expr }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (ref.current)
-      katex.render(expr, ref.current, {
-        displayMode: false,
-        throwOnError: false,
-      });
-  }, [expr]);
-  return <span ref={ref} />;
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+        if (ref.current)
+            katex.render(expr, ref.current, {
+                displayMode: false,
+                throwOnError: false,
+            });
+    }, [expr]);
+    return <span ref={ref} />;
 }
 ```
 
@@ -212,18 +203,17 @@ export function Formula({ expr }) {
 
 - **`align` で整列**（LaTeX／KaTeX）
 
-  ```tex
-  \begin{align}
-    f(x) &= x^2 + 1 \\
-         &= x^2 + 2x + 1 - 2x
-  \end{align}
-  ```
+    ```tex
+    \begin{align}
+      f(x) &= x^2 + 1 \\
+           &= x^2 + 2x + 1 - 2x
+    \end{align}
+    ```
 
-  `&` 位置で縦に揃う。KaTeX でも OK。
+    `&` 位置で縦に揃う。KaTeX でも OK。
 
 - **番号の制御**（LaTeX）
-
-  - `\tag{*}` で手動番号、`\numberwithin{equation}{section}` で節ごと番号。
+    - `\tag{*}` で手動番号、`\numberwithin{equation}{section}` で節ごと番号。
 
 - **テキスト混在**：`\text{argmin over x}` のように文章を式に入れると読みやすい。
 

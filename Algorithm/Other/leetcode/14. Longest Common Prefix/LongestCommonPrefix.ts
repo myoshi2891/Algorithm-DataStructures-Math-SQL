@@ -17,7 +17,7 @@ import * as fs from 'fs';
  * @returns string - 最長共通接頭辞。共通部分がなければ空文字を返す。
  */
 function longestCommonPrefix(strs: string[]): string {
-    if (strs.length === 0) return "";
+    if (strs.length === 0) return '';
 
     let prefix = strs[0];
 
@@ -25,7 +25,7 @@ function longestCommonPrefix(strs: string[]): string {
         // prefixが一致しなくなるまで短くしていく
         while (strs[i].indexOf(prefix) !== 0) {
             prefix = prefix.substring(0, prefix.length - 1);
-            if (prefix === "") return "";
+            if (prefix === '') return '';
         }
     }
 
@@ -62,8 +62,8 @@ Memory Usage: ${memoryUsageKb.toFixed(3)} KB
 }
 
 // サンプル実行
-const example1 = ["flower", "flow", "flight"];
-const example2 = ["dog", "racecar", "car"];
+const example1 = ['flower', 'flow', 'flight'];
+const example2 = ['dog', 'racecar', 'car'];
 
 runWithPerformanceLog(example1, 'log_example1.txt');
 runWithPerformanceLog(example2, 'log_example2.txt');

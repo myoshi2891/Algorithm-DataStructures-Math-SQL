@@ -33,7 +33,7 @@
 /**
  * ソート済み配列内でターゲット値のインデックスを検索し、
  * 見つからない場合は挿入すべき位置のインデックスを返す
- * 
+ *
  * @param nums - ソート済みの重複なし整数配列
  * @param target - 検索対象の整数値
  * @returns ターゲットが見つかった場合はそのインデックス、見つからない場合は挿入位置のインデックス
@@ -41,12 +41,12 @@
 function searchInsert(nums: number[], target: number): number {
     let left = 0;
     let right = nums.length - 1;
-    
+
     // バイナリサーチでO(log n)の時間計算量を実現
     while (left <= right) {
         // オーバーフローを避けるため、中点計算を最適化
         const mid = left + Math.floor((right - left) / 2);
-        
+
         if (nums[mid] === target) {
             return mid;
         } else if (nums[mid] < target) {
@@ -55,7 +55,7 @@ function searchInsert(nums: number[], target: number): number {
             right = mid - 1;
         }
     }
-    
+
     // ターゲットが見つからない場合、leftが挿入位置を示す
     return left;
 }

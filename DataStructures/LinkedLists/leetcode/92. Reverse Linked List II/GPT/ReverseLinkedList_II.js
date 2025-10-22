@@ -47,7 +47,7 @@
 // ## 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 // Module: CommonJS
 // Runtime: Node.js v22.14.0（互換: v18+）
 // 外部ライブラリ: 不使用（Node標準のみ）
@@ -71,50 +71,49 @@
  * 計算量: 時間 O(n), 追加空間 O(1)
  */
 function reverseBetween(head, left, right) {
-  // --- 入力検証（軽量＆早期） ---
-  const isNodeLike = (x) =>
-    x === null ||
-    (typeof x === "object" && x !== null && "val" in x && "next" in x);
-  if (!isNodeLike(head)) throw new TypeError("head must be a ListNode or null");
-  if (typeof left !== "number" || !Number.isFinite(left))
-    throw new TypeError("left must be a finite number");
-  if (typeof right !== "number" || !Number.isFinite(right))
-    throw new TypeError("right must be a finite number");
-  if ((left | 0) !== left || (right | 0) !== right)
-    throw new TypeError("left/right must be integers");
-  if (left < 1) throw new RangeError("left must be >= 1");
-  if (left > right) throw new RangeError("left must be <= right");
+    // --- 入力検証（軽量＆早期） ---
+    const isNodeLike = (x) =>
+        x === null || (typeof x === 'object' && x !== null && 'val' in x && 'next' in x);
+    if (!isNodeLike(head)) throw new TypeError('head must be a ListNode or null');
+    if (typeof left !== 'number' || !Number.isFinite(left))
+        throw new TypeError('left must be a finite number');
+    if (typeof right !== 'number' || !Number.isFinite(right))
+        throw new TypeError('right must be a finite number');
+    if ((left | 0) !== left || (right | 0) !== right)
+        throw new TypeError('left/right must be integers');
+    if (left < 1) throw new RangeError('left must be >= 1');
+    if (left > right) throw new RangeError('left must be <= right');
 
-  // 早期終了：空 or 区間長1
-  if (head === null || left === right) return head;
+    // 早期終了：空 or 区間長1
+    if (head === null || left === right) return head;
 
-  // --- ダミー節点で先頭反転を平滑化 ---
-  const dummy = { val: 0, next: head }; // 既存形状 {val,next} に合わせ hidden class を安定化
-  let pre = dummy;
+    // --- ダミー節点で先頭反転を平滑化 ---
+    const dummy = { val: 0, next: head }; // 既存形状 {val,next} に合わせ hidden class を安定化
+    let pre = dummy;
 
-  // 1) pre を left-1 まで前進
-  for (let i = 1; i < left; i++) {
-    // right がリスト長を超えても LeetCode のテストでは想定外だが、防御的に break
-    if (pre.next == null) return dummy.next;
-    pre = pre.next;
-  }
+    // 1) pre を left-1 まで前進
+    for (let i = 1; i < left; i++) {
+        // right がリスト長を超えても LeetCode のテストでは想定外だが、防御的に break
+        if (pre.next == null) return dummy.next;
+        pre = pre.next;
+    }
 
-  // 2) 区間内を前挿入で反転
-  //    pre.next を区間の先頭（固定）、その直後ノードを先頭直後へ逐次移動
-  let cur = pre.next; // 区間の現在先頭（反転後は区間末尾になる）
-  let mover = cur ? cur.next : null;
+    // 2) 区間内を前挿入で反転
+    //    pre.next を区間の先頭（固定）、その直後ノードを先頭直後へ逐次移動
+    let cur = pre.next; // 区間の現在先頭（反転後は区間末尾になる）
+    let mover = cur ? cur.next : null;
 
-  for (let i = left; i < right && mover != null; i++) {
-    // 抜き取り
-    cur.next = mover.next;
-    // 先頭直後へ差し込み
-    mover.next = pre.next;
-    pre.next = mover;
-    // 次の候補へ
-    mover = cur.next;
-  }
+    for (let i = left; i < right && mover != null; i++) {
+        // 抜き取り
+        cur.next = mover.next;
+        // 先頭直後へ差し込み
+        mover.next = pre.next;
+        pre.next = mover;
+        // 次の候補へ
+        mover = cur.next;
+    }
 
-  return dummy.next;
+    return dummy.next;
 }
 
 module.exports = { reverseBetween };

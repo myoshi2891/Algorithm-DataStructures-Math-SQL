@@ -23,36 +23,36 @@ import * as fs from 'fs';
  * @returns 高さの合計値（条件を満たす中で最小）
  */
 function computeMinimumTotalHeight(N: number, S: string): number {
-  const height: number[] = new Array(N).fill(1);
+    const height: number[] = new Array(N).fill(1);
 
-  // 左から順に 'A' の条件に従い高さを増加させる
-  for (let i = 0; i < N - 1; i++) {
-    if (S[i] === 'A' && height[i] >= height[i + 1]) {
-      height[i + 1] = height[i] + 1;
+    // 左から順に 'A' の条件に従い高さを増加させる
+    for (let i = 0; i < N - 1; i++) {
+        if (S[i] === 'A' && height[i] >= height[i + 1]) {
+            height[i + 1] = height[i] + 1;
+        }
     }
-  }
 
-  // 右から順に 'B' の条件に従い高さを調整（降順にする）
-  for (let i = N - 2; i >= 0; i--) {
-    if (S[i] === 'B' && height[i] <= height[i + 1]) {
-      height[i] = height[i + 1] + 1;
+    // 右から順に 'B' の条件に従い高さを調整（降順にする）
+    for (let i = N - 2; i >= 0; i--) {
+        if (S[i] === 'B' && height[i] <= height[i + 1]) {
+            height[i] = height[i + 1] + 1;
+        }
     }
-  }
 
-  // 合計を返す
-  return height.reduce((sum, h) => sum + h, 0);
+    // 合計を返す
+    return height.reduce((sum, h) => sum + h, 0);
 }
 
 /**
  * エントリーポイント関数（標準入力から読み込み）
  */
 function main(): void {
-  const input: string[] = fs.readFileSync(0, 'utf-8').trim().split('\n');
-  const N: number = parseInt(input[0], 10);
-  const S: string = input[1];
+    const input: string[] = fs.readFileSync(0, 'utf-8').trim().split('\n');
+    const N: number = parseInt(input[0], 10);
+    const S: string = input[1];
 
-  const result: number = computeMinimumTotalHeight(N, S);
-  console.log(result);
+    const result: number = computeMinimumTotalHeight(N, S);
+    console.log(result);
 }
 
 main();

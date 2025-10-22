@@ -60,45 +60,45 @@
  * @complexity Time: O(n), Space: O(n)
  */
 function largestRectangleArea(heights: readonly number[]): number {
-  // ---- 入力検証（軽量＆早期）----
-  if (!Array.isArray(heights)) {
-    throw new TypeError("Input must be an array of numbers");
-  }
-  const n = heights.length;
-  if (n < 1 || n > 1e5) {
-    throw new RangeError("Array length out of bounds [1, 1e5]");
-  }
-  for (let i = 0; i < n; i++) {
-    const v = heights[i];
-    // 厳密に整数・有限・非負・上限チェック
-    if (typeof v !== "number" || !Number.isFinite(v) || !Number.isInteger(v)) {
-      throw new TypeError("All elements must be finite integers");
+    // ---- 入力検証（軽量＆早期）----
+    if (!Array.isArray(heights)) {
+        throw new TypeError('Input must be an array of numbers');
     }
-    if (v < 0 || v > 1e4) {
-      throw new RangeError("Element out of bounds [0, 1e4]");
+    const n = heights.length;
+    if (n < 1 || n > 1e5) {
+        throw new RangeError('Array length out of bounds [1, 1e5]');
     }
-  }
-
-  // ---- 本処理：単調増加スタック（インデックス保持）----
-  // stack は「インデックス」を保持。height は heights[idx] で参照。
-  // i==n のとき curr=0 とみなし番兵として残りを一括処理。
-  const stack = new Int32Array(n + 1); // 固定長・単型化でGC抑制
-  let top = -1;
-  let maxArea = 0;
-
-  for (let i = 0; i <= n; i++) {
-    const curr = i === n ? 0 : (heights[i] as number);
-    while (top >= 0 && curr < (heights[stack[top]] as number)) {
-      const h = heights[stack[top--]] as number;
-      const leftIndex = top >= 0 ? stack[top] : -1; // 直前に残った更に低い棒の位置
-      const width = i - leftIndex - 1; // (右境界 i-1) - (左境界) の距離
-      const area = h * width;
-      if (area > maxArea) maxArea = area;
+    for (let i = 0; i < n; i++) {
+        const v = heights[i];
+        // 厳密に整数・有限・非負・上限チェック
+        if (typeof v !== 'number' || !Number.isFinite(v) || !Number.isInteger(v)) {
+            throw new TypeError('All elements must be finite integers');
+        }
+        if (v < 0 || v > 1e4) {
+            throw new RangeError('Element out of bounds [0, 1e4]');
+        }
     }
-    stack[++top] = i;
-  }
 
-  return maxArea;
+    // ---- 本処理：単調増加スタック（インデックス保持）----
+    // stack は「インデックス」を保持。height は heights[idx] で参照。
+    // i==n のとき curr=0 とみなし番兵として残りを一括処理。
+    const stack = new Int32Array(n + 1); // 固定長・単型化でGC抑制
+    let top = -1;
+    let maxArea = 0;
+
+    for (let i = 0; i <= n; i++) {
+        const curr = i === n ? 0 : (heights[i] as number);
+        while (top >= 0 && curr < (heights[stack[top]] as number)) {
+            const h = heights[stack[top--]] as number;
+            const leftIndex = top >= 0 ? stack[top] : -1; // 直前に残った更に低い棒の位置
+            const width = i - leftIndex - 1; // (右境界 i-1) - (左境界) の距離
+            const area = h * width;
+            if (area > maxArea) maxArea = area;
+        }
+        stack[++top] = i;
+    }
+
+    return maxArea;
 }
 
 /* ローカルESM向け補助（LeetCodeでは不要）

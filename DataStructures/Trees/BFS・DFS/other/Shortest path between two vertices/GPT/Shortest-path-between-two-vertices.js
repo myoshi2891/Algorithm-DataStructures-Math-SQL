@@ -49,7 +49,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * 木の最短経路を BFS で求める
@@ -62,81 +62,81 @@
  * @complexity O(N) 時間 / O(N) 空間
  */
 function shortestPathInTree(n, x, y, edges) {
-  if (!Number.isInteger(n) || n < 1 || n > 100000) {
-    throw new RangeError("Invalid number of nodes");
-  }
-  if (
-    !Number.isInteger(x) ||
-    !Number.isInteger(y) ||
-    x < 1 ||
-    x > n ||
-    y < 1 ||
-    y > n ||
-    x === y
-  ) {
-    throw new RangeError("Invalid start or end node");
-  }
-  if (!Array.isArray(edges) || edges.length !== n - 1) {
-    throw new RangeError("Edges must contain exactly n-1 pairs");
-  }
-
-  // 隣接リスト構築
-  const graph = Array.from({ length: n + 1 }, () => []);
-  for (let i = 0; i < edges.length; i++) {
-    const [a, b] = edges[i];
+    if (!Number.isInteger(n) || n < 1 || n > 100000) {
+        throw new RangeError('Invalid number of nodes');
+    }
     if (
-      !Number.isInteger(a) ||
-      !Number.isInteger(b) ||
-      a < 1 ||
-      b < 1 ||
-      a > n ||
-      b > n ||
-      a === b
+        !Number.isInteger(x) ||
+        !Number.isInteger(y) ||
+        x < 1 ||
+        x > n ||
+        y < 1 ||
+        y > n ||
+        x === y
     ) {
-      throw new RangeError(`Invalid edge at index ${i}`);
+        throw new RangeError('Invalid start or end node');
     }
-    graph[a].push(b);
-    graph[b].push(a);
-  }
-
-  // BFS
-  const parent = new Int32Array(n + 1).fill(-1);
-  const queue = new Int32Array(n);
-  let head = 0,
-    tail = 0;
-  queue[tail++] = x;
-  parent[x] = 0; // 始点をマーク
-
-  while (head < tail) {
-    const cur = queue[head++];
-    if (cur === y) break;
-    const neighbors = graph[cur];
-    for (let i = 0; i < neighbors.length; i++) {
-      const nxt = neighbors[i];
-      if (parent[nxt] === -1) {
-        parent[nxt] = cur;
-        queue[tail++] = nxt;
-      }
+    if (!Array.isArray(edges) || edges.length !== n - 1) {
+        throw new RangeError('Edges must contain exactly n-1 pairs');
     }
-  }
 
-  // 経路復元
-  const path = [];
-  for (let v = y; v !== 0; v = parent[v]) {
-    path.push(v);
-    if (v === x) break;
-  }
-  path.reverse();
-  return path;
+    // 隣接リスト構築
+    const graph = Array.from({ length: n + 1 }, () => []);
+    for (let i = 0; i < edges.length; i++) {
+        const [a, b] = edges[i];
+        if (
+            !Number.isInteger(a) ||
+            !Number.isInteger(b) ||
+            a < 1 ||
+            b < 1 ||
+            a > n ||
+            b > n ||
+            a === b
+        ) {
+            throw new RangeError(`Invalid edge at index ${i}`);
+        }
+        graph[a].push(b);
+        graph[b].push(a);
+    }
+
+    // BFS
+    const parent = new Int32Array(n + 1).fill(-1);
+    const queue = new Int32Array(n);
+    let head = 0,
+        tail = 0;
+    queue[tail++] = x;
+    parent[x] = 0; // 始点をマーク
+
+    while (head < tail) {
+        const cur = queue[head++];
+        if (cur === y) break;
+        const neighbors = graph[cur];
+        for (let i = 0; i < neighbors.length; i++) {
+            const nxt = neighbors[i];
+            if (parent[nxt] === -1) {
+                parent[nxt] = cur;
+                queue[tail++] = nxt;
+            }
+        }
+    }
+
+    // 経路復元
+    const path = [];
+    for (let v = y; v !== 0; v = parent[v]) {
+        path.push(v);
+        if (v === x) break;
+    }
+    path.reverse();
+    return path;
 }
 
 // ---- 実行部分 ----
 if (require.main === module) {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  const [N, X, Y] = input[0].split(" ").map(Number);
-  const edges = input.slice(1).map((line) => line.split(" ").map(Number));
-  const result = shortestPathInTree(N, X, Y, edges);
-  console.log(result.join("\n"));
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    const [N, X, Y] = input[0].split(' ').map(Number);
+    const edges = input.slice(1).map((line) => line.split(' ').map(Number));
+    const result = shortestPathInTree(N, X, Y, edges);
+    console.log(result.join('\n'));
 }
 
 module.exports = { shortestPathInTree };

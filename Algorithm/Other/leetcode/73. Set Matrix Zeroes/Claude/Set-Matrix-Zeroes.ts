@@ -45,13 +45,13 @@ type Matrix = number[][];
 type ReadonlyMatrix = readonly (readonly number[])[];
 
 interface MatrixDimensions {
-  readonly rows: number;
-  readonly cols: number;
+    readonly rows: number;
+    readonly cols: number;
 }
 
 interface MatrixValidation {
-  readonly isValid: boolean;
-  readonly error?: string;
+    readonly isValid: boolean;
+    readonly error?: string;
 }
 
 /**
@@ -62,303 +62,292 @@ interface MatrixValidation {
  * @throws {RangeError} Matrix dimensions out of bounds
  */
 function setZeroes(matrix: Matrix): void {
-  // 入力検証（型安全）
-  const validation = validateMatrix(matrix);
-  if (!validation.isValid) {
-    throw new TypeError(validation.error || "Invalid matrix input");
-  }
+    // 入力検証（型安全）
+    const validation = validateMatrix(matrix);
+    if (!validation.isValid) {
+        throw new TypeError(validation.error || 'Invalid matrix input');
+    }
 
-  const dimensions = getMatrixDimensions(matrix);
-  const { rows: m, cols: n } = dimensions;
+    const dimensions = getMatrixDimensions(matrix);
+    const { rows: m, cols: n } = dimensions;
 
-  // エッジケース: 空行列（TypeScriptでは型レベルで防げるが実行時チェック）
-  if (m === 0 || n === 0) {
-    return;
-  }
+    // エッジケース: 空行列（TypeScriptでは型レベルで防げるが実行時チェック）
+    if (m === 0 || n === 0) {
+        return;
+    }
 
-  // 第一行・第一列の元の状態を型安全に保存
-  const firstRowHasZero = hasZeroInFirstRow(matrix, n);
-  const firstColHasZero = hasZeroInFirstCol(matrix, m);
+    // 第一行・第一列の元の状態を型安全に保存
+    const firstRowHasZero = hasZeroInFirstRow(matrix, n);
+    const firstColHasZero = hasZeroInFirstCol(matrix, m);
 
-  // フラグマーキング（型安全な範囲チェック付き）
-  markZeroFlags(matrix, m, n);
+    // フラグマーキング（型安全な範囲チェック付き）
+    markZeroFlags(matrix, m, n);
 
-  // 内部要素のゼロ化（型ガード付き）
-  applyZeroFlags(matrix, m, n);
+    // 内部要素のゼロ化（型ガード付き）
+    applyZeroFlags(matrix, m, n);
 
-  // 境界処理（型安全）
-  if (firstRowHasZero) {
-    setFirstRowZero(matrix, n);
-  }
+    // 境界処理（型安全）
+    if (firstRowHasZero) {
+        setFirstRowZero(matrix, n);
+    }
 
-  if (firstColHasZero) {
-    setFirstColZero(matrix, m);
-  }
+    if (firstColHasZero) {
+        setFirstColZero(matrix, m);
+    }
 }
 
 /**
  * 型安全な行列検証
  */
 function validateMatrix(matrix: unknown): MatrixValidation {
-  // null/undefined チェック
-  if (matrix == null) {
-    return { isValid: false, error: "Matrix cannot be null or undefined" };
-  }
-
-  // 配列型チェック
-  if (!Array.isArray(matrix)) {
-    return { isValid: false, error: "Input must be an array" };
-  }
-
-  // 空配列チェック
-  if (matrix.length === 0) {
-    return { isValid: true }; // 有効なエッジケース
-  }
-
-  // 各行の検証
-  for (let i = 0; i < matrix.length; i++) {
-    const row = matrix[i];
-
-    if (!Array.isArray(row)) {
-      return { isValid: false, error: `Row ${i} is not an array` };
+    // null/undefined チェック
+    if (matrix == null) {
+        return { isValid: false, error: 'Matrix cannot be null or undefined' };
     }
 
-    // 矩形チェック
-    if (i > 0 && row.length !== matrix[0].length) {
-      return { isValid: false, error: "Matrix must be rectangular" };
+    // 配列型チェック
+    if (!Array.isArray(matrix)) {
+        return { isValid: false, error: 'Input must be an array' };
     }
 
-    // 各要素の型チェック
-    for (let j = 0; j < row.length; j++) {
-      if (typeof row[j] !== "number") {
-        return {
-          isValid: false,
-          error: `Element at [${i}][${j}] is not a number`,
-        };
-      }
+    // 空配列チェック
+    if (matrix.length === 0) {
+        return { isValid: true }; // 有効なエッジケース
     }
-  }
 
-  return { isValid: true };
+    // 各行の検証
+    for (let i = 0; i < matrix.length; i++) {
+        const row = matrix[i];
+
+        if (!Array.isArray(row)) {
+            return { isValid: false, error: `Row ${i} is not an array` };
+        }
+
+        // 矩形チェック
+        if (i > 0 && row.length !== matrix[0].length) {
+            return { isValid: false, error: 'Matrix must be rectangular' };
+        }
+
+        // 各要素の型チェック
+        for (let j = 0; j < row.length; j++) {
+            if (typeof row[j] !== 'number') {
+                return {
+                    isValid: false,
+                    error: `Element at [${i}][${j}] is not a number`,
+                };
+            }
+        }
+    }
+
+    return { isValid: true };
 }
 
 /**
  * 行列次元の型安全な取得
  */
 function getMatrixDimensions(matrix: Matrix): MatrixDimensions {
-  return {
-    rows: matrix.length,
-    cols: matrix.length > 0 ? matrix[0].length : 0,
-  } as const;
+    return {
+        rows: matrix.length,
+        cols: matrix.length > 0 ? matrix[0].length : 0,
+    } as const;
 }
 
 /**
  * 第一行のゼロ存在チェック（型安全）
  */
 function hasZeroInFirstRow(matrix: ReadonlyMatrix, cols: number): boolean {
-  for (let j = 0; j < cols; j++) {
-    if (matrix[0][j] === 0) {
-      return true;
+    for (let j = 0; j < cols; j++) {
+        if (matrix[0][j] === 0) {
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 /**
  * 第一列のゼロ存在チェック（型安全）
  */
 function hasZeroInFirstCol(matrix: ReadonlyMatrix, rows: number): boolean {
-  for (let i = 0; i < rows; i++) {
-    if (matrix[i][0] === 0) {
-      return true;
+    for (let i = 0; i < rows; i++) {
+        if (matrix[i][0] === 0) {
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 /**
  * ゼロフラグのマーキング（V8最適化考慮）
  */
 function markZeroFlags(matrix: Matrix, rows: number, cols: number): void {
-  // V8最適化: インデックスによる連続アクセス
-  for (let i = 1; i < rows; i++) {
-    for (let j = 1; j < cols; j++) {
-      if (matrix[i][j] === 0) {
-        matrix[i][0] = 0; // 行フラグ
-        matrix[0][j] = 0; // 列フラグ
-      }
+    // V8最適化: インデックスによる連続アクセス
+    for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+            if (matrix[i][j] === 0) {
+                matrix[i][0] = 0; // 行フラグ
+                matrix[0][j] = 0; // 列フラグ
+            }
+        }
     }
-  }
 }
 
 /**
  * フラグに基づくゼロ適用（型安全）
  */
 function applyZeroFlags(matrix: Matrix, rows: number, cols: number): void {
-  // 型安全な境界チェック付きループ
-  for (let i = 1; i < rows; i++) {
-    for (let j = 1; j < cols; j++) {
-      if (matrix[i][0] === 0 || matrix[0][j] === 0) {
-        matrix[i][j] = 0;
-      }
+    // 型安全な境界チェック付きループ
+    for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+            if (matrix[i][0] === 0 || matrix[0][j] === 0) {
+                matrix[i][j] = 0;
+            }
+        }
     }
-  }
 }
 
 /**
  * 第一行のゼロ化（型安全）
  */
 function setFirstRowZero(matrix: Matrix, cols: number): void {
-  for (let j = 0; j < cols; j++) {
-    matrix[0][j] = 0;
-  }
+    for (let j = 0; j < cols; j++) {
+        matrix[0][j] = 0;
+    }
 }
 
 /**
  * 第一列のゼロ化（型安全）
  */
 function setFirstColZero(matrix: Matrix, rows: number): void {
-  for (let i = 0; i < rows; i++) {
-    matrix[i][0] = 0;
-  }
+    for (let i = 0; i < rows; i++) {
+        matrix[i][0] = 0;
+    }
 }
 
 // ユーティリティ型定義
 type TestCase = {
-  readonly input: Matrix;
-  readonly expected: Matrix;
-  readonly description: string;
+    readonly input: Matrix;
+    readonly expected: Matrix;
+    readonly description: string;
 };
 
 /**
  * 型安全なテストケース実行
  */
 function runTestCase(testCase: TestCase): void {
-  const { input, expected, description } = testCase;
+    const { input, expected, description } = testCase;
 
-  // 入力の深いコピー（型安全）
-  const testMatrix: Matrix = input.map((row) => [...row]);
+    // 入力の深いコピー（型安全）
+    const testMatrix: Matrix = input.map((row) => [...row]);
 
-  try {
-    setZeroes(testMatrix);
+    try {
+        setZeroes(testMatrix);
 
-    // 結果検証（型安全な比較）
-    const isEqual = matricesEqual(testMatrix, expected);
-    console.log(`${description}: ${isEqual ? "PASS" : "FAIL"}`);
+        // 結果検証（型安全な比較）
+        const isEqual = matricesEqual(testMatrix, expected);
+        console.log(`${description}: ${isEqual ? 'PASS' : 'FAIL'}`);
 
-    if (!isEqual) {
-      console.log("  Expected:", JSON.stringify(expected));
-      console.log("  Actual:  ", JSON.stringify(testMatrix));
+        if (!isEqual) {
+            console.log('  Expected:', JSON.stringify(expected));
+            console.log('  Actual:  ', JSON.stringify(testMatrix));
+        }
+    } catch (error) {
+        console.log(
+            `${description}: ERROR - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
     }
-  } catch (error) {
-    console.log(
-      `${description}: ERROR - ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
-  }
 }
 
 /**
  * 型安全な行列比較
  */
 function matricesEqual(a: ReadonlyMatrix, b: ReadonlyMatrix): boolean {
-  if (a.length !== b.length) return false;
+    if (a.length !== b.length) return false;
 
-  for (let i = 0; i < a.length; i++) {
-    if (a[i].length !== b[i].length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i].length !== b[i].length) return false;
 
-    for (let j = 0; j < a[i].length; j++) {
-      if (a[i][j] !== b[i][j]) return false;
+        for (let j = 0; j < a[i].length; j++) {
+            if (a[i][j] !== b[i][j]) return false;
+        }
     }
-  }
 
-  return true;
+    return true;
 }
 
 // 使用例とテストケース
 function testSetZeroesTypeScript(): void {
-  const testCases: readonly TestCase[] = [
-    {
-      input: [
-        [1, 1, 1],
-        [1, 0, 1],
-        [1, 1, 1],
-      ],
-      expected: [
-        [1, 0, 1],
-        [0, 0, 0],
-        [1, 0, 1],
-      ],
-      description: "Example 1",
-    },
-    {
-      input: [
-        [0, 1, 2, 0],
-        [3, 4, 5, 2],
-        [1, 3, 1, 5],
-      ],
-      expected: [
-        [0, 0, 0, 0],
-        [0, 4, 5, 0],
-        [0, 3, 1, 0],
-      ],
-      description: "Example 2",
-    },
-    {
-      input: [[1]],
-      expected: [[1]],
-      description: "Single element - no zero",
-    },
-    {
-      input: [[0]],
-      expected: [[0]],
-      description: "Single element - zero",
-    },
-    {
-      input: [
-        [0, 0],
-        [0, 0],
-      ],
-      expected: [
-        [0, 0],
-        [0, 0],
-      ],
-      description: "All zeros",
-    },
-  ] as const;
+    const testCases: readonly TestCase[] = [
+        {
+            input: [
+                [1, 1, 1],
+                [1, 0, 1],
+                [1, 1, 1],
+            ],
+            expected: [
+                [1, 0, 1],
+                [0, 0, 0],
+                [1, 0, 1],
+            ],
+            description: 'Example 1',
+        },
+        {
+            input: [
+                [0, 1, 2, 0],
+                [3, 4, 5, 2],
+                [1, 3, 1, 5],
+            ],
+            expected: [
+                [0, 0, 0, 0],
+                [0, 4, 5, 0],
+                [0, 3, 1, 0],
+            ],
+            description: 'Example 2',
+        },
+        {
+            input: [[1]],
+            expected: [[1]],
+            description: 'Single element - no zero',
+        },
+        {
+            input: [[0]],
+            expected: [[0]],
+            description: 'Single element - zero',
+        },
+        {
+            input: [
+                [0, 0],
+                [0, 0],
+            ],
+            expected: [
+                [0, 0],
+                [0, 0],
+            ],
+            description: 'All zeros',
+        },
+    ] as const;
 
-  testCases.forEach(runTestCase);
+    testCases.forEach(runTestCase);
 }
 
 // パフォーマンス測定用（開発時用）
-function generateTypedTestMatrix(
-  rows: number,
-  cols: number,
-  zeroRate = 0.1
-): Matrix {
-  // 型安全な行列生成
-  const matrix: Matrix = Array(rows)
-    .fill(null)
-    .map(() => Array(cols).fill(1));
-  const zeroCount = Math.floor(rows * cols * zeroRate);
+function generateTypedTestMatrix(rows: number, cols: number, zeroRate = 0.1): Matrix {
+    // 型安全な行列生成
+    const matrix: Matrix = Array(rows)
+        .fill(null)
+        .map(() => Array(cols).fill(1));
+    const zeroCount = Math.floor(rows * cols * zeroRate);
 
-  for (let k = 0; k < zeroCount; k++) {
-    const i = Math.floor(Math.random() * rows);
-    const j = Math.floor(Math.random() * cols);
-    matrix[i][j] = 0;
-  }
+    for (let k = 0; k < zeroCount; k++) {
+        const i = Math.floor(Math.random() * rows);
+        const j = Math.floor(Math.random() * cols);
+        matrix[i][j] = 0;
+    }
 
-  return matrix;
+    return matrix;
 }
 
 // エクスポート（モジュール使用時）
-export {
-  setZeroes,
-  validateMatrix,
-  getMatrixDimensions,
-  testSetZeroesTypeScript,
-};
+export { setZeroes, validateMatrix, getMatrixDimensions, testSetZeroesTypeScript };
 export type { Matrix, ReadonlyMatrix, MatrixDimensions, TestCase };
 // ```
 

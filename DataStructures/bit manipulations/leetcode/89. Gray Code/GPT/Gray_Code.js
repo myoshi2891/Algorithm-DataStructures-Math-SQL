@@ -53,7 +53,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * Generate n-bit Gray code sequence.
@@ -71,24 +71,24 @@
  * @complexity Time O(2^n), Space O(2^n)
  */
 function grayCode(n) {
-  // --- Input validation (fast fail, outside of hot path) ---
-  if (typeof n !== "number" || !Number.isFinite(n) || (n | 0) !== n) {
-    throw new TypeError("n must be a finite integer");
-  }
-  if (n < 1 || n > 16) {
-    throw new RangeError("n must be in [1, 16]");
-  }
+    // --- Input validation (fast fail, outside of hot path) ---
+    if (typeof n !== 'number' || !Number.isFinite(n) || (n | 0) !== n) {
+        throw new TypeError('n must be a finite integer');
+    }
+    if (n < 1 || n > 16) {
+        throw new RangeError('n must be in [1, 16]');
+    }
 
-  // --- Precompute size and preallocate result array ---
-  const M = 1 << n; // safe for n <= 16 (<= 65536)
-  const res = new Array(M);
+    // --- Precompute size and preallocate result array ---
+    const M = 1 << n; // safe for n <= 16 (<= 65536)
+    const res = new Array(M);
 
-  // --- Single pass: Gray value via i ^ (i >> 1) ---
-  for (let i = 0; i < M; i++) {
-    res[i] = (i ^ (i >>> 1)) >>> 0; // >>>0 to keep unsigned 32-bit (not required, but stable)
-  }
+    // --- Single pass: Gray value via i ^ (i >> 1) ---
+    for (let i = 0; i < M; i++) {
+        res[i] = (i ^ (i >>> 1)) >>> 0; // >>>0 to keep unsigned 32-bit (not required, but stable)
+    }
 
-  return res;
+    return res;
 }
 
 module.exports = { grayCode };

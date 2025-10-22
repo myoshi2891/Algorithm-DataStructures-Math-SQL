@@ -53,24 +53,21 @@ Beats
 - **方針**: `customers.id = orders.customerId` で **left merge** → 結合先がない行は `customerId` が `NaN` になる。
   これをフィルタして `name` だけ抽出し、列名を仕様どおり `Customers` に変更。
 - **使用 API**:
-
-  - `DataFrame.merge(how="left", left_on=..., right_on=...)`
-  - `Series.isna()` による欠損判定
-  - `DataFrame.rename()` で列名合わせ
+    - `DataFrame.merge(how="left", left_on=..., right_on=...)`
+    - `Series.isna()` による欠損判定
+    - `DataFrame.rename()` で列名合わせ
 
 - **NULL/重複/型**:
-
-  - `orders.customerId` に `NaN` があっても **left merge + isna** は安全（`NOT IN` 相当の NULL 問題なし）。
-  - 同名異人がいても判定は **ID 基準**。要求列は名前のみなのでそのまま返す（重複名は仕様上 OK）。
+    - `orders.customerId` に `NaN` があっても **left merge + isna** は安全（`NOT IN` 相当の NULL 問題なし）。
+    - 同名異人がいても判定は **ID 基準**。要求列は名前のみなのでそのまま返す（重複名は仕様上 OK）。
 
 ---
 
 ## 4) 計算量（概算）
 
 - `customers` を **N 行**、`orders` を **M 行** とすると、
-
-  - `merge` は概ね **O(N + M)**（ハッシュ結合相当; 実装依存）
-  - フィルタと列選択は **O(N)**
+    - `merge` は概ね **O(N + M)**（ハッシュ結合相当; 実装依存）
+    - フィルタと列選択は **O(N)**
 
 - **メモリ増分**: `merge` により一時的に `O(N + k)`（k は一致行数）のコピーが発生。
 

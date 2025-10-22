@@ -154,119 +154,119 @@
  * 双方向リストのノード
  */
 class Node {
-  /**
-   * @param {number} value
-   */
-  constructor(value) {
-    this.value = value;
-    this.prev = null;
-    this.next = null;
-  }
+    /**
+     * @param {number} value
+     */
+    constructor(value) {
+        this.value = value;
+        this.prev = null;
+        this.next = null;
+    }
 }
 
 /**
  * 双方向リストの実装
  */
 class DoublyLinkedList {
-  constructor() {
-    this.head = null;
-    this.tail = null;
-    this.length = 0;
-  }
+    constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+    }
 
-  /**
-   * 末尾にノードを追加
-   * @param {number} value
-   */
-  append(value) {
-    const node = new Node(value);
-    if (!this.head) {
-      this.head = this.tail = node;
-    } else {
-      this.tail.next = node;
-      node.prev = this.tail;
-      this.tail = node;
+    /**
+     * 末尾にノードを追加
+     * @param {number} value
+     */
+    append(value) {
+        const node = new Node(value);
+        if (!this.head) {
+            this.head = this.tail = node;
+        } else {
+            this.tail.next = node;
+            node.prev = this.tail;
+            this.tail = node;
+        }
+        this.length++;
     }
-    this.length++;
-  }
 
-  /**
-   * P番目(1-based)に要素を挿入
-   * @param {number} pos - 挿入位置 (1 <= pos <= length+1)
-   * @param {number} value - 挿入する値
-   */
-  insertAt(pos, value) {
-    if (pos < 1 || pos > this.length + 1) {
-      throw new RangeError("Invalid position for insert");
-    }
-    const node = new Node(value);
+    /**
+     * P番目(1-based)に要素を挿入
+     * @param {number} pos - 挿入位置 (1 <= pos <= length+1)
+     * @param {number} value - 挿入する値
+     */
+    insertAt(pos, value) {
+        if (pos < 1 || pos > this.length + 1) {
+            throw new RangeError('Invalid position for insert');
+        }
+        const node = new Node(value);
 
-    if (pos === 1) {
-      // 先頭に挿入
-      if (!this.head) {
-        this.head = this.tail = node;
-      } else {
-        node.next = this.head;
-        this.head.prev = node;
-        this.head = node;
-      }
-    } else if (pos === this.length + 1) {
-      // 末尾に挿入
-      this.append(value);
-      return;
-    } else {
-      // 中間に挿入
-      let cur = this.head;
-      for (let i = 1; i < pos; i++) {
-        cur = cur.next;
-      }
-      const prevNode = cur.prev;
-      prevNode.next = node;
-      node.prev = prevNode;
-      node.next = cur;
-      cur.prev = node;
+        if (pos === 1) {
+            // 先頭に挿入
+            if (!this.head) {
+                this.head = this.tail = node;
+            } else {
+                node.next = this.head;
+                this.head.prev = node;
+                this.head = node;
+            }
+        } else if (pos === this.length + 1) {
+            // 末尾に挿入
+            this.append(value);
+            return;
+        } else {
+            // 中間に挿入
+            let cur = this.head;
+            for (let i = 1; i < pos; i++) {
+                cur = cur.next;
+            }
+            const prevNode = cur.prev;
+            prevNode.next = node;
+            node.prev = prevNode;
+            node.next = cur;
+            cur.prev = node;
+        }
+        this.length++;
     }
-    this.length++;
-  }
 
-  /**
-   * P番目(1-based)のノードを削除
-   * @param {number} pos
-   */
-  eraseAt(pos) {
-    if (pos < 1 || pos > this.length) {
-      throw new RangeError("Invalid position for erase");
+    /**
+     * P番目(1-based)のノードを削除
+     * @param {number} pos
+     */
+    eraseAt(pos) {
+        if (pos < 1 || pos > this.length) {
+            throw new RangeError('Invalid position for erase');
+        }
+        let cur = this.head;
+        for (let i = 1; i < pos; i++) {
+            cur = cur.next;
+        }
+        if (cur.prev) {
+            cur.prev.next = cur.next;
+        } else {
+            this.head = cur.next; // 先頭削除
+        }
+        if (cur.next) {
+            cur.next.prev = cur.prev;
+        } else {
+            this.tail = cur.prev; // 末尾削除
+        }
+        this.length--;
     }
-    let cur = this.head;
-    for (let i = 1; i < pos; i++) {
-      cur = cur.next;
-    }
-    if (cur.prev) {
-      cur.prev.next = cur.next;
-    } else {
-      this.head = cur.next; // 先頭削除
-    }
-    if (cur.next) {
-      cur.next.prev = cur.prev;
-    } else {
-      this.tail = cur.prev; // 末尾削除
-    }
-    this.length--;
-  }
 
-  /**
-   * リストを配列に変換
-   * @returns {number[]}
-   */
-  toArray() {
-    const res = [];
-    let cur = this.head;
-    while (cur) {
-      res.push(cur.value);
-      cur = cur.next;
+    /**
+     * リストを配列に変換
+     * @returns {number[]}
+     */
+    toArray() {
+        const res = [];
+        let cur = this.head;
+        while (cur) {
+            res.push(cur.value);
+            cur = cur.next;
+        }
+        return res;
     }
-    return res;
-  }
 }
 
 /**
@@ -278,41 +278,41 @@ class DoublyLinkedList {
  * @returns {number[]}
  */
 function processListWithDLL(N, Q, A, queries) {
-  const dll = new DoublyLinkedList();
-  for (const val of A) {
-    dll.append(val);
-  }
-
-  for (const q of queries) {
-    if (q[0] === 1) {
-      const [, P, X] = q;
-      dll.insertAt(P, X);
-    } else if (q[0] === 2) {
-      const [, P] = q;
-      dll.eraseAt(P);
-    } else {
-      throw new Error("Invalid query type");
+    const dll = new DoublyLinkedList();
+    for (const val of A) {
+        dll.append(val);
     }
-  }
 
-  return dll.toArray();
+    for (const q of queries) {
+        if (q[0] === 1) {
+            const [, P, X] = q;
+            dll.insertAt(P, X);
+        } else if (q[0] === 2) {
+            const [, P] = q;
+            dll.eraseAt(P);
+        } else {
+            throw new Error('Invalid query type');
+        }
+    }
+
+    return dll.toArray();
 }
 
 // =======================
 // 実行部分
 // =======================
 function main() {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  const [N, Q] = input[0].split(" ").map(Number);
-  const A = input.slice(1, 1 + N).map(Number);
-  const queries = input.slice(1 + N).map((line) => line.split(" ").map(Number));
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    const [N, Q] = input[0].split(' ').map(Number);
+    const A = input.slice(1, 1 + N).map(Number);
+    const queries = input.slice(1 + N).map((line) => line.split(' ').map(Number));
 
-  const result = processListWithDLL(N, Q, A, queries);
-  console.log(result.join("\n"));
+    const result = processListWithDLL(N, Q, A, queries);
+    console.log(result.join('\n'));
 }
 
 if (require.main === module) {
-  main();
+    main();
 }
 // ```
 

@@ -27,7 +27,7 @@ for (let i = 1; i <= N; i++) {
 
 // input.split('\n') による配列が不要になる。
 
-// 提出日時	問題	ユーザ	言語	得点	コード長	結果	実行時間	メモリ	
+// 提出日時	問題	ユーザ	言語	得点	コード長	結果	実行時間	メモリ
 // 2025-06-15 13:26:20	A61 - Adjacent Vertices	myoshizumi 	JavaScript (Node.js 18.16.1)	1000	623 Byte		581 ms	101592 KiB	詳細
 // 2025-06-15 13:24:36	A61 - Adjacent Vertices	myoshizumi 	JavaScript (Node.js 18.16.1)	1000	564 Byte		580 ms	110924 KiB	詳細
 

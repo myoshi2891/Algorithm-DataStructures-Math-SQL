@@ -24,20 +24,20 @@ const fs = require('fs');
  * @returns {bigint} - 条件を満たす整数の個数
  */
 function countDivisibleBy3or5or7(N) {
-  const div = (x) => N / BigInt(x);
+    const div = (x) => N / BigInt(x);
 
-  return div(3n) + div(5n) + div(7n)
-       - div(3n * 5n) - div(3n * 7n) - div(5n * 7n)
-       + div(3n * 5n * 7n);
+    return (
+        div(3n) + div(5n) + div(7n) - div(3n * 5n) - div(3n * 7n) - div(5n * 7n) + div(3n * 5n * 7n)
+    );
 }
 
 // 入力の読み込み（標準入力またはファイル経由）
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const N = BigInt(input); // 10^12まであるためBigIntで処理
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const N = BigInt(input); // 10^12まであるためBigIntで処理
 
-  const result = countDivisibleBy3or5or7(N);
-  console.log(result.toString()); // BigIntなので文字列として出力
+    const result = countDivisibleBy3or5or7(N);
+    console.log(result.toString()); // BigIntなので文字列として出力
 }
 
 main();

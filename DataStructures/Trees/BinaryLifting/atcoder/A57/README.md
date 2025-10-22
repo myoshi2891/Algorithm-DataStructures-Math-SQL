@@ -52,7 +52,7 @@ let idx = 0;
 
 const N = parseInt(input[idx++]);
 const Q = parseInt(input[idx++]);
-const A = input.slice(idx, idx + N).map(v => parseInt(v) - 1); // 0-indexed
+const A = input.slice(idx, idx + N).map((v) => parseInt(v) - 1); // 0-indexed
 idx += N;
 
 // 定数：最大ビット数（2^30 > 10^9）
@@ -63,28 +63,28 @@ const doubling: number[][] = Array.from({ length: LOG }, () => Array(N).fill(0))
 
 // 初期（1日後）
 for (let i = 0; i < N; i++) {
-  doubling[0][i] = A[i];
+    doubling[0][i] = A[i];
 }
 
 // ダブリング表作成：2^k 日後をすべて事前計算
 for (let k = 1; k < LOG; k++) {
-  for (let i = 0; i < N; i++) {
-    doubling[k][i] = doubling[k - 1][doubling[k - 1][i]];
-  }
+    for (let i = 0; i < N; i++) {
+        doubling[k][i] = doubling[k - 1][doubling[k - 1][i]];
+    }
 }
 
 const result: number[] = [];
 
 for (let q = 0; q < Q; q++) {
-  let x = parseInt(input[idx++]) - 1; // 0-indexed
-  let y = parseInt(input[idx++]);
+    let x = parseInt(input[idx++]) - 1; // 0-indexed
+    let y = parseInt(input[idx++]);
 
-  for (let k = 0; k < LOG; k++) {
-    if ((y >> k) & 1) {
-      x = doubling[k][x];
+    for (let k = 0; k < LOG; k++) {
+        if ((y >> k) & 1) {
+            x = doubling[k][x];
+        }
     }
-  }
-  result.push(x + 1); // 1-indexedで戻す
+    result.push(x + 1); // 1-indexedで戻す
 }
 
 console.log(result.join('\n'));
@@ -129,11 +129,11 @@ Y = 13 = 1101₂ → 1×2⁰ + 0×2¹ + 1×2² + 1×2³
 
 ## 🧮 計算量（オーダー）
 
-| 処理       | 時間計算量                         |
-| -------- | ----------------------------- |
-| 前処理（表作成） | O(N logY)                     |
-| クエリ処理    | O(Q logY)                     |
-| **全体**   | O((N + Q) × logY) → 約 3 × 10⁶ |
+| 処理             | 時間計算量                     |
+| ---------------- | ------------------------------ |
+| 前処理（表作成） | O(N logY)                      |
+| クエリ処理       | O(Q logY)                      |
+| **全体**         | O((N + Q) × logY) → 約 3 × 10⁶ |
 
 ---
 
@@ -164,8 +164,8 @@ Y = 13 = 1101₂ → 1×2⁰ + 0×2¹ + 1×2² + 1×2³
 
 ## ✅ 1. `const LOG = 30;`
 
-* 最大で **10⁹日後**（Y ≦ 1e9）を処理する必要がある。
-* 2^30 ≈ 10億 ⇒ 30ステップあれば最大日数を **2進数で全表現**できる。
+- 最大で **10⁹日後**（Y ≦ 1e9）を処理する必要がある。
+- 2^30 ≈ 10億 ⇒ 30ステップあれば最大日数を **2進数で全表現**できる。
 
 📌 例：
 
@@ -181,7 +181,7 @@ Y = 13 → 1101 (2進数) → 2^3 + 2^2 + 2^0
 const doubling: number[][] = Array.from({ length: LOG }, () => Array(N).fill(0));
 ```
 
-* `doubling[k][i]` は「穴 `i` から **2^k 日後** にいる穴の番号（0-indexed）」
+- `doubling[k][i]` は「穴 `i` から **2^k 日後** にいる穴の番号（0-indexed）」
 
 📌 例：
 
@@ -200,7 +200,7 @@ doubling[2][i] → A[A[A[A[i]]]] // 4日後
 
 ```ts
 for (let i = 0; i < N; i++) {
-  doubling[0][i] = A[i]; // 1日後 = A[i]そのもの
+    doubling[0][i] = A[i]; // 1日後 = A[i]そのもの
 }
 ```
 
@@ -218,15 +218,15 @@ doubling[0] = [1, 3, 0, 6, 5, 4, 2]
 
 ```ts
 for (let k = 1; k < LOG; k++) {
-  for (let i = 0; i < N; i++) {
-    doubling[k][i] = doubling[k - 1][doubling[k - 1][i]];
-  }
+    for (let i = 0; i < N; i++) {
+        doubling[k][i] = doubling[k - 1][doubling[k - 1][i]];
+    }
 }
 ```
 
 ### 🧱 意味：
 
-* 「2^k日後にいる穴」は、「2^(k-1)日後に行った先から、さらに2^(k-1)日後に行った先」
+- 「2^k日後にいる穴」は、「2^(k-1)日後に行った先から、さらに2^(k-1)日後に行った先」
 
 ### 📌 例：穴 i=0（0-indexed）に注目
 
@@ -256,23 +256,23 @@ i=0 → doubling[0][0]=1 → doubling[0][1]=3 → doubling[0][3]=6 → ...
 
 ```ts
 for (let q = 0; q < Q; q++) {
-  let x = parseInt(input[idx++]) - 1;
-  let y = parseInt(input[idx++]);
+    let x = parseInt(input[idx++]) - 1;
+    let y = parseInt(input[idx++]);
 
-  for (let k = 0; k < LOG; k++) {
-    if ((y >> k) & 1) {
-      x = doubling[k][x];
+    for (let k = 0; k < LOG; k++) {
+        if ((y >> k) & 1) {
+            x = doubling[k][x];
+        }
     }
-  }
 
-  result.push(x + 1);
+    result.push(x + 1);
 }
 ```
 
 ### 📌 処理内容：
 
-* `Y` を2進数で見て、`k` ビットが立っていれば `2^k` 日ジャンプする。
-* 結果を x にどんどん更新していく。
+- `Y` を2進数で見て、`k` ビットが立っていれば `2^k` 日ジャンプする。
+- 結果を x にどんどん更新していく。
 
 ---
 
@@ -294,12 +294,12 @@ y = 13 = 1101 (2進数)
 
 ## 🧮 まとめ：ダブリング法の要点
 
-| ステップ      | 内容                                                     |
-| --------- | ------------------------------------------------------ |
-| 1. LOG 定義 | 最大日数に対して必要なビット数（2^30 > 10^9）                           |
-| 2. 表初期化   | 1日後の状態（doubling\[0]\[i] = A\[i]）                       |
-| 3. 表構築    | doubling\[k]\[i] = doubling\[k-1]\[doubling\[k-1]\[i]] |
-| 4. クエリ処理  | Y を2進数に分解し、bitが立っている部分だけジャンプ                           |
+| ステップ      | 内容                                                   |
+| ------------- | ------------------------------------------------------ |
+| 1. LOG 定義   | 最大日数に対して必要なビット数（2^30 > 10^9）          |
+| 2. 表初期化   | 1日後の状態（doubling\[0]\[i] = A\[i]）                |
+| 3. 表構築     | doubling\[k]\[i] = doubling\[k-1]\[doubling\[k-1]\[i]] |
+| 4. クエリ処理 | Y を2進数に分解し、bitが立っている部分だけジャンプ     |
 
 ---
 
@@ -326,19 +326,19 @@ x → doubling[0][x] → doubling[2][x] → doubling[3][x]
 
 > **「f(f(f(...f(x)...))) のような繰り返し処理を高速に求めるためのテクニック」**
 
-* ある要素 `x` に関数 `f` を **Y回** 適用した結果 `f^Y(x)` を求めたい。
-* 単純に1回ずつ適用すると O(Y) かかる。
-* ダブリング法では、O(logY) に高速化できる！
+- ある要素 `x` に関数 `f` を **Y回** 適用した結果 `f^Y(x)` を求めたい。
+- 単純に1回ずつ適用すると O(Y) かかる。
+- ダブリング法では、O(logY) に高速化できる！
 
 ---
 
 ## 🧩 目的：繰り返し操作の高速化
 
-| 課題例               | ダブリングの適用シーン            |
-| ----------------- | ---------------------- |
-| `f(x)` を Y 回適用    | アリの移動、関数反復             |
+| 課題例                         | ダブリングの適用シーン          |
+| ------------------------------ | ------------------------------- |
+| `f(x)` を Y 回適用             | アリの移動、関数反復            |
 | 木構造での LCA（最小共通祖先） | 距離を 2⁰, 2¹, 2²… ずつジャンプ |
-| グラフ上のジャンプ         | ワープ、親ノードの検索など          |
+| グラフ上のジャンプ             | ワープ、親ノードの検索など      |
 
 ---
 
@@ -365,12 +365,12 @@ f^13(x) = f^8(f^4(f^1(x)))
 
 作るのは次のようなテーブル `doubling[k][i]`：
 
-| k | 内容                  |
-| - | ------------------- |
-| 0 | `f(x)`              |
-| 1 | `f(f(x))`           |
-| 2 | `f(f(f(f(x))))`     |
-| k | `f` を `2^k` 回適用した結果 |
+| k   | 内容                        |
+| --- | --------------------------- |
+| 0   | `f(x)`                      |
+| 1   | `f(f(x))`                   |
+| 2   | `f(f(f(f(x))))`             |
+| k   | `f` を `2^k` 回適用した結果 |
 
 ---
 
@@ -393,7 +393,7 @@ doubling[0][i] = A[i]; // A: i番の穴 → 次の日どこへ行くか
 #### ステップ 2: 2^k 日後を計算
 
 ```ts
-doubling[k][i] = doubling[k-1][doubling[k-1][i]];
+doubling[k][i] = doubling[k - 1][doubling[k - 1][i]];
 ```
 
 図示すると：
@@ -406,9 +406,9 @@ i -[2^(k-1)]→ A1 -[2^(k-1)]→ A2 = 2^k日後の穴
 
 ```ts
 for (let k = 0; k < LOG; k++) {
-  if ((Y >> k) & 1) {
-    x = doubling[k][x];
-  }
+    if ((Y >> k) & 1) {
+        x = doubling[k][x];
+    }
 }
 ```
 
@@ -418,9 +418,9 @@ Y の 2進数のビットが 1 になっているところだけ適用してい�
 
 ## 📈 時間計算量の比較
 
-| 方法     | 時間      |
-| ------ | ------- |
-| 1日ずつ適用 | O(Y)    |
+| 方法         | 時間    |
+| ------------ | ------- |
+| 1日ずつ適用  | O(Y)    |
 | ダブリング法 | O(logY) |
 
 たとえば Y = 10^9 でも、log₂10⁹ ≈ 30 回のジャンプで済む！
@@ -429,9 +429,9 @@ Y の 2進数のビットが 1 になっているところだけ適用してい�
 
 ## 🌳 応用：LCA（二分木の最小共通祖先）
 
-* 木構造において、ノード `u` と `v` の最も近い共通祖先を見つけたい
-* まず `u` と `v` を高さを揃えるまで 2^k ステップで持ち上げる
-* その後2^k単位で一緒に上がっていき、祖先が一致したところで止める
+- 木構造において、ノード `u` と `v` の最も近い共通祖先を見つけたい
+- まず `u` と `v` を高さを揃えるまで 2^k ステップで持ち上げる
+- その後2^k単位で一緒に上がっていき、祖先が一致したところで止める
 
 この操作にも Binary Lifting が使われます。
 
@@ -439,33 +439,34 @@ Y の 2進数のビットが 1 になっているところだけ適用してい�
 
 ## ✅ メリット
 
-* 任意回数の繰り返しに対して効率が良い（logYで対応）
-* 一度構築すれば、複数クエリにも高速対応可能（O(1)\~O(logY)）
+- 任意回数の繰り返しに対して効率が良い（logYで対応）
+- 一度構築すれば、複数クエリにも高速対応可能（O(1)\~O(logY)）
 
 ---
 
 ## ❌ デメリット
 
-* `O(N logY)` のメモリと前処理時間が必要
-* 状態空間が大きすぎるとメモリが厳しいことも（特に2次元配列）
+- `O(N logY)` のメモリと前処理時間が必要
+- 状態空間が大きすぎるとメモリが厳しいことも（特に2次元配列）
 
 ---
 
 ## 💡 まとめ
 
-| 項目    | 内容                         |
-| ----- | -------------------------- |
-| 名前    | ダブリング法（Binary Lifting）     |
-| 用途    | 関数の繰り返し、LCA、ワープジャンプ、高速移動など |
-| 技術の核  | 2進数 + 再帰関係を事前計算して高速参照      |
-| 時間計算量 | O(logY)                    |
-| 典型問題  | アリの移動、LCA、ワープ空間探索          |
+| 項目       | 内容                                              |
+| ---------- | ------------------------------------------------- |
+| 名前       | ダブリング法（Binary Lifting）                    |
+| 用途       | 関数の繰り返し、LCA、ワープジャンプ、高速移動など |
+| 技術の核   | 2進数 + 再帰関係を事前計算して高速参照            |
+| 時間計算量 | O(logY)                                           |
+| 典型問題   | アリの移動、LCA、ワープ空間探索                   |
 
 ---
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-11 14:26:13 | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 923 Byte | **AC** | 453 ms | 73592 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657860) |
-| 2025-06-11 14:23:59 | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1182 Byte | **AC** | 189 ms | 27508 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657835) |
-| 2025-06-11 14:22:38 | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1054 Byte | **AC** | 689 ms | 59588 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657815) |
-| 2025-06-11 14:00:49 | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1140 Byte | **AC** | 317 ms | 106652 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657511) |
-| 2025-06-11 13:55:23 | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1043 Byte | **AC** | 254 ms | 106580 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657444) |
+
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                             | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-11 14:26:13                                                                           | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 923 Byte                                                                                  | **AC** | 453 ms                                                                                       | 73592 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657860) |
+| 2025-06-11 14:23:59                                                                           | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1182 Byte                                                                                 | **AC** | 189 ms                                                                                       | 27508 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657835) |
+| 2025-06-11 14:22:38                                                                           | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1054 Byte                                                                                 | **AC** | 689 ms                                                                                       | 59588 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657815) |
+| 2025-06-11 14:00:49                                                                           | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1140 Byte                                                                                 | **AC** | 317 ms                                                                                       | 106652 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657511) |
+| 2025-06-11 13:55:23                                                                           | [A57 - Doubling](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_be) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1043 Byte                                                                                 | **AC** | 254 ms                                                                                       | 106580 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66657444) |

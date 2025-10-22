@@ -60,15 +60,15 @@
  * Definition for a binary tree node (LeetCode 既定仕様).
  */
 class TreeNode {
-  val: number;
-  left: TreeNode | null;
-  right: TreeNode | null;
-  constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
-    // Hidden Class 安定化のためプロパティ順を固定
-    this.val = val === undefined ? 0 : val;
-    this.left = left === undefined ? null : left;
-    this.right = right === undefined ? null : right;
-  }
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
+    constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+        // Hidden Class 安定化のためプロパティ順を固定
+        this.val = val === undefined ? 0 : val;
+        this.left = left === undefined ? null : left;
+        this.right = right === undefined ? null : right;
+    }
 }
 
 /**
@@ -82,51 +82,51 @@ class TreeNode {
  * @complexity Time: ~O(C_n * n), Space: ~O(C_n * n)（出力＋メモ）
  */
 function generateTrees(n: number): Array<TreeNode | null> {
-  // --- 入力検証（早期・軽量 / LeetCode入力は有効だが堅牢性のため保持）---
-  if (typeof n !== "number" || Number.isNaN(n)) {
-    throw new TypeError("n must be a number");
-  }
-  if (!Number.isInteger(n)) {
-    throw new TypeError("n must be an integer");
-  }
-  if (n < 0 || n > 8) {
-    throw new RangeError("n must satisfy 0 <= n <= 8");
-  }
-  if (n === 0) return []; // 防御的。仕様上は 1..8
-
-  // --- 区間メモ化: key = "l,r" ---
-  const memo = new Map<string, Array<TreeNode | null>>();
-
-  /**
-   * 区間 [l, r] の全 BST 根ノード配列を返す。
-   * 空区間は [null]（1通りの空木）で表現。
-   */
-  function build(l: number, r: number): Array<TreeNode | null> {
-    if (l > r) return [null];
-
-    const key = `${l},${r}`;
-    const hit = memo.get(key);
-    if (hit !== undefined) return hit;
-
-    const out: Array<TreeNode | null> = [];
-    for (let rootVal = l; rootVal <= r; rootVal++) {
-      const left = build(l, rootVal - 1);
-      const right = build(rootVal + 1, r);
-
-      // 全組合せで新規ノードを生成（参照共有しない）
-      for (let i = 0; i < left.length; i++) {
-        const L = left[i];
-        for (let j = 0; j < right.length; j++) {
-          const R = right[j];
-          out.push(new TreeNode(rootVal, L, R));
-        }
-      }
+    // --- 入力検証（早期・軽量 / LeetCode入力は有効だが堅牢性のため保持）---
+    if (typeof n !== 'number' || Number.isNaN(n)) {
+        throw new TypeError('n must be a number');
     }
-    memo.set(key, out);
-    return out;
-  }
+    if (!Number.isInteger(n)) {
+        throw new TypeError('n must be an integer');
+    }
+    if (n < 0 || n > 8) {
+        throw new RangeError('n must satisfy 0 <= n <= 8');
+    }
+    if (n === 0) return []; // 防御的。仕様上は 1..8
 
-  return build(1, n);
+    // --- 区間メモ化: key = "l,r" ---
+    const memo = new Map<string, Array<TreeNode | null>>();
+
+    /**
+     * 区間 [l, r] の全 BST 根ノード配列を返す。
+     * 空区間は [null]（1通りの空木）で表現。
+     */
+    function build(l: number, r: number): Array<TreeNode | null> {
+        if (l > r) return [null];
+
+        const key = `${l},${r}`;
+        const hit = memo.get(key);
+        if (hit !== undefined) return hit;
+
+        const out: Array<TreeNode | null> = [];
+        for (let rootVal = l; rootVal <= r; rootVal++) {
+            const left = build(l, rootVal - 1);
+            const right = build(rootVal + 1, r);
+
+            // 全組合せで新規ノードを生成（参照共有しない）
+            for (let i = 0; i < left.length; i++) {
+                const L = left[i];
+                for (let j = 0; j < right.length; j++) {
+                    const R = right[j];
+                    out.push(new TreeNode(rootVal, L, R));
+                }
+            }
+        }
+        memo.set(key, out);
+        return out;
+    }
+
+    return build(1, n);
 }
 
 /* --------------- ここまでが LeetCode 提出関数本体 --------------- */

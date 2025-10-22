@@ -14,49 +14,50 @@ import * as fs from 'fs';
  * @returns 最大ネスト数（整数）
  */
 function maxNestingDepth(boxes: [number, number][]): number {
-  // 1. X昇順、Xが同じならY降順でソート
-  boxes.sort((a, b) => {
-    if (a[0] === b[0]) return b[1] - a[1]; // Y降順
-    return a[0] - b[0]; // X昇順
-  });
+    // 1. X昇順、Xが同じならY降順でソート
+    boxes.sort((a, b) => {
+        if (a[0] === b[0]) return b[1] - a[1]; // Y降順
+        return a[0] - b[0]; // X昇順
+    });
 
-  // 2. Yの配列でLIS（Longest Increasing Subsequence）を求める
-  const lis: number[] = [];
+    // 2. Yの配列でLIS（Longest Increasing Subsequence）を求める
+    const lis: number[] = [];
 
-  for (const [, y] of boxes) {
-    let left = 0, right = lis.length;
-    while (left < right) {
-      const mid = (left + right) >> 1;
-      if (lis[mid] < y) {
-        left = mid + 1;
-      } else {
-        right = mid;
-      }
+    for (const [, y] of boxes) {
+        let left = 0,
+            right = lis.length;
+        while (left < right) {
+            const mid = (left + right) >> 1;
+            if (lis[mid] < y) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+
+        if (left === lis.length) {
+            lis.push(y);
+        } else {
+            lis[left] = y;
+        }
     }
 
-    if (left === lis.length) {
-      lis.push(y);
-    } else {
-      lis[left] = y;
-    }
-  }
-
-  return lis.length;
+    return lis.length;
 }
 
 /**
  * 標準入力からデータを読み込み、最大ネスト数を出力する関数
  */
 function main(): void {
-  const input = fs.readFileSync('/dev/stdin', 'utf-8').trim().split('\n');
-  const N: number = Number(input[0]);
-  const boxes: [number, number][] = input.slice(1).map(line => {
-    const [x, y] = line.split(' ').map(Number);
-    return [x, y];
-  });
+    const input = fs.readFileSync('/dev/stdin', 'utf-8').trim().split('\n');
+    const N: number = Number(input[0]);
+    const boxes: [number, number][] = input.slice(1).map((line) => {
+        const [x, y] = line.split(' ').map(Number);
+        return [x, y];
+    });
 
-  const result = maxNestingDepth(boxes);
-  console.log(result);
+    const result = maxNestingDepth(boxes);
+    console.log(result);
 }
 
 main();

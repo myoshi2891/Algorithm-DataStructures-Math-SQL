@@ -62,45 +62,45 @@
  * @return {string}
  */
 var simplifyPath = function (path) {
-  // 1. 入力検証（LeetCode環境では制約保証済み）
-  if (!path || path[0] !== "/") return "/";
+    // 1. 入力検証（LeetCode環境では制約保証済み）
+    if (!path || path[0] !== '/') return '/';
 
-  // 2. パス構成要素分割（連続スラッシュも自動処理）
-  const components = path.split("/");
+    // 2. パス構成要素分割（連続スラッシュも自動処理）
+    const components = path.split('/');
 
-  // 3. スタック初期化（事前サイズ確保でV8最適化）
-  const stack = [];
-  stack.length = 0; // V8: 配列長明示でメモリ最適化
+    // 3. スタック初期化（事前サイズ確保でV8最適化）
+    const stack = [];
+    stack.length = 0; // V8: 配列長明示でメモリ最適化
 
-  // 4. 各構成要素処理（効率的ループ）
-  for (let i = 0; i < components.length; i++) {
-    const component = components[i];
+    // 4. 各構成要素処理（効率的ループ）
+    for (let i = 0; i < components.length; i++) {
+        const component = components[i];
 
-    // 空文字列・現在ディレクトリ指定をスキップ
-    if (component === "" || component === ".") {
-      continue;
+        // 空文字列・現在ディレクトリ指定をスキップ
+        if (component === '' || component === '.') {
+            continue;
+        }
+
+        // 親ディレクトリ指定処理
+        if (component === '..') {
+            // ルート以外で親に移動
+            if (stack.length > 0) {
+                stack.pop(); // V8最適化: length更新自動
+            }
+        } else {
+            // 有効なディレクトリ/ファイル名追加
+            stack.push(component);
+        }
     }
 
-    // 親ディレクトリ指定処理
-    if (component === "..") {
-      // ルート以外で親に移動
-      if (stack.length > 0) {
-        stack.pop(); // V8最適化: length更新自動
-      }
-    } else {
-      // 有効なディレクトリ/ファイル名追加
-      stack.push(component);
+    // 5. 正規化パス構築
+    // ルートディレクトリ特別処理
+    if (stack.length === 0) {
+        return '/';
     }
-  }
 
-  // 5. 正規化パス構築
-  // ルートディレクトリ特別処理
-  if (stack.length === 0) {
-    return "/";
-  }
-
-  // パス結合（効率的文字列生成）
-  return "/" + stack.join("/");
+    // パス結合（効率的文字列生成）
+    return '/' + stack.join('/');
 };
 
 /**
@@ -110,15 +110,15 @@ var simplifyPath = function (path) {
  * @throws {RangeError} - 制約違反
  */
 function validateInput(path) {
-  if (typeof path !== "string") {
-    throw new TypeError("Path must be a string");
-  }
-  if (path.length === 0 || path.length > 3000) {
-    throw new RangeError("Path length must be 1-3000 characters");
-  }
-  if (path[0] !== "/") {
-    throw new Error("Path must be absolute (start with /)");
-  }
+    if (typeof path !== 'string') {
+        throw new TypeError('Path must be a string');
+    }
+    if (path.length === 0 || path.length > 3000) {
+        throw new RangeError('Path length must be 1-3000 characters');
+    }
+    if (path[0] !== '/') {
+        throw new Error('Path must be absolute (start with /)');
+    }
 }
 
 // テスト実行例（LeetCode提出時は削除）

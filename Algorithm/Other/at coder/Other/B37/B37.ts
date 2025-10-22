@@ -15,42 +15,42 @@ import * as fs from 'fs';
  * @returns 総和（BigInt）
  */
 function sumOfDigitSums(N: bigint): bigint {
-  let total: bigint = 0n;
-  let base: bigint = 1n;
+    let total: bigint = 0n;
+    let base: bigint = 1n;
 
-  while (base <= N) {
-    const higher: bigint = N / (base * 10n);           // 左側の桁
-    const current: bigint = (N / base) % 10n;          // 今注目している桁
-    const lower: bigint = N % base;                    // 右側の桁
+    while (base <= N) {
+        const higher: bigint = N / (base * 10n); // 左側の桁
+        const current: bigint = (N / base) % 10n; // 今注目している桁
+        const lower: bigint = N % base; // 右側の桁
 
-    for (let digit: bigint = 1n; digit <= 9n; digit++) {
-      let count: bigint;
+        for (let digit: bigint = 1n; digit <= 9n; digit++) {
+            let count: bigint;
 
-      if (digit < current) {
-        count = (higher + 1n) * base;
-      } else if (digit === current) {
-        count = higher * base + lower + 1n;
-      } else {
-        count = higher * base;
-      }
+            if (digit < current) {
+                count = (higher + 1n) * base;
+            } else if (digit === current) {
+                count = higher * base + lower + 1n;
+            } else {
+                count = higher * base;
+            }
 
-      total += count * digit;
+            total += count * digit;
+        }
+
+        base *= 10n;
     }
 
-    base *= 10n;
-  }
-
-  return total;
+    return total;
 }
 
 /**
  * 標準入力からNを読み取り、f(1) + ... + f(N) を計算して出力する。
  */
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const N: bigint = BigInt(input);
-  const result: bigint = sumOfDigitSums(N);
-  console.log(result.toString());
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const N: bigint = BigInt(input);
+    const result: bigint = sumOfDigitSums(N);
+    console.log(result.toString());
 }
 
 main();

@@ -63,7 +63,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * 歴史年表の担当者を年代順に並べて出力
@@ -87,68 +87,68 @@
  * @throws {RangeError} 制約違反時
  */
 function buildTimeline(n, k, members, events) {
-  // --- 入力検証 ---
-  if (!Number.isInteger(n) || !Number.isInteger(k)) {
-    throw new TypeError("n and k must be integers");
-  }
-  if (n < 1 || n > 1000) {
-    throw new RangeError("n out of range");
-  }
-  if (k < 1 || k > 100000) {
-    throw new RangeError("k out of range");
-  }
-  if (!Array.isArray(members) || members.length !== n) {
-    throw new TypeError("members must be an array of length n");
-  }
-  if (!Array.isArray(events) || events.length !== k) {
-    throw new TypeError("events must be an array of length k");
-  }
-
-  // メンバー集合で担当者名を検証
-  const memberSet = new Set(members);
-  for (const ev of events) {
-    if (typeof ev.year !== "number" || !Number.isFinite(ev.year)) {
-      throw new TypeError("year must be a finite number");
+    // --- 入力検証 ---
+    if (!Number.isInteger(n) || !Number.isInteger(k)) {
+        throw new TypeError('n and k must be integers');
     }
-    if (ev.year < 1 || ev.year > 1_000_000_000) {
-      throw new RangeError("year out of range");
+    if (n < 1 || n > 1000) {
+        throw new RangeError('n out of range');
     }
-    if (typeof ev.name !== "string" || !memberSet.has(ev.name)) {
-      throw new TypeError(`invalid member name: ${ev.name}`);
+    if (k < 1 || k > 100000) {
+        throw new RangeError('k out of range');
     }
-  }
+    if (!Array.isArray(members) || members.length !== n) {
+        throw new TypeError('members must be an array of length n');
+    }
+    if (!Array.isArray(events) || events.length !== k) {
+        throw new TypeError('events must be an array of length k');
+    }
 
-  // --- ソート ---
-  events.sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year;
-    return a.name.localeCompare(b.name);
-  });
+    // メンバー集合で担当者名を検証
+    const memberSet = new Set(members);
+    for (const ev of events) {
+        if (typeof ev.year !== 'number' || !Number.isFinite(ev.year)) {
+            throw new TypeError('year must be a finite number');
+        }
+        if (ev.year < 1 || ev.year > 1_000_000_000) {
+            throw new RangeError('year out of range');
+        }
+        if (typeof ev.name !== 'string' || !memberSet.has(ev.name)) {
+            throw new TypeError(`invalid member name: ${ev.name}`);
+        }
+    }
 
-  // --- 出力用リスト ---
-  return events.map((ev) => ev.name);
+    // --- ソート ---
+    events.sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.name.localeCompare(b.name);
+    });
+
+    // --- 出力用リスト ---
+    return events.map((ev) => ev.name);
 }
 
 // --- 実行部 ---
 if (require.main === module) {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  let idx = 0;
-  const [nStr, kStr] = input[idx++].split(" ");
-  const n = Number(nStr),
-    k = Number(kStr);
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    let idx = 0;
+    const [nStr, kStr] = input[idx++].split(' ');
+    const n = Number(nStr),
+        k = Number(kStr);
 
-  const members = [];
-  for (let i = 0; i < n; i++) {
-    members.push(input[idx++].trim());
-  }
+    const members = [];
+    for (let i = 0; i < n; i++) {
+        members.push(input[idx++].trim());
+    }
 
-  const events = [];
-  for (let i = 0; i < k; i++) {
-    const [yStr, name] = input[idx++].split(" ");
-    events.push({ year: Number(yStr), name });
-  }
+    const events = [];
+    for (let i = 0; i < k; i++) {
+        const [yStr, name] = input[idx++].split(' ');
+        events.push({ year: Number(yStr), name });
+    }
 
-  const result = buildTimeline(n, k, members, events);
-  console.log(result.join("\n"));
+    const result = buildTimeline(n, k, members, events);
+    console.log(result.join('\n'));
 }
 
 module.exports = { buildTimeline };

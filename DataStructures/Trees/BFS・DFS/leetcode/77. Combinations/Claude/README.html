@@ -1,957 +1,927 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Combination Algorithm - バックトラッキング解説</title>
-
-    <!-- CDN Imports - Correct Order for Prism.js -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-
-    <style>
-      :root {
-        --primary-color: #2563eb;
-        --secondary-color: #1e40af;
-        --accent-color: #f59e0b;
-        --success-color: #10b981;
-        --danger-color: #ef4444;
-        --dark-bg: #0f172a;
-        --medium-bg: #1e293b;
-        --light-bg: #334155;
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --border-color: #475569;
-        --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(
-          135deg,
-          var(--dark-bg) 0%,
-          var(--medium-bg) 100%
-        );
-        color: var(--text-primary);
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      /* Header Styles */
-      .header {
-        text-align: center;
-        padding: 40px 0;
-        background: linear-gradient(
-          45deg,
-          var(--primary-color),
-          var(--secondary-color)
-        );
-        margin-bottom: 40px;
-        border-radius: 20px;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .header::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(
-          45deg,
-          transparent,
-          rgba(255, 255, 255, 0.1),
-          transparent
-        );
-        transform: rotate(45deg);
-        animation: shine 3s infinite;
-      }
-
-      @keyframes shine {
-        0% {
-          transform: translateX(-100%) translateY(-100%) rotate(45deg);
-        }
-        100% {
-          transform: translateX(100%) translateY(100%) rotate(45deg);
-        }
-      }
-
-      .header h1 {
-        font-size: 3rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-        position: relative;
-        z-index: 1;
-      }
-
-      .header p {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        position: relative;
-        z-index: 1;
-      }
-
-      /* Section Styles */
-      .section {
-        background: var(--medium-bg);
-        border-radius: 15px;
-        padding: 30px;
-        margin-bottom: 30px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-
-      .section:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-      }
-
-      .section h2 {
-        color: var(--accent-color);
-        font-size: 2rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .section h3 {
-        color: var(--primary-color);
-        font-size: 1.4rem;
-        margin: 20px 0 10px 0;
-      }
-
-      /* Enhanced Code Styles */
-      .code-container {
-        position: relative;
-        margin: 20px 0;
-        background: var(--dark-bg);
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-      }
-
-      /* Toolbar Styles */
-      .code-toolbar {
-        position: relative;
-      }
-
-      .code-toolbar > .toolbar {
-        position: absolute;
-        z-index: 10;
-        top: 0.5em;
-        right: 0.5em;
-        transition: opacity 0.3s ease-in-out;
-        opacity: 0;
-      }
-
-      .code-toolbar:hover > .toolbar {
-        opacity: 1;
-      }
-
-      .code-toolbar > .toolbar > .toolbar-item {
-        display: inline-block;
-        margin: 0 0 0 0.5em;
-      }
-
-      .code-toolbar > .toolbar > .toolbar-item > button,
-      .code-toolbar > .toolbar > .toolbar-item > a,
-      .code-toolbar > .toolbar > .toolbar-item > span {
-        background: var(--primary-color);
-        color: white;
-        font-size: 12px;
-        padding: 6px 10px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        text-decoration: none;
-        font-weight: 500;
-      }
-
-      .code-toolbar > .toolbar > .toolbar-item > button:hover,
-      .code-toolbar > .toolbar > .toolbar-item > a:hover,
-      .code-toolbar > .toolbar > .toolbar-item > span:hover {
-        background: var(--secondary-color);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-      }
-
-      .code-toolbar > .toolbar > .toolbar-item > button:active {
-        transform: translateY(0);
-      }
-
-      /* Copy button specific styling */
-      .code-toolbar .copy-to-clipboard-button {
-        background: var(--success-color) !important;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .code-toolbar .copy-to-clipboard-button:hover {
-        background: #059669 !important;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
-      }
-
-      .code-toolbar .copy-to-clipboard-button::before {
-        content: "📋";
-        margin-right: 4px;
-      }
-
-      .code-toolbar
-        .copy-to-clipboard-button[data-copy-state="success"]::before {
-        content: "✅";
-      }
-
-      .code-toolbar .copy-to-clipboard-button[data-copy-state="success"] {
-        background: var(--accent-color) !important;
-      }
-
-      /* Enhanced Pre Styles */
-      pre[class*="language-"] {
-        background: transparent !important;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        font-family: "Fira Code", "SF Mono", "Monaco", "Inconsolata",
-          "Roboto Mono", "Source Code Pro", monospace !important;
-        font-size: 14px;
-        line-height: 1.5 !important;
-        overflow: auto;
-        position: relative;
-        padding: 1em !important;
-        white-space: pre;
-        word-spacing: normal;
-        word-break: normal;
-        word-wrap: normal;
-        tab-size: 4;
-        hyphens: none;
-        margin: 0;
-      }
-
-      /* Line Numbers - Complete Redesign */
-      pre.line-numbers {
-        position: relative;
-        margin-left: 2.8em !important;
-        counter-reset: linenumber 0 !important;
-      }
-
-      pre.line-numbers > code {
-        position: relative;
-      }
-
-      .line-numbers .line-numbers-rows {
-        position: absolute;
-        pointer-events: none;
-        top: 0;
-        left: 0;
-        width: 3.2em;
-        font-size: inherit;
-        line-height: inherit;
-        letter-spacing: -1px;
-        border-right: 1px solid var(--border-color);
-        background: rgba(0, 0, 0, 0.4);
-        user-select: none;
-        padding: 0 0.5em 1em 1em;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        box-sizing: border-box;
-        height: 100%;
-        overflow: hidden;
-      }
-
-      .line-numbers-rows > span {
-        display: block;
-        counter-increment: linenumber;
-        color: var(--text-secondary);
-        text-align: right;
-        line-height: 1.5;
-        height: 1.5em;
-        padding-right: 0.8em;
-      }
-
-      .line-numbers-rows > span:before {
-        content: counter(linenumber);
-        font-variant-numeric: tabular-nums;
-        font-weight: 400;
-        padding: auto;
-      }
-
-      /* Code content positioning */
-      pre.line-numbers code {
-        display: block;
-        padding-left: 3.8em !important;
-      }
-
-      /* Syntax highlighting adjustments */
-      .token.comment,
-      .token.prolog,
-      .token.doctype,
-      .token.cdata {
-        color: #8292a2;
-        font-style: italic;
-      }
-
-      .token.punctuation {
-        color: #f8f8f2;
-      }
-
-      .token.property,
-      .token.tag,
-      .token.constant,
-      .token.symbol,
-      .token.deleted {
-        color: #f92672;
-      }
-
-      .token.boolean,
-      .token.number {
-        color: #ae81ff;
-      }
-
-      .token.selector,
-      .token.attr-name,
-      .token.string,
-      .token.char,
-      .token.builtin,
-      .token.inserted {
-        color: #a6e22e;
-      }
-
-      .token.operator,
-      .token.entity,
-      .token.url,
-      .language-css .token.string,
-      .style .token.string,
-      .token.variable {
-        color: #f8f8f2;
-      }
-
-      .token.atrule,
-      .token.attr-value,
-      .token.function,
-      .token.class-name {
-        color: #e6db74;
-      }
-
-      .token.keyword {
-        color: #66d9ef;
-        font-weight: 600;
-      }
-
-      .token.regex,
-      .token.important {
-        color: #fd971f;
-      }
-
-      .token.important,
-      .token.bold {
-        font-weight: bold;
-      }
-
-      .token.italic {
-        font-style: italic;
-      }
-
-      /* Interactive Step Visualization */
-      .step-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin: 30px 0;
-      }
-
-      .steps-panel {
-        background: var(--light-bg);
-        border-radius: 10px;
-        padding: 20px;
-        border: 1px solid var(--border-color);
-      }
-
-      .step-item {
-        background: var(--medium-bg);
-        border-radius: 8px;
-        padding: 15px;
-        margin: 10px 0;
-        border-left: 4px solid var(--primary-color);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        opacity: 0.7;
-      }
-
-      .step-item:hover {
-        opacity: 1;
-        transform: translateX(10px);
-        border-left-color: var(--accent-color);
-      }
-
-      .step-item.active {
-        opacity: 1;
-        border-left-color: var(--success-color);
-        background: linear-gradient(
-          90deg,
-          var(--medium-bg),
-          rgba(16, 185, 129, 0.1)
-        );
-      }
-
-      .step-number {
-        background: var(--primary-color);
-        color: white;
-        border-radius: 50%;
-        width: 25px;
-        height: 25px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: bold;
-        margin-right: 10px;
-      }
-
-      /* Enhanced Visual Tree Display */
-      .tree-visualization {
-        background: var(--dark-bg);
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        font-family: "Fira Code", monospace;
-        font-size: 14px;
-        overflow-x: auto;
-        border: 1px solid var(--border-color);
-        min-height: 200px;
-      }
-
-      .tree-node {
-        display: inline-block;
-        background: var(--primary-color);
-        color: white;
-        padding: 8px 12px;
-        margin: 5px;
-        border-radius: 20px;
-        font-weight: bold;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .tree-node:hover {
-        background: var(--accent-color);
-        transform: scale(1.1);
-      }
-
-      .tree-node.highlight {
-        background: var(--success-color);
-        animation: pulse 1s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.7;
-          transform: scale(1.05);
-        }
-      }
-
-      /* Complexity Analysis */
-      .complexity-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin: 20px 0;
-      }
-
-      .complexity-card {
-        background: linear-gradient(
-          135deg,
-          var(--primary-color),
-          var(--secondary-color)
-        );
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        transition: transform 0.3s ease;
-      }
-
-      .complexity-card:hover {
-        transform: scale(1.05);
-      }
-
-      .complexity-value {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 10px;
-      }
-
-      .complexity-label {
-        opacity: 0.9;
-        font-size: 1.1rem;
-      }
-
-      /* Enhanced Control Panel */
-      .control-panel {
-        background: var(--light-bg);
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
-        display: flex;
-        gap: 15px;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        border: 1px solid var(--border-color);
-      }
-
-      .btn {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        transition: left 0.5s;
-      }
-
-      .btn:hover::before {
-        left: 100%;
-      }
-
-      .btn:hover {
-        background: var(--secondary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
-      }
-
-      .btn.success {
-        background: var(--success-color);
-      }
-
-      .btn.success:hover {
-        background: #059669;
-        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-      }
-
-      .btn.warning {
-        background: var(--accent-color);
-      }
-
-      .btn.warning:hover {
-        background: #d97706;
-        box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
-      }
-
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      /* Input Group */
-      .input-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .input-group label {
-        font-weight: 600;
-        color: var(--text-secondary);
-        min-width: 20px;
-      }
-
-      .input-group input {
-        background: var(--medium-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 5px;
-        padding: 8px 12px;
-        color: var(--text-primary);
-        width: 80px;
-        text-align: center;
-        transition: border-color 0.3s ease;
-      }
-
-      .input-group input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-      }
-
-      /* Enhanced Results Display */
-      .results-panel {
-        background: var(--dark-bg);
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
-        border: 1px solid var(--border-color);
-      }
-
-      .result-item {
-        background: var(--medium-bg);
-        border-radius: 5px;
-        padding: 10px 15px;
-        margin: 5px;
-        font-family: "Fira Code", monospace;
-        display: inline-block;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: 2px solid transparent;
-      }
-
-      .result-item:hover {
-        background: var(--primary-color);
-        transform: translateY(-2px);
-      }
-
-      .result-item.selected {
-        border-color: var(--success-color);
-        background: var(--success-color);
-        color: white;
-      }
-
-      /* Performance Metrics */
-      .performance-metrics,
-      .validation-panel {
-        background: var(--light-bg);
-        border-radius: 8px;
-        padding: 15px;
-        margin: 15px 0;
-        border: 1px solid var(--border-color);
-      }
-
-      .performance-metrics h4,
-      .validation-panel h4 {
-        color: var(--accent-color);
-        margin-bottom: 10px;
-        font-size: 1.1rem;
-      }
-
-      .metric-item,
-      .validation-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .metric-item:last-child,
-      .validation-item:last-child {
-        border-bottom: none;
-      }
-
-      .metric-label {
-        color: var(--text-secondary);
-        font-weight: 500;
-      }
-
-      .metric-value {
-        color: var(--success-color);
-        font-weight: bold;
-        font-family: "Fira Code", monospace;
-      }
-
-      .validation-item.valid {
-        color: var(--success-color);
-      }
-
-      .validation-item.invalid {
-        color: var(--danger-color);
-      }
-
-      .validation-status {
-        font-weight: bold;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.9rem;
-      }
-
-      /* Status Indicator */
-      .status-indicator {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--success-color);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        z-index: 1000;
-        opacity: 0;
-        transform: translateX(100px);
-        transition: all 0.3s ease;
-      }
-
-      .status-indicator.show {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
-      /* Progress Bar */
-      .progress-container {
-        background: var(--medium-bg);
-        border-radius: 10px;
-        height: 8px;
-        margin: 10px 0;
-        overflow: hidden;
-      }
-
-      .progress-bar {
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          var(--primary-color),
-          var(--success-color)
-        );
-        width: 0%;
-        transition: width 0.3s ease;
-      }
-
-      /* Responsive Design */
-      @media (max-width: 768px) {
-        .step-container {
-          grid-template-columns: 1fr;
-        }
-
-        .header h1 {
-          font-size: 2rem;
-        }
-
-        .complexity-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .control-panel {
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .control-panel > * {
-          width: 100%;
-          justify-content: center;
-        }
-      }
-
-      /* Animation Classes */
-      .fade-in {
-        animation: fadeIn 0.5s ease-in;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .slide-in {
-        animation: slideIn 0.5s ease-out;
-      }
-
-      @keyframes slideIn {
-        from {
-          transform: translateX(-100%);
-        }
-        to {
-          transform: translateX(0);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <!-- Header -->
-      <header class="header">
-        <h1><i class="fas fa-project-diagram"></i> Combination Algorithm</h1>
-        <p>バックトラッキングによる組み合わせ生成の完全解説</p>
-      </header>
-
-      <!-- Status Indicator -->
-      <div class="status-indicator" id="status-indicator">処理完了</div>
-
-      <!-- Algorithm Overview -->
-      <section class="section fade-in">
-        <h2><i class="fas fa-info-circle"></i> アルゴリズム概要</h2>
-        <p>
-          <strong>組み合わせアルゴリズム（Combination Algorithm）</strong
-          >は、与えられた範囲 <code>[1, n]</code> から
-          <code>k</code>
-          個の要素を選ぶすべての組み合わせを生成するアルゴリズムです。
-          バックトラッキング手法を用いることで、効率的に全組み合わせを列挙できます。
-        </p>
-
-        <h3>主要な特徴</h3>
-        <ul>
-          <li>
-            🔄 <strong>バックトラッキング</strong>: 部分解を構築しながら探索
-          </li>
-          <li>⚡ <strong>効率的</strong>: 無駄な計算を回避</li>
-          <li>🎯 <strong>完全性</strong>: すべての組み合わせを漏れなく生成</li>
-          <li>💾 <strong>省メモリ</strong>: O(k)の空間計算量</li>
-        </ul>
-      </section>
-
-      <!-- Interactive Controls -->
-      <section class="section">
-        <h2><i class="fas fa-gamepad"></i> インタラクティブデモ</h2>
-        <div class="control-panel">
-          <div class="input-group">
-            <label for="n-input">n:</label>
-            <input type="number" id="n-input" value="4" min="1" max="10" />
-          </div>
-          <div class="input-group">
-            <label for="k-input">k:</label>
-            <input type="number" id="k-input" value="2" min="1" max="10" />
-          </div>
-          <button class="btn" id="run-demo-btn" onclick="runDemo()">
-            <i class="fas fa-play"></i> デモ実行
-          </button>
-          <button
-            class="btn success"
-            id="step-demo-btn"
-            onclick="runStepByStep()"
-          >
-            <i class="fas fa-step-forward"></i> ステップ実行
-          </button>
-          <button class="btn warning" id="reset-btn" onclick="resetDemo()">
-            <i class="fas fa-refresh"></i> リセット
-          </button>
-        </div>
-
-        <div
-          class="progress-container"
-          id="progress-container"
-          style="display: none"
-        >
-          <div class="progress-bar" id="progress-bar"></div>
-        </div>
-
-        <div class="results-panel">
-          <h3>実行結果</h3>
-          <div id="results-display">結果がここに表示されます</div>
-        </div>
-      </section>
-
-      <!-- Step by Step Explanation -->
-      <section class="section">
-        <h2><i class="fas fa-list-ol"></i> ステップバイステップ解説</h2>
-        <div class="step-container">
-          <div class="steps-panel">
-            <h3>処理ステップ</h3>
-            <div class="step-item active" data-step="0">
-              <span class="step-number">1</span>
-              <strong>初期化</strong>: result配列とpath配列を用意
-            </div>
-            <div class="step-item" data-step="1">
-              <span class="step-number">2</span>
-              <strong>開始</strong>: backtrack(1)を呼び出し
-            </div>
-            <div class="step-item" data-step="2">
-              <span class="step-number">3</span>
-              <strong>要素追加</strong>: pathに現在の数値を追加
-            </div>
-            <div class="step-item" data-step="3">
-              <span class="step-number">4</span>
-              <strong>判定</strong>: len(path) == k かチェック
-            </div>
-            <div class="step-item" data-step="4">
-              <span class="step-number">5</span>
-              <strong>結果追加</strong>: 条件満たす場合resultに追加
-            </div>
-            <div class="step-item" data-step="5">
-              <span class="step-number">6</span>
-              <strong>再帰呼び出し</strong>: 次の要素で再帰
-            </div>
-            <div class="step-item" data-step="6">
-              <span class="step-number">7</span>
-              <strong>バックトラック</strong>: pathから要素を削除
-            </div>
-          </div>
-
-          <div class="tree-visualization">
-            <h3>探索木の可視化</h3>
-            <div id="tree-display">
-              <div style="color: var(--text-secondary); padding: 40px">
-                <i
-                  class="fas fa-play-circle"
-                  style="font-size: 2rem; margin-bottom: 10px"
-                ></i>
-                <div>デモを実行して探索過程を確認してください</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Code Implementation -->
-      <section class="section">
-        <h2><i class="fas fa-code"></i> 実装コード</h2>
-        <div class="code-container">
-          <pre
-            class="line-numbers"
-          ><code class="language-python">from typing import List
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Combination Algorithm - バックトラッキング解説</title>
+
+        <!-- CDN Imports - Correct Order for Prism.js -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --primary-color: #2563eb;
+                --secondary-color: #1e40af;
+                --accent-color: #f59e0b;
+                --success-color: #10b981;
+                --danger-color: #ef4444;
+                --dark-bg: #0f172a;
+                --medium-bg: #1e293b;
+                --light-bg: #334155;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --border-color: #475569;
+                --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, var(--dark-bg) 0%, var(--medium-bg) 100%);
+                color: var(--text-primary);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            /* Header Styles */
+            .header {
+                text-align: center;
+                padding: 40px 0;
+                background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+                margin-bottom: 40px;
+                border-radius: 20px;
+                box-shadow: var(--shadow);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(
+                    45deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.1),
+                    transparent
+                );
+                transform: rotate(45deg);
+                animation: shine 3s infinite;
+            }
+
+            @keyframes shine {
+                0% {
+                    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+                }
+                100% {
+                    transform: translateX(100%) translateY(100%) rotate(45deg);
+                }
+            }
+
+            .header h1 {
+                font-size: 3rem;
+                font-weight: 700;
+                margin-bottom: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.9;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Section Styles */
+            .section {
+                background: var(--medium-bg);
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: var(--shadow);
+                border: 1px solid var(--border-color);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }
+
+            .section h2 {
+                color: var(--accent-color);
+                font-size: 2rem;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section h3 {
+                color: var(--primary-color);
+                font-size: 1.4rem;
+                margin: 20px 0 10px 0;
+            }
+
+            /* Enhanced Code Styles */
+            .code-container {
+                position: relative;
+                margin: 20px 0;
+                background: var(--dark-bg);
+                border-radius: 10px;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow);
+                overflow: hidden;
+            }
+
+            /* Toolbar Styles */
+            .code-toolbar {
+                position: relative;
+            }
+
+            .code-toolbar > .toolbar {
+                position: absolute;
+                z-index: 10;
+                top: 0.5em;
+                right: 0.5em;
+                transition: opacity 0.3s ease-in-out;
+                opacity: 0;
+            }
+
+            .code-toolbar:hover > .toolbar {
+                opacity: 1;
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item {
+                display: inline-block;
+                margin: 0 0 0 0.5em;
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item > button,
+            .code-toolbar > .toolbar > .toolbar-item > a,
+            .code-toolbar > .toolbar > .toolbar-item > span {
+                background: var(--primary-color);
+                color: white;
+                font-size: 12px;
+                padding: 6px 10px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-family: inherit;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item > button:hover,
+            .code-toolbar > .toolbar > .toolbar-item > a:hover,
+            .code-toolbar > .toolbar > .toolbar-item > span:hover {
+                background: var(--secondary-color);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item > button:active {
+                transform: translateY(0);
+            }
+
+            /* Copy button specific styling */
+            .code-toolbar .copy-to-clipboard-button {
+                background: var(--success-color) !important;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .code-toolbar .copy-to-clipboard-button:hover {
+                background: #059669 !important;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+            }
+
+            .code-toolbar .copy-to-clipboard-button::before {
+                content: '📋';
+                margin-right: 4px;
+            }
+
+            .code-toolbar .copy-to-clipboard-button[data-copy-state='success']::before {
+                content: '✅';
+            }
+
+            .code-toolbar .copy-to-clipboard-button[data-copy-state='success'] {
+                background: var(--accent-color) !important;
+            }
+
+            /* Enhanced Pre Styles */
+            pre[class*='language-'] {
+                background: transparent !important;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                font-family:
+                    'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono',
+                    'Source Code Pro', monospace !important;
+                font-size: 14px;
+                line-height: 1.5 !important;
+                overflow: auto;
+                position: relative;
+                padding: 1em !important;
+                white-space: pre;
+                word-spacing: normal;
+                word-break: normal;
+                word-wrap: normal;
+                tab-size: 4;
+                hyphens: none;
+                margin: 0;
+            }
+
+            /* Line Numbers - Complete Redesign */
+            pre.line-numbers {
+                position: relative;
+                margin-left: 2.8em !important;
+                counter-reset: linenumber 0 !important;
+            }
+
+            pre.line-numbers > code {
+                position: relative;
+            }
+
+            .line-numbers .line-numbers-rows {
+                position: absolute;
+                pointer-events: none;
+                top: 0;
+                left: 0;
+                width: 3.2em;
+                font-size: inherit;
+                line-height: inherit;
+                letter-spacing: -1px;
+                border-right: 1px solid var(--border-color);
+                background: rgba(0, 0, 0, 0.4);
+                user-select: none;
+                padding: 0 0.5em 1em 1em;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                box-sizing: border-box;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .line-numbers-rows > span {
+                display: block;
+                counter-increment: linenumber;
+                color: var(--text-secondary);
+                text-align: right;
+                line-height: 1.5;
+                height: 1.5em;
+                padding-right: 0.8em;
+            }
+
+            .line-numbers-rows > span:before {
+                content: counter(linenumber);
+                font-variant-numeric: tabular-nums;
+                font-weight: 400;
+                padding: auto;
+            }
+
+            /* Code content positioning */
+            pre.line-numbers code {
+                display: block;
+                padding-left: 3.8em !important;
+            }
+
+            /* Syntax highlighting adjustments */
+            .token.comment,
+            .token.prolog,
+            .token.doctype,
+            .token.cdata {
+                color: #8292a2;
+                font-style: italic;
+            }
+
+            .token.punctuation {
+                color: #f8f8f2;
+            }
+
+            .token.property,
+            .token.tag,
+            .token.constant,
+            .token.symbol,
+            .token.deleted {
+                color: #f92672;
+            }
+
+            .token.boolean,
+            .token.number {
+                color: #ae81ff;
+            }
+
+            .token.selector,
+            .token.attr-name,
+            .token.string,
+            .token.char,
+            .token.builtin,
+            .token.inserted {
+                color: #a6e22e;
+            }
+
+            .token.operator,
+            .token.entity,
+            .token.url,
+            .language-css .token.string,
+            .style .token.string,
+            .token.variable {
+                color: #f8f8f2;
+            }
+
+            .token.atrule,
+            .token.attr-value,
+            .token.function,
+            .token.class-name {
+                color: #e6db74;
+            }
+
+            .token.keyword {
+                color: #66d9ef;
+                font-weight: 600;
+            }
+
+            .token.regex,
+            .token.important {
+                color: #fd971f;
+            }
+
+            .token.important,
+            .token.bold {
+                font-weight: bold;
+            }
+
+            .token.italic {
+                font-style: italic;
+            }
+
+            /* Interactive Step Visualization */
+            .step-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin: 30px 0;
+            }
+
+            .steps-panel {
+                background: var(--light-bg);
+                border-radius: 10px;
+                padding: 20px;
+                border: 1px solid var(--border-color);
+            }
+
+            .step-item {
+                background: var(--medium-bg);
+                border-radius: 8px;
+                padding: 15px;
+                margin: 10px 0;
+                border-left: 4px solid var(--primary-color);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                opacity: 0.7;
+            }
+
+            .step-item:hover {
+                opacity: 1;
+                transform: translateX(10px);
+                border-left-color: var(--accent-color);
+            }
+
+            .step-item.active {
+                opacity: 1;
+                border-left-color: var(--success-color);
+                background: linear-gradient(90deg, var(--medium-bg), rgba(16, 185, 129, 0.1));
+            }
+
+            .step-number {
+                background: var(--primary-color);
+                color: white;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                margin-right: 10px;
+            }
+
+            /* Enhanced Visual Tree Display */
+            .tree-visualization {
+                background: var(--dark-bg);
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                font-family: 'Fira Code', monospace;
+                font-size: 14px;
+                overflow-x: auto;
+                border: 1px solid var(--border-color);
+                min-height: 200px;
+            }
+
+            .tree-node {
+                display: inline-block;
+                background: var(--primary-color);
+                color: white;
+                padding: 8px 12px;
+                margin: 5px;
+                border-radius: 20px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                user-select: none;
+            }
+
+            .tree-node:hover {
+                background: var(--accent-color);
+                transform: scale(1.1);
+            }
+
+            .tree-node.highlight {
+                background: var(--success-color);
+                animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.7;
+                    transform: scale(1.05);
+                }
+            }
+
+            /* Complexity Analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-card {
+                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                transition: transform 0.3s ease;
+            }
+
+            .complexity-card:hover {
+                transform: scale(1.05);
+            }
+
+            .complexity-value {
+                font-size: 2rem;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .complexity-label {
+                opacity: 0.9;
+                font-size: 1.1rem;
+            }
+
+            /* Enhanced Control Panel */
+            .control-panel {
+                background: var(--light-bg);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                border: 1px solid var(--border-color);
+            }
+
+            .btn {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent
+                );
+                transition: left 0.5s;
+            }
+
+            .btn:hover::before {
+                left: 100%;
+            }
+
+            .btn:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+            }
+
+            .btn.success {
+                background: var(--success-color);
+            }
+
+            .btn.success:hover {
+                background: #059669;
+                box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            }
+
+            .btn.warning {
+                background: var(--accent-color);
+            }
+
+            .btn.warning:hover {
+                background: #d97706;
+                box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+            }
+
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* Input Group */
+            .input-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .input-group label {
+                font-weight: 600;
+                color: var(--text-secondary);
+                min-width: 20px;
+            }
+
+            .input-group input {
+                background: var(--medium-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                padding: 8px 12px;
+                color: var(--text-primary);
+                width: 80px;
+                text-align: center;
+                transition: border-color 0.3s ease;
+            }
+
+            .input-group input:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            }
+
+            /* Enhanced Results Display */
+            .results-panel {
+                background: var(--dark-bg);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                border: 1px solid var(--border-color);
+            }
+
+            .result-item {
+                background: var(--medium-bg);
+                border-radius: 5px;
+                padding: 10px 15px;
+                margin: 5px;
+                font-family: 'Fira Code', monospace;
+                display: inline-block;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                border: 2px solid transparent;
+            }
+
+            .result-item:hover {
+                background: var(--primary-color);
+                transform: translateY(-2px);
+            }
+
+            .result-item.selected {
+                border-color: var(--success-color);
+                background: var(--success-color);
+                color: white;
+            }
+
+            /* Performance Metrics */
+            .performance-metrics,
+            .validation-panel {
+                background: var(--light-bg);
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+                border: 1px solid var(--border-color);
+            }
+
+            .performance-metrics h4,
+            .validation-panel h4 {
+                color: var(--accent-color);
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            }
+
+            .metric-item,
+            .validation-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .metric-item:last-child,
+            .validation-item:last-child {
+                border-bottom: none;
+            }
+
+            .metric-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+
+            .metric-value {
+                color: var(--success-color);
+                font-weight: bold;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .validation-item.valid {
+                color: var(--success-color);
+            }
+
+            .validation-item.invalid {
+                color: var(--danger-color);
+            }
+
+            .validation-status {
+                font-weight: bold;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.9rem;
+            }
+
+            /* Status Indicator */
+            .status-indicator {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--success-color);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                z-index: 1000;
+                opacity: 0;
+                transform: translateX(100px);
+                transition: all 0.3s ease;
+            }
+
+            .status-indicator.show {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            /* Progress Bar */
+            .progress-container {
+                background: var(--medium-bg);
+                border-radius: 10px;
+                height: 8px;
+                margin: 10px 0;
+                overflow: hidden;
+            }
+
+            .progress-bar {
+                height: 100%;
+                background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+                width: 0%;
+                transition: width 0.3s ease;
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .step-container {
+                    grid-template-columns: 1fr;
+                }
+
+                .header h1 {
+                    font-size: 2rem;
+                }
+
+                .complexity-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .control-panel {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .control-panel > * {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+
+            /* Animation Classes */
+            .fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .slide-in {
+                animation: slideIn 0.5s ease-out;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(-100%);
+                }
+                to {
+                    transform: translateX(0);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                <h1><i class="fas fa-project-diagram"></i> Combination Algorithm</h1>
+                <p>バックトラッキングによる組み合わせ生成の完全解説</p>
+            </header>
+
+            <!-- Status Indicator -->
+            <div class="status-indicator" id="status-indicator">処理完了</div>
+
+            <!-- Algorithm Overview -->
+            <section class="section fade-in">
+                <h2><i class="fas fa-info-circle"></i> アルゴリズム概要</h2>
+                <p>
+                    <strong>組み合わせアルゴリズム（Combination Algorithm）</strong
+                    >は、与えられた範囲 <code>[1, n]</code> から
+                    <code>k</code>
+                    個の要素を選ぶすべての組み合わせを生成するアルゴリズムです。
+                    バックトラッキング手法を用いることで、効率的に全組み合わせを列挙できます。
+                </p>
+
+                <h3>主要な特徴</h3>
+                <ul>
+                    <li>🔄 <strong>バックトラッキング</strong>: 部分解を構築しながら探索</li>
+                    <li>⚡ <strong>効率的</strong>: 無駄な計算を回避</li>
+                    <li>🎯 <strong>完全性</strong>: すべての組み合わせを漏れなく生成</li>
+                    <li>💾 <strong>省メモリ</strong>: O(k)の空間計算量</li>
+                </ul>
+            </section>
+
+            <!-- Interactive Controls -->
+            <section class="section">
+                <h2><i class="fas fa-gamepad"></i> インタラクティブデモ</h2>
+                <div class="control-panel">
+                    <div class="input-group">
+                        <label for="n-input">n:</label>
+                        <input type="number" id="n-input" value="4" min="1" max="10" />
+                    </div>
+                    <div class="input-group">
+                        <label for="k-input">k:</label>
+                        <input type="number" id="k-input" value="2" min="1" max="10" />
+                    </div>
+                    <button class="btn" id="run-demo-btn" onclick="runDemo()">
+                        <i class="fas fa-play"></i> デモ実行
+                    </button>
+                    <button class="btn success" id="step-demo-btn" onclick="runStepByStep()">
+                        <i class="fas fa-step-forward"></i> ステップ実行
+                    </button>
+                    <button class="btn warning" id="reset-btn" onclick="resetDemo()">
+                        <i class="fas fa-refresh"></i> リセット
+                    </button>
+                </div>
+
+                <div class="progress-container" id="progress-container" style="display: none">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <div class="results-panel">
+                    <h3>実行結果</h3>
+                    <div id="results-display">結果がここに表示されます</div>
+                </div>
+            </section>
+
+            <!-- Step by Step Explanation -->
+            <section class="section">
+                <h2><i class="fas fa-list-ol"></i> ステップバイステップ解説</h2>
+                <div class="step-container">
+                    <div class="steps-panel">
+                        <h3>処理ステップ</h3>
+                        <div class="step-item active" data-step="0">
+                            <span class="step-number">1</span>
+                            <strong>初期化</strong>: result配列とpath配列を用意
+                        </div>
+                        <div class="step-item" data-step="1">
+                            <span class="step-number">2</span>
+                            <strong>開始</strong>: backtrack(1)を呼び出し
+                        </div>
+                        <div class="step-item" data-step="2">
+                            <span class="step-number">3</span>
+                            <strong>要素追加</strong>: pathに現在の数値を追加
+                        </div>
+                        <div class="step-item" data-step="3">
+                            <span class="step-number">4</span>
+                            <strong>判定</strong>: len(path) == k かチェック
+                        </div>
+                        <div class="step-item" data-step="4">
+                            <span class="step-number">5</span>
+                            <strong>結果追加</strong>: 条件満たす場合resultに追加
+                        </div>
+                        <div class="step-item" data-step="5">
+                            <span class="step-number">6</span>
+                            <strong>再帰呼び出し</strong>: 次の要素で再帰
+                        </div>
+                        <div class="step-item" data-step="6">
+                            <span class="step-number">7</span>
+                            <strong>バックトラック</strong>: pathから要素を削除
+                        </div>
+                    </div>
+
+                    <div class="tree-visualization">
+                        <h3>探索木の可視化</h3>
+                        <div id="tree-display">
+                            <div style="color: var(--text-secondary); padding: 40px">
+                                <i
+                                    class="fas fa-play-circle"
+                                    style="font-size: 2rem; margin-bottom: 10px"
+                                ></i>
+                                <div>デモを実行して探索過程を確認してください</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Implementation -->
+            <section class="section">
+                <h2><i class="fas fa-code"></i> 実装コード</h2>
+                <div class="code-container">
+                    <pre class="line-numbers"><code class="language-python">from typing import List
 
 class Solution:
     def combine(self, n: int, k: int) -> List[List[int]]:
@@ -991,523 +961,510 @@ solution = Solution()
 result = solution.combine(4, 2)
 print(f"C(4,2) = {result}")
 # Output: [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]</code></pre>
+                </div>
+            </section>
+
+            <!-- Complexity Analysis -->
+            <section class="section">
+                <h2><i class="fas fa-chart-line"></i> 計算量解析</h2>
+                <div class="complexity-grid">
+                    <div class="complexity-card">
+                        <div class="complexity-value">O(C(n,k))</div>
+                        <div class="complexity-label">時間計算量</div>
+                    </div>
+                    <div class="complexity-card">
+                        <div class="complexity-value">O(k)</div>
+                        <div class="complexity-label">空間計算量</div>
+                    </div>
+                    <div class="complexity-card">
+                        <div class="complexity-value">C(n,k)</div>
+                        <div class="complexity-label">出力サイズ</div>
+                    </div>
+                </div>
+
+                <h3>詳細説明</h3>
+                <p>
+                    <strong>時間計算量 O(C(n,k))</strong>: 生成される組み合わせの数に比例します。
+                    各組み合わせの生成に O(k) 時間かかるため、全体では O(k × C(n,k)) となりますが、
+                    通常は O(C(n,k)) で表現されます。
+                </p>
+                <p>
+                    <strong>空間計算量 O(k)</strong>: 再帰スタックの深さが最大 k であり、 path
+                    配列も最大 k 要素を保持するため、O(k) の空間を使用します。
+                </p>
+            </section>
+
+            <!-- Visual Flowchart -->
+            <section class="section">
+                <h2><i class="fas fa-sitemap"></i> アルゴリズムフローチャート</h2>
+                <div class="tree-visualization">
+                    <div id="flowchart-display">
+                        <div
+                            style="
+                                margin: 20px;
+                                font-size: 16px;
+                                text-align: left;
+                                max-width: 600px;
+                                margin: 0 auto;
+                            "
+                        >
+                            <div style="text-align: center; margin-bottom: 20px">
+                                <div
+                                    style="
+                                        background: var(--primary-color);
+                                        padding: 10px;
+                                        border-radius: 8px;
+                                        display: inline-block;
+                                    "
+                                >
+                                    📌 Start: backtrack(1, path=[])
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin: 10px 0">↓</div>
+                            <div style="text-align: center">
+                                <div
+                                    style="
+                                        background: var(--accent-color);
+                                        color: var(--dark-bg);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                        display: inline-block;
+                                    "
+                                >
+                                    🔍 Check: len(path) == k?
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin: 15px 0">
+                                <span style="margin: 0 20px">↙ Yes</span>
+                                <span style="margin: 0 20px">↓ No</span>
+                                <span style="margin: 0 20px">↘</span>
+                            </div>
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: space-around;
+                                    flex-wrap: wrap;
+                                    gap: 10px;
+                                "
+                            >
+                                <div
+                                    style="
+                                        background: var(--success-color);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                    "
+                                >
+                                    ✅ Add to result
+                                </div>
+                                <div
+                                    style="
+                                        background: var(--medium-bg);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                    "
+                                >
+                                    🔄 Loop i=start to n
+                                </div>
+                                <div
+                                    style="
+                                        background: var(--danger-color);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                    "
+                                >
+                                    🔙 Return
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin: 10px 0">↓</div>
+                            <div style="text-align: center">
+                                <div
+                                    style="
+                                        background: var(--primary-color);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                        display: inline-block;
+                                    "
+                                >
+                                    ➕ path.append(i)
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin: 10px 0">↓</div>
+                            <div style="text-align: center">
+                                <div
+                                    style="
+                                        background: var(--secondary-color);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                        display: inline-block;
+                                    "
+                                >
+                                    🔄 backtrack(i+1)
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin: 10px 0">↓</div>
+                            <div style="text-align: center">
+                                <div
+                                    style="
+                                        background: var(--accent-color);
+                                        color: var(--dark-bg);
+                                        padding: 8px;
+                                        border-radius: 6px;
+                                        display: inline-block;
+                                    "
+                                >
+                                    ➖ path.pop() (Backtrack)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-      </section>
 
-      <!-- Complexity Analysis -->
-      <section class="section">
-        <h2><i class="fas fa-chart-line"></i> 計算量解析</h2>
-        <div class="complexity-grid">
-          <div class="complexity-card">
-            <div class="complexity-value">O(C(n,k))</div>
-            <div class="complexity-label">時間計算量</div>
-          </div>
-          <div class="complexity-card">
-            <div class="complexity-value">O(k)</div>
-            <div class="complexity-label">空間計算量</div>
-          </div>
-          <div class="complexity-card">
-            <div class="complexity-value">C(n,k)</div>
-            <div class="complexity-label">出力サイズ</div>
-          </div>
-        </div>
+        <!-- Load Prism.js in correct order with all required plugins -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
 
-        <h3>詳細説明</h3>
-        <p>
-          <strong>時間計算量 O(C(n,k))</strong>:
-          生成される組み合わせの数に比例します。 各組み合わせの生成に O(k)
-          時間かかるため、全体では O(k × C(n,k)) となりますが、 通常は O(C(n,k))
-          で表現されます。
-        </p>
-        <p>
-          <strong>空間計算量 O(k)</strong>: 再帰スタックの深さが最大 k であり、
-          path 配列も最大 k 要素を保持するため、O(k) の空間を使用します。
-        </p>
-      </section>
+        <script>
+            // Global variables for demo
+            let currentStep = 0;
+            let demoData = null;
+            let isStepMode = false;
+            let stepTimer = null;
+            let selectedResultIndex = -1;
 
-      <!-- Visual Flowchart -->
-      <section class="section">
-        <h2><i class="fas fa-sitemap"></i> アルゴリズムフローチャート</h2>
-        <div class="tree-visualization">
-          <div id="flowchart-display">
-            <div
-              style="
-                margin: 20px;
-                font-size: 16px;
-                text-align: left;
-                max-width: 600px;
-                margin: 0 auto;
-              "
-            >
-              <div style="text-align: center; margin-bottom: 20px">
-                <div
-                  style="
-                    background: var(--primary-color);
-                    padding: 10px;
-                    border-radius: 8px;
-                    display: inline-block;
-                  "
-                >
-                  📌 Start: backtrack(1, path=[])
-                </div>
-              </div>
-              <div style="text-align: center; margin: 10px 0">↓</div>
-              <div style="text-align: center">
-                <div
-                  style="
-                    background: var(--accent-color);
-                    color: var(--dark-bg);
-                    padding: 8px;
-                    border-radius: 6px;
-                    display: inline-block;
-                  "
-                >
-                  🔍 Check: len(path) == k?
-                </div>
-              </div>
-              <div style="text-align: center; margin: 15px 0">
-                <span style="margin: 0 20px">↙ Yes</span>
-                <span style="margin: 0 20px">↓ No</span>
-                <span style="margin: 0 20px">↘</span>
-              </div>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-around;
-                  flex-wrap: wrap;
-                  gap: 10px;
-                "
-              >
-                <div
-                  style="
-                    background: var(--success-color);
-                    padding: 8px;
-                    border-radius: 6px;
-                  "
-                >
-                  ✅ Add to result
-                </div>
-                <div
-                  style="
-                    background: var(--medium-bg);
-                    padding: 8px;
-                    border-radius: 6px;
-                  "
-                >
-                  🔄 Loop i=start to n
-                </div>
-                <div
-                  style="
-                    background: var(--danger-color);
-                    padding: 8px;
-                    border-radius: 6px;
-                  "
-                >
-                  🔙 Return
-                </div>
-              </div>
-              <div style="text-align: center; margin: 10px 0">↓</div>
-              <div style="text-align: center">
-                <div
-                  style="
-                    background: var(--primary-color);
-                    padding: 8px;
-                    border-radius: 6px;
-                    display: inline-block;
-                  "
-                >
-                  ➕ path.append(i)
-                </div>
-              </div>
-              <div style="text-align: center; margin: 10px 0">↓</div>
-              <div style="text-align: center">
-                <div
-                  style="
-                    background: var(--secondary-color);
-                    padding: 8px;
-                    border-radius: 6px;
-                    display: inline-block;
-                  "
-                >
-                  🔄 backtrack(i+1)
-                </div>
-              </div>
-              <div style="text-align: center; margin: 10px 0">↓</div>
-              <div style="text-align: center">
-                <div
-                  style="
-                    background: var(--accent-color);
-                    color: var(--dark-bg);
-                    padding: 8px;
-                    border-radius: 6px;
-                    display: inline-block;
-                  "
-                >
-                  ➖ path.pop() (Backtrack)
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+            // Initialize Prism.js configuration
+            window.Prism = window.Prism || {};
+            window.Prism.manual = true;
 
-    <!-- Load Prism.js in correct order with all required plugins -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function () {
+                // Configure Prism.js plugins
+                if (window.Prism) {
+                    // Set up copy button text
+                    if (window.Prism.plugins && window.Prism.plugins.toolbar) {
+                        window.Prism.plugins.toolbar.registerButton(
+                            'copy-to-clipboard',
+                            function () {
+                                var button = document.createElement('button');
+                                button.textContent = 'Copy';
+                                button.className = 'copy-to-clipboard-button';
+                                return button;
+                            },
+                        );
+                    }
 
-    <script>
-      // Global variables for demo
-      let currentStep = 0;
-      let demoData = null;
-      let isStepMode = false;
-      let stepTimer = null;
-      let selectedResultIndex = -1;
+                    // Force re-highlight with proper line numbers
+                    setTimeout(() => {
+                        const codeBlocks = document.querySelectorAll('pre code');
+                        codeBlocks.forEach((block) => {
+                            // Ensure proper line counting
+                            const pre = block.parentElement;
+                            if (pre && pre.classList.contains('line-numbers')) {
+                                // Fix line numbers
+                                fixLineNumbers(pre);
+                            }
+                        });
 
-      // Initialize Prism.js configuration
-      window.Prism = window.Prism || {};
-      window.Prism.manual = true;
+                        // Highlight all code blocks
+                        if (window.Prism.highlightAll) {
+                            window.Prism.highlightAll();
+                        }
+                    }, 100);
+                }
 
-      // Initialize
-      document.addEventListener("DOMContentLoaded", function () {
-        // Configure Prism.js plugins
-        if (window.Prism) {
-          // Set up copy button text
-          if (window.Prism.plugins && window.Prism.plugins.toolbar) {
-            window.Prism.plugins.toolbar.registerButton(
-              "copy-to-clipboard",
-              function () {
-                var button = document.createElement("button");
-                button.textContent = "Copy";
-                button.className = "copy-to-clipboard-button";
-                return button;
-              }
-            );
-          }
+                updateStepHighlight();
+                setupEventListeners();
 
-          // Force re-highlight with proper line numbers
-          setTimeout(() => {
-            const codeBlocks = document.querySelectorAll("pre code");
-            codeBlocks.forEach((block) => {
-              // Ensure proper line counting
-              const pre = block.parentElement;
-              if (pre && pre.classList.contains("line-numbers")) {
-                // Fix line numbers
-                fixLineNumbers(pre);
-              }
+                // Run initial demo after ensuring everything is loaded
+                setTimeout(() => {
+                    runDemo();
+                }, 800);
             });
 
-            // Highlight all code blocks
-            if (window.Prism.highlightAll) {
-              window.Prism.highlightAll();
+            // Fix line numbers positioning
+            function fixLineNumbers(pre) {
+                if (!pre.classList.contains('line-numbers')) return;
+
+                const code = pre.querySelector('code');
+                if (!code) return;
+
+                // Count actual lines in the code
+                const lines = code.textContent.split('\n');
+                const lineCount = lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
+                console.log('Line count:', lineCount);
+
+                const existing = pre.querySelector('.line-numbers-rows');
+                if (existing) {
+                    pre.style.counterReset = 'linenumber 0';
+                }
             }
-          }, 100);
-        }
+            // Enhanced combination algorithm implementation for demo
+            function generateCombinations(n, k) {
+                const result = [];
+                const path = [];
+                const steps = [];
+                let stepCounter = 0;
 
-        updateStepHighlight();
-        setupEventListeners();
+                function backtrack(start) {
+                    stepCounter++;
+                    steps.push({
+                        id: stepCounter,
+                        action: 'enter',
+                        start: start,
+                        path: [...path],
+                        resultCount: result.length,
+                        description: `backtrack(${start}) 呼び出し - 現在のpath: [${
+                            path.join(', ') || 'empty'
+                        }]`,
+                    });
 
-        // Run initial demo after ensuring everything is loaded
-        setTimeout(() => {
-          runDemo();
-        }, 800);
-      });
+                    if (path.length === k) {
+                        result.push([...path]);
+                        stepCounter++;
+                        steps.push({
+                            id: stepCounter,
+                            action: 'found',
+                            path: [...path],
+                            resultCount: result.length,
+                            description: `組み合わせ発見: [${path.join(', ')}] - 結果に追加`,
+                        });
+                        return;
+                    }
 
-      // Fix line numbers positioning
-      function fixLineNumbers(pre) {
-        if (!pre.classList.contains("line-numbers")) return;
+                    for (let i = start; i <= n; i++) {
+                        stepCounter++;
+                        path.push(i);
+                        steps.push({
+                            id: stepCounter,
+                            action: 'add',
+                            value: i,
+                            path: [...path],
+                            resultCount: result.length,
+                            description: `値 ${i} をpathに追加 - 現在のpath: [${path.join(', ')}]`,
+                        });
 
-        const code = pre.querySelector("code");
-        if (!code) return;
+                        backtrack(i + 1);
 
-        // Count actual lines in the code
-        const lines = code.textContent.split("\n");
-        const lineCount =
-          lines[lines.length - 1] === "" ? lines.length - 1 : lines.length;
-        console.log("Line count:", lineCount);
+                        stepCounter++;
+                        const poppedValue = path.pop();
+                        steps.push({
+                            id: stepCounter,
+                            action: 'remove',
+                            value: poppedValue,
+                            path: [...path],
+                            resultCount: result.length,
+                            description: `値 ${poppedValue} をpathから削除 (バックトラック) - 現在のpath: [${
+                                path.join(', ') || 'empty'
+                            }]`,
+                        });
+                    }
+                }
 
-        const existing = pre.querySelector(".line-numbers-rows");
-        if (existing) {
-          pre.style.counterReset = "linenumber 0";
-        }
-      }
-      // Enhanced combination algorithm implementation for demo
-      function generateCombinations(n, k) {
-        const result = [];
-        const path = [];
-        const steps = [];
-        let stepCounter = 0;
+                backtrack(1);
+                return { result, steps };
+            }
 
-        function backtrack(start) {
-          stepCounter++;
-          steps.push({
-            id: stepCounter,
-            action: "enter",
-            start: start,
-            path: [...path],
-            resultCount: result.length,
-            description: `backtrack(${start}) 呼び出し - 現在のpath: [${
-              path.join(", ") || "empty"
-            }]`,
-          });
+            function showStatus(message, type = 'success') {
+                const indicator = document.getElementById('status-indicator');
+                indicator.textContent = message;
+                indicator.className = `status-indicator show ${type}`;
 
-          if (path.length === k) {
-            result.push([...path]);
-            stepCounter++;
-            steps.push({
-              id: stepCounter,
-              action: "found",
-              path: [...path],
-              resultCount: result.length,
-              description: `組み合わせ発見: [${path.join(", ")}] - 結果に追加`,
-            });
-            return;
-          }
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 2000);
+            }
 
-          for (let i = start; i <= n; i++) {
-            stepCounter++;
-            path.push(i);
-            steps.push({
-              id: stepCounter,
-              action: "add",
-              value: i,
-              path: [...path],
-              resultCount: result.length,
-              description: `値 ${i} をpathに追加 - 現在のpath: [${path.join(
-                ", "
-              )}]`,
-            });
+            function updateProgress(current, total) {
+                const container = document.getElementById('progress-container');
+                const bar = document.getElementById('progress-bar');
 
-            backtrack(i + 1);
+                if (total > 0) {
+                    container.style.display = 'block';
+                    bar.style.width = `${(current / total) * 100}%`;
+                } else {
+                    container.style.display = 'none';
+                }
+            }
 
-            stepCounter++;
-            const poppedValue = path.pop();
-            steps.push({
-              id: stepCounter,
-              action: "remove",
-              value: poppedValue,
-              path: [...path],
-              resultCount: result.length,
-              description: `値 ${poppedValue} をpathから削除 (バックトラック) - 現在のpath: [${
-                path.join(", ") || "empty"
-              }]`,
-            });
-          }
-        }
+            function runDemo() {
+                const n = parseInt(document.getElementById('n-input').value);
+                const k = parseInt(document.getElementById('k-input').value);
 
-        backtrack(1);
-        return { result, steps };
-      }
+                // Input validation
+                if (isNaN(n) || isNaN(k) || k > n || n <= 0 || k <= 0) {
+                    showStatus('Invalid input: ensure 1 ≤ k ≤ n', 'error');
+                    return;
+                }
 
-      function showStatus(message, type = "success") {
-        const indicator = document.getElementById("status-indicator");
-        indicator.textContent = message;
-        indicator.className = `status-indicator show ${type}`;
+                if (n > 10) {
+                    showStatus('n値が大きすぎます。n ≤ 10 に設定してください', 'warning');
+                    return;
+                }
 
-        setTimeout(() => {
-          indicator.classList.remove("show");
-        }, 2000);
-      }
+                // Disable buttons during execution
+                setButtonsEnabled(false);
+                showStatus('処理中...', 'info');
 
-      function updateProgress(current, total) {
-        const container = document.getElementById("progress-container");
-        const bar = document.getElementById("progress-bar");
+                try {
+                    const startTime = performance.now();
+                    const { result, steps } = generateCombinations(n, k);
+                    const endTime = performance.now();
 
-        if (total > 0) {
-          container.style.display = "block";
-          bar.style.width = `${(current / total) * 100}%`;
-        } else {
-          container.style.display = "none";
-        }
-      }
+                    demoData = {
+                        result,
+                        steps,
+                        n,
+                        k,
+                        executionTime: endTime - startTime,
+                    };
 
-      function runDemo() {
-        const n = parseInt(document.getElementById("n-input").value);
-        const k = parseInt(document.getElementById("k-input").value);
+                    displayResults(result);
+                    updateTreeVisualization();
+                    showPerformanceMetrics();
+                    validateResults();
 
-        // Input validation
-        if (isNaN(n) || isNaN(k) || k > n || n <= 0 || k <= 0) {
-          showStatus("Invalid input: ensure 1 ≤ k ≤ n", "error");
-          return;
-        }
+                    isStepMode = false;
+                    currentStep = 0;
+                    selectedResultIndex = -1;
 
-        if (n > 10) {
-          showStatus("n値が大きすぎます。n ≤ 10 に設定してください", "warning");
-          return;
-        }
+                    showStatus('デモ実行完了！');
+                } catch (error) {
+                    console.error('Demo execution error:', error);
+                    showStatus('エラーが発生しました', 'error');
+                } finally {
+                    setButtonsEnabled(true);
+                }
+            }
 
-        // Disable buttons during execution
-        setButtonsEnabled(false);
-        showStatus("処理中...", "info");
+            function displayResults(result) {
+                const display = document.getElementById('results-display');
+                display.innerHTML = '';
 
-        try {
-          const startTime = performance.now();
-          const { result, steps } = generateCombinations(n, k);
-          const endTime = performance.now();
+                if (result.length === 0) {
+                    display.innerHTML =
+                        '<div style="color: var(--text-secondary);">結果がありません</div>';
+                    return;
+                }
 
-          demoData = {
-            result,
-            steps,
-            n,
-            k,
-            executionTime: endTime - startTime,
-          };
+                result.forEach((combination, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    item.textContent = `[${combination.join(', ')}]`;
+                    item.onclick = () => highlightCombination(index);
+                    item.setAttribute('data-index', index);
+                    display.appendChild(item);
+                });
 
-          displayResults(result);
-          updateTreeVisualization();
-          showPerformanceMetrics();
-          validateResults();
+                const summary = document.createElement('div');
+                summary.style.marginTop = '15px';
+                summary.style.color = 'var(--accent-color)';
+                summary.innerHTML = `<strong>総数: ${result.length} 通り (C(${demoData.n},${demoData.k}) = ${result.length})</strong>`;
+                display.appendChild(summary);
+            }
 
-          isStepMode = false;
-          currentStep = 0;
-          selectedResultIndex = -1;
+            function updateTreeVisualization() {
+                const display = document.getElementById('tree-display');
+                display.innerHTML = '';
 
-          showStatus("デモ実行完了！");
-        } catch (error) {
-          console.error("Demo execution error:", error);
-          showStatus("エラーが発生しました", "error");
-        } finally {
-          setButtonsEnabled(true);
-        }
-      }
+                if (!demoData || !demoData.result) {
+                    display.innerHTML =
+                        '<div style="color: var(--text-secondary);">結果がありません</div>';
+                    return;
+                }
 
-      function displayResults(result) {
-        const display = document.getElementById("results-display");
-        display.innerHTML = "";
-
-        if (result.length === 0) {
-          display.innerHTML =
-            '<div style="color: var(--text-secondary);">結果がありません</div>';
-          return;
-        }
-
-        result.forEach((combination, index) => {
-          const item = document.createElement("div");
-          item.className = "result-item";
-          item.textContent = `[${combination.join(", ")}]`;
-          item.onclick = () => highlightCombination(index);
-          item.setAttribute("data-index", index);
-          display.appendChild(item);
-        });
-
-        const summary = document.createElement("div");
-        summary.style.marginTop = "15px";
-        summary.style.color = "var(--accent-color)";
-        summary.innerHTML = `<strong>総数: ${result.length} 通り (C(${demoData.n},${demoData.k}) = ${result.length})</strong>`;
-        display.appendChild(summary);
-      }
-
-      function updateTreeVisualization() {
-        const display = document.getElementById("tree-display");
-        display.innerHTML = "";
-
-        if (!demoData || !demoData.result) {
-          display.innerHTML =
-            '<div style="color: var(--text-secondary);">結果がありません</div>';
-          return;
-        }
-
-        // Create enhanced tree structure visualization
-        const tree = document.createElement("div");
-        tree.innerHTML = `
+                // Create enhanced tree structure visualization
+                const tree = document.createElement('div');
+                tree.innerHTML = `
                       <div style="font-size: 18px; margin-bottom: 20px; color: var(--accent-color);">
-                          <strong>探索木 (n=${demoData.n}, k=${
-          demoData.k
-        })</strong>
+                          <strong>探索木 (n=${demoData.n}, k=${demoData.k})</strong>
                       </div>
                       <div style="font-family: 'Fira Code', monospace; text-align: left; max-width: 100%; overflow-x: auto;">
                           ${generateEnhancedTreeHTML()}
                       </div>
                   `;
-        display.appendChild(tree);
-      }
+                display.appendChild(tree);
+            }
 
-      function generateEnhancedTreeHTML() {
-        if (!demoData) return "";
+            function generateEnhancedTreeHTML() {
+                if (!demoData) return '';
 
-        const { result, n, k } = demoData;
-        let html =
-          '<div style="display: flex; flex-direction: column; gap: 15px;">';
+                const { result, n, k } = demoData;
+                let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
 
-        // Group combinations by first element
-        const groups = {};
-        result.forEach((combination) => {
-          const first = combination[0];
-          if (!groups[first]) groups[first] = [];
-          groups[first].push(combination);
-        });
+                // Group combinations by first element
+                const groups = {};
+                result.forEach((combination) => {
+                    const first = combination[0];
+                    if (!groups[first]) groups[first] = [];
+                    groups[first].push(combination);
+                });
 
-        // Display tree structure
-        Object.keys(groups)
-          .sort((a, b) => parseInt(a) - parseInt(b))
-          .forEach((first) => {
-            html += `<div style="margin-bottom: 15px;">`;
-            html += `<div style="color: var(--primary-color); font-weight: bold; margin-bottom: 8px;">開始点: ${first}</div>`;
-            html += `<div style="margin-left: 20px; display: flex; flex-wrap: wrap; gap: 8px;">`;
+                // Display tree structure
+                Object.keys(groups)
+                    .sort((a, b) => parseInt(a) - parseInt(b))
+                    .forEach((first) => {
+                        html += `<div style="margin-bottom: 15px;">`;
+                        html += `<div style="color: var(--primary-color); font-weight: bold; margin-bottom: 8px;">開始点: ${first}</div>`;
+                        html += `<div style="margin-left: 20px; display: flex; flex-wrap: wrap; gap: 8px;">`;
 
-            groups[first].forEach((combination, idx) => {
-              const globalIndex = result.findIndex(
-                (r) =>
-                  r.length === combination.length &&
-                  r.every((val, i) => val === combination[i])
-              );
-              html += `<span class="tree-node" data-result-index="${globalIndex}" onclick="highlightCombination(${globalIndex})">[${combination.join(
-                ","
-              )}]</span>`;
-            });
+                        groups[first].forEach((combination, idx) => {
+                            const globalIndex = result.findIndex(
+                                (r) =>
+                                    r.length === combination.length &&
+                                    r.every((val, i) => val === combination[i]),
+                            );
+                            html += `<span class="tree-node" data-result-index="${globalIndex}" onclick="highlightCombination(${globalIndex})">[${combination.join(
+                                ',',
+                            )}]</span>`;
+                        });
 
-            html += `</div></div>`;
-          });
+                        html += `</div></div>`;
+                    });
 
-        html += "</div>";
-        return html;
-      }
+                html += '</div>';
+                return html;
+            }
 
-      function runStepByStep() {
-        if (!demoData || !demoData.steps) {
-          showStatus("まずデモを実行してください", "warning");
-          runDemo();
-          return;
-        }
+            function runStepByStep() {
+                if (!demoData || !demoData.steps) {
+                    showStatus('まずデモを実行してください', 'warning');
+                    runDemo();
+                    return;
+                }
 
-        isStepMode = true;
-        currentStep = 0;
-        setButtonsEnabled(false);
+                isStepMode = true;
+                currentStep = 0;
+                setButtonsEnabled(false);
 
-        showStatus("ステップ実行開始", "info");
-        showStep(0);
-      }
+                showStatus('ステップ実行開始', 'info');
+                showStep(0);
+            }
 
-      function showStep(stepIndex) {
-        if (
-          !demoData ||
-          !demoData.steps ||
-          stepIndex >= demoData.steps.length
-        ) {
-          completeStepMode();
-          return;
-        }
+            function showStep(stepIndex) {
+                if (!demoData || !demoData.steps || stepIndex >= demoData.steps.length) {
+                    completeStepMode();
+                    return;
+                }
 
-        const step = demoData.steps[stepIndex];
-        const display = document.getElementById("tree-display");
+                const step = demoData.steps[stepIndex];
+                const display = document.getElementById('tree-display');
 
-        // Update progress
-        updateProgress(stepIndex + 1, demoData.steps.length);
+                // Update progress
+                updateProgress(stepIndex + 1, demoData.steps.length);
 
-        // Update step highlight
-        const stepItems = document.querySelectorAll(".step-item");
-        stepItems.forEach((item, index) => {
-          item.classList.toggle("active", index === stepIndex % 7);
-        });
+                // Update step highlight
+                const stepItems = document.querySelectorAll('.step-item');
+                stepItems.forEach((item, index) => {
+                    item.classList.toggle('active', index === stepIndex % 7);
+                });
 
-        let html = `
+                let html = `
                       <div style="font-size: 18px; margin-bottom: 20px; color: var(--success-color);">
-                          <strong>ステップ ${stepIndex + 1}/${
-          demoData.steps.length
-        }</strong>
+                          <strong>ステップ ${stepIndex + 1}/${demoData.steps.length}</strong>
                           <span style="float: right; font-size: 14px; color: var(--text-secondary);">
                               ID: ${step.id}
                           </span>
@@ -1525,13 +1482,13 @@ print(f"C(4,2) = {result}")
                           <div style="margin-bottom: 8px;">
                               <strong>現在のPath:</strong>
                               <code style="background: var(--dark-bg); padding: 2px 6px; border-radius: 3px;">[${step.path.join(
-                                ", "
+                                  ', ',
                               )}]</code>
                           </div>
                           <div>
                               <strong>結果数:</strong>
                               <span style="color: var(--success-color); font-weight: bold;">${
-                                step.resultCount
+                                  step.resultCount
                               }</span>
                           </div>
                       </div>
@@ -1545,233 +1502,228 @@ print(f"C(4,2) = {result}")
                       </div>
                   `;
 
-        display.innerHTML = html;
-      }
+                display.innerHTML = html;
+            }
 
-      function nextStep() {
-        if (isStepMode && currentStep < demoData.steps.length - 1) {
-          currentStep++;
-          showStep(currentStep);
-        }
-      }
+            function nextStep() {
+                if (isStepMode && currentStep < demoData.steps.length - 1) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            }
 
-      function skipToEnd() {
-        completeStepMode();
-      }
+            function skipToEnd() {
+                completeStepMode();
+            }
 
-      function completeStepMode() {
-        isStepMode = false;
-        updateProgress(0, 0);
-        updateTreeVisualization();
-        setButtonsEnabled(true);
-        updateStepHighlight();
-        showStatus("ステップ実行完了！");
-      }
+            function completeStepMode() {
+                isStepMode = false;
+                updateProgress(0, 0);
+                updateTreeVisualization();
+                setButtonsEnabled(true);
+                updateStepHighlight();
+                showStatus('ステップ実行完了！');
+            }
 
-      function getStepTypeLabel(action) {
-        const labels = {
-          enter: "関数呼び出し",
-          add: "要素追加",
-          remove: "バックトラック",
-          found: "解発見",
-        };
-        return labels[action] || action;
-      }
+            function getStepTypeLabel(action) {
+                const labels = {
+                    enter: '関数呼び出し',
+                    add: '要素追加',
+                    remove: 'バックトラック',
+                    found: '解発見',
+                };
+                return labels[action] || action;
+            }
 
-      function resetDemo() {
-        // Clear step mode
-        if (stepTimer) {
-          clearTimeout(stepTimer);
-          stepTimer = null;
-        }
+            function resetDemo() {
+                // Clear step mode
+                if (stepTimer) {
+                    clearTimeout(stepTimer);
+                    stepTimer = null;
+                }
 
-        isStepMode = false;
-        currentStep = 0;
-        selectedResultIndex = -1;
-        demoData = null;
+                isStepMode = false;
+                currentStep = 0;
+                selectedResultIndex = -1;
+                demoData = null;
 
-        // Reset UI
-        document.getElementById("results-display").innerHTML =
-          "結果がここに表示されます";
-        document.getElementById("tree-display").innerHTML = `
+                // Reset UI
+                document.getElementById('results-display').innerHTML = '結果がここに表示されます';
+                document.getElementById('tree-display').innerHTML = `
                       <div style="color: var(--text-secondary); padding: 40px; text-align: center;">
                           <i class="fas fa-play-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                           <div>デモを実行して探索過程を確認してください</div>
                       </div>
                   `;
 
-        // Remove performance metrics and validation
-        const performanceMetrics = document.querySelector(
-          ".performance-metrics"
-        );
-        const validationPanel = document.querySelector(".validation-panel");
-        if (performanceMetrics) performanceMetrics.remove();
-        if (validationPanel) validationPanel.remove();
+                // Remove performance metrics and validation
+                const performanceMetrics = document.querySelector('.performance-metrics');
+                const validationPanel = document.querySelector('.validation-panel');
+                if (performanceMetrics) performanceMetrics.remove();
+                if (validationPanel) validationPanel.remove();
 
-        updateProgress(0, 0);
-        updateStepHighlight();
-        setButtonsEnabled(true);
+                updateProgress(0, 0);
+                updateStepHighlight();
+                setButtonsEnabled(true);
 
-        showStatus("リセット完了");
-      }
-
-      function highlightCombination(index) {
-        selectedResultIndex = index;
-
-        // Update result items
-        document.querySelectorAll(".result-item").forEach((item, idx) => {
-          item.classList.toggle("selected", idx === index);
-        });
-
-        // Update tree nodes
-        document.querySelectorAll(".tree-node").forEach((node) => {
-          const nodeIndex = parseInt(node.getAttribute("data-result-index"));
-          node.classList.toggle("highlight", nodeIndex === index);
-        });
-
-        // Auto-remove highlight after 3 seconds
-        setTimeout(() => {
-          document.querySelectorAll(".tree-node.highlight").forEach((node) => {
-            node.classList.remove("highlight");
-          });
-        }, 3000);
-      }
-
-      function updateStepHighlight() {
-        document.querySelectorAll(".step-item").forEach((item, index) => {
-          item.classList.toggle("active", index === currentStep % 7);
-        });
-      }
-
-      function setButtonsEnabled(enabled) {
-        const buttons = ["run-demo-btn", "step-demo-btn", "reset-btn"];
-        buttons.forEach((id) => {
-          const btn = document.getElementById(id);
-          if (btn) {
-            btn.disabled = !enabled;
-          }
-        });
-      }
-
-      function setupEventListeners() {
-        // Input validation and constraints
-        const nInput = document.getElementById("n-input");
-        const kInput = document.getElementById("k-input");
-
-        nInput.addEventListener("input", function () {
-          const n = parseInt(this.value);
-          if (n > 10) {
-            this.value = 10;
-            showStatus("n値は10以下に設定してください", "warning");
-          }
-
-          const k = parseInt(kInput.value);
-          if (k > n) {
-            kInput.value = Math.min(n, k);
-          }
-          kInput.max = n;
-        });
-
-        kInput.addEventListener("input", function () {
-          const k = parseInt(this.value);
-          const n = parseInt(nInput.value);
-
-          if (k > n) {
-            this.value = n;
-          }
-        });
-
-        // Step navigation
-        document.querySelectorAll(".step-item").forEach((item, index) => {
-          item.addEventListener("click", () => {
-            if (!isStepMode) {
-              currentStep = index;
-              updateStepHighlight();
-
-              // Show explanation for the step
-              showStepExplanation(index);
+                showStatus('リセット完了');
             }
-          });
-        });
 
-        // Keyboard shortcuts
-        document.addEventListener("keydown", function (e) {
-          if (e.ctrlKey || e.altKey || e.metaKey) return;
+            function highlightCombination(index) {
+                selectedResultIndex = index;
 
-          switch (e.key) {
-            case "Enter":
-              e.preventDefault();
-              runDemo();
-              break;
-            case " ":
-              e.preventDefault();
-              runStepByStep();
-              break;
-            case "Escape":
-              e.preventDefault();
-              resetDemo();
-              break;
-            case "ArrowRight":
-              if (isStepMode) {
-                e.preventDefault();
-                nextStep();
-              }
-              break;
-          }
-        });
-      }
+                // Update result items
+                document.querySelectorAll('.result-item').forEach((item, idx) => {
+                    item.classList.toggle('selected', idx === index);
+                });
 
-      function showStepExplanation(stepIndex) {
-        const explanations = [
-          "アルゴリズムの初期化段階です。空のresult配列とpath配列を用意します。",
-          "backtrack(1)を呼び出してアルゴリズムを開始します。",
-          "現在の候補値をpathに追加し、部分解を構築します。",
-          "pathの長さがkに達したかをチェックします。これが終了条件です。",
-          "条件を満たした場合、現在のpathをresultに追加します。",
-          "次の候補について再帰的にbacktrackを呼び出します。",
-          "pathから最後の要素を削除し、前の状態に戻ります（バックトラック）。",
-        ];
+                // Update tree nodes
+                document.querySelectorAll('.tree-node').forEach((node) => {
+                    const nodeIndex = parseInt(node.getAttribute('data-result-index'));
+                    node.classList.toggle('highlight', nodeIndex === index);
+                });
 
-        if (stepIndex < explanations.length) {
-          showStatus(explanations[stepIndex], "info");
-        }
-      }
+                // Auto-remove highlight after 3 seconds
+                setTimeout(() => {
+                    document.querySelectorAll('.tree-node.highlight').forEach((node) => {
+                        node.classList.remove('highlight');
+                    });
+                }, 3000);
+            }
 
-      // Mathematical utilities
-      function calculateCombination(n, k) {
-        if (k > n || k < 0) return 0;
-        if (k === 0 || k === n) return 1;
+            function updateStepHighlight() {
+                document.querySelectorAll('.step-item').forEach((item, index) => {
+                    item.classList.toggle('active', index === currentStep % 7);
+                });
+            }
 
-        k = Math.min(k, n - k);
+            function setButtonsEnabled(enabled) {
+                const buttons = ['run-demo-btn', 'step-demo-btn', 'reset-btn'];
+                buttons.forEach((id) => {
+                    const btn = document.getElementById(id);
+                    if (btn) {
+                        btn.disabled = !enabled;
+                    }
+                });
+            }
 
-        let result = 1;
-        for (let i = 0; i < k; i++) {
-          result = (result * (n - i)) / (i + 1);
-        }
+            function setupEventListeners() {
+                // Input validation and constraints
+                const nInput = document.getElementById('n-input');
+                const kInput = document.getElementById('k-input');
 
-        return Math.round(result);
-      }
+                nInput.addEventListener('input', function () {
+                    const n = parseInt(this.value);
+                    if (n > 10) {
+                        this.value = 10;
+                        showStatus('n値は10以下に設定してください', 'warning');
+                    }
 
-      function showPerformanceMetrics() {
-        if (!demoData) return;
+                    const k = parseInt(kInput.value);
+                    if (k > n) {
+                        kInput.value = Math.min(n, k);
+                    }
+                    kInput.max = n;
+                });
 
-        const { n, k, executionTime, result } = demoData;
-        const theoreticalCount = calculateCombination(n, k);
-        const memoryEstimate = result.length * k * 4; // rough estimate in bytes
+                kInput.addEventListener('input', function () {
+                    const k = parseInt(this.value);
+                    const n = parseInt(nInput.value);
 
-        // Remove existing metrics
-        const existing = document.querySelector(".performance-metrics");
-        if (existing) existing.remove();
+                    if (k > n) {
+                        this.value = n;
+                    }
+                });
 
-        const metricsDisplay = document.createElement("div");
-        metricsDisplay.className = "performance-metrics fade-in";
-        metricsDisplay.innerHTML = `
+                // Step navigation
+                document.querySelectorAll('.step-item').forEach((item, index) => {
+                    item.addEventListener('click', () => {
+                        if (!isStepMode) {
+                            currentStep = index;
+                            updateStepHighlight();
+
+                            // Show explanation for the step
+                            showStepExplanation(index);
+                        }
+                    });
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', function (e) {
+                    if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+                    switch (e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            runDemo();
+                            break;
+                        case ' ':
+                            e.preventDefault();
+                            runStepByStep();
+                            break;
+                        case 'Escape':
+                            e.preventDefault();
+                            resetDemo();
+                            break;
+                        case 'ArrowRight':
+                            if (isStepMode) {
+                                e.preventDefault();
+                                nextStep();
+                            }
+                            break;
+                    }
+                });
+            }
+
+            function showStepExplanation(stepIndex) {
+                const explanations = [
+                    'アルゴリズムの初期化段階です。空のresult配列とpath配列を用意します。',
+                    'backtrack(1)を呼び出してアルゴリズムを開始します。',
+                    '現在の候補値をpathに追加し、部分解を構築します。',
+                    'pathの長さがkに達したかをチェックします。これが終了条件です。',
+                    '条件を満たした場合、現在のpathをresultに追加します。',
+                    '次の候補について再帰的にbacktrackを呼び出します。',
+                    'pathから最後の要素を削除し、前の状態に戻ります（バックトラック）。',
+                ];
+
+                if (stepIndex < explanations.length) {
+                    showStatus(explanations[stepIndex], 'info');
+                }
+            }
+
+            // Mathematical utilities
+            function calculateCombination(n, k) {
+                if (k > n || k < 0) return 0;
+                if (k === 0 || k === n) return 1;
+
+                k = Math.min(k, n - k);
+
+                let result = 1;
+                for (let i = 0; i < k; i++) {
+                    result = (result * (n - i)) / (i + 1);
+                }
+
+                return Math.round(result);
+            }
+
+            function showPerformanceMetrics() {
+                if (!demoData) return;
+
+                const { n, k, executionTime, result } = demoData;
+                const theoreticalCount = calculateCombination(n, k);
+                const memoryEstimate = result.length * k * 4; // rough estimate in bytes
+
+                // Remove existing metrics
+                const existing = document.querySelector('.performance-metrics');
+                if (existing) existing.remove();
+
+                const metricsDisplay = document.createElement('div');
+                metricsDisplay.className = 'performance-metrics fade-in';
+                metricsDisplay.innerHTML = `
                       <h4><i class="fas fa-tachometer-alt"></i> Performance Metrics</h4>
                       <div class="metric-item">
                           <span class="metric-label">実行時間:</span>
-                          <span class="metric-value">${executionTime.toFixed(
-                            2
-                          )}ms</span>
+                          <span class="metric-value">${executionTime.toFixed(2)}ms</span>
                       </div>
                       <div class="metric-item">
                           <span class="metric-label">生成された組み合わせ:</span>
@@ -1783,173 +1735,165 @@ print(f"C(4,2) = {result}")
                       </div>
                       <div class="metric-item">
                           <span class="metric-label">メモリ使用量(推定):</span>
-                          <span class="metric-value">${(
-                            memoryEstimate / 1024
-                          ).toFixed(2)}KB</span>
+                          <span class="metric-value">${(memoryEstimate / 1024).toFixed(2)}KB</span>
                       </div>
                       <div class="metric-item">
                           <span class="metric-label">処理ステップ数:</span>
-                          <span class="metric-value">${
-                            demoData.steps.length
-                          }</span>
+                          <span class="metric-value">${demoData.steps.length}</span>
                       </div>
                   `;
 
-        document
-          .getElementById("results-display")
-          .parentElement.appendChild(metricsDisplay);
-      }
+                document
+                    .getElementById('results-display')
+                    .parentElement.appendChild(metricsDisplay);
+            }
 
-      function validateResults() {
-        if (!demoData) return;
+            function validateResults() {
+                if (!demoData) return;
 
-        const { n, k, result } = demoData;
-        const actualCount = result.length;
-        const theoreticalCount = calculateCombination(n, k);
-        const isValid = actualCount === theoreticalCount;
+                const { n, k, result } = demoData;
+                const actualCount = result.length;
+                const theoreticalCount = calculateCombination(n, k);
+                const isValid = actualCount === theoreticalCount;
 
-        // Remove existing validation
-        const existing = document.querySelector(".validation-panel");
-        if (existing) existing.remove();
+                // Remove existing validation
+                const existing = document.querySelector('.validation-panel');
+                if (existing) existing.remove();
 
-        const validation = document.createElement("div");
-        validation.className = "validation-panel fade-in";
-        validation.innerHTML = `
+                const validation = document.createElement('div');
+                validation.className = 'validation-panel fade-in';
+                validation.innerHTML = `
                       <h4><i class="fas fa-check-circle"></i> 結果検証</h4>
-                      <div class="validation-item ${
-                        isValid ? "valid" : "invalid"
-                      }">
+                      <div class="validation-item ${isValid ? 'valid' : 'invalid'}">
                           <div>
                               <div>理論値 C(${n},${k}): ${theoreticalCount}</div>
                               <div>実際の結果: ${actualCount}</div>
                           </div>
                           <span class="validation-status">
-                              ${isValid ? "✅ 正確" : "❌ エラー"}
+                              ${isValid ? '✅ 正確' : '❌ エラー'}
                           </span>
                       </div>
                       <div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-secondary);">
                           ${
-                            isValid
-                              ? "アルゴリズムは正しく動作しています。すべての組み合わせが生成されました。"
-                              : "エラー: 生成された組み合わせ数が理論値と一致しません。"
+                              isValid
+                                  ? 'アルゴリズムは正しく動作しています。すべての組み合わせが生成されました。'
+                                  : 'エラー: 生成された組み合わせ数が理論値と一致しません。'
                           }
                       </div>
                   `;
 
-        document
-          .getElementById("results-display")
-          .parentElement.appendChild(validation);
-      }
-
-      // Initialize Prism.js properly after DOM load
-      document.addEventListener("DOMContentLoaded", function () {
-        // Ensure Prism processes the code blocks with proper configuration
-        setTimeout(() => {
-          if (typeof Prism !== "undefined") {
-            // Configure copy button
-            if (Prism.plugins && Prism.plugins.toolbar) {
-              Prism.plugins.toolbar.registerButton(
-                "copy-to-clipboard",
-                function (env) {
-                  const button = document.createElement("button");
-                  button.innerHTML =
-                    '<span style="margin-right: 4px;">📋</span>Copy Code';
-                  button.className = "copy-to-clipboard-button";
-
-                  button.addEventListener("click", function () {
-                    const code = env.element.textContent;
-
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                      navigator.clipboard
-                        .writeText(code)
-                        .then(function () {
-                          button.innerHTML =
-                            '<span style="margin-right: 4px;">✅</span>Copied!';
-                          button.setAttribute("data-copy-state", "success");
-
-                          setTimeout(function () {
-                            button.innerHTML =
-                              '<span style="margin-right: 4px;">📋</span>Copy Code';
-                            button.removeAttribute("data-copy-state");
-                          }, 2000);
-                        })
-                        .catch(function () {
-                          // Fallback for older browsers
-                          fallbackCopy(code, button);
-                        });
-                    } else {
-                      // Fallback for browsers without clipboard API
-                      fallbackCopy(code, button);
-                    }
-                  });
-
-                  return button;
-                }
-              );
+                document.getElementById('results-display').parentElement.appendChild(validation);
             }
 
-            // Process all code blocks
-            const codeBlocks = document.querySelectorAll("pre code");
-            codeBlocks.forEach((block, index) => {
-              const pre = block.parentElement;
+            // Initialize Prism.js properly after DOM load
+            document.addEventListener('DOMContentLoaded', function () {
+                // Ensure Prism processes the code blocks with proper configuration
+                setTimeout(() => {
+                    if (typeof Prism !== 'undefined') {
+                        // Configure copy button
+                        if (Prism.plugins && Prism.plugins.toolbar) {
+                            Prism.plugins.toolbar.registerButton(
+                                'copy-to-clipboard',
+                                function (env) {
+                                    const button = document.createElement('button');
+                                    button.innerHTML =
+                                        '<span style="margin-right: 4px;">📋</span>Copy Code';
+                                    button.className = 'copy-to-clipboard-button';
 
-              // Ensure line numbers class
-              if (!pre.classList.contains("line-numbers")) {
-                pre.classList.add("line-numbers");
-              }
+                                    button.addEventListener('click', function () {
+                                        const code = env.element.textContent;
 
-              // Fix line numbers after processing
-              setTimeout(() => {
-                fixLineNumbers(pre);
-              }, 50);
+                                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                                            navigator.clipboard
+                                                .writeText(code)
+                                                .then(function () {
+                                                    button.innerHTML =
+                                                        '<span style="margin-right: 4px;">✅</span>Copied!';
+                                                    button.setAttribute(
+                                                        'data-copy-state',
+                                                        'success',
+                                                    );
+
+                                                    setTimeout(function () {
+                                                        button.innerHTML =
+                                                            '<span style="margin-right: 4px;">📋</span>Copy Code';
+                                                        button.removeAttribute('data-copy-state');
+                                                    }, 2000);
+                                                })
+                                                .catch(function () {
+                                                    // Fallback for older browsers
+                                                    fallbackCopy(code, button);
+                                                });
+                                        } else {
+                                            // Fallback for browsers without clipboard API
+                                            fallbackCopy(code, button);
+                                        }
+                                    });
+
+                                    return button;
+                                },
+                            );
+                        }
+
+                        // Process all code blocks
+                        const codeBlocks = document.querySelectorAll('pre code');
+                        codeBlocks.forEach((block, index) => {
+                            const pre = block.parentElement;
+
+                            // Ensure line numbers class
+                            if (!pre.classList.contains('line-numbers')) {
+                                pre.classList.add('line-numbers');
+                            }
+
+                            // Fix line numbers after processing
+                            setTimeout(() => {
+                                fixLineNumbers(pre);
+                            }, 50);
+                        });
+
+                        // Highlight all code
+                        Prism.highlightAll();
+                    }
+                }, 200);
             });
 
-            // Highlight all code
-            Prism.highlightAll();
-          }
-        }, 200);
-      });
+            function fallbackCopy(text, button) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
 
-      function fallbackCopy(text, button) {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        button.innerHTML = '<span style="margin-right: 4px;">✅</span>Copied!';
+                        button.setAttribute('data-copy-state', 'success');
 
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            button.innerHTML =
-              '<span style="margin-right: 4px;">✅</span>Copied!';
-            button.setAttribute("data-copy-state", "success");
-
-            setTimeout(function () {
-              button.innerHTML =
-                '<span style="margin-right: 4px;">📋</span>Copy Code';
-              button.removeAttribute("data-copy-state");
-            }, 2000);
-          } else {
-            button.innerHTML =
-              '<span style="margin-right: 4px;">❌</span>Failed';
-            setTimeout(function () {
-              button.innerHTML =
-                '<span style="margin-right: 4px;">📋</span>Copy Code';
-            }, 2000);
-          }
-        } catch (err) {
-          button.innerHTML = '<span style="margin-right: 4px;">❌</span>Error';
-          setTimeout(function () {
-            button.innerHTML =
-              '<span style="margin-right: 4px;">📋</span>Copy Code';
-          }, 2000);
-        } finally {
-          document.body.removeChild(textArea);
-        }
-      }
-    </script>
-  </body>
+                        setTimeout(function () {
+                            button.innerHTML =
+                                '<span style="margin-right: 4px;">📋</span>Copy Code';
+                            button.removeAttribute('data-copy-state');
+                        }, 2000);
+                    } else {
+                        button.innerHTML = '<span style="margin-right: 4px;">❌</span>Failed';
+                        setTimeout(function () {
+                            button.innerHTML =
+                                '<span style="margin-right: 4px;">📋</span>Copy Code';
+                        }, 2000);
+                    }
+                } catch (err) {
+                    button.innerHTML = '<span style="margin-right: 4px;">❌</span>Error';
+                    setTimeout(function () {
+                        button.innerHTML = '<span style="margin-right: 4px;">📋</span>Copy Code';
+                    }, 2000);
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        </script>
+    </body>
 </html>

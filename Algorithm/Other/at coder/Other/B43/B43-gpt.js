@@ -33,7 +33,7 @@ function calculateCorrectAnswers(N, M, A) {
     }
 
     // 正解数 = M - 間違えた回数
-    return wrongCounts.map(wrong => M - wrong);
+    return wrongCounts.map((wrong) => M - wrong);
 }
 
 // ===== 標準入力処理 =====

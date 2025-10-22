@@ -1,702 +1,690 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Subsets Algorithm - バックトラッキング解説</title>
-
-    <!-- CDN Links -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-
-    <style>
-      :root {
-        --primary-color: #2563eb;
-        --secondary-color: #1e40af;
-        --accent-color: #3b82f6;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
-        --dark-bg: #0f172a;
-        --card-bg: #1e293b;
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
-        --border-color: #334155;
-        --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-        --gradient: linear-gradient(
-          135deg,
-          var(--primary-color),
-          var(--secondary-color)
-        );
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-        background: var(--dark-bg);
-        color: var(--text-primary);
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
-      }
-
-      /* Header */
-      .header {
-        background: var(--gradient);
-        padding: 4rem 0;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .header::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-        opacity: 0.3;
-      }
-
-      .header-content {
-        position: relative;
-        z-index: 1;
-      }
-
-      .header h1 {
-        font-size: 3.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-      }
-
-      .header p {
-        font-size: 1.25rem;
-        opacity: 0.9;
-        max-width: 600px;
-        margin: 0 auto;
-      }
-
-      /* Navigation */
-      .nav {
-        background: var(--card-bg);
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--border-color);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        backdrop-filter: blur(10px);
-      }
-
-      .nav-container {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-      }
-
-      .nav-item {
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        font-weight: 500;
-      }
-
-      .nav-item:hover,
-      .nav-item.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-        transform: translateY(-2px);
-      }
-
-      /* Main Content */
-      .main {
-        padding: 4rem 0;
-      }
-
-      .section {
-        margin-bottom: 2rem;
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease;
-      }
-
-      .section.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .section-title {
-        font-size: 2.5rem;
-        font-weight: 600;
-        margin-bottom: 2rem;
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .section-title i {
-        font-size: 2rem;
-      }
-
-      /* Cards */
-      .card {
-        background: var(--card-bg);
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-        margin-bottom: 2rem;
-      }
-
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--primary-color);
-      }
-
-      /* Algorithm Overview */
-      .overview-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      .metric-card {
-        background: linear-gradient(
-          135deg,
-          var(--card-bg),
-          var(--border-color)
-        );
-        padding: 2rem;
-        border-radius: 1rem;
-        text-align: center;
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-      }
-
-      .metric-card:hover {
-        transform: scale(1.05);
-        border-color: var(--primary-color);
-      }
-
-      .metric-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--success-color);
-        margin-bottom: 0.5rem;
-      }
-
-      .metric-label {
-        font-size: 1rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-      }
-
-      /* Code Block */
-      .code-container {
-        position: relative;
-        margin: 2rem 0;
-        margin-bottom: 0;
-      }
-
-      .line-numbers .line-numbers-rows {
-        border-right: 1px solid var(--border-color);
-        background: rgba(0, 0, 0, 0.2);
-      }
-
-      .line-numbers-rows > span:before {
-        color: #64748b !important;
-        padding: 1.5px;
-        font-size: 0.9rem;
-        margin: 0 1rem;
-      }
-
-      /* 行番号の背景をダークテーマに合わせる */
-      pre[class*="language-"].line-numbers {
-        padding-top: 0;
-        padding-left: 3.8em;
-        padding-bottom: 0;
-      }
-
-      .code-header {
-        background: var(--border-color);
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem 0.5rem 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-family: "Fira Code", monospace;
-        font-size: 0.9rem;
-      }
-
-      .code-copy {
-        background: var(--primary-color);
-        border: none;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-family: "Fira Code", monospace;
-      }
-
-      .code-copy:hover {
-        background: var(--secondary-color);
-      }
-
-      .code-copy.copied {
-        background: var(--success-color);
-      }
-
-      pre[class*="language-"] {
-        margin: 0 !important;
-        border-radius: 0 0 0.5rem 0.5rem !important;
-        font-family: "Fira Code", monospace !important;
-      }
-
-      /* Step by Step */
-      .steps-container {
-        display: grid;
-        gap: 2rem;
-      }
-
-      .step {
-        display: grid;
-        grid-template-columns: 80px 1fr;
-        gap: 2rem;
-        align-items: start;
-        opacity: 0.3;
-        transition: all 0.5s ease;
-      }
-
-      .step.active {
-        opacity: 1;
-        transform: scale(1.02);
-      }
-
-      .step-number {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: var(--gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: white;
-        box-shadow: var(--shadow);
-      }
-
-      .step-content {
-        background: var(--card-bg);
-        padding: 2rem;
-        border-radius: 1rem;
-        border: 1px solid var(--border-color);
-      }
-
-      .step-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-      }
-
-      .step-description {
-        color: var(--text-secondary);
-        margin-bottom: 1rem;
-      }
-
-      /* Visual Demo */
-      .demo-container {
-        background: var(--card-bg);
-        border-radius: 1rem;
-        padding: 2rem;
-        border: 1px solid var(--border-color);
-      }
-
-      .demo-controls {
-        display: flex;
-        gap: 1rem;
-        margin: 2rem 0;
-        justify-content: center;
-      }
-
-      .demo-btn {
-        background: var(--primary-color);
-        border: none;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
-
-      .demo-btn:hover {
-        background: var(--secondary-color);
-        transform: translateY(-2px);
-      }
-
-      .demo-btn:disabled {
-        background: var(--border-color);
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .visualization {
-        background: #000;
-        border-radius: 0.5rem;
-        padding: 2rem;
-        min-height: 400px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-family: "Fira Code", monospace;
-      }
-
-      .tree-node {
-        background: var(--primary-color);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem;
-        display: inline-block;
-        transition: all 0.3s ease;
-      }
-
-      .tree-node.highlighted {
-        background: var(--warning-color);
-        transform: scale(1.1);
-      }
-
-      /* Complexity Analysis */
-      .complexity-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      .complexity-card {
-        background: linear-gradient(
-          135deg,
-          var(--card-bg),
-          var(--border-color)
-        );
-        padding: 2rem;
-        border-radius: 1rem;
-        border: 1px solid var(--border-color);
-        text-align: center;
-      }
-
-      .complexity-type {
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-      }
-
-      .complexity-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--warning-color);
-        font-family: "Fira Code", monospace;
-        margin-bottom: 1rem;
-      }
-
-      .complexity-desc {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-      }
-
-      /* Responsive */
-      @media (max-width: 768px) {
-        .container {
-          padding: 0 1rem;
-        }
-
-        .header h1 {
-          font-size: 2.5rem;
-        }
-
-        .nav-container {
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
-
-        .step {
-          grid-template-columns: 1fr;
-          text-align: center;
-        }
-
-        .section-title {
-          font-size: 2rem;
-        }
-      }
-
-      /* Animations */
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-      }
-
-      .pulse {
-        animation: pulse 2s infinite;
-      }
-
-      /* Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: var(--dark-bg);
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 4px;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <h1><i class="fas fa-code-branch"></i> Subsets Algorithm</h1>
-          <p>バックトラッキングによる部分集合生成アルゴリズムの完全解説</p>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navigation -->
-    <nav class="nav">
-      <div class="nav-container">
-        <a href="#overview" class="nav-item active"
-          ><i class="fas fa-info-circle"></i> 概要</a
-        >
-        <a href="#steps" class="nav-item"
-          ><i class="fas fa-list-ol"></i> ステップ解説</a
-        >
-        <a href="#code" class="nav-item"><i class="fas fa-code"></i> コード</a>
-        <a href="#demo" class="nav-item"><i class="fas fa-play"></i> デモ</a>
-        <a href="#complexity" class="nav-item"
-          ><i class="fas fa-chart-line"></i> 計算量</a
-        >
-      </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="main">
-      <div class="container">
-        <!-- Overview Section -->
-        <section id="overview" class="section visible">
-          <h2 class="section-title">
-            <i class="fas fa-lightbulb"></i>
-            アルゴリズム概要
-          </h2>
-          <div class="card">
-            <p>
-              <strong>Subsets Problem</strong
-              >は、与えられたユニークな整数配列から全ての可能な部分集合（べき集合）を生成する問題です。バックトラッキング手法を用いることで、効率的かつ直感的に解決できます。
-            </p>
-            <br />
-            <p><strong>制約条件:</strong></p>
-            <ul style="margin-left: 2rem; color: var(--text-secondary)">
-              <li><code>1 ≤ nums.length ≤ 10</code></li>
-              <li><code>-10 ≤ nums[i] ≤ 10</code></li>
-              <li>配列内の全ての数値はユニーク</li>
-              <li>重複する部分集合は含まない</li>
-            </ul>
-          </div>
-
-          <div class="overview-grid">
-            <div class="metric-card">
-              <div class="metric-value">2<sup>n</sup></div>
-              <div class="metric-label">生成される部分集合数</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value">O(2<sup>n</sup>×n)</div>
-              <div class="metric-label">時間計算量</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value">O(n)</div>
-              <div class="metric-label">空間計算量</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Steps Section -->
-        <section id="steps" class="section">
-          <h2 class="section-title">
-            <i class="fas fa-tasks"></i>
-            ステップバイステップ解説
-          </h2>
-          <div class="steps-container">
-            <div class="step active">
-              <div class="step-number">1</div>
-              <div class="step-content">
-                <h3 class="step-title">初期化</h3>
-                <p class="step-description">
-                  結果を格納するリスト<code>result</code>と、現在の部分集合を構築するための作業用リスト<code>path</code>を初期化します。
-                </p>
-              </div>
-            </div>
-
-            <div class="step">
-              <div class="step-number">2</div>
-              <div class="step-content">
-                <h3 class="step-title">現在の部分集合を追加</h3>
-                <p class="step-description">
-                  現在の<code>path</code>の状態をコピーして<code>result</code>に追加します。空の配列から開始するので、最初は空集合<code>[]</code>が追加されます。
-                </p>
-                <div class="code-container">
-                  <pre><code class="language-python">result.append(path[:])</code></pre>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Subsets Algorithm - バックトラッキング解説</title>
+
+        <!-- CDN Links -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --primary-color: #2563eb;
+                --secondary-color: #1e40af;
+                --accent-color: #3b82f6;
+                --success-color: #10b981;
+                --warning-color: #f59e0b;
+                --error-color: #ef4444;
+                --dark-bg: #0f172a;
+                --card-bg: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --text-muted: #94a3b8;
+                --border-color: #334155;
+                --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+                --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+                --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    'Inter',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    sans-serif;
+                background: var(--dark-bg);
+                color: var(--text-primary);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 2rem;
+            }
+
+            /* Header */
+            .header {
+                background: var(--gradient);
+                padding: 4rem 0;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+                opacity: 0.3;
+            }
+
+            .header-content {
+                position: relative;
+                z-index: 1;
+            }
+
+            .header h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .header p {
+                font-size: 1.25rem;
+                opacity: 0.9;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            /* Navigation */
+            .nav {
+                background: var(--card-bg);
+                padding: 1rem 0;
+                border-bottom: 1px solid var(--border-color);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                backdrop-filter: blur(10px);
+            }
+
+            .nav-container {
+                display: flex;
+                justify-content: center;
+                gap: 2rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                background: transparent;
+                border: 1px solid var(--border-color);
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .nav-item:hover,
+            .nav-item.active {
+                background: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+                transform: translateY(-2px);
+            }
+
+            /* Main Content */
+            .main {
+                padding: 4rem 0;
+            }
+
+            .section {
+                margin-bottom: 2rem;
+                opacity: 0;
+                transform: translateY(30px);
+                transition: all 0.8s ease;
+            }
+
+            .section.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+                font-weight: 600;
+                margin-bottom: 2rem;
+                color: var(--primary-color);
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .section-title i {
+                font-size: 2rem;
+            }
+
+            /* Cards */
+            .card {
+                background: var(--card-bg);
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: var(--shadow);
+                border: 1px solid var(--border-color);
+                transition: all 0.3s ease;
+                margin-bottom: 2rem;
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-lg);
+                border-color: var(--primary-color);
+            }
+
+            /* Algorithm Overview */
+            .overview-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+                margin-top: 2rem;
+            }
+
+            .metric-card {
+                background: linear-gradient(135deg, var(--card-bg), var(--border-color));
+                padding: 2rem;
+                border-radius: 1rem;
+                text-align: center;
+                border: 1px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .metric-card:hover {
+                transform: scale(1.05);
+                border-color: var(--primary-color);
+            }
+
+            .metric-value {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: var(--success-color);
+                margin-bottom: 0.5rem;
+            }
+
+            .metric-label {
+                font-size: 1rem;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }
+
+            /* Code Block */
+            .code-container {
+                position: relative;
+                margin: 2rem 0;
+                margin-bottom: 0;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid var(--border-color);
+                background: rgba(0, 0, 0, 0.2);
+            }
+
+            .line-numbers-rows > span:before {
+                color: #64748b !important;
+                padding: 1.5px;
+                font-size: 0.9rem;
+                margin: 0 1rem;
+            }
+
+            /* 行番号の背景をダークテーマに合わせる */
+            pre[class*='language-'].line-numbers {
+                padding-top: 0;
+                padding-left: 3.8em;
+                padding-bottom: 0;
+            }
+
+            .code-header {
+                background: var(--border-color);
+                padding: 1rem 1.5rem;
+                border-radius: 0.5rem 0.5rem 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-family: 'Fira Code', monospace;
+                font-size: 0.9rem;
+            }
+
+            .code-copy {
+                background: var(--primary-color);
+                border: none;
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .code-copy:hover {
+                background: var(--secondary-color);
+            }
+
+            .code-copy.copied {
+                background: var(--success-color);
+            }
+
+            pre[class*='language-'] {
+                margin: 0 !important;
+                border-radius: 0 0 0.5rem 0.5rem !important;
+                font-family: 'Fira Code', monospace !important;
+            }
+
+            /* Step by Step */
+            .steps-container {
+                display: grid;
+                gap: 2rem;
+            }
+
+            .step {
+                display: grid;
+                grid-template-columns: 80px 1fr;
+                gap: 2rem;
+                align-items: start;
+                opacity: 0.3;
+                transition: all 0.5s ease;
+            }
+
+            .step.active {
+                opacity: 1;
+                transform: scale(1.02);
+            }
+
+            .step-number {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: var(--gradient);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: white;
+                box-shadow: var(--shadow);
+            }
+
+            .step-content {
+                background: var(--card-bg);
+                padding: 2rem;
+                border-radius: 1rem;
+                border: 1px solid var(--border-color);
+            }
+
+            .step-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                color: var(--primary-color);
+            }
+
+            .step-description {
+                color: var(--text-secondary);
+                margin-bottom: 1rem;
+            }
+
+            /* Visual Demo */
+            .demo-container {
+                background: var(--card-bg);
+                border-radius: 1rem;
+                padding: 2rem;
+                border: 1px solid var(--border-color);
+            }
+
+            .demo-controls {
+                display: flex;
+                gap: 1rem;
+                margin: 2rem 0;
+                justify-content: center;
+            }
+
+            .demo-btn {
+                background: var(--primary-color);
+                border: none;
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+
+            .demo-btn:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+            }
+
+            .demo-btn:disabled {
+                background: var(--border-color);
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .visualization {
+                background: #000;
+                border-radius: 0.5rem;
+                padding: 2rem;
+                min-height: 400px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .tree-node {
+                background: var(--primary-color);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                margin: 0.5rem;
+                display: inline-block;
+                transition: all 0.3s ease;
+            }
+
+            .tree-node.highlighted {
+                background: var(--warning-color);
+                transform: scale(1.1);
+            }
+
+            /* Complexity Analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 2rem;
+                margin-top: 2rem;
+            }
+
+            .complexity-card {
+                background: linear-gradient(135deg, var(--card-bg), var(--border-color));
+                padding: 2rem;
+                border-radius: 1rem;
+                border: 1px solid var(--border-color);
+                text-align: center;
+            }
+
+            .complexity-type {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                color: var(--primary-color);
+            }
+
+            .complexity-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: var(--warning-color);
+                font-family: 'Fira Code', monospace;
+                margin-bottom: 1rem;
+            }
+
+            .complexity-desc {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 0 1rem;
+                }
+
+                .header h1 {
+                    font-size: 2.5rem;
+                }
+
+                .nav-container {
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                }
+
+                .step {
+                    grid-template-columns: 1fr;
+                    text-align: center;
+                }
+
+                .section-title {
+                    font-size: 2rem;
+                }
+            }
+
+            /* Animations */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: var(--dark-bg);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--secondary-color);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <h1><i class="fas fa-code-branch"></i> Subsets Algorithm</h1>
+                    <p>バックトラッキングによる部分集合生成アルゴリズムの完全解説</p>
                 </div>
-              </div>
             </div>
+        </header>
 
-            <div class="step">
-              <div class="step-number">3</div>
-              <div class="step-content">
-                <h3 class="step-title">要素の探索</h3>
-                <p class="step-description">
-                  開始位置<code>start</code>から配列の末尾まで各要素を順番に探索します。これにより重複を避けつつ全ての組み合わせを生成できます。
-                </p>
-                <div class="code-container">
-                  <pre><code class="language-python">for i in range(start, len(nums)):</code></pre>
-                </div>
-              </div>
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="#overview" class="nav-item active"
+                    ><i class="fas fa-info-circle"></i> 概要</a
+                >
+                <a href="#steps" class="nav-item"><i class="fas fa-list-ol"></i> ステップ解説</a>
+                <a href="#code" class="nav-item"><i class="fas fa-code"></i> コード</a>
+                <a href="#demo" class="nav-item"><i class="fas fa-play"></i> デモ</a>
+                <a href="#complexity" class="nav-item"><i class="fas fa-chart-line"></i> 計算量</a>
             </div>
+        </nav>
 
-            <div class="step">
-              <div class="step-number">4</div>
-              <div class="step-content">
-                <h3 class="step-title">要素の選択</h3>
-                <p class="step-description">
-                  現在の要素<code>nums[i]</code>を<code>path</code>に追加して、その要素を含む部分集合の構築を開始します。
-                </p>
-                <div class="code-container">
-                  <pre><code class="language-python">path.append(nums[i])</code></pre>
-                </div>
-              </div>
-            </div>
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Overview Section -->
+                <section id="overview" class="section visible">
+                    <h2 class="section-title">
+                        <i class="fas fa-lightbulb"></i>
+                        アルゴリズム概要
+                    </h2>
+                    <div class="card">
+                        <p>
+                            <strong>Subsets Problem</strong
+                            >は、与えられたユニークな整数配列から全ての可能な部分集合（べき集合）を生成する問題です。バックトラッキング手法を用いることで、効率的かつ直感的に解決できます。
+                        </p>
+                        <br />
+                        <p><strong>制約条件:</strong></p>
+                        <ul style="margin-left: 2rem; color: var(--text-secondary)">
+                            <li><code>1 ≤ nums.length ≤ 10</code></li>
+                            <li><code>-10 ≤ nums[i] ≤ 10</code></li>
+                            <li>配列内の全ての数値はユニーク</li>
+                            <li>重複する部分集合は含まない</li>
+                        </ul>
+                    </div>
 
-            <div class="step">
-              <div class="step-number">5</div>
-              <div class="step-content">
-                <h3 class="step-title">再帰呼び出し</h3>
-                <p class="step-description">
-                  次の位置<code>i+1</code>から再帰的に探索を続けます。これにより、現在の要素を含む全ての部分集合が生成されます。
-                </p>
-                <div class="code-container">
-                  <pre><code class="language-python">backtrack(i + 1)</code></pre>
-                </div>
-              </div>
-            </div>
+                    <div class="overview-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">2<sup>n</sup></div>
+                            <div class="metric-label">生成される部分集合数</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">O(2<sup>n</sup>×n)</div>
+                            <div class="metric-label">時間計算量</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">O(n)</div>
+                            <div class="metric-label">空間計算量</div>
+                        </div>
+                    </div>
+                </section>
 
-            <div class="step">
-              <div class="step-number">6</div>
-              <div class="step-content">
-                <h3 class="step-title">バックトラッキング</h3>
-                <p class="step-description">
-                  再帰から戻ったら、追加した要素を<code>path</code>から削除します。これにより他の組み合わせを探索できるよう状態をリセットします。
-                </p>
-                <div class="code-container">
-                  <pre><code class="language-python">path.pop()</code></pre>
-                </div>
-              </div>
-            </div>
-          </div>
+                <!-- Steps Section -->
+                <section id="steps" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-tasks"></i>
+                        ステップバイステップ解説
+                    </h2>
+                    <div class="steps-container">
+                        <div class="step active">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h3 class="step-title">初期化</h3>
+                                <p class="step-description">
+                                    結果を格納するリスト<code>result</code>と、現在の部分集合を構築するための作業用リスト<code>path</code>を初期化します。
+                                </p>
+                            </div>
+                        </div>
 
-          <div class="demo-controls">
-            <button class="demo-btn" onclick="animateSteps()">
-              <i class="fas fa-play"></i> ステップアニメーション
-            </button>
-            <button class="demo-btn" onclick="resetSteps()">
-              <i class="fas fa-undo"></i> リセット
-            </button>
-          </div>
-        </section>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h3 class="step-title">現在の部分集合を追加</h3>
+                                <p class="step-description">
+                                    現在の<code>path</code>の状態をコピーして<code>result</code>に追加します。空の配列から開始するので、最初は空集合<code>[]</code>が追加されます。
+                                </p>
+                                <div class="code-container">
+                                    <pre><code class="language-python">result.append(path[:])</code></pre>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Code Section -->
-        <section id="code" class="section">
-          <h2 class="section-title">
-            <i class="fas fa-code"></i>
-            実装コード
-          </h2>
-          <div class="code-container">
-            <div class="code-header">
-              <span><i class="fab fa-python"></i> solution.py</span>
-              <button class="code-copy" onclick="copyCode()">
-                <i class="fas fa-copy"></i> Copy
-              </button>
-            </div>
-            <!-- line-numbersクラスを追加 -->
-            <pre
-              class="line-numbers"
-            ><code class="language-python">from typing import List
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h3 class="step-title">要素の探索</h3>
+                                <p class="step-description">
+                                    開始位置<code>start</code>から配列の末尾まで各要素を順番に探索します。これにより重複を避けつつ全ての組み合わせを生成できます。
+                                </p>
+                                <div class="code-container">
+                                    <pre><code class="language-python">for i in range(start, len(nums)):</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h3 class="step-title">要素の選択</h3>
+                                <p class="step-description">
+                                    現在の要素<code>nums[i]</code>を<code>path</code>に追加して、その要素を含む部分集合の構築を開始します。
+                                </p>
+                                <div class="code-container">
+                                    <pre><code class="language-python">path.append(nums[i])</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <h3 class="step-title">再帰呼び出し</h3>
+                                <p class="step-description">
+                                    次の位置<code>i+1</code>から再帰的に探索を続けます。これにより、現在の要素を含む全ての部分集合が生成されます。
+                                </p>
+                                <div class="code-container">
+                                    <pre><code class="language-python">backtrack(i + 1)</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">6</div>
+                            <div class="step-content">
+                                <h3 class="step-title">バックトラッキング</h3>
+                                <p class="step-description">
+                                    再帰から戻ったら、追加した要素を<code>path</code>から削除します。これにより他の組み合わせを探索できるよう状態をリセットします。
+                                </p>
+                                <div class="code-container">
+                                    <pre><code class="language-python">path.pop()</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-controls">
+                        <button class="demo-btn" onclick="animateSteps()">
+                            <i class="fas fa-play"></i> ステップアニメーション
+                        </button>
+                        <button class="demo-btn" onclick="resetSteps()">
+                            <i class="fas fa-undo"></i> リセット
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Code Section -->
+                <section id="code" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-code"></i>
+                        実装コード
+                    </h2>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span><i class="fab fa-python"></i> solution.py</span>
+                            <button class="code-copy" onclick="copyCode()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <!-- line-numbersクラスを追加 -->
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">from typing import List
 
 class Solution:
     """
@@ -764,637 +752,631 @@ if __name__ == "__main__":
 
 
 </code></pre>
-          </div>
-        </section>
+                    </div>
+                </section>
 
-        <!-- Demo Section -->
-        <section id="demo" class="section">
-          <h2 class="section-title">
-            <i class="fas fa-play-circle"></i>
-            視覚的デモンストレーション
-          </h2>
-          <div class="demo-container">
-            <div class="demo-controls">
-              <button class="demo-btn" onclick="startDemo()">
-                <i class="fas fa-play"></i> デモ開始
-              </button>
-              <button class="demo-btn" onclick="stepDemo()">
-                <i class="fas fa-step-forward"></i> 1ステップ
-              </button>
-              <button class="demo-btn" onclick="resetDemo()">
-                <i class="fas fa-undo"></i> リセット
-              </button>
+                <!-- Demo Section -->
+                <section id="demo" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-play-circle"></i>
+                        視覚的デモンストレーション
+                    </h2>
+                    <div class="demo-container">
+                        <div class="demo-controls">
+                            <button class="demo-btn" onclick="startDemo()">
+                                <i class="fas fa-play"></i> デモ開始
+                            </button>
+                            <button class="demo-btn" onclick="stepDemo()">
+                                <i class="fas fa-step-forward"></i> 1ステップ
+                            </button>
+                            <button class="demo-btn" onclick="resetDemo()">
+                                <i class="fas fa-undo"></i> リセット
+                            </button>
+                        </div>
+                        <div class="visualization" id="visualization">
+                            <h3 style="color: var(--text-primary); margin-bottom: 2rem">
+                                配列 [1, 2, 3] の部分集合生成過程
+                            </h3>
+                            <div id="demo-content">
+                                <p style="color: var(--text-secondary)">
+                                    「デモ開始」ボタンをクリックしてアニメーションを開始してください
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Complexity Section -->
+                <section id="complexity" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        計算量分析
+                    </h2>
+                    <div class="card">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem">詳細分析</h3>
+                        <p>このアルゴリズムの計算量は以下のように分析できます：</p>
+                    </div>
+
+                    <div class="complexity-grid">
+                        <div class="complexity-card">
+                            <div class="complexity-type">時間計算量</div>
+                            <div class="complexity-value">O(2<sup>n</sup> × n)</div>
+                            <div class="complexity-desc">
+                                <strong>2<sup>n</sup></strong
+                                >: 生成される部分集合の総数<br />
+                                <strong>n</strong>: 各部分集合をコピーする際のコスト
+                            </div>
+                        </div>
+                        <div class="complexity-card">
+                            <div class="complexity-type">空間計算量</div>
+                            <div class="complexity-value">O(n)</div>
+                            <div class="complexity-desc">
+                                再帰スタックの最大深度がn<br />
+                                作業用配列pathのサイズも最大n
+                            </div>
+                        </div>
+                        <div class="complexity-card">
+                            <div class="complexity-type">出力サイズ</div>
+                            <div class="complexity-value">O(2<sup>n</sup> × n)</div>
+                            <div class="complexity-desc">
+                                全ての部分集合を格納するため<br />
+                                結果配列の総要素数
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 2rem">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1rem">
+                            実行時間の実測例
+                        </h3>
+                        <div
+                            style="
+                                font-family: 'Fira Code', monospace;
+                                background: #000;
+                                padding: 1.5rem;
+                                border-radius: 0.5rem;
+                                color: var(--success-color);
+                            "
+                        >
+                            n=1: 2¹ = 2 部分集合 → ~0.001ms<br />
+                            n=3: 2³ = 8 部分集合 → ~0.01ms<br />
+                            n=5: 2⁵ = 32 部分集合 → ~0.1ms<br />
+                            n=10: 2¹⁰ = 1,024 部分集合 → ~1ms<br />
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="visualization" id="visualization">
-              <h3 style="color: var(--text-primary); margin-bottom: 2rem">
-                配列 [1, 2, 3] の部分集合生成過程
-              </h3>
-              <div id="demo-content">
-                <p style="color: var(--text-secondary)">
-                  「デモ開始」ボタンをクリックしてアニメーションを開始してください
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        </main>
 
-        <!-- Complexity Section -->
-        <section id="complexity" class="section">
-          <h2 class="section-title">
-            <i class="fas fa-chart-line"></i>
-            計算量分析
-          </h2>
-          <div class="card">
-            <h3 style="color: var(--primary-color); margin-bottom: 1rem">
-              詳細分析
-            </h3>
-            <p>このアルゴリズムの計算量は以下のように分析できます：</p>
-          </div>
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
-          <div class="complexity-grid">
-            <div class="complexity-card">
-              <div class="complexity-type">時間計算量</div>
-              <div class="complexity-value">O(2<sup>n</sup> × n)</div>
-              <div class="complexity-desc">
-                <strong>2<sup>n</sup></strong
-                >: 生成される部分集合の総数<br />
-                <strong>n</strong>: 各部分集合をコピーする際のコスト
-              </div>
-            </div>
-            <div class="complexity-card">
-              <div class="complexity-type">空間計算量</div>
-              <div class="complexity-value">O(n)</div>
-              <div class="complexity-desc">
-                再帰スタックの最大深度がn<br />
-                作業用配列pathのサイズも最大n
-              </div>
-            </div>
-            <div class="complexity-card">
-              <div class="complexity-type">出力サイズ</div>
-              <div class="complexity-value">O(2<sup>n</sup> × n)</div>
-              <div class="complexity-desc">
-                全ての部分集合を格納するため<br />
-                結果配列の総要素数
-              </div>
-            </div>
-          </div>
+        <script>
+            // Smooth scrolling and navigation
+            document.addEventListener('DOMContentLoaded', function () {
+                // Initialize Prism
+                Prism.highlightAll();
 
-          <div class="card" style="margin-top: 2rem">
-            <h3 style="color: var(--primary-color); margin-bottom: 1rem">
-              実行時間の実測例
-            </h3>
-            <div
-              style="
-                font-family: 'Fira Code', monospace;
-                background: #000;
-                padding: 1.5rem;
-                border-radius: 0.5rem;
-                color: var(--success-color);
-              "
-            >
-              n=1: 2¹ = 2 部分集合 → ~0.001ms<br />
-              n=3: 2³ = 8 部分集合 → ~0.01ms<br />
-              n=5: 2⁵ = 32 部分集合 → ~0.1ms<br />
-              n=10: 2¹⁰ = 1,024 部分集合 → ~1ms<br />
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+                // Navigation
+                const navItems = document.querySelectorAll('.nav-item');
+                const sections = document.querySelectorAll('.section');
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+                navItems.forEach((item) => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = item.getAttribute('href').substring(1);
+                        const targetSection = document.getElementById(targetId);
 
-    <script>
-      // Smooth scrolling and navigation
-      document.addEventListener("DOMContentLoaded", function () {
-        // Initialize Prism
-        Prism.highlightAll();
+                        // Update active nav item
+                        navItems.forEach((nav) => nav.classList.remove('active'));
+                        item.classList.add('active');
 
-        // Navigation
-        const navItems = document.querySelectorAll(".nav-item");
-        const sections = document.querySelectorAll(".section");
+                        // Smooth scroll to section
+                        targetSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                    });
+                });
 
-        navItems.forEach((item) => {
-          item.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = item.getAttribute("href").substring(1);
-            const targetSection = document.getElementById(targetId);
+                // Intersection Observer for auto-highlighting nav items
+                const observerOptions = {
+                    rootMargin: '-50px 0px -50px 0px',
+                    threshold: 0.3,
+                };
 
-            // Update active nav item
-            navItems.forEach((nav) => nav.classList.remove("active"));
-            item.classList.add("active");
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.id;
+                            navItems.forEach((nav) => {
+                                nav.classList.remove('active');
+                                if (nav.getAttribute('href') === `#${id}`) {
+                                    nav.classList.add('active');
+                                }
+                            });
+                        }
+                    });
+                }, observerOptions);
 
-            // Smooth scroll to section
-            targetSection.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
+                sections.forEach((section) => observer.observe(section));
+
+                // Animate sections on scroll
+                const animationObserver = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                        });
+                    },
+                    { threshold: 0.1 },
+                );
+
+                sections.forEach((section) => animationObserver.observe(section));
             });
-          });
-        });
 
-        // Intersection Observer for auto-highlighting nav items
-        const observerOptions = {
-          rootMargin: "-50px 0px -50px 0px",
-          threshold: 0.3,
-        };
+            // Copy code functionality
+            function copyCode() {
+                const codeBlock = document.querySelector('.language-python');
+                const text = codeBlock.textContent;
 
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const id = entry.target.id;
-              navItems.forEach((nav) => {
-                nav.classList.remove("active");
-                if (nav.getAttribute("href") === `#${id}`) {
-                  nav.classList.add("active");
-                }
-              });
+                navigator.clipboard.writeText(text).then(() => {
+                    const copyBtn = document.querySelector('.code-copy');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    copyBtn.classList.add('copied');
+
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                });
             }
-          });
-        }, observerOptions);
 
-        sections.forEach((section) => observer.observe(section));
+            // Step animation functionality
+            let currentStep = 0;
+            let stepInterval;
 
-        // Animate sections on scroll
-        const animationObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
-              }
-            });
-          },
-          { threshold: 0.1 }
-        );
+            function animateSteps() {
+                resetSteps();
+                const steps = document.querySelectorAll('.step');
 
-        sections.forEach((section) => animationObserver.observe(section));
-      });
+                stepInterval = setInterval(() => {
+                    if (currentStep < steps.length) {
+                        steps[currentStep].classList.add('active');
+                        currentStep++;
+                    } else {
+                        clearInterval(stepInterval);
+                    }
+                }, 1500);
+            }
 
-      // Copy code functionality
-      function copyCode() {
-        const codeBlock = document.querySelector(".language-python");
-        const text = codeBlock.textContent;
+            function resetSteps() {
+                clearInterval(stepInterval);
+                currentStep = 0;
+                document.querySelectorAll('.step').forEach((step) => {
+                    step.classList.remove('active');
+                });
+            }
 
-        navigator.clipboard.writeText(text).then(() => {
-          const copyBtn = document.querySelector(".code-copy");
-          const originalText = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-          copyBtn.classList.add("copied");
+            // Demo functionality
+            let demoState = {
+                nums: [1, 2, 3],
+                result: [],
+                path: [],
+                currentStep: 0,
+                isRunning: false,
+                steps: [],
+            };
 
-          setTimeout(() => {
-            copyBtn.innerHTML = originalText;
-            copyBtn.classList.remove("copied");
-          }, 2000);
-        });
-      }
+            function initDemo() {
+                demoState = {
+                    nums: [1, 2, 3],
+                    result: [],
+                    path: [],
+                    currentStep: 0,
+                    isRunning: false,
+                    steps: [
+                        { action: 'start', path: [], result: [] },
+                        { action: 'add_empty', path: [], result: [[]] },
+                        { action: 'select', path: [1], result: [[]] },
+                        { action: 'add_subset', path: [1], result: [[], [1]] },
+                        { action: 'select', path: [1, 2], result: [[], [1]] },
+                        { action: 'add_subset', path: [1, 2], result: [[], [1], [1, 2]] },
+                        { action: 'select', path: [1, 2, 3], result: [[], [1], [1, 2]] },
+                        {
+                            action: 'add_subset',
+                            path: [1, 2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1, 2],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [1, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [1, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
+                        },
+                        {
+                            action: 'select',
+                            path: [2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
+                        },
+                        {
+                            action: 'complete',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
+                        },
+                    ],
+                };
+            }
 
-      // Step animation functionality
-      let currentStep = 0;
-      let stepInterval;
+            function updateDemoDisplay() {
+                const content = document.getElementById('demo-content');
+                const step = demoState.steps[demoState.currentStep];
 
-      function animateSteps() {
-        resetSteps();
-        const steps = document.querySelectorAll(".step");
+                if (!step) return;
 
-        stepInterval = setInterval(() => {
-          if (currentStep < steps.length) {
-            steps[currentStep].classList.add("active");
-            currentStep++;
-          } else {
-            clearInterval(stepInterval);
-          }
-        }, 1500);
-      }
+                let actionText = '';
+                switch (step.action) {
+                    case 'start':
+                        actionText = '探索開始: backtrack(0)';
+                        break;
+                    case 'add_empty':
+                        actionText = '空集合 [] を結果に追加';
+                        break;
+                    case 'select':
+                        actionText = `要素を選択: ${step.path[step.path.length - 1]}`;
+                        break;
+                    case 'add_subset':
+                        actionText = `部分集合 [${step.path.join(', ')}] を結果に追加`;
+                        break;
+                    case 'backtrack':
+                        actionText = 'バックトラッキング: 要素を削除';
+                        break;
+                    case 'complete':
+                        actionText = '探索完了！';
+                        break;
+                }
 
-      function resetSteps() {
-        clearInterval(stepInterval);
-        currentStep = 0;
-        document.querySelectorAll(".step").forEach((step) => {
-          step.classList.remove("active");
-        });
-      }
-
-      // Demo functionality
-      let demoState = {
-        nums: [1, 2, 3],
-        result: [],
-        path: [],
-        currentStep: 0,
-        isRunning: false,
-        steps: [],
-      };
-
-      function initDemo() {
-        demoState = {
-          nums: [1, 2, 3],
-          result: [],
-          path: [],
-          currentStep: 0,
-          isRunning: false,
-          steps: [
-            { action: "start", path: [], result: [] },
-            { action: "add_empty", path: [], result: [[]] },
-            { action: "select", path: [1], result: [[]] },
-            { action: "add_subset", path: [1], result: [[], [1]] },
-            { action: "select", path: [1, 2], result: [[], [1]] },
-            { action: "add_subset", path: [1, 2], result: [[], [1], [1, 2]] },
-            { action: "select", path: [1, 2, 3], result: [[], [1], [1, 2]] },
-            {
-              action: "add_subset",
-              path: [1, 2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1, 2],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "select",
-              path: [1, 3],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [1, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "select",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
-            },
-            {
-              action: "select",
-              path: [2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
-            },
-            {
-              action: "add_subset",
-              path: [2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "select",
-              path: [3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
-            },
-            {
-              action: "complete",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
-            },
-          ],
-        };
-      }
-
-      function updateDemoDisplay() {
-        const content = document.getElementById("demo-content");
-        const step = demoState.steps[demoState.currentStep];
-
-        if (!step) return;
-
-        let actionText = "";
-        switch (step.action) {
-          case "start":
-            actionText = "探索開始: backtrack(0)";
-            break;
-          case "add_empty":
-            actionText = "空集合 [] を結果に追加";
-            break;
-          case "select":
-            actionText = `要素を選択: ${step.path[step.path.length - 1]}`;
-            break;
-          case "add_subset":
-            actionText = `部分集合 [${step.path.join(", ")}] を結果に追加`;
-            break;
-          case "backtrack":
-            actionText = "バックトラッキング: 要素を削除";
-            break;
-          case "complete":
-            actionText = "探索完了！";
-            break;
-        }
-
-        content.innerHTML = `
+                content.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
                     <div>
                         <h4 style="color: var(--primary-color); margin-bottom: 1rem;">現在の状態</h4>
                         <p style="margin-bottom: 0.5rem;"><strong>Action:</strong> <span style="color: var(--warning-color);">${actionText}</span></p>
                         <p style="margin-bottom: 0.5rem;"><strong>Current Path:</strong> <span style="color: var(--success-color);">[${step.path.join(
-                          ", "
+                            ', ',
                         )}]</span></p>
                         <p><strong>Step:</strong> <span style="color: var(--text-secondary);">${
-                          demoState.currentStep + 1
+                            demoState.currentStep + 1
                         } / ${demoState.steps.length}</span></p>
                     </div>
                     <div>
                         <h4 style="color: var(--primary-color); margin-bottom: 1rem;">生成された部分集合</h4>
                         <div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
                             ${step.result
-                              .map(
-                                (subset, index) =>
-                                  `<div style="margin-bottom: 0.25rem; ${
-                                    index === step.result.length - 1 &&
-                                    step.action.includes("add")
-                                      ? "color: var(--warning-color); font-weight: bold;"
-                                      : "color: var(--success-color);"
-                                  }">[${subset.join(", ")}]</div>`
-                              )
-                              .join("")}
+                                .map(
+                                    (subset, index) =>
+                                        `<div style="margin-bottom: 0.25rem; ${
+                                            index === step.result.length - 1 &&
+                                            step.action.includes('add')
+                                                ? 'color: var(--warning-color); font-weight: bold;'
+                                                : 'color: var(--success-color);'
+                                        }">[${subset.join(', ')}]</div>`,
+                                )
+                                .join('')}
                         </div>
                     </div>
                 </div>
                 <div style="margin-top: 2rem; text-align: center;">
                     <div style="width: 100%; background: var(--border-color); height: 4px; border-radius: 2px; overflow: hidden;">
                         <div style="width: ${
-                          ((demoState.currentStep + 1) /
-                            demoState.steps.length) *
-                          100
+                            ((demoState.currentStep + 1) / demoState.steps.length) * 100
                         }%; height: 100%; background: var(--primary-color); transition: width 0.3s ease;"></div>
                     </div>
                 </div>
             `;
-      }
+            }
 
-      // タイマーの参照を保持するグローバル変数を追加
-      let demoInterval = null;
+            // タイマーの参照を保持するグローバル変数を追加
+            let demoInterval = null;
 
-      function initDemo() {
-        demoState = {
-          nums: [1, 2, 3],
-          result: [],
-          path: [],
-          currentStep: 0,
-          isRunning: false,
-          steps: [
-            { action: "start", path: [], result: [] },
-            { action: "add_empty", path: [], result: [[]] },
-            { action: "select", path: [1], result: [[]] },
-            { action: "add_subset", path: [1], result: [[], [1]] },
-            { action: "select", path: [1, 2], result: [[], [1]] },
-            { action: "add_subset", path: [1, 2], result: [[], [1], [1, 2]] },
-            { action: "select", path: [1, 2, 3], result: [[], [1], [1, 2]] },
-            {
-              action: "add_subset",
-              path: [1, 2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1, 2],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "select",
-              path: [1, 3],
-              result: [[], [1], [1, 2], [1, 2, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [1, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [1],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "select",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
-            },
-            {
-              action: "select",
-              path: [2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
-            },
-            {
-              action: "add_subset",
-              path: [2, 3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [2],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "backtrack",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "select",
-              path: [3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
-            },
-            {
-              action: "add_subset",
-              path: [3],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
-            },
-            {
-              action: "complete",
-              path: [],
-              result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
-            },
-          ],
-        };
-      }
+            function initDemo() {
+                demoState = {
+                    nums: [1, 2, 3],
+                    result: [],
+                    path: [],
+                    currentStep: 0,
+                    isRunning: false,
+                    steps: [
+                        { action: 'start', path: [], result: [] },
+                        { action: 'add_empty', path: [], result: [[]] },
+                        { action: 'select', path: [1], result: [[]] },
+                        { action: 'add_subset', path: [1], result: [[], [1]] },
+                        { action: 'select', path: [1, 2], result: [[], [1]] },
+                        { action: 'add_subset', path: [1, 2], result: [[], [1], [1, 2]] },
+                        { action: 'select', path: [1, 2, 3], result: [[], [1], [1, 2]] },
+                        {
+                            action: 'add_subset',
+                            path: [1, 2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1, 2],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [1, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [1, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [1],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
+                        },
+                        {
+                            action: 'select',
+                            path: [2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [2, 3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [2],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'backtrack',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'select',
+                            path: [3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]],
+                        },
+                        {
+                            action: 'add_subset',
+                            path: [3],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
+                        },
+                        {
+                            action: 'complete',
+                            path: [],
+                            result: [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]],
+                        },
+                    ],
+                };
+            }
 
-      function updateDemoDisplay() {
-        const content = document.getElementById("demo-content");
-        const step = demoState.steps[demoState.currentStep];
+            function updateDemoDisplay() {
+                const content = document.getElementById('demo-content');
+                const step = demoState.steps[demoState.currentStep];
 
-        if (!step) return;
+                if (!step) return;
 
-        let actionText = "";
-        switch (step.action) {
-          case "start":
-            actionText = "探索開始: backtrack(0)";
-            break;
-          case "add_empty":
-            actionText = "空集合 [] を結果に追加";
-            break;
-          case "select":
-            actionText = `要素を選択: ${step.path[step.path.length - 1]}`;
-            break;
-          case "add_subset":
-            actionText = `部分集合 [${step.path.join(", ")}] を結果に追加`;
-            break;
-          case "backtrack":
-            actionText = "バックトラッキング: 要素を削除";
-            break;
-          case "complete":
-            actionText = "探索完了！";
-            break;
-        }
+                let actionText = '';
+                switch (step.action) {
+                    case 'start':
+                        actionText = '探索開始: backtrack(0)';
+                        break;
+                    case 'add_empty':
+                        actionText = '空集合 [] を結果に追加';
+                        break;
+                    case 'select':
+                        actionText = `要素を選択: ${step.path[step.path.length - 1]}`;
+                        break;
+                    case 'add_subset':
+                        actionText = `部分集合 [${step.path.join(', ')}] を結果に追加`;
+                        break;
+                    case 'backtrack':
+                        actionText = 'バックトラッキング: 要素を削除';
+                        break;
+                    case 'complete':
+                        actionText = '探索完了！';
+                        break;
+                }
 
-        content.innerHTML = `
+                content.innerHTML = `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
         <div>
             <h4 style="color: var(--primary-color); margin-bottom: 1rem;">現在の状態</h4>
             <p style="margin-bottom: 0.5rem;"><strong>Action:</strong> <span style="color: var(--warning-color);">${actionText}</span></p>
             <p style="margin-bottom: 0.5rem;"><strong>Current Path:</strong> <span style="color: var(--success-color);">[${step.path.join(
-              ", "
+                ', ',
             )}]</span></p>
             <p><strong>Step:</strong> <span style="color: var(--text-secondary);">${
-              demoState.currentStep + 1
+                demoState.currentStep + 1
             } / ${demoState.steps.length}</span></p>
         </div>
         <div>
             <h4 style="color: var(--primary-color); margin-bottom: 1rem;">生成された部分集合</h4>
             <div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
                 ${step.result
-                  .map(
-                    (subset, index) =>
-                      `<div style="margin-bottom: 0.25rem; ${
-                        index === step.result.length - 1 &&
-                        step.action.includes("add")
-                          ? "color: var(--warning-color); font-weight: bold;"
-                          : "color: var(--success-color);"
-                      }">[${subset.join(", ")}]</div>`
-                  )
-                  .join("")}
+                    .map(
+                        (subset, index) =>
+                            `<div style="margin-bottom: 0.25rem; ${
+                                index === step.result.length - 1 && step.action.includes('add')
+                                    ? 'color: var(--warning-color); font-weight: bold;'
+                                    : 'color: var(--success-color);'
+                            }">[${subset.join(', ')}]</div>`,
+                    )
+                    .join('')}
             </div>
         </div>
     </div>
     <div style="margin-top: 2rem; text-align: center;">
         <div style="width: 100%; background: var(--border-color); height: 4px; border-radius: 2px; overflow: hidden;">
             <div style="width: ${
-              ((demoState.currentStep + 1) / demoState.steps.length) * 100
+                ((demoState.currentStep + 1) / demoState.steps.length) * 100
             }%; height: 100%; background: var(--primary-color); transition: width 0.3s ease;"></div>
         </div>
     </div>
   `;
-      }
+            }
 
-      function startDemo() {
-        // 既存のタイマーがあれば停止
-        if (demoInterval) {
-          clearInterval(demoInterval);
-        }
+            function startDemo() {
+                // 既存のタイマーがあれば停止
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                }
 
-        initDemo();
-        demoState.isRunning = true;
-        updateDemoDisplay();
+                initDemo();
+                demoState.isRunning = true;
+                updateDemoDisplay();
 
-        // タイマーの参照を保持
-        demoInterval = setInterval(() => {
-          if (demoState.currentStep < demoState.steps.length - 1) {
-            demoState.currentStep++;
-            updateDemoDisplay();
-          } else {
-            demoState.isRunning = false;
-            clearInterval(demoInterval);
-            demoInterval = null; // 参照をクリア
-          }
-        }, 2000);
-      }
+                // タイマーの参照を保持
+                demoInterval = setInterval(() => {
+                    if (demoState.currentStep < demoState.steps.length - 1) {
+                        demoState.currentStep++;
+                        updateDemoDisplay();
+                    } else {
+                        demoState.isRunning = false;
+                        clearInterval(demoInterval);
+                        demoInterval = null; // 参照をクリア
+                    }
+                }, 2000);
+            }
 
-      function stepDemo() {
-        if (!demoState.steps.length) initDemo();
+            function stepDemo() {
+                if (!demoState.steps.length) initDemo();
 
-        if (demoState.currentStep < demoState.steps.length - 1) {
-          demoState.currentStep++;
-          updateDemoDisplay();
-        }
-      }
+                if (demoState.currentStep < demoState.steps.length - 1) {
+                    demoState.currentStep++;
+                    updateDemoDisplay();
+                }
+            }
 
-      function resetDemo() {
-        // タイマーを確実に停止
-        if (demoInterval) {
-          clearInterval(demoInterval);
-          demoInterval = null;
-        }
+            function resetDemo() {
+                // タイマーを確実に停止
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                    demoInterval = null;
+                }
 
-        // 状態をリセット
-        initDemo();
-        demoState.isRunning = false;
+                // 状態をリセット
+                initDemo();
+                demoState.isRunning = false;
 
-        // 表示を初期化
-        document.getElementById("demo-content").innerHTML =
-          '<p style="color: var(--text-secondary);">「デモ開始」ボタンをクリックしてアニメーションを開始してください</p>';
-      }
+                // 表示を初期化
+                document.getElementById('demo-content').innerHTML =
+                    '<p style="color: var(--text-secondary);">「デモ開始」ボタンをクリックしてアニメーションを開始してください</p>';
+            }
 
-      // ボタンの状態管理も追加
-      function updateButtonStates() {
-        const startBtn = document.querySelector('[onclick="startDemo()"]');
-        const resetBtn = document.querySelector('[onclick="resetDemo()"]');
+            // ボタンの状態管理も追加
+            function updateButtonStates() {
+                const startBtn = document.querySelector('[onclick="startDemo()"]');
+                const resetBtn = document.querySelector('[onclick="resetDemo()"]');
 
-        if (demoState.isRunning) {
-          startBtn.disabled = true;
-          startBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> 実行中...';
-        } else {
-          startBtn.disabled = false;
-          startBtn.innerHTML = '<i class="fas fa-play"></i> デモ開始';
-        }
-      }
+                if (demoState.isRunning) {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 実行中...';
+                } else {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="fas fa-play"></i> デモ開始';
+                }
+            }
 
-      // Initialize demo on load
-      document.addEventListener("DOMContentLoaded", function () {
-        initDemo();
-      });
+            // Initialize demo on load
+            document.addEventListener('DOMContentLoaded', function () {
+                initDemo();
+            });
 
-      // Add floating action button for mobile
-      function createFloatingButton() {
-        const fab = document.createElement("div");
-        fab.style.cssText = `
+            // Add floating action button for mobile
+            function createFloatingButton() {
+                const fab = document.createElement('div');
+                fab.style.cssText = `
                 position: fixed;
                 bottom: 2rem;
                 right: 2rem;
@@ -1412,61 +1394,61 @@ if __name__ == "__main__":
                 z-index: 1000;
                 transition: all 0.3s ease;
             `;
-        fab.innerHTML = '<i class="fas fa-rocket"></i>';
-        fab.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+                fab.innerHTML = '<i class="fas fa-rocket"></i>';
+                fab.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        fab.addEventListener("mouseenter", () => {
-          fab.style.transform = "scale(1.1) rotate(360deg)";
-        });
+                fab.addEventListener('mouseenter', () => {
+                    fab.style.transform = 'scale(1.1) rotate(360deg)';
+                });
 
-        fab.addEventListener("mouseleave", () => {
-          fab.style.transform = "scale(1) rotate(0deg)";
-        });
+                fab.addEventListener('mouseleave', () => {
+                    fab.style.transform = 'scale(1) rotate(0deg)';
+                });
 
-        document.body.appendChild(fab);
+                document.body.appendChild(fab);
 
-        // Show/hide based on scroll position
-        window.addEventListener("scroll", () => {
-          if (window.scrollY > 300) {
-            fab.style.opacity = "1";
-            fab.style.pointerEvents = "all";
-          } else {
-            fab.style.opacity = "0";
-            fab.style.pointerEvents = "none";
-          }
-        });
-      }
+                // Show/hide based on scroll position
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        fab.style.opacity = '1';
+                        fab.style.pointerEvents = 'all';
+                    } else {
+                        fab.style.opacity = '0';
+                        fab.style.pointerEvents = 'none';
+                    }
+                });
+            }
 
-      // Initialize floating button
-      document.addEventListener("DOMContentLoaded", createFloatingButton);
+            // Initialize floating button
+            document.addEventListener('DOMContentLoaded', createFloatingButton);
 
-      // Performance monitoring
-      function logPerformance() {
-        if (performance && performance.timing) {
-          const timing = performance.timing;
-          const loadTime = timing.loadEventEnd - timing.navigationStart;
-          console.log(`Page load time: ${loadTime}ms`);
-        }
-      }
+            // Performance monitoring
+            function logPerformance() {
+                if (performance && performance.timing) {
+                    const timing = performance.timing;
+                    const loadTime = timing.loadEventEnd - timing.navigationStart;
+                    console.log(`Page load time: ${loadTime}ms`);
+                }
+            }
 
-      window.addEventListener("load", logPerformance);
+            window.addEventListener('load', logPerformance);
 
-      // Easter egg - Konami code
-      let konamiCode = [];
-      const konami = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+            // Easter egg - Konami code
+            let konamiCode = [];
+            const konami = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
 
-      document.addEventListener("keydown", (e) => {
-        konamiCode.push(e.keyCode);
-        if (konamiCode.length > konami.length) {
-          konamiCode.shift();
-        }
-        if (konamiCode.toString() === konami.toString()) {
-          document.body.style.animation = "pulse 0.5s ease-in-out 3";
-          setTimeout(() => {
-            alert("🎉 コナミコード発見！ あなたは真のプログラマーですね！");
-          }, 1500);
-        }
-      });
-    </script>
-  </body>
+            document.addEventListener('keydown', (e) => {
+                konamiCode.push(e.keyCode);
+                if (konamiCode.length > konami.length) {
+                    konamiCode.shift();
+                }
+                if (konamiCode.toString() === konami.toString()) {
+                    document.body.style.animation = 'pulse 0.5s ease-in-out 3';
+                    setTimeout(() => {
+                        alert('🎉 コナミコード発見！ あなたは真のプログラマーですね！');
+                    }, 1500);
+                }
+            });
+        </script>
+    </body>
 </html>

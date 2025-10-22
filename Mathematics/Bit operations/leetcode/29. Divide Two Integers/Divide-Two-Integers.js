@@ -87,33 +87,33 @@
  * @returns {number} 商（小数部分は切り捨て、32ビット符号付き整数範囲で制限）
  */
 function divideJs(dividend, divisor) {
-  const INT_MAX = 2 ** 31 - 1;
-  const INT_MIN = -(2 ** 31);
+    const INT_MAX = 2 ** 31 - 1;
+    const INT_MIN = -(2 ** 31);
 
-  // オーバーフロー対策
-  if (dividend === INT_MIN && divisor === -1) return INT_MAX;
+    // オーバーフロー対策
+    if (dividend === INT_MIN && divisor === -1) return INT_MAX;
 
-  // 絶対値を BigInt に変換（32bit 最小値 -2^31 の絶対値は 2^31 で JS Number に収まらないため）
-  let a = BigInt(Math.abs(dividend));
-  let b = BigInt(Math.abs(divisor));
-  let result = 0n;
+    // 絶対値を BigInt に変換（32bit 最小値 -2^31 の絶対値は 2^31 で JS Number に収まらないため）
+    let a = BigInt(Math.abs(dividend));
+    let b = BigInt(Math.abs(divisor));
+    let result = 0n;
 
-  // ビットシフト除算：b << i を a から引ける最大 i を探す
-  for (let i = 31; i >= 0; i--) {
-    if (a >= (b << BigInt(i))) {
-      a -= b << BigInt(i);
-      result += 1n << BigInt(i);
+    // ビットシフト除算：b << i を a から引ける最大 i を探す
+    for (let i = 31; i >= 0; i--) {
+        if (a >= b << BigInt(i)) {
+            a -= b << BigInt(i);
+            result += 1n << BigInt(i);
+        }
     }
-  }
 
-  // 符号調整
-  const isNegative = (dividend > 0) !== (divisor > 0);
-  result = isNegative ? -result : result;
+    // 符号調整
+    const isNegative = dividend > 0 !== divisor > 0;
+    result = isNegative ? -result : result;
 
-  // 結果を32bit範囲内にして返す
-  if (result > BigInt(INT_MAX)) return INT_MAX;
-  if (result < BigInt(INT_MIN)) return INT_MIN;
-  return Number(result);
+    // 結果を32bit範囲内にして返す
+    if (result > BigInt(INT_MAX)) return INT_MAX;
+    if (result < BigInt(INT_MIN)) return INT_MIN;
+    return Number(result);
 }
 // ```
 

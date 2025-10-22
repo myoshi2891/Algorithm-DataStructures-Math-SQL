@@ -65,59 +65,59 @@
  * @complexity Time: O(n·2^n), Space: O(1) 追加（出力除く）
  */
 function subsetsWithDup(nums: readonly number[]): number[][] {
-  validateInput(nums);
+    validateInput(nums);
 
-  // 昇順ソートで同値を隣接させる（入力は readonly のためコピーしてソート）
-  const arr = nums.slice().sort((a, b) => a - b);
-  const res: number[][] = [[]];
+    // 昇順ソートで同値を隣接させる（入力は readonly のためコピーしてソート）
+    const arr = nums.slice().sort((a, b) => a - b);
+    const res: number[][] = [[]];
 
-  // prevSize: 直前イテレーション「開始時点」の res.length
-  // 重複値のときは、ここから末尾までが「直前に新規追加された範囲」
-  let prevSize = 0;
+    // prevSize: 直前イテレーション「開始時点」の res.length
+    // 重複値のときは、ここから末尾までが「直前に新規追加された範囲」
+    let prevSize = 0;
 
-  for (let i = 0, n = arr.length; i < n; i++) {
-    const v = arr[i];
-    const size = res.length; // 今回イテレーション開始時の長さ
-    const start = i > 0 && v === arr[i - 1] ? prevSize : 0;
+    for (let i = 0, n = arr.length; i < n; i++) {
+        const v = arr[i];
+        const size = res.length; // 今回イテレーション開始時の長さ
+        const start = i > 0 && v === arr[i - 1] ? prevSize : 0;
 
-    // start..size-1 の既存 subset を v で拡張
-    for (let j = start; j < size; j++) {
-      const base = res[j];
-      const m = base.length + 1;
-      const next = new Array<number>(m);
-      // 手書きコピー（slice/spread/concat を避ける）
-      for (let k = 0; k < m - 1; k++) next[k] = base[k];
-      next[m - 1] = v;
-      res.push(next);
+        // start..size-1 の既存 subset を v で拡張
+        for (let j = start; j < size; j++) {
+            const base = res[j];
+            const m = base.length + 1;
+            const next = new Array<number>(m);
+            // 手書きコピー（slice/spread/concat を避ける）
+            for (let k = 0; k < m - 1; k++) next[k] = base[k];
+            next[m - 1] = v;
+            res.push(next);
+        }
+
+        prevSize = size; // 次のイテレーション用に保存
     }
 
-    prevSize = size; // 次のイテレーション用に保存
-  }
-
-  return res;
+    return res;
 }
 
 /** 軽量バリデーション（ホットパス外） */
 function validateInput(arr: unknown): asserts arr is readonly number[] {
-  if (!Array.isArray(arr)) {
-    throw new TypeError('Input must be an array of numbers');
-  }
-  const n = arr.length;
-  // LeetCode 互換性のため下限 0 を許容（問題制約は 1..10）
-  if (n > 10) {
-    throw new RangeError('Array length must be <= 10');
-  }
-  for (let i = 0; i < n; i++) {
-    const v = (arr as number[])[i];
-    // 有限整数のみ
-    if (typeof v !== 'number' || !Number.isFinite(v) || (v | 0) !== v) {
-      throw new TypeError('All elements must be finite integers');
+    if (!Array.isArray(arr)) {
+        throw new TypeError('Input must be an array of numbers');
     }
-    // 問題の値域に合わせる
-    if (v < -10 || v > 10) {
-      throw new RangeError('Each number must be within [-10, 10]');
+    const n = arr.length;
+    // LeetCode 互換性のため下限 0 を許容（問題制約は 1..10）
+    if (n > 10) {
+        throw new RangeError('Array length must be <= 10');
     }
-  }
+    for (let i = 0; i < n; i++) {
+        const v = (arr as number[])[i];
+        // 有限整数のみ
+        if (typeof v !== 'number' || !Number.isFinite(v) || (v | 0) !== v) {
+            throw new TypeError('All elements must be finite integers');
+        }
+        // 問題の値域に合わせる
+        if (v < -10 || v > 10) {
+            throw new RangeError('Each number must be within [-10, 10]');
+        }
+    }
 }
 // ```
 

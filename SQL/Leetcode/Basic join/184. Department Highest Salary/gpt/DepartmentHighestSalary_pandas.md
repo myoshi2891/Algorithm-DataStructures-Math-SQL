@@ -87,17 +87,14 @@ def department_highest_salary(employee: pd.DataFrame, department: pd.DataFrame) 
 - `merge`：`departmentId` と `Department.id` で結合し、部門名を付与。必要列に限定して安全・軽量化。
 
 - **NULL の扱い**
-
-  - `salary` が `NaN` の行は `eq` 比較で `False` となり自然に除外。
-    `transform("max")` は数値列で `NaN` を無視して最大値を返す（すべて `NaN` の部門は結果に現れない）。
+    - `salary` が `NaN` の行は `eq` 比較で `False` となり自然に除外。
+      `transform("max")` は数値列で `NaN` を無視して最大値を返す（すべて `NaN` の部門は結果に現れない）。
 
 - **重複／同率**
-
-  - `transform("max")` 比較のため、**同率の全行**が残る。社員の一意性は `id`（PK）で担保されるため同一社員が重複することはない。
+    - `transform("max")` 比較のため、**同率の全行**が残る。社員の一意性は `id`（PK）で担保されるため同一社員が重複することはない。
 
 - **型の安全策**
-
-  - 入力の `salary` が数値であれば、そのまま `int`（または `Int64`）として返る。不要な `astype` は行わず、**余計なソート・print も不実施**。
+    - 入力の `salary` が数値であれば、そのまま `int`（または `Int64`）として返る。不要な `astype` は行わず、**余計なソート・print も不実施**。
 
 ---
 

@@ -1,4 +1,3 @@
-
 ---
 
 ## 🔢 入力例（N=4）
@@ -32,10 +31,10 @@
 
 ```ts
 adj = [
-  [0, 1], // 生徒0が希望する席
-  [1],    // 生徒1
-  [2],    // 生徒2
-  [3]     // 生徒3
+    [0, 1], // 生徒0が希望する席
+    [1], // 生徒1
+    [2], // 生徒2
+    [3], // 生徒3
 ];
 ```
 
@@ -53,8 +52,8 @@ matchTo = [-1, -1, -1, -1] // 各席は未割り当て
 
 ### 👣 DFSで生徒0（席0,1希望）を試す
 
-* visited: `[false, false, false, false]`
-* 生徒0→席0 → 空いてる → マッチング成功！
+- visited: `[false, false, false, false]`
+- 生徒0→席0 → 空いてる → マッチング成功！
 
 ```
 matchTo = [0, -1, -1, -1]
@@ -64,8 +63,8 @@ matchTo = [0, -1, -1, -1]
 
 ### 👣 DFSで生徒1（席1希望）を試す
 
-* visited: `[false, false, false, false]`
-* 生徒1→席1 → 空いてる → マッチング成功！
+- visited: `[false, false, false, false]`
+- 生徒1→席1 → 空いてる → マッチング成功！
 
 ```
 matchTo = [0, 1, -1, -1]
@@ -75,8 +74,8 @@ matchTo = [0, 1, -1, -1]
 
 ### 👣 DFSで生徒2（席2希望）を試す
 
-* visited: `[false, false, false, false]`
-* 生徒2→席2 → 空いてる → マッチング成功！
+- visited: `[false, false, false, false]`
+- 生徒2→席2 → 空いてる → マッチング成功！
 
 ```
 matchTo = [0, 1, 2, -1]
@@ -86,8 +85,8 @@ matchTo = [0, 1, 2, -1]
 
 ### 👣 DFSで生徒3（席3希望）を試す
 
-* visited: `[false, false, false, false]`
-* 生徒3→席3 → 空いてる → マッチング成功！
+- visited: `[false, false, false, false]`
+- 生徒3→席3 → 空いてる → マッチング成功！
 
 ```
 matchTo = [0, 1, 2, 3]
@@ -99,8 +98,8 @@ matchTo = [0, 1, 2, 3]
 
 すべての生徒が希望の席に座れた！
 
-* マッチング数 `= 4`
-* 出力：
+- マッチング数 `= 4`
+- 出力：
 
 ```
 4
@@ -123,9 +122,9 @@ matchTo = [0, 1, 2, 3]
 
 今回は不要でしたが、もし以下のような状況だった場合：
 
-* 生徒0 → 席0,1希望
-* 生徒1 → 席0希望
-* 先に生徒0→席0 がマッチ → 生徒1は DFS で「席0は埋まっているが、生徒0を他の席（席1）に動かせるか？」を再帰的に探す
+- 生徒0 → 席0,1希望
+- 生徒1 → 席0希望
+- 先に生徒0→席0 がマッチ → 生徒1は DFS で「席0は埋まっているが、生徒0を他の席（席1）に動かせるか？」を再帰的に探す
 
 このように、**すでに埋まっている席の生徒をDFSで再配置する**のが**DFSによる最大マッチングの核心**です。
 
@@ -168,12 +167,12 @@ matchTo = [0, 1, 2, 3]
 
 ```ts
 adj = [
-  [0, 2],       // 生徒0
-  [1, 3],       // 生徒1
-  [2, 4],       // 生徒2
-  [3, 5],       // 生徒3
-  [4, 5],       // 生徒4
-  []            // 生徒5（希望なし）
+    [0, 2], // 生徒0
+    [1, 3], // 生徒1
+    [2, 4], // 生徒2
+    [3, 5], // 生徒3
+    [4, 5], // 生徒4
+    [], // 生徒5（希望なし）
 ];
 ```
 
@@ -193,8 +192,8 @@ matchTo = [-1, -1, -1, -1, -1, -1]
 
 ### 👣 生徒0 → 席0 or 席2
 
-* `visited = [false, false, false, false, false, false]`
-* 席0空いてる → マッチ成功！
+- `visited = [false, false, false, false, false, false]`
+- 席0空いてる → マッチ成功！
 
 ```
 matchTo = [0, -1, -1, -1, -1, -1]
@@ -204,7 +203,7 @@ matchTo = [0, -1, -1, -1, -1, -1]
 
 ### 👣 生徒1 → 席1 or 席3
 
-* 席1空いてる → マッチ成功！
+- 席1空いてる → マッチ成功！
 
 ```
 matchTo = [0, 1, -1, -1, -1, -1]
@@ -214,7 +213,7 @@ matchTo = [0, 1, -1, -1, -1, -1]
 
 ### 👣 生徒2 → 席2 or 席4
 
-* 席2空いてる → マッチ成功！
+- 席2空いてる → マッチ成功！
 
 ```
 matchTo = [0, 1, 2, -1, -1, -1]
@@ -224,7 +223,7 @@ matchTo = [0, 1, 2, -1, -1, -1]
 
 ### 👣 生徒3 → 席3 or 席5
 
-* 席3空いてる → マッチ成功！
+- 席3空いてる → マッチ成功！
 
 ```
 matchTo = [0, 1, 2, 3, -1, -1]
@@ -234,7 +233,7 @@ matchTo = [0, 1, 2, 3, -1, -1]
 
 ### 👣 生徒4 → 席4 or 席5
 
-* 席4空いてる → マッチ成功！
+- 席4空いてる → マッチ成功！
 
 ```
 matchTo = [0, 1, 2, 3, 4, -1]
@@ -274,8 +273,8 @@ matchTo = [0, 1, 2, 3, 4, -1]
 
 例えば、もし生徒4が「席4,5」を希望し、**席4が既に生徒2に割り当て済み**だったら？
 
-* 生徒4→席4（埋まっている）→席4の持ち主（生徒2）にDFSを再帰して「席2に動けるか？」を調べる
-* 生徒2→席2に移動できたら → 生徒4→席4 も可能に！
+- 生徒4→席4（埋まっている）→席4の持ち主（生徒2）にDFSを再帰して「席2に動けるか？」を調べる
+- 生徒2→席2に移動できたら → 生徒4→席4 も可能に！
 
 これが「増加パス（augmenting path）」による割り当ての再編成です。
 
@@ -371,14 +370,14 @@ Goのコンパイルエラーは非常に明確で、「**`imported and not used
 
 ## ✅ 解説
 
-* `import "strings"` はこのコードでは使っていないため、削除することでエラーが解消されます。
-* Go は「使っていない import は無効」と判断するため、自動的に削除しない限り手動で直す必要があります。
+- `import "strings"` はこのコードでは使っていないため、削除することでエラーが解消されます。
+- Go は「使っていない import は無効」と判断するため、自動的に削除しない限り手動で直す必要があります。
 
 ---
 
 ## ✅ アドバイス
 
-* 将来このようなミスを避けるために、Go公式ツールで整形しておくと便利です：
+- 将来このようなミスを避けるために、Go公式ツールで整形しておくと便利です：
 
 ```bash
 go fmt main.go
@@ -388,11 +387,11 @@ go fmt main.go
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-23 13:06:29 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1018 Byte | **AC** | 2 ms | 2460 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017579) |
-| 2025-06-23 13:03:52 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 975 Byte | **AC** | 17 ms | 22304 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017528) |
-| 2025-06-23 12:57:36 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 964 Byte | **AC** | 20 ms | 9196 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017433) |
-| 2025-06-23 12:53:58 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 852 Byte | **AC** | 49 ms | 48660 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017380) |
-| 2025-06-23 12:45:43 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1212 Byte | **AC** | 73 ms | 48740 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017289) |
-| 2025-06-23 12:42:11 | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 865 Byte | **AC** | 82 ms | 48648 KiB |  |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                       | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-23 13:06:29                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1018 Byte                                                                                 | **AC** | 2 ms                                                                                         | 2460 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017579) |
+| 2025-06-23 13:03:52                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 975 Byte                                                                                  | **AC** | 17 ms                                                                                        | 22304 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017528) |
+| 2025-06-23 12:57:36                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 964 Byte                                                                                  | **AC** | 20 ms                                                                                        | 9196 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017433) |
+| 2025-06-23 12:53:58                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 852 Byte                                                                                  | **AC** | 49 ms                                                                                        | 48660 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017380) |
+| 2025-06-23 12:45:43                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1212 Byte                                                                                 | **AC** | 73 ms                                                                                        | 48740 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67017289) |
+| 2025-06-23 12:42:11                                                                           | [A69 - Bipartite Matching](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 865 Byte                                                                                  | **AC** | 82 ms                                                                                        | 48648 KiB                                                                                    |                                                                       |

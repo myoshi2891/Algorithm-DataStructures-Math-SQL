@@ -31,8 +31,8 @@ x = 10
 ```ts
 let reverted = 0;
 while (x > reverted) {
-  reverted = reverted * 10 + (x % 10);
-  x = Math.floor(x / 10);
+    reverted = reverted * 10 + (x % 10);
+    x = Math.floor(x / 10);
 }
 ```
 

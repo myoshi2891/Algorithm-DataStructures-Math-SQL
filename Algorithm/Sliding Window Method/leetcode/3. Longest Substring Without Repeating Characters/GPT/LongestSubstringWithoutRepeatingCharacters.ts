@@ -68,45 +68,45 @@
  * @complexity Time: O(n), Space: O(1)
  */
 export function lengthOfLongestSubstring(s: string): number {
-  // --- 入力検証（ホットパス外） ---
-  if (typeof s !== "string") {
-    throw new TypeError("Input must be a string");
-  }
-  const n: number = s.length;
-  if (n < 0 || n > 5 * 10 ** 4) {
-    throw new RangeError("Input length out of allowed range (0..5*10^4)");
-  }
-  if (n === 0) return 0;
+    // --- 入力検証（ホットパス外） ---
+    if (typeof s !== 'string') {
+        throw new TypeError('Input must be a string');
+    }
+    const n: number = s.length;
+    if (n < 0 || n > 5 * 10 ** 4) {
+        throw new RangeError('Input length out of allowed range (0..5*10^4)');
+    }
+    if (n === 0) return 0;
 
-  // --- 直近位置テーブル：まず ASCII 用（128 要素） ---
-  let lastPos: Uint32Array = new Uint32Array(128);
-  let asciiOnly = true; // 初回の非ASCII検出で false にして昇格
-  let left = 0; // ウィンドウ左端（index+1 を格納する運用）
-  let best = 0;
+    // --- 直近位置テーブル：まず ASCII 用（128 要素） ---
+    let lastPos: Uint32Array = new Uint32Array(128);
+    let asciiOnly = true; // 初回の非ASCII検出で false にして昇格
+    let left = 0; // ウィンドウ左端（index+1 を格納する運用）
+    let best = 0;
 
-  // 単純 for ループ（JIT/CPU キャッシュに優しい）
-  for (let i = 0; i < n; i++) {
-    const code = s.charCodeAt(i); // UTF-16 コードユニット
+    // 単純 for ループ（JIT/CPU キャッシュに優しい）
+    for (let i = 0; i < n; i++) {
+        const code = s.charCodeAt(i); // UTF-16 コードユニット
 
-    // 初めて非ASCIIに遭遇 → 一度だけ 65536 へ昇格
-    if (asciiOnly && code >= 128) {
-      const big = new Uint32Array(65536);
-      big.set(lastPos); // 128 要素のみコピー
-      lastPos = big;
-      asciiOnly = false;
+        // 初めて非ASCIIに遭遇 → 一度だけ 65536 へ昇格
+        if (asciiOnly && code >= 128) {
+            const big = new Uint32Array(65536);
+            big.set(lastPos); // 128 要素のみコピー
+            lastPos = big;
+            asciiOnly = false;
+        }
+
+        const prev = lastPos[code]; // 直近出現位置+1（未出現=0）
+        if (prev > left) {
+            left = prev; // ウィンドウ左端を前進
+        }
+        lastPos[code] = i + 1; // 現在位置+1 を記録
+
+        const len = i - left + 1;
+        if (len > best) best = len;
     }
 
-    const prev = lastPos[code]; // 直近出現位置+1（未出現=0）
-    if (prev > left) {
-      left = prev; // ウィンドウ左端を前進
-    }
-    lastPos[code] = i + 1; // 現在位置+1 を記録
-
-    const len = i - left + 1;
-    if (len > best) best = len;
-  }
-
-  return best;
+    return best;
 }
 // ```
 

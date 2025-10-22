@@ -9,8 +9,8 @@
 ```typescript
 // TypeScript 5.1 (Node.js 18.16.1)
 // fsを使った高速入出力
-import * as fs from "fs";
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+import * as fs from 'fs';
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 const N: number = input[0];
 let K: bigint = BigInt(input[1]); // Kは最大1e9なのでBigIntで扱う
 
@@ -76,9 +76,9 @@ function solve(N: number, K: bigint): Uint32Array {
 const result = solve(N, K);
 
 // 出力
-let output = "";
+let output = '';
 for (let i = 0; i < N; i++) {
-    output += result[i] + "\n";
+    output += result[i] + '\n';
 }
 process.stdout.write(output);
 ```
@@ -87,19 +87,17 @@ process.stdout.write(output);
 
 ## **処理時間・メモリ見積もり**
 
-* **時間計算量**
+- **時間計算量**
+    - next 配列構築： $O(N \cdot d)$（dは桁数、最大6）
+    - ダブリング： $O(N \log K)$ ≈ $3\times 10^5 \times 30 = 9\times 10^6$ ステップ
+    - 各iの計算： $O(N \log K)$
+      → 全体で 0.3〜0.5 秒程度（Node.js 実測）
 
-  * next 配列構築： $O(N \cdot d)$（dは桁数、最大6）
-  * ダブリング： $O(N \log K)$ ≈ $3\times 10^5 \times 30 = 9\times 10^6$ ステップ
-  * 各iの計算： $O(N \log K)$
-    → 全体で 0.3〜0.5 秒程度（Node.js 実測）
-
-* **メモリ使用量**
-
-  * next: 約 1.2MB
-  * jump: 約 38MB
-  * res: 約 1.2MB
-    → 合計 40MB 程度（1024MB制限内）
+- **メモリ使用量**
+    - next: 約 1.2MB
+    - jump: 約 38MB
+    - res: 約 1.2MB
+      → 合計 40MB 程度（1024MB制限内）
 
 ---
 

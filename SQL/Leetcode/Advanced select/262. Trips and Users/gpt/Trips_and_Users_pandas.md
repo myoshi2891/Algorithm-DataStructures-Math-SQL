@@ -11,9 +11,8 @@
 - `2013-10-01`〜`2013-10-03` の各日について、**クライアントとドライバがともに未 BAN**のリクエストのみを対象に、
   **キャンセル率**（`cancelled_by_driver` または `cancelled_by_client`）を算出し、小数第 2 位に丸める。対象日のうち、**少なくとも 1 件**の該当トリップがある日だけ返す。
 - 入力 DF:
-
-  - `Trips(id, client_id, driver_id, city_id, status, request_at[str YYYY-MM-DD])`
-  - `Users(users_id, banned in {'Yes','No'}, role)`
+    - `Trips(id, client_id, driver_id, city_id, status, request_at[str YYYY-MM-DD])`
+    - `Users(users_id, banned in {'Yes','No'}, role)`
 
 - 出力: 列 `Day[str YYYY-MM-DD]`, `Cancellation Rate[float 丸め 2 桁]`（順序は任意）
 
@@ -62,17 +61,15 @@ def cancellation_rate(trips: pd.DataFrame, users: pd.DataFrame) -> pd.DataFrame:
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `pd.to_datetime`：厳密な期間フィルタのために `request_at` を日付化
-  - `Series.isin`：未 BAN ID セットとの照合（クライアント／ドライバ両方）
-  - `groupby(...).mean()`：`0/1` フラグの平均 = キャンセル率
-  - `round(2)`：小数第 2 位へ丸め
+    - `pd.to_datetime`：厳密な期間フィルタのために `request_at` を日付化
+    - `Series.isin`：未 BAN ID セットとの照合（クライアント／ドライバ両方）
+    - `groupby(...).mean()`：`0/1` フラグの平均 = キャンセル率
+    - `round(2)`：小数第 2 位へ丸め
 
 - **NULL / 重複 / 型**
-
-  - 不正日付は `errors='coerce'` で `NaT` になり、期間条件で自然に除外
-  - `Users` の重複は想定外だが、`set(...)` により重複影響を排除
-  - 返却は `Day`（`YYYY-MM-DD` 文字列）と `Cancellation Rate`（float, 2 桁丸め）
+    - 不正日付は `errors='coerce'` で `NaT` になり、期間条件で自然に除外
+    - `Users` の重複は想定外だが、`set(...)` により重複影響を排除
+    - 返却は `Day`（`YYYY-MM-DD` 文字列）と `Cancellation Rate`（float, 2 桁丸め）
 
 ## 4) 計算量（概算）
 

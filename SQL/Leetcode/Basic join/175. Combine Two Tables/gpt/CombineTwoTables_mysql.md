@@ -80,13 +80,11 @@ CREATE INDEX idx_address_personId ON Address(personId);
 ## 追加メモ（実務でありがちな論点）
 
 1. **Address が 1 人に複数行**
-
-   - 本問題は 0 か 1 を想定ですが、もし複数あると **人 × 住所** で行が増えます。
-   - 代表 1 件のみを出したいなら、`ROW_NUMBER()`（MySQL 8.0+）で 1 件に絞るなどの対策が必要です。
+    - 本問題は 0 か 1 を想定ですが、もし複数あると **人 × 住所** で行が増えます。
+    - 代表 1 件のみを出したいなら、`ROW_NUMBER()`（MySQL 8.0+）で 1 件に絞るなどの対策が必要です。
 
 2. **表示順が必要なとき**
-
-   - 例：名前順にしたい → `ORDER BY p.lastName, p.firstName` を追記。
+    - 例：名前順にしたい → `ORDER BY p.lastName, p.firstName` を追記。
 
 ---
 

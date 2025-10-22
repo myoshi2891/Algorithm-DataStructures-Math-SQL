@@ -63,35 +63,35 @@
  * @returns {boolean} 有効な数値の場合true、そうでなければfalse
  * @complexity Time: O(n), Space: O(1)
  */
-var isNumber = function(s) {
+var isNumber = function (s) {
     // 入力検証
     if (!s || typeof s !== 'string') {
         return false;
     }
-    
+
     // 状態定義（V8最適化のため整数定数使用）
-    const INITIAL = 0;          // 初期状態
-    const SIGN = 1;            // 符号読み取り後
-    const INTEGER = 2;         // 整数部読み取り中
-    const DOT = 3;             // ドット読み取り後
-    const DECIMAL = 4;         // 小数部読み取り中  
-    const EXP = 5;             // E/e読み取り後
-    const EXP_SIGN = 6;        // 指数符号読み取り後
-    const EXP_NUMBER = 7;      // 指数部読み取り中
-    
+    const INITIAL = 0; // 初期状態
+    const SIGN = 1; // 符号読み取り後
+    const INTEGER = 2; // 整数部読み取り中
+    const DOT = 3; // ドット読み取り後
+    const DECIMAL = 4; // 小数部読み取り中
+    const EXP = 5; // E/e読み取り後
+    const EXP_SIGN = 6; // 指数符号読み取り後
+    const EXP_NUMBER = 7; // 指数部読み取り中
+
     let state = INITIAL;
     let i = 0;
     const len = s.length;
-    
+
     // 文字種判定用ヘルパー（インライン化促進）
     const isDigit = (c) => c >= '0' && c <= '9';
     const isSign = (c) => c === '+' || c === '-';
     const isExp = (c) => c === 'e' || c === 'E';
-    
+
     // メインループ（V8最適化：インデックスアクセス）
     while (i < len) {
         const char = s[i];
-        
+
         switch (state) {
             case INITIAL:
                 if (isSign(char)) {
@@ -104,7 +104,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case SIGN:
                 if (isDigit(char)) {
                     state = INTEGER;
@@ -114,7 +114,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case INTEGER:
                 if (isDigit(char)) {
                     // 同一状態継続
@@ -126,7 +126,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case DOT:
                 if (isDigit(char)) {
                     state = DECIMAL;
@@ -134,7 +134,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case DECIMAL:
                 if (isDigit(char)) {
                     // 同一状態継続
@@ -144,7 +144,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case EXP:
                 if (isSign(char)) {
                     state = EXP_SIGN;
@@ -154,7 +154,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case EXP_SIGN:
                 if (isDigit(char)) {
                     state = EXP_NUMBER;
@@ -162,7 +162,7 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             case EXP_NUMBER:
                 if (isDigit(char)) {
                     // 同一状態継続
@@ -170,50 +170,60 @@ var isNumber = function(s) {
                     return false;
                 }
                 break;
-                
+
             default:
                 return false;
         }
-        
+
         i++;
     }
-    
+
     // 終了状態判定（有効な終了状態のみtrue）
-    return state === INTEGER || 
-           state === DECIMAL || 
-           state === EXP_NUMBER;
+    return state === INTEGER || state === DECIMAL || state === EXP_NUMBER;
 };
 
 // テストケース
 console.log('=== 基本テスト ===');
-console.log('isNumber("0"):', isNumber("0")); // true
-console.log('isNumber("e"):', isNumber("e")); // false  
-console.log('isNumber("."):', isNumber(".")); // false
+console.log('isNumber("0"):', isNumber('0')); // true
+console.log('isNumber("e"):', isNumber('e')); // false
+console.log('isNumber("."):', isNumber('.')); // false
 
 console.log('\n=== 有効な数値 ===');
-const validCases = ["2", "0089", "-0.1", "+3.14", "4.", "-.9", 
-                   "2e10", "-90E3", "3e+7", "+6e-1", "53.5e93", "-123.456e789"];
-validCases.forEach(test => {
+const validCases = [
+    '2',
+    '0089',
+    '-0.1',
+    '+3.14',
+    '4.',
+    '-.9',
+    '2e10',
+    '-90E3',
+    '3e+7',
+    '+6e-1',
+    '53.5e93',
+    '-123.456e789',
+];
+validCases.forEach((test) => {
     console.log(`isNumber("${test}"):`, isNumber(test));
 });
 
 console.log('\n=== 無効な数値 ===');
-const invalidCases = ["abc", "1a", "1e", "e3", "99e2.5", "--6", "-+3", "95a54e53"];
-invalidCases.forEach(test => {
+const invalidCases = ['abc', '1a', '1e', 'e3', '99e2.5', '--6', '-+3', '95a54e53'];
+invalidCases.forEach((test) => {
     console.log(`isNumber("${test}"):`, isNumber(test));
 });
 
 console.log('\n=== エッジケース ===');
-const edgeCases = ["", " ", "1 ", " 1", "1.2.3", "+-2", "e", "E", ".", "+", "-"];
-edgeCases.forEach(test => {
+const edgeCases = ['', ' ', '1 ', ' 1', '1.2.3', '+-2', 'e', 'E', '.', '+', '-'];
+edgeCases.forEach((test) => {
     console.log(`isNumber("${test}"):`, isNumber(test));
 });
 
 // パフォーマンステスト用関数
 function performanceTest() {
-    const testString = "123.456e-789";
+    const testString = '123.456e-789';
     const iterations = 100000;
-    
+
     console.log('\n=== パフォーマンステスト ===');
     console.time('FSM Approach');
     for (let i = 0; i < iterations; i++) {

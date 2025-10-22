@@ -44,54 +44,54 @@
  * @return {number}
  */
 var minDistance = function (word1, word2) {
-  // 入力検証
-  if (typeof word1 !== "string" || typeof word2 !== "string") {
-    throw new TypeError("Both parameters must be strings");
-  }
-
-  const m = word1.length;
-  const n = word2.length;
-
-  // エッジケース処理
-  if (m === 0) return n;
-  if (n === 0) return m;
-
-  // DPテーブル初期化 - V8最適化: 事前サイズ確保
-  const dp = new Array(m + 1);
-  for (let i = 0; i <= m; i++) {
-    dp[i] = new Array(n + 1);
-  }
-
-  // ベースケース初期化
-  // word1が空文字の場合: word2の文字数分挿入が必要
-  for (let j = 0; j <= n; j++) {
-    dp[0][j] = j;
-  }
-
-  // word2が空文字の場合: word1の文字数分削除が必要
-  for (let i = 0; i <= m; i++) {
-    dp[i][0] = i;
-  }
-
-  // DPテーブル構築 - メインアルゴリズム
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        // 文字が一致: 追加操作不要
-        dp[i][j] = dp[i - 1][j - 1];
-      } else {
-        // 文字が不一致: 3つの操作の最小値 + 1
-        dp[i][j] =
-          Math.min(
-            dp[i - 1][j], // 削除操作
-            dp[i][j - 1], // 挿入操作
-            dp[i - 1][j - 1] // 置換操作
-          ) + 1;
-      }
+    // 入力検証
+    if (typeof word1 !== 'string' || typeof word2 !== 'string') {
+        throw new TypeError('Both parameters must be strings');
     }
-  }
 
-  return dp[m][n];
+    const m = word1.length;
+    const n = word2.length;
+
+    // エッジケース処理
+    if (m === 0) return n;
+    if (n === 0) return m;
+
+    // DPテーブル初期化 - V8最適化: 事前サイズ確保
+    const dp = new Array(m + 1);
+    for (let i = 0; i <= m; i++) {
+        dp[i] = new Array(n + 1);
+    }
+
+    // ベースケース初期化
+    // word1が空文字の場合: word2の文字数分挿入が必要
+    for (let j = 0; j <= n; j++) {
+        dp[0][j] = j;
+    }
+
+    // word2が空文字の場合: word1の文字数分削除が必要
+    for (let i = 0; i <= m; i++) {
+        dp[i][0] = i;
+    }
+
+    // DPテーブル構築 - メインアルゴリズム
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (word1[i - 1] === word2[j - 1]) {
+                // 文字が一致: 追加操作不要
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                // 文字が不一致: 3つの操作の最小値 + 1
+                dp[i][j] =
+                    Math.min(
+                        dp[i - 1][j], // 削除操作
+                        dp[i][j - 1], // 挿入操作
+                        dp[i - 1][j - 1], // 置換操作
+                    ) + 1;
+            }
+        }
+    }
+
+    return dp[m][n];
 };
 // ## 5. JavaScript特有最適化ポイント
 

@@ -6,11 +6,11 @@
  * Trapping Rain Water
  * @param height - 各位置の柱の高さを表す配列
  * @returns 溜まる水の総量
- * 
+ *
  * 制約:
  * - 1 <= height.length <= 2 * 10^4
  * - 0 <= height[i] <= 10^5
- * 
+ *
  * 時間計算量: O(n)  (nは配列の長さ)
  * 空間計算量: O(1)  (定数メモリ)
  */
@@ -18,11 +18,11 @@ function trapGPT(height: number[]): number {
     const n: number = height.length;
     if (n < 3) return 0; // 3未満では水は溜まらない
 
-    let left: number = 0;        // 左ポインタ
-    let right: number = n - 1;   // 右ポインタ
-    let leftMax: number = 0;     // 左側で見た最大の高さ
-    let rightMax: number = 0;    // 右側で見た最大の高さ
-    let water: number = 0;       // 溜まった水の総量
+    let left: number = 0; // 左ポインタ
+    let right: number = n - 1; // 右ポインタ
+    let leftMax: number = 0; // 左側で見た最大の高さ
+    let rightMax: number = 0; // 右側で見た最大の高さ
+    let water: number = 0; // 溜まった水の総量
 
     while (left < right) {
         if (height[left] < height[right]) {
@@ -67,4 +67,3 @@ function trapGPT(height: number[]): number {
 
 //    * 左右のポインタから中央に向けて進め、
 //      高さの小さい方を基準に「左側最大値」または「右側最大値」から差を計算。
-

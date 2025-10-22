@@ -1,555 +1,545 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Word Search Algorithm - DFS + Backtracking</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Word Search Algorithm - DFS + Backtracking</title>
 
-    <!-- External CDN Resources -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+        <!-- External CDN Resources -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
 
-    <style>
-      :root {
-        --primary-color: #6366f1;
-        --secondary-color: #8b5cf6;
-        --accent-color: #06b6d4;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
-        --dark-bg: #0f172a;
-        --card-bg: #1e293b;
-        --text-primary: #f8fafc;
-        --text-secondary: #cbd5e1;
-        --border-color: #334155;
-        --code-bg: #1e1e1e;
-      }
+        <style>
+            :root {
+                --primary-color: #6366f1;
+                --secondary-color: #8b5cf6;
+                --accent-color: #06b6d4;
+                --success-color: #10b981;
+                --warning-color: #f59e0b;
+                --error-color: #ef4444;
+                --dark-bg: #0f172a;
+                --card-bg: #1e293b;
+                --text-primary: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --border-color: #334155;
+                --code-bg: #1e1e1e;
+            }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-      body {
-        font-family: "Inter", sans-serif;
-        background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
-        color: var(--text-primary);
-        line-height: 1.6;
-        min-height: 100vh;
-      }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, var(--dark-bg) 0%, #1e293b 100%);
+                color: var(--text-primary);
+                line-height: 1.6;
+                min-height: 100vh;
+            }
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
 
-      /* Header */
-      .header {
-        text-align: center;
-        margin-bottom: 3rem;
-        position: relative;
-      }
+            /* Header */
+            .header {
+                text-align: center;
+                margin-bottom: 3rem;
+                position: relative;
+            }
 
-      .header::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: linear-gradient(
-          90deg,
-          var(--primary-color),
-          var(--secondary-color)
-        );
-        border-radius: 2px;
-      }
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100px;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+                border-radius: 2px;
+            }
 
-      .header h1 {
-        font-size: 3rem;
-        font-weight: 700;
-        margin: 2rem 0 1rem;
-        background: linear-gradient(
-          135deg,
-          var(--primary-color),
-          var(--accent-color)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
+            .header h1 {
+                font-size: 3rem;
+                font-weight: 700;
+                margin: 2rem 0 1rem;
+                background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
 
-      .header .subtitle {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        font-weight: 300;
-      }
+            .header .subtitle {
+                font-size: 1.2rem;
+                color: var(--text-secondary);
+                font-weight: 300;
+            }
 
-      /* Navigation */
-      .nav-tabs {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-      }
+            /* Navigation */
+            .nav-tabs {
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                flex-wrap: wrap;
+            }
 
-      .nav-tab {
-        padding: 0.8rem 1.5rem;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .nav-tab {
+                padding: 0.8rem 1.5rem;
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .nav-tab:hover {
-        background: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      }
+            .nav-tab:hover {
+                background: var(--primary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            }
 
-      .nav-tab.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-      }
+            .nav-tab.active {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+            }
 
-      /* Cards */
-      .card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-      }
+            /* Cards */
+            .card {
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 1rem;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
 
-      .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      }
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            }
 
-      .card h2 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem;
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .card h2 {
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+                color: var(--primary-color);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .card h3 {
-        font-size: 1.3rem;
-        margin: 1.5rem 0 1rem;
-        color: var(--accent-color);
-      }
+            .card h3 {
+                font-size: 1.3rem;
+                margin: 1.5rem 0 1rem;
+                color: var(--accent-color);
+            }
 
-      /* Code styling */
-      .code-container {
-        position: relative;
-        margin: 1rem 0;
-      }
+            /* Code styling */
+            .code-container {
+                position: relative;
+                margin: 1rem 0;
+            }
 
-      .copy-button {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: var(--primary-color);
-        border: none;
-        color: white;
-        padding: 0.5rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        z-index: 10;
-      }
+            .copy-button {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: var(--primary-color);
+                border: none;
+                color: white;
+                padding: 0.5rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+                z-index: 10;
+            }
 
-      .copy-button:hover {
-        background: var(--secondary-color);
-      }
+            .copy-button:hover {
+                background: var(--secondary-color);
+            }
 
-      pre[class*="language-"] {
-        background: var(--code-bg) !important;
-        border-radius: 0.5rem;
-        border: 1px solid var(--border-color);
-        font-family: "JetBrains Mono", monospace !important;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        overflow-x: auto;
-      }
+            pre[class*='language-'] {
+                background: var(--code-bg) !important;
+                border-radius: 0.5rem;
+                border: 1px solid var(--border-color);
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                overflow-x: auto;
+            }
 
-      code[class*="language-"] {
-        font-family: "JetBrains Mono", monospace !important;
-      }
+            code[class*='language-'] {
+                font-family: 'JetBrains Mono', monospace !important;
+            }
 
-      /* Algorithm visualization */
-      .algo-viz {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin: 2rem 0;
-      }
+            /* Algorithm visualization */
+            .algo-viz {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+                margin: 2rem 0;
+            }
 
-      .board-container {
-        text-align: center;
-      }
+            .board-container {
+                text-align: center;
+            }
 
-      .board {
-        display: inline-grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.5rem;
-        margin: 1rem 0;
-      }
+            .board {
+                display: inline-grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.5rem;
+                margin: 1rem 0;
+            }
 
-      .cell {
-        width: 60px;
-        height: 60px;
-        background: var(--card-bg);
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 1.2rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
+            .cell {
+                width: 60px;
+                height: 60px;
+                background: var(--card-bg);
+                border: 2px solid var(--border-color);
+                border-radius: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
 
-      .cell.current {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-        transform: scale(1.1);
-      }
+            .cell.current {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+                transform: scale(1.1);
+            }
 
-      .cell.visited {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-      }
+            .cell.visited {
+                background: var(--success-color);
+                border-color: var(--success-color);
+                color: white;
+            }
 
-      .cell.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-      }
+            .cell.completed {
+                background: var(--success-color);
+                border-color: var(--success-color);
+                color: white;
+                box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            }
 
-      /* Steps container */
-      .steps-container {
-        background: var(--code-bg);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        border: 1px solid var(--border-color);
-      }
+            /* Steps container */
+            .steps-container {
+                background: var(--code-bg);
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                border: 1px solid var(--border-color);
+            }
 
-      .step {
-        padding: 0.8rem;
-        margin: 0.5rem 0;
-        border-radius: 0.5rem;
-        border-left: 4px solid var(--border-color);
-        transition: all 0.3s ease;
-        opacity: 0.6;
-      }
+            .step {
+                padding: 0.8rem;
+                margin: 0.5rem 0;
+                border-radius: 0.5rem;
+                border-left: 4px solid var(--border-color);
+                transition: all 0.3s ease;
+                opacity: 0.6;
+            }
 
-      .step.active {
-        background: rgba(99, 102, 241, 0.1);
-        border-left-color: var(--primary-color);
-        opacity: 1;
-        transform: translateX(0.5rem);
-      }
+            .step.active {
+                background: rgba(99, 102, 241, 0.1);
+                border-left-color: var(--primary-color);
+                opacity: 1;
+                transform: translateX(0.5rem);
+            }
 
-      .step.completed {
-        background: rgba(16, 185, 129, 0.1);
-        border-left-color: var(--success-color);
-        opacity: 0.8;
-      }
+            .step.completed {
+                background: rgba(16, 185, 129, 0.1);
+                border-left-color: var(--success-color);
+                opacity: 0.8;
+            }
 
-      /* Complexity analysis */
-      .complexity-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin: 1.5rem 0;
-      }
+            /* Complexity analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }
 
-      .complexity-card {
-        background: linear-gradient(
-          135deg,
-          rgba(99, 102, 241, 0.1),
-          rgba(139, 92, 246, 0.1)
-        );
-        padding: 1.5rem;
-        border-radius: 0.8rem;
-        border: 1px solid rgba(99, 102, 241, 0.2);
-      }
+            .complexity-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(99, 102, 241, 0.1),
+                    rgba(139, 92, 246, 0.1)
+                );
+                padding: 1.5rem;
+                border-radius: 0.8rem;
+                border: 1px solid rgba(99, 102, 241, 0.2);
+            }
 
-      .complexity-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        font-family: "JetBrains Mono", monospace;
-        color: var(--accent-color);
-        margin: 0.5rem 0;
-      }
+            .complexity-value {
+                font-size: 1.5rem;
+                font-weight: 600;
+                font-family: 'JetBrains Mono', monospace;
+                color: var(--accent-color);
+                margin: 0.5rem 0;
+            }
 
-      /* Interactive controls */
-      .controls {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin: 1.5rem 0;
-        flex-wrap: wrap;
-      }
+            /* Interactive controls */
+            .controls {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                margin: 1.5rem 0;
+                flex-wrap: wrap;
+            }
 
-      .btn {
-        padding: 0.8rem 1.5rem;
-        border: none;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .btn {
+                padding: 0.8rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .btn-primary {
-        background: var(--primary-color);
-        color: white;
-      }
+            .btn-primary {
+                background: var(--primary-color);
+                color: white;
+            }
 
-      .btn-primary:hover {
-        background: var(--secondary-color);
-        transform: translateY(-2px);
-      }
+            .btn-primary:hover {
+                background: var(--secondary-color);
+                transform: translateY(-2px);
+            }
 
-      .btn-secondary {
-        background: var(--card-bg);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-      }
+            .btn-secondary {
+                background: var(--card-bg);
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
+            }
 
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none !important;
-      }
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none !important;
+            }
 
-      .btn:disabled:hover {
-        background: var(--card-bg);
-        transform: none !important;
-      }
+            .btn:disabled:hover {
+                background: var(--card-bg);
+                transform: none !important;
+            }
 
-      .btn-primary:disabled:hover {
-        background: var(--primary-color);
-        transform: none !important;
-      }
+            .btn-primary:disabled:hover {
+                background: var(--primary-color);
+                transform: none !important;
+            }
 
-      /* Responsive design */
-      @media (max-width: 768px) {
-        .container {
-          padding: 1rem;
-        }
+            /* Responsive design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
 
-        .header h1 {
-          font-size: 2rem;
-        }
+                .header h1 {
+                    font-size: 2rem;
+                }
 
-        .algo-viz {
-          grid-template-columns: 1fr;
-        }
+                .algo-viz {
+                    grid-template-columns: 1fr;
+                }
 
-        .complexity-grid {
-          grid-template-columns: 1fr;
-        }
+                .complexity-grid {
+                    grid-template-columns: 1fr;
+                }
 
-        .nav-tabs {
-          justify-content: stretch;
-        }
+                .nav-tabs {
+                    justify-content: stretch;
+                }
 
-        .nav-tab {
-          flex: 1;
-          text-align: center;
-        }
+                .nav-tab {
+                    flex: 1;
+                    text-align: center;
+                }
 
-        .cell {
-          width: 50px;
-          height: 50px;
-          font-size: 1rem;
-        }
-      }
+                .cell {
+                    width: 50px;
+                    height: 50px;
+                    font-size: 1rem;
+                }
+            }
 
-      /* Animation classes */
-      .fade-in {
-        animation: fadeIn 0.5s ease-in;
-      }
+            /* Animation classes */
+            .fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
 
-      .pulse {
-        animation: pulse 2s infinite;
-      }
+            .pulse {
+                animation: pulse 2s infinite;
+            }
 
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.7;
-        }
-      }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
 
-      /* Hidden content */
-      .content-section {
-        display: none;
-      }
+            /* Hidden content */
+            .content-section {
+                display: none;
+            }
 
-      .content-section.active {
-        display: block;
-        animation: fadeIn 0.5s ease-in;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <!-- Header -->
-      <header class="header">
-        <h1><i class="fas fa-search"></i> Word Search Algorithm</h1>
-        <p class="subtitle">DFS + Backtracking による効率的な解法</p>
-      </header>
+            .content-section.active {
+                display: block;
+                animation: fadeIn 0.5s ease-in;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                <h1><i class="fas fa-search"></i> Word Search Algorithm</h1>
+                <p class="subtitle">DFS + Backtracking による効率的な解法</p>
+            </header>
 
-      <!-- Navigation -->
-      <nav class="nav-tabs">
-        <div class="nav-tab active" data-section="overview">
-          <i class="fas fa-info-circle"></i> 概要
-        </div>
-        <div class="nav-tab" data-section="algorithm">
-          <i class="fas fa-cogs"></i> アルゴリズム
-        </div>
-        <div class="nav-tab" data-section="code">
-          <i class="fas fa-code"></i> コード
-        </div>
-        <div class="nav-tab" data-section="visualization">
-          <i class="fas fa-eye"></i> 可視化
-        </div>
-        <div class="nav-tab" data-section="complexity">
-          <i class="fas fa-chart-line"></i> 計算量
-        </div>
-      </nav>
+            <!-- Navigation -->
+            <nav class="nav-tabs">
+                <div class="nav-tab active" data-section="overview">
+                    <i class="fas fa-info-circle"></i> 概要
+                </div>
+                <div class="nav-tab" data-section="algorithm">
+                    <i class="fas fa-cogs"></i> アルゴリズム
+                </div>
+                <div class="nav-tab" data-section="code"><i class="fas fa-code"></i> コード</div>
+                <div class="nav-tab" data-section="visualization">
+                    <i class="fas fa-eye"></i> 可視化
+                </div>
+                <div class="nav-tab" data-section="complexity">
+                    <i class="fas fa-chart-line"></i> 計算量
+                </div>
+            </nav>
 
-      <!-- Overview Section -->
-      <section id="overview" class="content-section active">
-        <div class="card">
-          <h2><i class="fas fa-lightbulb"></i> 問題概要</h2>
-          <p>
-            2次元文字グリッド内で指定された単語が存在するかを判定する問題です。単語は隣接するセル（上下左右）を順次辿って構成され、同じセルは1回しか使用できません。
-          </p>
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="card">
+                    <h2><i class="fas fa-lightbulb"></i> 問題概要</h2>
+                    <p>
+                        2次元文字グリッド内で指定された単語が存在するかを判定する問題です。単語は隣接するセル（上下左右）を順次辿って構成され、同じセルは1回しか使用できません。
+                    </p>
 
-          <h3>制約条件</h3>
-          <ul>
-            <li><code>1 ≤ m, n ≤ 6</code> (グリッドサイズ)</li>
-            <li><code>1 ≤ word.length ≤ 15</code> (単語長)</li>
-            <li>英大文字・小文字のみ</li>
-            <li>同じセルは1回のみ使用可能</li>
-          </ul>
+                    <h3>制約条件</h3>
+                    <ul>
+                        <li><code>1 ≤ m, n ≤ 6</code> (グリッドサイズ)</li>
+                        <li><code>1 ≤ word.length ≤ 15</code> (単語長)</li>
+                        <li>英大文字・小文字のみ</li>
+                        <li>同じセルは1回のみ使用可能</li>
+                    </ul>
 
-          <h3>Example</h3>
-          <div class="code-container">
-            <button class="copy-button" onclick="copyCode(this)">
-              <i class="fas fa-copy"></i>
-            </button>
-            <pre><code class="language-python">Input: board = [["A","B","C","E"],
+                    <h3>Example</h3>
+                    <div class="code-container">
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <pre><code class="language-python">Input: board = [["A","B","C","E"],
                 ["S","F","C","S"],
                 ["A","D","E","E"]],
        word = "ABCCED"
 Output: true</code></pre>
-          </div>
-        </div>
-      </section>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Algorithm Section -->
-      <section id="algorithm" class="content-section">
-        <div class="card">
-          <h2><i class="fas fa-cogs"></i> アルゴリズム詳解</h2>
+            <!-- Algorithm Section -->
+            <section id="algorithm" class="content-section">
+                <div class="card">
+                    <h2><i class="fas fa-cogs"></i> アルゴリズム詳解</h2>
 
-          <h3>採用手法: DFS + バックトラッキング</h3>
-          <p>
-            深さ優先探索（DFS）とバックトラッキングを組み合わせ、各セルを開始点として目標単語と一致するパスを探索します。
-          </p>
+                    <h3>採用手法: DFS + バックトラッキング</h3>
+                    <p>
+                        深さ優先探索（DFS）とバックトラッキングを組み合わせ、各セルを開始点として目標単語と一致するパスを探索します。
+                    </p>
 
-          <h3>アルゴリズムの流れ</h3>
-          <div class="steps-container">
-            <div class="step completed">
-              <strong>Step 1:</strong> 全セルを開始点候補として検証
-            </div>
-            <div class="step completed">
-              <strong>Step 2:</strong> 現在セルが対象文字と一致するかチェック
-            </div>
-            <div class="step completed">
-              <strong>Step 3:</strong> 一致した場合、セルを訪問済みとしてマーク
-            </div>
-            <div class="step completed">
-              <strong>Step 4:</strong> 4方向（上下左右）に対して再帰的に探索
-            </div>
-            <div class="step completed">
-              <strong>Step 5:</strong>
-              探索完了後、マークを解除（バックトラッキング）
-            </div>
-          </div>
+                    <h3>アルゴリズムの流れ</h3>
+                    <div class="steps-container">
+                        <div class="step completed">
+                            <strong>Step 1:</strong> 全セルを開始点候補として検証
+                        </div>
+                        <div class="step completed">
+                            <strong>Step 2:</strong> 現在セルが対象文字と一致するかチェック
+                        </div>
+                        <div class="step completed">
+                            <strong>Step 3:</strong> 一致した場合、セルを訪問済みとしてマーク
+                        </div>
+                        <div class="step completed">
+                            <strong>Step 4:</strong> 4方向（上下左右）に対して再帰的に探索
+                        </div>
+                        <div class="step completed">
+                            <strong>Step 5:</strong>
+                            探索完了後、マークを解除（バックトラッキング）
+                        </div>
+                    </div>
 
-          <h3>核となる最適化ポイント</h3>
-          <ul>
-            <li>
-              <strong>インプレース状態管理:</strong>
-              visited配列不要でメモリ効率化
-            </li>
-            <li><strong>早期終了:</strong> 不一致発見時の即座な返却</li>
-            <li><strong>短絡評価:</strong> OR演算子による効率的な方向探索</li>
-          </ul>
-        </div>
-      </section>
+                    <h3>核となる最適化ポイント</h3>
+                    <ul>
+                        <li>
+                            <strong>インプレース状態管理:</strong>
+                            visited配列不要でメモリ効率化
+                        </li>
+                        <li><strong>早期終了:</strong> 不一致発見時の即座な返却</li>
+                        <li><strong>短絡評価:</strong> OR演算子による効率的な方向探索</li>
+                    </ul>
+                </div>
+            </section>
 
-      <!-- Code Section -->
-      <section id="code" class="content-section">
-        <div class="card">
-          <h2><i class="fas fa-code"></i> 実装コード</h2>
+            <!-- Code Section -->
+            <section id="code" class="content-section">
+                <div class="card">
+                    <h2><i class="fas fa-code"></i> 実装コード</h2>
 
-          <h3>完全実装</h3>
-          <div class="code-container">
-            <button class="copy-button" onclick="copyCode(this)">
-              <i class="fas fa-copy"></i>
-            </button>
-            <pre><code class="language-python">from typing import List
+                    <h3>完全実装</h3>
+                    <div class="code-container">
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <pre><code class="language-python">from typing import List
 
 class Solution:
     def exist(self, board: List[List[str]], word: str) -> bool:
@@ -591,14 +581,14 @@ class Solution:
                 if dfs(i, j, 0):
                     return True
         return False</code></pre>
-          </div>
+                    </div>
 
-          <h3>核となる関数の詳細解説</h3>
-          <div class="code-container">
-            <button class="copy-button" onclick="copyCode(this)">
-              <i class="fas fa-copy"></i>
-            </button>
-            <pre><code class="language-python"># DFS関数の各部分解説
+                    <h3>核となる関数の詳細解説</h3>
+                    <div class="code-container">
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <pre><code class="language-python"># DFS関数の各部分解説
 
 # 1. 成功条件：単語を完全に見つけた
 if k == word_len:
@@ -617,117 +607,112 @@ tmp = board[i][j]      # 元の値を保存
 board[i][j] = "#"      # 訪問済みマーク
 # ... 探索処理 ...
 board[i][j] = tmp      # 状態復元（重要！）</code></pre>
-          </div>
-        </div>
-      </section>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Visualization Section -->
-      <section id="visualization" class="content-section">
-        <div class="card">
-          <h2><i class="fas fa-eye"></i> アルゴリズム可視化</h2>
+            <!-- Visualization Section -->
+            <section id="visualization" class="content-section">
+                <div class="card">
+                    <h2><i class="fas fa-eye"></i> アルゴリズム可視化</h2>
 
-          <div class="controls">
-            <button
-              class="btn btn-primary"
-              id="startBtn"
-              onclick="startVisualization()"
-            >
-              <i class="fas fa-play"></i> 実行開始
-            </button>
-            <button
-              class="btn btn-secondary"
-              id="resetBtn"
-              onclick="resetVisualization()"
-            >
-              <i class="fas fa-redo"></i> リセット
-            </button>
-            <button
-              class="btn btn-secondary"
-              id="stepBtn"
-              onclick="stepVisualization()"
-            >
-              <i class="fas fa-step-forward"></i> ステップ実行
-            </button>
-          </div>
+                    <div class="controls">
+                        <button
+                            class="btn btn-primary"
+                            id="startBtn"
+                            onclick="startVisualization()"
+                        >
+                            <i class="fas fa-play"></i> 実行開始
+                        </button>
+                        <button
+                            class="btn btn-secondary"
+                            id="resetBtn"
+                            onclick="resetVisualization()"
+                        >
+                            <i class="fas fa-redo"></i> リセット
+                        </button>
+                        <button
+                            class="btn btn-secondary"
+                            id="stepBtn"
+                            onclick="stepVisualization()"
+                        >
+                            <i class="fas fa-step-forward"></i> ステップ実行
+                        </button>
+                    </div>
 
-          <div class="algo-viz">
-            <div class="board-container">
-              <h3>グリッド状態</h3>
-              <div class="board" id="visualBoard">
-                <div class="cell" data-pos="0,0">A</div>
-                <div class="cell" data-pos="0,1">B</div>
-                <div class="cell" data-pos="0,2">C</div>
-                <div class="cell" data-pos="0,3">E</div>
-                <div class="cell" data-pos="1,0">S</div>
-                <div class="cell" data-pos="1,1">F</div>
-                <div class="cell" data-pos="1,2">C</div>
-                <div class="cell" data-pos="1,3">S</div>
-                <div class="cell" data-pos="2,0">A</div>
-                <div class="cell" data-pos="2,1">D</div>
-                <div class="cell" data-pos="2,2">E</div>
-                <div class="cell" data-pos="2,3">E</div>
-              </div>
-              <p>探索単語: <strong id="targetWord">ABCCED</strong></p>
-              <p>現在位置: <span id="currentPos">-</span></p>
-              <p>探索深度: <span id="currentDepth">0</span></p>
-            </div>
+                    <div class="algo-viz">
+                        <div class="board-container">
+                            <h3>グリッド状態</h3>
+                            <div class="board" id="visualBoard">
+                                <div class="cell" data-pos="0,0">A</div>
+                                <div class="cell" data-pos="0,1">B</div>
+                                <div class="cell" data-pos="0,2">C</div>
+                                <div class="cell" data-pos="0,3">E</div>
+                                <div class="cell" data-pos="1,0">S</div>
+                                <div class="cell" data-pos="1,1">F</div>
+                                <div class="cell" data-pos="1,2">C</div>
+                                <div class="cell" data-pos="1,3">S</div>
+                                <div class="cell" data-pos="2,0">A</div>
+                                <div class="cell" data-pos="2,1">D</div>
+                                <div class="cell" data-pos="2,2">E</div>
+                                <div class="cell" data-pos="2,3">E</div>
+                            </div>
+                            <p>探索単語: <strong id="targetWord">ABCCED</strong></p>
+                            <p>現在位置: <span id="currentPos">-</span></p>
+                            <p>探索深度: <span id="currentDepth">0</span></p>
+                        </div>
 
-            <div class="steps-container">
-              <h3>実行ステップ</h3>
-              <div id="stepsList">
-                <div class="step">可視化を開始してください</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                        <div class="steps-container">
+                            <h3>実行ステップ</h3>
+                            <div id="stepsList">
+                                <div class="step">可視化を開始してください</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      <!-- Complexity Section -->
-      <section id="complexity" class="content-section">
-        <div class="card">
-          <h2><i class="fas fa-chart-line"></i> 計算量分析</h2>
+            <!-- Complexity Section -->
+            <section id="complexity" class="content-section">
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> 計算量分析</h2>
 
-          <div class="complexity-grid">
-            <div class="complexity-card">
-              <h3><i class="fas fa-clock"></i> 時間計算量</h3>
-              <div class="complexity-value">O(m × n × 4^L)</div>
-              <ul>
-                <li><strong>m × n:</strong> 全セルを開始点として試行</li>
-                <li>
-                  <strong>4^L:</strong> 各ステップで最大4方向、最大L回の再帰
-                </li>
-                <li><strong>L:</strong> 単語の長さ（最大15）</li>
-              </ul>
-            </div>
+                    <div class="complexity-grid">
+                        <div class="complexity-card">
+                            <h3><i class="fas fa-clock"></i> 時間計算量</h3>
+                            <div class="complexity-value">O(m × n × 4^L)</div>
+                            <ul>
+                                <li><strong>m × n:</strong> 全セルを開始点として試行</li>
+                                <li><strong>4^L:</strong> 各ステップで最大4方向、最大L回の再帰</li>
+                                <li><strong>L:</strong> 単語の長さ（最大15）</li>
+                            </ul>
+                        </div>
 
-            <div class="complexity-card">
-              <h3><i class="fas fa-memory"></i> 空間計算量</h3>
-              <div class="complexity-value">O(L)</div>
-              <ul>
-                <li><strong>再帰スタック:</strong> 単語長Lに比例</li>
-                <li><strong>visited配列不要:</strong> インプレース管理</li>
-                <li><strong>メモリ効率:</strong> 最小限の追加メモリ</li>
-              </ul>
-            </div>
-          </div>
+                        <div class="complexity-card">
+                            <h3><i class="fas fa-memory"></i> 空間計算量</h3>
+                            <div class="complexity-value">O(L)</div>
+                            <ul>
+                                <li><strong>再帰スタック:</strong> 単語長Lに比例</li>
+                                <li><strong>visited配列不要:</strong> インプレース管理</li>
+                                <li><strong>メモリ効率:</strong> 最小限の追加メモリ</li>
+                            </ul>
+                        </div>
+                    </div>
 
-          <h3>制約条件下での性能</h3>
-          <p>
-            制約 <code>m, n ≤ 6</code> かつ
-            <code>word.length ≤ 15</code> において:
-          </p>
-          <ul>
-            <li>最悪ケース: <code>6 × 6 × 4^15 ≈ 3.86 × 10^10</code> 演算</li>
-            <li>実際の性能: 早期終了とプルーニングにより大幅削減</li>
-            <li>実用性: 制約が小さいため十分高速</li>
-          </ul>
+                    <h3>制約条件下での性能</h3>
+                    <p>制約 <code>m, n ≤ 6</code> かつ <code>word.length ≤ 15</code> において:</p>
+                    <ul>
+                        <li>最悪ケース: <code>6 × 6 × 4^15 ≈ 3.86 × 10^10</code> 演算</li>
+                        <li>実際の性能: 早期終了とプルーニングにより大幅削減</li>
+                        <li>実用性: 制約が小さいため十分高速</li>
+                    </ul>
 
-          <h3>最適化による改善効果</h3>
-          <div class="code-container">
-            <button class="copy-button" onclick="copyCode(this)">
-              <i class="fas fa-copy"></i>
-            </button>
-            <pre><code class="language-python"># 最適化前：visited配列使用
+                    <h3>最適化による改善効果</h3>
+                    <div class="code-container">
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <pre><code class="language-python"># 最適化前：visited配列使用
 visited = [[False] * n for _ in range(m)]  # O(m×n) 追加メモリ
 
 # 最適化後：インプレース管理
@@ -739,430 +724,409 @@ board[i][j] = tmp      # 状態復元
 # 短絡評価による早期終了
 return (dfs(i+1,j,k+1) or dfs(i-1,j,k+1) or
         dfs(i,j+1,k+1) or dfs(i,j-1,k+1))  # いずれか成功で即終了</code></pre>
-          </div>
+                    </div>
+                </div>
+            </section>
         </div>
-      </section>
-    </div>
 
-    <!-- External Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <!-- External Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
-    <script>
-      // Navigation functionality
-      document.addEventListener("DOMContentLoaded", function () {
-        const tabs = document.querySelectorAll(".nav-tab");
-        const sections = document.querySelectorAll(".content-section");
+        <script>
+            // Navigation functionality
+            document.addEventListener('DOMContentLoaded', function () {
+                const tabs = document.querySelectorAll('.nav-tab');
+                const sections = document.querySelectorAll('.content-section');
 
-        tabs.forEach((tab) => {
-          tab.addEventListener("click", function () {
-            const targetSection = this.dataset.section;
+                tabs.forEach((tab) => {
+                    tab.addEventListener('click', function () {
+                        const targetSection = this.dataset.section;
 
-            // Remove active class from all tabs and sections
-            tabs.forEach((t) => t.classList.remove("active"));
-            sections.forEach((s) => s.classList.remove("active"));
+                        // Remove active class from all tabs and sections
+                        tabs.forEach((t) => t.classList.remove('active'));
+                        sections.forEach((s) => s.classList.remove('active'));
 
-            // Add active class to clicked tab and corresponding section
-            this.classList.add("active");
-            document.getElementById(targetSection).classList.add("active");
-          });
-        });
-      });
-
-      // Copy code functionality
-      function copyCode(button) {
-        const codeBlock = button.nextElementSibling.querySelector("code");
-        const text = codeBlock.textContent;
-
-        navigator.clipboard.writeText(text).then(function () {
-          const originalHTML = button.innerHTML;
-          button.innerHTML = '<i class="fas fa-check"></i>';
-          button.style.background = "var(--success-color)";
-
-          setTimeout(function () {
-            button.innerHTML = originalHTML;
-            button.style.background = "var(--primary-color)";
-          }, 2000);
-        });
-      }
-
-      // Visualization state
-      let visualizationState = {
-        board: [
-          ["A", "B", "C", "E"],
-          ["S", "F", "C", "S"],
-          ["A", "D", "E", "E"],
-        ],
-        word: "ABCCED",
-        currentStep: 0,
-        isRunning: false,
-        intervalId: null,
-        path: [
-          { pos: [0, 0], char: "A", action: "start" },
-          { pos: [0, 1], char: "B", action: "move" },
-          { pos: [0, 2], char: "C", action: "move" },
-          { pos: [1, 2], char: "C", action: "move" },
-          { pos: [2, 2], char: "E", action: "move" },
-          { pos: [2, 1], char: "D", action: "complete" },
-        ],
-      };
-
-      function updateButtonStates() {
-        const startBtn = document.getElementById("startBtn");
-        const resetBtn = document.getElementById("resetBtn");
-        const stepBtn = document.getElementById("stepBtn");
-
-        if (visualizationState.isRunning) {
-          startBtn.disabled = true;
-          stepBtn.disabled = true;
-          resetBtn.disabled = false;
-        } else if (
-          visualizationState.currentStep >= visualizationState.path.length
-        ) {
-          startBtn.disabled = true;
-          stepBtn.disabled = true;
-          resetBtn.disabled = false;
-        } else if (visualizationState.currentStep === 0) {
-          startBtn.disabled = false;
-          stepBtn.disabled = false;
-          resetBtn.disabled = false;
-        } else {
-          startBtn.disabled = true;
-          stepBtn.disabled = false;
-          resetBtn.disabled = false;
-        }
-      }
-
-      function startVisualization() {
-        if (visualizationState.isRunning) return;
-
-        // Reset if needed
-        if (visualizationState.currentStep > 0) {
-          resetVisualization();
-        }
-
-        visualizationState.isRunning = true;
-        updateButtonStates();
-
-        const steps = visualizationState.path;
-        let stepIndex = 0;
-
-        visualizationState.intervalId = setInterval(() => {
-          if (stepIndex >= steps.length) {
-            clearInterval(visualizationState.intervalId);
-            visualizationState.isRunning = false;
-            visualizationState.currentStep = steps.length;
-            updateButtonStates();
-            updateStepsList('✅ 探索完了！単語 "ABCCED" が見つかりました。');
-            return;
-          }
-
-          const step = steps[stepIndex];
-          highlightCell(
-            step.pos,
-            stepIndex === steps.length - 1 ? "completed" : "current"
-          );
-          updateCurrentInfo(step.pos, stepIndex + 1, step.char);
-          updateStepsList(
-            `📍 ステップ ${stepIndex + 1}: 位置(${step.pos[0]},${
-              step.pos[1]
-            })で文字'${step.char}'を発見`
-          );
-
-          visualizationState.currentStep = stepIndex + 1;
-          stepIndex++;
-        }, 1200);
-      }
-
-      function resetVisualization() {
-        // Clear any running interval
-        if (visualizationState.intervalId) {
-          clearInterval(visualizationState.intervalId);
-          visualizationState.intervalId = null;
-        }
-
-        // Reset state
-        visualizationState.currentStep = 0;
-        visualizationState.isRunning = false;
-
-        // Reset all cells to initial state
-        document.querySelectorAll(".cell").forEach((cell) => {
-          cell.className = "cell";
-          cell.classList.remove("pulse");
-          cell.style.transform = "";
-          cell.style.backgroundColor = "";
-        });
-
-        // Reset info display
-        document.getElementById("currentPos").textContent = "-";
-        document.getElementById("currentDepth").textContent = "0";
-
-        // Reset steps list
-        document.getElementById("stepsList").innerHTML =
-          '<div class="step">🚀 可視化を開始してください</div>';
-
-        // Update button states
-        updateButtonStates();
-      }
-
-      function stepVisualization() {
-        if (visualizationState.isRunning) return;
-
-        const steps = visualizationState.path;
-        const currentStep = visualizationState.currentStep;
-
-        if (currentStep >= steps.length) {
-          updateStepsList("✅ すべてのステップが完了しました");
-          return;
-        }
-
-        const step = steps[currentStep];
-        highlightCell(
-          step.pos,
-          currentStep === steps.length - 1 ? "completed" : "current"
-        );
-        updateCurrentInfo(step.pos, currentStep + 1, step.char);
-
-        if (currentStep === steps.length - 1) {
-          updateStepsList(
-            `🎯 ステップ ${currentStep + 1}: 位置(${step.pos[0]},${
-              step.pos[1]
-            })で文字'${step.char}'を発見 - 完了！`
-          );
-        } else {
-          updateStepsList(
-            `📍 ステップ ${currentStep + 1}: 位置(${step.pos[0]},${
-              step.pos[1]
-            })で文字'${step.char}'を発見`
-          );
-        }
-
-        visualizationState.currentStep++;
-        updateButtonStates();
-      }
-
-      function highlightCell(pos, type) {
-        const cell = document.querySelector(`[data-pos="${pos[0]},${pos[1]}"]`);
-        if (cell) {
-          // Remove previous current highlights but keep visited
-          if (type === "current") {
-            document.querySelectorAll(".cell.current").forEach((c) => {
-              c.classList.remove("current", "pulse");
-              if (!c.classList.contains("completed")) {
-                c.classList.add("visited");
-              }
+                        // Add active class to clicked tab and corresponding section
+                        this.classList.add('active');
+                        document.getElementById(targetSection).classList.add('active');
+                    });
+                });
             });
-          }
 
-          // Add new highlight
-          cell.classList.remove("visited");
-          cell.classList.add(type);
+            // Copy code functionality
+            function copyCode(button) {
+                const codeBlock = button.nextElementSibling.querySelector('code');
+                const text = codeBlock.textContent;
 
-          // Add pulse animation for current cell
-          if (type === "current") {
-            cell.classList.add("pulse");
-          } else if (type === "completed") {
-            cell.classList.remove("pulse");
-            cell.classList.add("completed");
-          }
-        }
-      }
+                navigator.clipboard.writeText(text).then(function () {
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.style.background = 'var(--success-color)';
 
-      function updateCurrentInfo(pos, depth, char) {
-        document.getElementById(
-          "currentPos"
-        ).textContent = `(${pos[0]}, ${pos[1]})`;
-        document.getElementById("currentDepth").textContent = depth.toString();
-      }
-
-      function updateStepsList(message) {
-        const stepsList = document.getElementById("stepsList");
-
-        // If this is a reset, clear all steps
-        if (message.includes("可視化を開始")) {
-          stepsList.innerHTML = `<div class="step">${message}</div>`;
-          return;
-        }
-
-        const newStep = document.createElement("div");
-        newStep.className = "step active";
-        newStep.textContent = message;
-
-        // Remove active class from previous steps
-        stepsList.querySelectorAll(".step").forEach((step) => {
-          step.classList.remove("active");
-          step.classList.add("completed");
-        });
-
-        stepsList.appendChild(newStep);
-
-        // Scroll to latest step
-        newStep.scrollIntoView({ behavior: "smooth" });
-      }
-
-      // Initialize button states on page load
-      document.addEventListener("DOMContentLoaded", function () {
-        updateButtonStates();
-      });
-
-      // Add hover effects to cells
-      document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".cell").forEach((cell) => {
-          cell.addEventListener("mouseenter", function () {
-            if (
-              !this.classList.contains("current") &&
-              !this.classList.contains("visited")
-            ) {
-              this.style.transform = "scale(1.05)";
-              this.style.backgroundColor = "rgba(99, 102, 241, 0.2)";
+                    setTimeout(function () {
+                        button.innerHTML = originalHTML;
+                        button.style.background = 'var(--primary-color)';
+                    }, 2000);
+                });
             }
-          });
 
-          cell.addEventListener("mouseleave", function () {
-            if (
-              !this.classList.contains("current") &&
-              !this.classList.contains("visited")
-            ) {
-              this.style.transform = "scale(1)";
-              this.style.backgroundColor = "var(--card-bg)";
+            // Visualization state
+            let visualizationState = {
+                board: [
+                    ['A', 'B', 'C', 'E'],
+                    ['S', 'F', 'C', 'S'],
+                    ['A', 'D', 'E', 'E'],
+                ],
+                word: 'ABCCED',
+                currentStep: 0,
+                isRunning: false,
+                intervalId: null,
+                path: [
+                    { pos: [0, 0], char: 'A', action: 'start' },
+                    { pos: [0, 1], char: 'B', action: 'move' },
+                    { pos: [0, 2], char: 'C', action: 'move' },
+                    { pos: [1, 2], char: 'C', action: 'move' },
+                    { pos: [2, 2], char: 'E', action: 'move' },
+                    { pos: [2, 1], char: 'D', action: 'complete' },
+                ],
+            };
+
+            function updateButtonStates() {
+                const startBtn = document.getElementById('startBtn');
+                const resetBtn = document.getElementById('resetBtn');
+                const stepBtn = document.getElementById('stepBtn');
+
+                if (visualizationState.isRunning) {
+                    startBtn.disabled = true;
+                    stepBtn.disabled = true;
+                    resetBtn.disabled = false;
+                } else if (visualizationState.currentStep >= visualizationState.path.length) {
+                    startBtn.disabled = true;
+                    stepBtn.disabled = true;
+                    resetBtn.disabled = false;
+                } else if (visualizationState.currentStep === 0) {
+                    startBtn.disabled = false;
+                    stepBtn.disabled = false;
+                    resetBtn.disabled = false;
+                } else {
+                    startBtn.disabled = true;
+                    stepBtn.disabled = false;
+                    resetBtn.disabled = false;
+                }
             }
-          });
-        });
-      });
 
-      // Enhanced code highlighting
-      document.addEventListener("DOMContentLoaded", function () {
-        // Add line numbers to code blocks
-        document.querySelectorAll('pre[class*="language-"]').forEach((pre) => {
-          pre.classList.add("line-numbers");
-        });
+            function startVisualization() {
+                if (visualizationState.isRunning) return;
 
-        // Re-run Prism highlighting
-        if (typeof Prism !== "undefined") {
-          Prism.highlightAll();
-        }
-      });
+                // Reset if needed
+                if (visualizationState.currentStep > 0) {
+                    resetVisualization();
+                }
 
-      // Smooth scrolling for navigation
-      document.querySelectorAll(".nav-tab").forEach((tab) => {
-        tab.addEventListener("click", function () {
-          const targetSection = document.getElementById(this.dataset.section);
-          if (targetSection) {
-            setTimeout(() => {
-              targetSection.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }, 100);
-          }
-        });
-      });
+                visualizationState.isRunning = true;
+                updateButtonStates();
 
-      // Add loading animation for code blocks
-      document.addEventListener("DOMContentLoaded", function () {
-        const codeBlocks = document.querySelectorAll(".code-container");
+                const steps = visualizationState.path;
+                let stepIndex = 0;
 
-        codeBlocks.forEach((container, index) => {
-          container.style.opacity = "0";
-          container.style.transform = "translateY(20px)";
+                visualizationState.intervalId = setInterval(() => {
+                    if (stepIndex >= steps.length) {
+                        clearInterval(visualizationState.intervalId);
+                        visualizationState.isRunning = false;
+                        visualizationState.currentStep = steps.length;
+                        updateButtonStates();
+                        updateStepsList('✅ 探索完了！単語 "ABCCED" が見つかりました。');
+                        return;
+                    }
 
-          setTimeout(() => {
-            container.style.transition = "all 0.5s ease";
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-          }, index * 200);
-        });
-      });
+                    const step = steps[stepIndex];
+                    highlightCell(
+                        step.pos,
+                        stepIndex === steps.length - 1 ? 'completed' : 'current',
+                    );
+                    updateCurrentInfo(step.pos, stepIndex + 1, step.char);
+                    updateStepsList(
+                        `📍 ステップ ${stepIndex + 1}: 位置(${step.pos[0]},${
+                            step.pos[1]
+                        })で文字'${step.char}'を発見`,
+                    );
 
-      // Performance metrics display
-      function displayPerformanceMetrics() {
-        const m = 6,
-          n = 6,
-          L = 15;
-        const worstCase = m * n * Math.pow(4, L);
-        const avgCase = worstCase * 0.1; // Estimated with pruning
-
-        console.log(`最悪ケース計算量: ${worstCase.toExponential(2)}`);
-        console.log(
-          `平均的な計算量（プルーニング考慮): ${avgCase.toExponential(2)}`
-        );
-      }
-
-      // Initialize performance display
-      document.addEventListener("DOMContentLoaded", displayPerformanceMetrics);
-
-      // Add keyboard shortcuts
-      document.addEventListener("keydown", function (e) {
-        switch (e.key) {
-          case "1":
-            document.querySelector('[data-section="overview"]').click();
-            break;
-          case "2":
-            document.querySelector('[data-section="algorithm"]').click();
-            break;
-          case "3":
-            document.querySelector('[data-section="code"]').click();
-            break;
-          case "4":
-            document.querySelector('[data-section="visualization"]').click();
-            break;
-          case "5":
-            document.querySelector('[data-section="complexity"]').click();
-            break;
-          case " ":
-            e.preventDefault();
-            if (
-              document
-                .getElementById("visualization")
-                .classList.contains("active")
-            ) {
-              stepVisualization();
+                    visualizationState.currentStep = stepIndex + 1;
+                    stepIndex++;
+                }, 1200);
             }
-            break;
-          case "Enter":
-            e.preventDefault();
-            if (
-              document
-                .getElementById("visualization")
-                .classList.contains("active")
-            ) {
-              startVisualization();
-            }
-            break;
-          case "Escape":
-            if (
-              document
-                .getElementById("visualization")
-                .classList.contains("active")
-            ) {
-              resetVisualization();
-            }
-            break;
-        }
-      });
 
-      // Add tooltips for better UX
-      document.addEventListener("DOMContentLoaded", function () {
-        const tooltipElements = [
-          {
-            selector: ".copy-button",
-            message: "コードをクリップボードにコピー",
-          },
-          {
-            selector: ".btn-primary",
-            message: "スペースキー or Enterでも実行可能",
-          },
-          { selector: ".btn-secondary", message: "Escapeキーでもリセット可能" },
-          { selector: ".cell", message: "セルをホバーして詳細を確認" },
-        ];
+            function resetVisualization() {
+                // Clear any running interval
+                if (visualizationState.intervalId) {
+                    clearInterval(visualizationState.intervalId);
+                    visualizationState.intervalId = null;
+                }
 
-        tooltipElements.forEach(({ selector, message }) => {
-          document.querySelectorAll(selector).forEach((element) => {
-            element.title = message;
-          });
-        });
-      });
-    </script>
-  </body>
+                // Reset state
+                visualizationState.currentStep = 0;
+                visualizationState.isRunning = false;
+
+                // Reset all cells to initial state
+                document.querySelectorAll('.cell').forEach((cell) => {
+                    cell.className = 'cell';
+                    cell.classList.remove('pulse');
+                    cell.style.transform = '';
+                    cell.style.backgroundColor = '';
+                });
+
+                // Reset info display
+                document.getElementById('currentPos').textContent = '-';
+                document.getElementById('currentDepth').textContent = '0';
+
+                // Reset steps list
+                document.getElementById('stepsList').innerHTML =
+                    '<div class="step">🚀 可視化を開始してください</div>';
+
+                // Update button states
+                updateButtonStates();
+            }
+
+            function stepVisualization() {
+                if (visualizationState.isRunning) return;
+
+                const steps = visualizationState.path;
+                const currentStep = visualizationState.currentStep;
+
+                if (currentStep >= steps.length) {
+                    updateStepsList('✅ すべてのステップが完了しました');
+                    return;
+                }
+
+                const step = steps[currentStep];
+                highlightCell(step.pos, currentStep === steps.length - 1 ? 'completed' : 'current');
+                updateCurrentInfo(step.pos, currentStep + 1, step.char);
+
+                if (currentStep === steps.length - 1) {
+                    updateStepsList(
+                        `🎯 ステップ ${currentStep + 1}: 位置(${step.pos[0]},${
+                            step.pos[1]
+                        })で文字'${step.char}'を発見 - 完了！`,
+                    );
+                } else {
+                    updateStepsList(
+                        `📍 ステップ ${currentStep + 1}: 位置(${step.pos[0]},${
+                            step.pos[1]
+                        })で文字'${step.char}'を発見`,
+                    );
+                }
+
+                visualizationState.currentStep++;
+                updateButtonStates();
+            }
+
+            function highlightCell(pos, type) {
+                const cell = document.querySelector(`[data-pos="${pos[0]},${pos[1]}"]`);
+                if (cell) {
+                    // Remove previous current highlights but keep visited
+                    if (type === 'current') {
+                        document.querySelectorAll('.cell.current').forEach((c) => {
+                            c.classList.remove('current', 'pulse');
+                            if (!c.classList.contains('completed')) {
+                                c.classList.add('visited');
+                            }
+                        });
+                    }
+
+                    // Add new highlight
+                    cell.classList.remove('visited');
+                    cell.classList.add(type);
+
+                    // Add pulse animation for current cell
+                    if (type === 'current') {
+                        cell.classList.add('pulse');
+                    } else if (type === 'completed') {
+                        cell.classList.remove('pulse');
+                        cell.classList.add('completed');
+                    }
+                }
+            }
+
+            function updateCurrentInfo(pos, depth, char) {
+                document.getElementById('currentPos').textContent = `(${pos[0]}, ${pos[1]})`;
+                document.getElementById('currentDepth').textContent = depth.toString();
+            }
+
+            function updateStepsList(message) {
+                const stepsList = document.getElementById('stepsList');
+
+                // If this is a reset, clear all steps
+                if (message.includes('可視化を開始')) {
+                    stepsList.innerHTML = `<div class="step">${message}</div>`;
+                    return;
+                }
+
+                const newStep = document.createElement('div');
+                newStep.className = 'step active';
+                newStep.textContent = message;
+
+                // Remove active class from previous steps
+                stepsList.querySelectorAll('.step').forEach((step) => {
+                    step.classList.remove('active');
+                    step.classList.add('completed');
+                });
+
+                stepsList.appendChild(newStep);
+
+                // Scroll to latest step
+                newStep.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Initialize button states on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                updateButtonStates();
+            });
+
+            // Add hover effects to cells
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.cell').forEach((cell) => {
+                    cell.addEventListener('mouseenter', function () {
+                        if (
+                            !this.classList.contains('current') &&
+                            !this.classList.contains('visited')
+                        ) {
+                            this.style.transform = 'scale(1.05)';
+                            this.style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
+                        }
+                    });
+
+                    cell.addEventListener('mouseleave', function () {
+                        if (
+                            !this.classList.contains('current') &&
+                            !this.classList.contains('visited')
+                        ) {
+                            this.style.transform = 'scale(1)';
+                            this.style.backgroundColor = 'var(--card-bg)';
+                        }
+                    });
+                });
+            });
+
+            // Enhanced code highlighting
+            document.addEventListener('DOMContentLoaded', function () {
+                // Add line numbers to code blocks
+                document.querySelectorAll('pre[class*="language-"]').forEach((pre) => {
+                    pre.classList.add('line-numbers');
+                });
+
+                // Re-run Prism highlighting
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightAll();
+                }
+            });
+
+            // Smooth scrolling for navigation
+            document.querySelectorAll('.nav-tab').forEach((tab) => {
+                tab.addEventListener('click', function () {
+                    const targetSection = document.getElementById(this.dataset.section);
+                    if (targetSection) {
+                        setTimeout(() => {
+                            targetSection.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                            });
+                        }, 100);
+                    }
+                });
+            });
+
+            // Add loading animation for code blocks
+            document.addEventListener('DOMContentLoaded', function () {
+                const codeBlocks = document.querySelectorAll('.code-container');
+
+                codeBlocks.forEach((container, index) => {
+                    container.style.opacity = '0';
+                    container.style.transform = 'translateY(20px)';
+
+                    setTimeout(() => {
+                        container.style.transition = 'all 0.5s ease';
+                        container.style.opacity = '1';
+                        container.style.transform = 'translateY(0)';
+                    }, index * 200);
+                });
+            });
+
+            // Performance metrics display
+            function displayPerformanceMetrics() {
+                const m = 6,
+                    n = 6,
+                    L = 15;
+                const worstCase = m * n * Math.pow(4, L);
+                const avgCase = worstCase * 0.1; // Estimated with pruning
+
+                console.log(`最悪ケース計算量: ${worstCase.toExponential(2)}`);
+                console.log(`平均的な計算量（プルーニング考慮): ${avgCase.toExponential(2)}`);
+            }
+
+            // Initialize performance display
+            document.addEventListener('DOMContentLoaded', displayPerformanceMetrics);
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function (e) {
+                switch (e.key) {
+                    case '1':
+                        document.querySelector('[data-section="overview"]').click();
+                        break;
+                    case '2':
+                        document.querySelector('[data-section="algorithm"]').click();
+                        break;
+                    case '3':
+                        document.querySelector('[data-section="code"]').click();
+                        break;
+                    case '4':
+                        document.querySelector('[data-section="visualization"]').click();
+                        break;
+                    case '5':
+                        document.querySelector('[data-section="complexity"]').click();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        if (document.getElementById('visualization').classList.contains('active')) {
+                            stepVisualization();
+                        }
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (document.getElementById('visualization').classList.contains('active')) {
+                            startVisualization();
+                        }
+                        break;
+                    case 'Escape':
+                        if (document.getElementById('visualization').classList.contains('active')) {
+                            resetVisualization();
+                        }
+                        break;
+                }
+            });
+
+            // Add tooltips for better UX
+            document.addEventListener('DOMContentLoaded', function () {
+                const tooltipElements = [
+                    {
+                        selector: '.copy-button',
+                        message: 'コードをクリップボードにコピー',
+                    },
+                    {
+                        selector: '.btn-primary',
+                        message: 'スペースキー or Enterでも実行可能',
+                    },
+                    { selector: '.btn-secondary', message: 'Escapeキーでもリセット可能' },
+                    { selector: '.cell', message: 'セルをホバーして詳細を確認' },
+                ];
+
+                tooltipElements.forEach(({ selector, message }) => {
+                    document.querySelectorAll(selector).forEach((element) => {
+                        element.title = message;
+                    });
+                });
+            });
+        </script>
+    </body>
 </html>

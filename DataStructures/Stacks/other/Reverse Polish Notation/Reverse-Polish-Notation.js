@@ -72,7 +72,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * 逆ポーランド記法を評価する関数（Pure Function）
@@ -82,36 +82,34 @@
  * @throws {RangeError} 入力サイズ制約を超える場合
  */
 function evaluateRPN(tokens) {
-  if (!Array.isArray(tokens)) throw new TypeError("Input must be an array");
-  const n = tokens.length;
-  if (n < 1 || n >= 10000) throw new RangeError("Input size out of range");
+    if (!Array.isArray(tokens)) throw new TypeError('Input must be an array');
+    const n = tokens.length;
+    if (n < 1 || n >= 10000) throw new RangeError('Input size out of range');
 
-  const stack = [];
+    const stack = [];
 
-  for (let i = 0; i < n; i++) {
-    const t = tokens[i];
+    for (let i = 0; i < n; i++) {
+        const t = tokens[i];
 
-    if (t === "+" || t === "-") {
-      if (stack.length < 2) {
-        throw new RangeError("Invalid RPN expression: insufficient operands");
-      }
-      const b = stack.pop();
-      const a = stack.pop();
-      stack.push(t === "+" ? a + b : a - b);
-    } else {
-      const num = Number(t);
-      if (!Number.isFinite(num)) throw new TypeError("Invalid token: " + t);
-      stack.push(num);
+        if (t === '+' || t === '-') {
+            if (stack.length < 2) {
+                throw new RangeError('Invalid RPN expression: insufficient operands');
+            }
+            const b = stack.pop();
+            const a = stack.pop();
+            stack.push(t === '+' ? a + b : a - b);
+        } else {
+            const num = Number(t);
+            if (!Number.isFinite(num)) throw new TypeError('Invalid token: ' + t);
+            stack.push(num);
+        }
     }
-  }
 
-  if (stack.length !== 1) {
-    throw new RangeError(
-      "Invalid RPN expression: stack not reduced to one result"
-    );
-  }
+    if (stack.length !== 1) {
+        throw new RangeError('Invalid RPN expression: stack not reduced to one result');
+    }
 
-  return stack[0];
+    return stack[0];
 }
 
 /**
@@ -119,23 +117,22 @@ function evaluateRPN(tokens) {
  * 標準入力から値を読み込み、結果を出力する
  */
 function main() {
-  const fs = require("fs");
-  const input = fs.readFileSync(0, "utf8").trim().split(/\s+/);
-  const N = Number(input[0]);
-  if (!Number.isInteger(N))
-    throw new TypeError("First input must be integer N");
+    const fs = require('fs');
+    const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/);
+    const N = Number(input[0]);
+    if (!Number.isInteger(N)) throw new TypeError('First input must be integer N');
 
-  const tokens = input.slice(1);
-  if (tokens.length !== N) {
-    throw new RangeError("Token count does not match N");
-  }
+    const tokens = input.slice(1);
+    if (tokens.length !== N) {
+        throw new RangeError('Token count does not match N');
+    }
 
-  const result = evaluateRPN(tokens);
-  console.log(result);
+    const result = evaluateRPN(tokens);
+    console.log(result);
 }
 
 if (require.main === module) {
-  main();
+    main();
 }
 
 module.exports = { evaluateRPN };

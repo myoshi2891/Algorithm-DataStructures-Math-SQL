@@ -148,9 +148,9 @@
 //   console.assert(isNumber("99e2.5").value === false, "Test invalid exp failed");
 
 //   // 例外テスト
-//   try { isNumber(123 as unknown as string); console.error("Expected TypeError not thrown"); } 
+//   try { isNumber(123 as unknown as string); console.error("Expected TypeError not thrown"); }
 //   catch (e) { console.assert(e instanceof TypeError); }
-//   try { isNumber(""); console.error("Expected RangeError not thrown"); } 
+//   try { isNumber(""); console.error("Expected RangeError not thrown"); }
 //   catch (e) { console.assert(e instanceof RangeError); }
 
 //   // ベンチ
@@ -235,110 +235,112 @@ import * as assert from 'node:assert';
  * @complexity Time: O(n), Space: O(1)
  */
 export function isNumber(s: string): boolean {
-  if (typeof s !== 'string') throw new TypeError('Input must be a string');
-  // 問題の制約（提示されたものに合わせる）
-  if (s.length < 1 || s.length > 20) throw new RangeError('Input length out of bounds');
+    if (typeof s !== 'string') throw new TypeError('Input must be a string');
+    // 問題の制約（提示されたものに合わせる）
+    if (s.length < 1 || s.length > 20) throw new RangeError('Input length out of bounds');
 
-  // LeetCode 仕様に合わせ先頭/末尾の空白を除く
-  const str = s.trim();
-  if (str.length === 0) return false; // "   " のようなケース
+    // LeetCode 仕様に合わせ先頭/末尾の空白を除く
+    const str = s.trim();
+    if (str.length === 0) return false; // "   " のようなケース
 
-  let seenDigit = false; // ここまでに数字を見たか
-  let seenDot = false;   // '.' を既に見たか
-  let seenExp = false;   // 'e'/'E' を既に見たか
+    let seenDigit = false; // ここまでに数字を見たか
+    let seenDot = false; // '.' を既に見たか
+    let seenExp = false; // 'e'/'E' を既に見たか
 
-  for (let i = 0; i < str.length; i++) {
-    const c = str[i]!;
+    for (let i = 0; i < str.length; i++) {
+        const c = str[i]!;
 
-    // 数字
-    if (c >= '0' && c <= '9') {
-      seenDigit = true;
-      continue;
+        // 数字
+        if (c >= '0' && c <= '9') {
+            seenDigit = true;
+            continue;
+        }
+
+        // 符号は先頭か直前が e/E の場合のみ許可
+        if (c === '+' || c === '-') {
+            if (i === 0) continue;
+            const prev = str[i - 1];
+            if (prev === 'e' || prev === 'E') continue;
+            return false;
+        }
+
+        // 小数点は指数部内では不可、2回目も不可
+        if (c === '.') {
+            if (seenDot || seenExp) return false;
+            seenDot = true;
+            continue;
+        }
+
+        // 指数記法
+        if (c === 'e' || c === 'E') {
+            // すでに指数を見ている、または指数直前に数字がなければ invalid
+            if (seenExp || !seenDigit) return false;
+            seenExp = true;
+            seenDigit = false; // 指数の後に少なくとも1つ数字が必要
+            continue;
+        }
+
+        // 上記以外の文字は無効
+        return false;
     }
 
-    // 符号は先頭か直前が e/E の場合のみ許可
-    if (c === '+' || c === '-') {
-      if (i === 0) continue;
-      const prev = str[i - 1];
-      if (prev === 'e' || prev === 'E') continue;
-      return false;
-    }
-
-    // 小数点は指数部内では不可、2回目も不可
-    if (c === '.') {
-      if (seenDot || seenExp) return false;
-      seenDot = true;
-      continue;
-    }
-
-    // 指数記法
-    if (c === 'e' || c === 'E') {
-      // すでに指数を見ている、または指数直前に数字がなければ invalid
-      if (seenExp || !seenDigit) return false;
-      seenExp = true;
-      seenDigit = false; // 指数の後に少なくとも1つ数字が必要
-      continue;
-    }
-
-    // 上記以外の文字は無効
-    return false;
-  }
-
-  // 最終的に数字を見ていれば有効
-  return seenDigit;
+    // 最終的に数字を見ていれば有効
+    return seenDigit;
 }
 
 /* --- CLI: 最小テスト & ベンチ（ts-node で実行可） --- */
 if (require.main === module) {
-  const cases: Array<[string, boolean]> = [
-    ['0', true],
-    ['0089', true],
-    ['-0.1', true],
-    ['+3.14', true],
-    ['4.', true],
-    ['-.9', true],
-    ['2e10', true],
-    ['-90E3', true],
-    ['3e+7', true],
-    ['+6e-1', true],
-    ['53.5e93', true],
-    ['-123.456e789', true],
-    // invalid
-    ['abc', false],
-    ['1a', false],
-    ['1e', false],
-    ['e3', false],
-    ['99e2.5', false],
-    ['--6', false],
-    ['-+3', false],
-    ['95a54e53', false],
-    // tricky
-    ['.', false],
-    [' .1', true],
-    ['  -90e3   ', true],
-    ['e', false], // editorial failing case
-  ];
+    const cases: Array<[string, boolean]> = [
+        ['0', true],
+        ['0089', true],
+        ['-0.1', true],
+        ['+3.14', true],
+        ['4.', true],
+        ['-.9', true],
+        ['2e10', true],
+        ['-90E3', true],
+        ['3e+7', true],
+        ['+6e-1', true],
+        ['53.5e93', true],
+        ['-123.456e789', true],
+        // invalid
+        ['abc', false],
+        ['1a', false],
+        ['1e', false],
+        ['e3', false],
+        ['99e2.5', false],
+        ['--6', false],
+        ['-+3', false],
+        ['95a54e53', false],
+        // tricky
+        ['.', false],
+        [' .1', true],
+        ['  -90e3   ', true],
+        ['e', false], // editorial failing case
+    ];
 
-  for (const [input, expected] of cases) {
-    const out = isNumber(input);
-    assert.strictEqual(out, expected, `case "${input}" expected ${expected} but got ${out}`);
-  }
+    for (const [input, expected] of cases) {
+        const out = isNumber(input);
+        assert.strictEqual(out, expected, `case "${input}" expected ${expected} but got ${out}`);
+    }
 
-  // ベンチ (簡易)
-  const N = 200_000;
-  const sample = '53.5e93';
-  // ウォームアップ
-  for (let i = 0; i < 1000; i++) isNumber(sample);
+    // ベンチ (簡易)
+    const N = 200_000;
+    const sample = '53.5e93';
+    // ウォームアップ
+    for (let i = 0; i < 1000; i++) isNumber(sample);
 
-  const t0 = performance.now();
-  for (let i = 0; i < N; i++) isNumber(sample);
-  const t1 = performance.now();
-  console.log(JSON.stringify({
-    sample,
-    iterations: N,
-    ms: +(t1 - t0).toFixed(3)
-  }));
-  console.log('All tests passed');
+    const t0 = performance.now();
+    for (let i = 0; i < N; i++) isNumber(sample);
+    const t1 = performance.now();
+    console.log(
+        JSON.stringify({
+            sample,
+            iterations: N,
+            ms: +(t1 - t0).toFixed(3),
+        }),
+    );
+    console.log('All tests passed');
 }
 
 export default isNumber;

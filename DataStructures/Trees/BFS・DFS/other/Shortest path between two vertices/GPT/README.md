@@ -136,20 +136,18 @@ vk
 ### 処理過程
 
 1. **グラフ構築結果**:
-
-   - graph[1] = [2]
-   - graph[2] = [1, 3, 5]
-   - graph[3] = [2, 4]
-   - graph[4] = [3]
-   - graph[5] = [2]
+    - graph[1] = [2]
+    - graph[2] = [1, 3, 5]
+    - graph[3] = [2, 4]
+    - graph[4] = [3]
+    - graph[5] = [2]
 
 2. **BFS 探索結果**:
-
-   - parent[1] = 0（始点）
-   - parent[2] = 1
-   - parent[3] = 2
-   - parent[4] = 3
-   - parent[5] = 2
+    - parent[1] = 0（始点）
+    - parent[2] = 1
+    - parent[3] = 2
+    - parent[4] = 3
+    - parent[5] = 2
 
 3. **経路復元結果**: `[1, 2, 3, 4]`
 

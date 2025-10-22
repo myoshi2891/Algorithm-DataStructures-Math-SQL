@@ -1,6 +1,4 @@
-
 ---
-
 ## 🧭 説明の構成
 
 1. **問題の要点**
@@ -8,7 +6,6 @@
 3. **処理の流れを図で解説**
 4. **数式と実装対応**
 5. **全体のまとめ**
-
 ---
 
 ## ✅ 1. 問題の要点
@@ -125,17 +122,17 @@ count_d = {
 
 ```ts
 for (let digit: bigint = 1n; digit <= 9n; digit++) {
-  let count: bigint;
+    let count: bigint;
 
-  if (digit < current) {
-    count = (higher + 1n) * base;
-  } else if (digit === current) {
-    count = higher * base + lower + 1n;
-  } else {
-    count = higher * base;
-  }
+    if (digit < current) {
+        count = (higher + 1n) * base;
+    } else if (digit === current) {
+        count = higher * base + lower + 1n;
+    } else {
+        count = higher * base;
+    }
 
-  total += count * digit;
+    total += count * digit;
 }
 ```
 
@@ -143,11 +140,11 @@ for (let digit: bigint = 1n; digit <= 9n; digit++) {
 
 ## ✅ 5. まとめ：なぜこのアルゴリズムが強力か？
 
-| 特徴           | 内容                              |
-| ------------ | ------------------------------- |
-| **計算量**      | `O(log₁₀N)`（15桁でも 15回ループ）       |
-| **メモリ使用量**   | 定数（BigInt数個）                    |
-| **正確性**      | 桁ごとの出現回数を理論的に導出しており、誤差がない       |
+| 特徴                 | 内容                                                     |
+| -------------------- | -------------------------------------------------------- |
+| **計算量**           | `O(log₁₀N)`（15桁でも 15回ループ）                       |
+| **メモリ使用量**     | 定数（BigInt数個）                                       |
+| **正確性**           | 桁ごとの出現回数を理論的に導出しており、誤差がない       |
 | **使用アルゴリズム** | 「桁ごとの出現回数の算出」＋「桁重み × 数字 × 出現回数」 |
 
 ---
@@ -174,16 +171,16 @@ for (let digit: bigint = 1n; digit <= 9n; digit++) {
 
 ## 📌 参考になりそうな追加資料
 
-* 桁DPや出現回数算出法は競技プログラミングでもよく出る典型。
-* 類題：「1～Nまでの数字に含まれる `1` の個数を求めよ」など。
+- 桁DPや出現回数算出法は競技プログラミングでもよく出る典型。
+- 類題：「1～Nまでの数字に含まれる `1` の個数を求めよ」など。
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-28 15:03:05 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1451 Byte |  | 1 ms | 1632 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68007154) |
-| 2025-07-28 14:53:23 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1867 Byte |  | 16 ms | 21284 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006984) |
-| 2025-07-28 14:51:48 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1062 Byte |  | 20 ms | 10596 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006953) |
-| 2025-07-28 14:40:08 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1289 Byte |  | 41 ms | 42928 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006738) |
-| 2025-07-28 14:37:40 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1153 Byte |  | 43 ms | 42784 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006699) |
-| 2025-07-28 14:29:39 | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1629 Byte |  | 15 ms | 9604 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006571) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                  | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-28 15:03:05                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1451 Byte                                                                                 |      | 1 ms                                                                                         | 1632 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68007154) |
+| 2025-07-28 14:53:23                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1867 Byte                                                                                 |      | 16 ms                                                                                        | 21284 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006984) |
+| 2025-07-28 14:51:48                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1062 Byte                                                                                 |      | 20 ms                                                                                        | 10596 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006953) |
+| 2025-07-28 14:40:08                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1289 Byte                                                                                 |      | 41 ms                                                                                        | 42928 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006738) |
+| 2025-07-28 14:37:40                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1153 Byte                                                                                 |      | 43 ms                                                                                        | 42784 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006699) |
+| 2025-07-28 14:29:39                                                                           | [B37 - Sum of Digits](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dj) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1629 Byte                                                                                 |      | 15 ms                                                                                        | 9604 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68006571) |

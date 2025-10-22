@@ -45,7 +45,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * Remove duplicates so that each unique element appears at most twice.
@@ -56,33 +56,33 @@
  * @complexity 時間 O(n), 空間 O(1)
  */
 function removeDuplicates(nums) {
-  // 入力検証
-  if (!Array.isArray(nums)) {
-    throw new TypeError("Input must be an array");
-  }
-  const n = nums.length;
-  if (n < 1 || n > 3 * 1e4) {
-    throw new RangeError("Array length out of bounds");
-  }
-  for (let i = 0; i < n; i++) {
-    const v = nums[i];
-    if (typeof v !== "number" || !Number.isInteger(v)) {
-      throw new TypeError("Array must contain integers");
+    // 入力検証
+    if (!Array.isArray(nums)) {
+        throw new TypeError('Input must be an array');
     }
-    if (v < -1e4 || v > 1e4) {
-      throw new RangeError("Array element out of range");
+    const n = nums.length;
+    if (n < 1 || n > 3 * 1e4) {
+        throw new RangeError('Array length out of bounds');
     }
-  }
+    for (let i = 0; i < n; i++) {
+        const v = nums[i];
+        if (typeof v !== 'number' || !Number.isInteger(v)) {
+            throw new TypeError('Array must contain integers');
+        }
+        if (v < -1e4 || v > 1e4) {
+            throw new RangeError('Array element out of range');
+        }
+    }
 
-  // ---- 本処理 ----
-  let write = 0; // 書き込み位置
-  for (let i = 0; i < n; i++) {
-    if (write < 2 || nums[i] !== nums[write - 2]) {
-      nums[write] = nums[i];
-      write++;
+    // ---- 本処理 ----
+    let write = 0; // 書き込み位置
+    for (let i = 0; i < n; i++) {
+        if (write < 2 || nums[i] !== nums[write - 2]) {
+            nums[write] = nums[i];
+            write++;
+        }
     }
-  }
-  return write;
+    return write;
 }
 
 module.exports = { removeDuplicates };

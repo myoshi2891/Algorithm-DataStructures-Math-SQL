@@ -43,124 +43,124 @@
  * @complexity Time: O(mn), Space: O(1)
  */
 var setZeroes = function (matrix) {
-  // 入力検証
-  if (!matrix || matrix.length === 0 || matrix[0].length === 0) {
-    return;
-  }
-
-  const m = matrix.length;
-  const n = matrix[0].length;
-
-  // 第一行・第一列に元々0があるかを記録
-  let firstRowHasZero = false;
-  let firstColHasZero = false;
-
-  // 第一行の0チェック
-  for (let j = 0; j < n; j++) {
-    if (matrix[0][j] === 0) {
-      firstRowHasZero = true;
-      break;
+    // 入力検証
+    if (!matrix || matrix.length === 0 || matrix[0].length === 0) {
+        return;
     }
-  }
 
-  // 第一列の0チェック
-  for (let i = 0; i < m; i++) {
-    if (matrix[i][0] === 0) {
-      firstColHasZero = true;
-      break;
-    }
-  }
+    const m = matrix.length;
+    const n = matrix[0].length;
 
-  // 第一行・第一列をフラグとして使用
-  // matrix[i][0] = 0 なら i行目を0にする
-  // matrix[0][j] = 0 なら j列目を0にする
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      if (matrix[i][j] === 0) {
-        matrix[i][0] = 0; // i行目のフラグ
-        matrix[0][j] = 0; // j列目のフラグ
-      }
-    }
-  }
+    // 第一行・第一列に元々0があるかを記録
+    let firstRowHasZero = false;
+    let firstColHasZero = false;
 
-  // フラグに基づいて行・列を0に設定（第一行・列以外）
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      if (matrix[i][0] === 0 || matrix[0][j] === 0) {
-        matrix[i][j] = 0;
-      }
-    }
-  }
-
-  // 第一行を0に設定（必要な場合）
-  if (firstRowHasZero) {
+    // 第一行の0チェック
     for (let j = 0; j < n; j++) {
-      matrix[0][j] = 0;
+        if (matrix[0][j] === 0) {
+            firstRowHasZero = true;
+            break;
+        }
     }
-  }
 
-  // 第一列を0に設定（必要な場合）
-  if (firstColHasZero) {
+    // 第一列の0チェック
     for (let i = 0; i < m; i++) {
-      matrix[i][0] = 0;
+        if (matrix[i][0] === 0) {
+            firstColHasZero = true;
+            break;
+        }
     }
-  }
+
+    // 第一行・第一列をフラグとして使用
+    // matrix[i][0] = 0 なら i行目を0にする
+    // matrix[0][j] = 0 なら j列目を0にする
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][j] === 0) {
+                matrix[i][0] = 0; // i行目のフラグ
+                matrix[0][j] = 0; // j列目のフラグ
+            }
+        }
+    }
+
+    // フラグに基づいて行・列を0に設定（第一行・列以外）
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][0] === 0 || matrix[0][j] === 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+
+    // 第一行を0に設定（必要な場合）
+    if (firstRowHasZero) {
+        for (let j = 0; j < n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
+
+    // 第一列を0に設定（必要な場合）
+    if (firstColHasZero) {
+        for (let i = 0; i < m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
 };
 
 // 使用例とテスト
 function testSetZeroes() {
-  // Example 1
-  const matrix1 = [
-    [1, 1, 1],
-    [1, 0, 1],
-    [1, 1, 1],
-  ];
-  console.log("Input 1:", JSON.stringify(matrix1));
-  setZeroes(matrix1);
-  console.log("Output 1:", JSON.stringify(matrix1));
-  // Expected: [[1,0,1],[0,0,0],[1,0,1]]
+    // Example 1
+    const matrix1 = [
+        [1, 1, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+    ];
+    console.log('Input 1:', JSON.stringify(matrix1));
+    setZeroes(matrix1);
+    console.log('Output 1:', JSON.stringify(matrix1));
+    // Expected: [[1,0,1],[0,0,0],[1,0,1]]
 
-  // Example 2
-  const matrix2 = [
-    [0, 1, 2, 0],
-    [3, 4, 5, 2],
-    [1, 3, 1, 5],
-  ];
-  console.log("Input 2:", JSON.stringify(matrix2));
-  setZeroes(matrix2);
-  console.log("Output 2:", JSON.stringify(matrix2));
-  // Expected: [[0,0,0,0],[0,4,5,0],[0,3,1,0]]
+    // Example 2
+    const matrix2 = [
+        [0, 1, 2, 0],
+        [3, 4, 5, 2],
+        [1, 3, 1, 5],
+    ];
+    console.log('Input 2:', JSON.stringify(matrix2));
+    setZeroes(matrix2);
+    console.log('Output 2:', JSON.stringify(matrix2));
+    // Expected: [[0,0,0,0],[0,4,5,0],[0,3,1,0]]
 
-  // Edge case: 単一要素
-  const matrix3 = [[1]];
-  console.log("Input 3:", JSON.stringify(matrix3));
-  setZeroes(matrix3);
-  console.log("Output 3:", JSON.stringify(matrix3));
+    // Edge case: 単一要素
+    const matrix3 = [[1]];
+    console.log('Input 3:', JSON.stringify(matrix3));
+    setZeroes(matrix3);
+    console.log('Output 3:', JSON.stringify(matrix3));
 
-  // Edge case: 全て0
-  const matrix4 = [
-    [0, 0],
-    [0, 0],
-  ];
-  console.log("Input 4:", JSON.stringify(matrix4));
-  setZeroes(matrix4);
-  console.log("Output 4:", JSON.stringify(matrix4));
+    // Edge case: 全て0
+    const matrix4 = [
+        [0, 0],
+        [0, 0],
+    ];
+    console.log('Input 4:', JSON.stringify(matrix4));
+    setZeroes(matrix4);
+    console.log('Output 4:', JSON.stringify(matrix4));
 }
 
 // パフォーマンス測定用ヘルパー（開発時用）
 function generateTestMatrix(m, n, zeroRate = 0.1) {
-  const matrix = Array(m)
-    .fill(null)
-    .map(() => Array(n).fill(1));
-  const zeroCount = Math.floor(m * n * zeroRate);
+    const matrix = Array(m)
+        .fill(null)
+        .map(() => Array(n).fill(1));
+    const zeroCount = Math.floor(m * n * zeroRate);
 
-  for (let k = 0; k < zeroCount; k++) {
-    const i = Math.floor(Math.random() * m);
-    const j = Math.floor(Math.random() * n);
-    matrix[i][j] = 0;
-  }
+    for (let k = 0; k < zeroCount; k++) {
+        const i = Math.floor(Math.random() * m);
+        const j = Math.floor(Math.random() * n);
+        matrix[i][j] = 0;
+    }
 
-  return matrix;
+    return matrix;
 }
 // ## 5. JavaScript特有最適化ポイント
 

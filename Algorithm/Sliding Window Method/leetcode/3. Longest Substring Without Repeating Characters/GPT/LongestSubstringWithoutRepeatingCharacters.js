@@ -194,7 +194,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 // Module: CommonJS（node solution.js で実行可）
 // 外部ライブラリ: 不使用（Node標準のみ）
 
@@ -217,41 +217,41 @@
  * 空間計算量: O(1)  ※ 通常は 128×4B、非ASCIIを含む場合のみ 65536×4B
  */
 function lengthOfLongestSubstring(s) {
-  // --- 入力検証（ホットパス外） ---
-  if (typeof s !== "string") throw new TypeError("Input must be a string");
-  const n = s.length;
-  if (n < 0 || n > 5 * 10 ** 4) {
-    throw new RangeError("Input length out of allowed range (0..5*10^4)");
-  }
-  if (n === 0) return 0;
+    // --- 入力検証（ホットパス外） ---
+    if (typeof s !== 'string') throw new TypeError('Input must be a string');
+    const n = s.length;
+    if (n < 0 || n > 5 * 10 ** 4) {
+        throw new RangeError('Input length out of allowed range (0..5*10^4)');
+    }
+    if (n === 0) return 0;
 
-  // --- 直近位置テーブル：まず ASCII 用（128 要素） ---
-  let lastPos = new Uint32Array(128);
-  let asciiOnly = true; // 昇格フラグ
-  let left = 0;
-  let best = 0;
+    // --- 直近位置テーブル：まず ASCII 用（128 要素） ---
+    let lastPos = new Uint32Array(128);
+    let asciiOnly = true; // 昇格フラグ
+    let left = 0;
+    let best = 0;
 
-  for (let i = 0; i < n; i++) {
-    const code = s.charCodeAt(i);
+    for (let i = 0; i < n; i++) {
+        const code = s.charCodeAt(i);
 
-    // 非ASCIIに初めて遭遇 → 65536 テーブルへ一度だけ昇格
-    if (asciiOnly && code >= 128) {
-      const big = new Uint32Array(65536);
-      // ここで 128 要素だけコピー（微小コスト）
-      big.set(lastPos);
-      lastPos = big;
-      asciiOnly = false;
+        // 非ASCIIに初めて遭遇 → 65536 テーブルへ一度だけ昇格
+        if (asciiOnly && code >= 128) {
+            const big = new Uint32Array(65536);
+            // ここで 128 要素だけコピー（微小コスト）
+            big.set(lastPos);
+            lastPos = big;
+            asciiOnly = false;
+        }
+
+        const prev = lastPos[code]; // 直近の出現位置+1（未出現=0）
+        if (prev > left) left = prev; // ウィンドウ左端を更新
+        lastPos[code] = i + 1; // 現在位置+1 を記録
+
+        const len = i - left + 1;
+        if (len > best) best = len;
     }
 
-    const prev = lastPos[code]; // 直近の出現位置+1（未出現=0）
-    if (prev > left) left = prev; // ウィンドウ左端を更新
-    lastPos[code] = i + 1; // 現在位置+1 を記録
-
-    const len = i - left + 1;
-    if (len > best) best = len;
-  }
-
-  return best;
+    return best;
 }
 
 module.exports = { lengthOfLongestSubstring };
@@ -259,10 +259,10 @@ module.exports = { lengthOfLongestSubstring };
 // ---- 以下はローカル実行の簡易入出力（CI想定: node solution.js "abcabcbb"）----
 // 入力を与えない限りは何もしない（Pure実装とは分離）
 if (require.main === module) {
-  const arg = process.argv[2];
-  if (typeof arg === "string") {
-    console.log(lengthOfLongestSubstring(arg));
-  }
+    const arg = process.argv[2];
+    if (typeof arg === 'string') {
+        console.log(lengthOfLongestSubstring(arg));
+    }
 }
 // ```
 

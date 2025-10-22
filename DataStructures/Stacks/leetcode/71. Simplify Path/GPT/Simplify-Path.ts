@@ -64,37 +64,37 @@
  * @complexity Time: O(n), Space: O(n)
  */
 function simplifyPath(path: string): string {
-  // --- 入力検証 ---
-  if (typeof path !== "string") {
-    throw new TypeError("Input must be a string");
-  }
-  const n: number = path.length;
-  if (n < 1 || n > 3000) {
-    throw new RangeError("Path length out of bounds");
-  }
-  if (path[0] !== "/") {
-    throw new RangeError("Path must be absolute and start with '/'");
-  }
-
-  // --- 本処理 ---
-  const parts: string[] = path.split("/");
-  const stack: string[] = [];
-
-  for (let i = 0; i < parts.length; i++) {
-    const token: string = parts[i];
-    if (token === "" || token === ".") {
-      continue; // 空 or カレントディレクトリは無視
+    // --- 入力検証 ---
+    if (typeof path !== 'string') {
+        throw new TypeError('Input must be a string');
     }
-    if (token === "..") {
-      if (stack.length > 0) {
-        stack.pop();
-      }
-    } else {
-      stack.push(token); // 有効ディレクトリ名
+    const n: number = path.length;
+    if (n < 1 || n > 3000) {
+        throw new RangeError('Path length out of bounds');
     }
-  }
+    if (path[0] !== '/') {
+        throw new RangeError("Path must be absolute and start with '/'");
+    }
 
-  return "/" + stack.join("/");
+    // --- 本処理 ---
+    const parts: string[] = path.split('/');
+    const stack: string[] = [];
+
+    for (let i = 0; i < parts.length; i++) {
+        const token: string = parts[i];
+        if (token === '' || token === '.') {
+            continue; // 空 or カレントディレクトリは無視
+        }
+        if (token === '..') {
+            if (stack.length > 0) {
+                stack.pop();
+            }
+        } else {
+            stack.push(token); // 有効ディレクトリ名
+        }
+    }
+
+    return '/' + stack.join('/');
 }
 
 // LeetCode 用エクスポート

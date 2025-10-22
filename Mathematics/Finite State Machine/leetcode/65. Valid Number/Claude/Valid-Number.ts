@@ -78,18 +78,18 @@
 
 /** 有限状態機械の状態定義（const assertionで型推論最適化） */
 const State = {
-    INITIAL: 0,         // 初期状態
-    SIGN: 1,           // 符号読み取り後
-    INTEGER: 2,        // 整数部読み取り中
-    DOT: 3,            // ドット読み取り後
-    DECIMAL: 4,        // 小数部読み取り中
-    EXP: 5,            // E/e読み取り後
-    EXP_SIGN: 6,       // 指数符号読み取り後
-    EXP_NUMBER: 7      // 指数部読み取り中
+    INITIAL: 0, // 初期状態
+    SIGN: 1, // 符号読み取り後
+    INTEGER: 2, // 整数部読み取り中
+    DOT: 3, // ドット読み取り後
+    DECIMAL: 4, // 小数部読み取り中
+    EXP: 5, // E/e読み取り後
+    EXP_SIGN: 6, // 指数符号読み取り後
+    EXP_NUMBER: 7, // 指数部読み取り中
 } as const;
 
 /** 状態の型定義（Union Type） */
-type StateType = typeof State[keyof typeof State];
+type StateType = (typeof State)[keyof typeof State];
 
 /** 有効な終了状態の型定義 */
 type ValidEndState = typeof State.INTEGER | typeof State.DECIMAL | typeof State.EXP_NUMBER;
@@ -114,7 +114,9 @@ interface ValidationOptions {
  * @param char - 判定対象文字
  * @returns 数字の場合true
  */
-const isDigit = (char: string): char is '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+const isDigit = (
+    char: string,
+): char is '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
     return char >= '0' && char <= '9';
 };
 
@@ -159,9 +161,7 @@ function validateInput(input: unknown): asserts input is NumberStringInput {
  * @returns 有効な終了状態の場合true
  */
 const isValidEndState = (state: StateType): state is ValidEndState => {
-    return state === State.INTEGER || 
-           state === State.DECIMAL || 
-           state === State.EXP_NUMBER;
+    return state === State.INTEGER || state === State.DECIMAL || state === State.EXP_NUMBER;
 };
 
 // ===== メインアルゴリズム =====
@@ -186,21 +186,21 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
         }
         return false;
     }
-    
+
     // 状態とインデックスの初期化（型安全）
     let state: StateType = State.INITIAL;
     let i: number = 0;
     const len: number = s.length;
-    
+
     // オプショナルなログ出力
     if (options.enableLogging) {
         console.log(`Processing string: "${s}" (length: ${len})`);
     }
-    
+
     // メインループ（V8最適化：インデックスアクセス + 型安全な分岐）
     while (i < len) {
         const char: string = s[i];
-        
+
         // 状態遷移処理（exhaustive switch for type safety）
         switch (state) {
             case State.INITIAL:
@@ -214,7 +214,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.SIGN:
                 if (isDigit(char)) {
                     state = State.INTEGER;
@@ -224,7 +224,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.INTEGER:
                 if (isDigit(char)) {
                     // 同一状態継続（最適化：状態変更なし）
@@ -236,7 +236,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.DOT:
                 if (isDigit(char)) {
                     state = State.DECIMAL;
@@ -244,7 +244,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.DECIMAL:
                 if (isDigit(char)) {
                     // 同一状態継続
@@ -254,7 +254,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.EXP:
                 if (isSign(char)) {
                     state = State.EXP_SIGN;
@@ -264,7 +264,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.EXP_SIGN:
                 if (isDigit(char)) {
                     state = State.EXP_NUMBER;
@@ -272,7 +272,7 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             case State.EXP_NUMBER:
                 if (isDigit(char)) {
                     // 同一状態継続
@@ -280,23 +280,23 @@ function isNumber(s: string, options: ValidationOptions = {}): boolean {
                     return false;
                 }
                 break;
-                
+
             default:
                 // TypeScriptの型チェックにより到達不可能
                 const exhaustiveCheck: never = state;
                 throw new Error(`Unhandled state: ${exhaustiveCheck}`);
         }
-        
+
         i++;
     }
-    
+
     // 終了状態判定（型安全）
     const result = isValidEndState(state);
-    
+
     if (options.enableLogging) {
         console.log(`Final state: ${state}, Valid: ${result}`);
     }
-    
+
     return result;
 }
 
@@ -310,109 +310,117 @@ interface TestCase {
 }
 
 const validTestCases: readonly TestCase[] = [
-    { input: "0", expected: true, description: "単一桁数字" },
-    { input: "2", expected: true, description: "整数" },
-    { input: "0089", expected: true, description: "先頭ゼロ付き整数" },
-    { input: "-0.1", expected: true, description: "負の小数" },
-    { input: "+3.14", expected: true, description: "正の小数" },
-    { input: "4.", expected: true, description: "整数部のみの小数" },
-    { input: "-.9", expected: true, description: "小数部のみの負数" },
-    { input: "2e10", expected: true, description: "整数の指数表記" },
-    { input: "-90E3", expected: true, description: "負数の指数表記（大文字）" },
-    { input: "3e+7", expected: true, description: "正の指数" },
-    { input: "+6e-1", expected: true, description: "正数の負指数" },
-    { input: "53.5e93", expected: true, description: "小数の指数表記" },
-    { input: "-123.456e789", expected: true, description: "複雑な指数表記" }
+    { input: '0', expected: true, description: '単一桁数字' },
+    { input: '2', expected: true, description: '整数' },
+    { input: '0089', expected: true, description: '先頭ゼロ付き整数' },
+    { input: '-0.1', expected: true, description: '負の小数' },
+    { input: '+3.14', expected: true, description: '正の小数' },
+    { input: '4.', expected: true, description: '整数部のみの小数' },
+    { input: '-.9', expected: true, description: '小数部のみの負数' },
+    { input: '2e10', expected: true, description: '整数の指数表記' },
+    { input: '-90E3', expected: true, description: '負数の指数表記（大文字）' },
+    { input: '3e+7', expected: true, description: '正の指数' },
+    { input: '+6e-1', expected: true, description: '正数の負指数' },
+    { input: '53.5e93', expected: true, description: '小数の指数表記' },
+    { input: '-123.456e789', expected: true, description: '複雑な指数表記' },
 ] as const;
 
 const invalidTestCases: readonly TestCase[] = [
-    { input: "abc", expected: false, description: "アルファベット" },
-    { input: "1a", expected: false, description: "数字+文字" },
-    { input: "1e", expected: false, description: "指数部なし" },
-    { input: "e3", expected: false, description: "指数のみ" },
-    { input: "99e2.5", expected: false, description: "小数点指数" },
-    { input: "--6", expected: false, description: "二重符号" },
-    { input: "-+3", expected: false, description: "混合符号" },
-    { input: "95a54e53", expected: false, description: "文字混入" },
-    { input: "e", expected: false, description: "指数記号のみ" },
-    { input: ".", expected: false, description: "ドットのみ" }
+    { input: 'abc', expected: false, description: 'アルファベット' },
+    { input: '1a', expected: false, description: '数字+文字' },
+    { input: '1e', expected: false, description: '指数部なし' },
+    { input: 'e3', expected: false, description: '指数のみ' },
+    { input: '99e2.5', expected: false, description: '小数点指数' },
+    { input: '--6', expected: false, description: '二重符号' },
+    { input: '-+3', expected: false, description: '混合符号' },
+    { input: '95a54e53', expected: false, description: '文字混入' },
+    { input: 'e', expected: false, description: '指数記号のみ' },
+    { input: '.', expected: false, description: 'ドットのみ' },
 ] as const;
 
 // テスト実行関数
 function runTests(): void {
     console.log('=== TypeScript Valid Number Tests ===\n');
-    
+
     let passed = 0;
     let total = 0;
-    
+
     // 有効なケースのテスト
     console.log('--- Valid Number Cases ---');
     for (const testCase of validTestCases) {
         const result = isNumber(testCase.input);
         const status = result === testCase.expected ? '✓' : '✗';
-        console.log(`${status} isNumber("${testCase.input}") = ${result} (${testCase.description})`);
+        console.log(
+            `${status} isNumber("${testCase.input}") = ${result} (${testCase.description})`,
+        );
         if (result === testCase.expected) passed++;
         total++;
     }
-    
-    // 無効なケースのテスト  
+
+    // 無効なケースのテスト
     console.log('\n--- Invalid Number Cases ---');
     for (const testCase of invalidTestCases) {
         const result = isNumber(testCase.input);
         const status = result === testCase.expected ? '✓' : '✗';
-        console.log(`${status} isNumber("${testCase.input}") = ${result} (${testCase.description})`);
+        console.log(
+            `${status} isNumber("${testCase.input}") = ${result} (${testCase.description})`,
+        );
         if (result === testCase.expected) passed++;
         total++;
     }
-    
+
     console.log(`\n=== Test Summary ===`);
-    console.log(`Passed: ${passed}/${total} (${((passed/total)*100).toFixed(1)}%)`);
+    console.log(`Passed: ${passed}/${total} (${((passed / total) * 100).toFixed(1)}%)`);
 }
 
 // エラーハンドリングテスト
 function runErrorTests(): void {
     console.log('\n=== Error Handling Tests ===');
-    
+
     try {
         // @ts-expect-error: Intentional type error for testing
         isNumber(123, { strictMode: true });
     } catch (error) {
         console.log('✓ TypeError correctly thrown for numeric input');
     }
-    
+
     try {
-        isNumber("", { strictMode: true });
+        isNumber('', { strictMode: true });
     } catch (error) {
         console.log('✓ RangeError correctly thrown for empty string');
     }
-    
+
     // 非厳密モードでのエラー処理
     console.log(`isNumber(null as any) = ${isNumber(null as any)}`); // false
-    console.log(`isNumber("") = ${isNumber("")}`); // false
+    console.log(`isNumber("") = ${isNumber('')}`); // false
 }
 
 // パフォーマンステスト
 function performanceTest(): void {
-    const testString = "123.456e-789";
+    const testString = '123.456e-789';
     const iterations = 100000;
-    
+
     console.log('\n=== Performance Test ===');
     console.time('TypeScript FSM Approach');
     for (let i = 0; i < iterations; i++) {
         isNumber(testString);
     }
     console.timeEnd('TypeScript FSM Approach');
-    
+
     // メモリ使用量テスト
     const memBefore = process.memoryUsage();
     for (let i = 0; i < iterations; i++) {
         isNumber(testString);
     }
     const memAfter = process.memoryUsage();
-    
+
     console.log('Memory usage (MB):');
-    console.log(`  Heap Used: ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024).toFixed(2)}`);
-    console.log(`  External: ${((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2)}`);
+    console.log(
+        `  Heap Used: ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024).toFixed(2)}`,
+    );
+    console.log(
+        `  External: ${((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2)}`,
+    );
 }
 
 // 実行

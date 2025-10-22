@@ -1,715 +1,707 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Valid Number Problem - 有限状態機械アルゴリズム解説</title>
-
-    <!-- CDN -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-
-    <!-- Prism.js - 正しい読み込み順序 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-
-    <style>
-      /* Base styles */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      :root {
-        --primary-bg: #0a0a0a;
-        --secondary-bg: #1a1a1a;
-        --card-bg: #252525;
-        --accent-color: #00d4ff;
-        --text-primary: #ffffff;
-        --text-secondary: #a0a0a0;
-        --border-color: #333;
-        --success-color: #00ff88;
-        --warning-color: #ffaa00;
-        --error-color: #ff4444;
-        --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      }
-
-      body {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-        background: var(--primary-bg);
-        color: var(--text-primary);
-        line-height: 1.6;
-        overflow-x: hidden;
-      }
-
-      /* Header */
-      .header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        padding: 3rem 2rem;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .header::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          transparent 70%
-        );
-        animation: rotate 20s linear infinite;
-      }
-
-      .header h1 {
-        font-size: 3.5rem;
-        font-weight: 900;
-        margin-bottom: 1rem;
-        position: relative;
-        z-index: 2;
-        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      }
-
-      .header .subtitle {
-        font-size: 1.3rem;
-        opacity: 0.9;
-        position: relative;
-        z-index: 2;
-      }
-
-      .algorithm-badge {
-        display: inline-block;
-        background: var(--gradient-3);
-        padding: 0.5rem 2rem;
-        border-radius: 50px;
-        font-weight: bold;
-        margin-top: 1rem;
-        position: relative;
-        z-index: 2;
-      }
-
-      /* Main container */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      /* Cards */
-      .card {
-        background: var(--card-bg);
-        border-radius: 20px;
-        padding: 2rem;
-        margin: 2rem 0;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: var(--gradient-1);
-      }
-
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-      }
-
-      .card h2 {
-        font-size: 2rem;
-        margin-bottom: 1.5rem;
-        background: var(--gradient-1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-
-      .card h3 {
-        font-size: 1.5rem;
-        margin: 1.5rem 0 1rem 0;
-        color: var(--accent-color);
-      }
-
-      /* State Machine Visualization */
-      .fsm-container {
-        background: var(--secondary-bg);
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 2rem 0;
-        text-align: center;
-        position: relative;
-      }
-
-      .states-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1.5rem;
-        margin: 2rem 0;
-      }
-
-      .state-node {
-        background: var(--card-bg);
-        border: 3px solid var(--accent-color);
-        border-radius: 50%;
-        width: 120px;
-        height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        margin: 0 auto;
-      }
-
-      .state-node:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 30px var(--accent-color);
-      }
-
-      .state-node.active {
-        background: var(--accent-color);
-        color: var(--primary-bg);
-        animation: pulse 1s infinite;
-      }
-
-      .state-node.valid-end {
-        border-color: var(--success-color);
-      }
-
-      /* Interactive Demo */
-      .demo-section {
-        background: var(--secondary-bg);
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 2rem 0;
-      }
-
-      .input-demo {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-
-      .demo-input {
-        flex: 1;
-        min-width: 200px;
-        padding: 1rem;
-        background: var(--card-bg);
-        border: 2px solid var(--border-color);
-        border-radius: 10px;
-        color: var(--text-primary);
-        font-size: 1.2rem;
-        font-family: "Fira Code", monospace;
-      }
-
-      .demo-button {
-        background: var(--gradient-2);
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 10px;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .demo-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-      }
-
-      .demo-result {
-        padding: 1.5rem;
-        border-radius: 10px;
-        margin-top: 1rem;
-        font-weight: bold;
-        text-align: center;
-        transition: all 0.5s ease;
-      }
-
-      .demo-result.valid {
-        background: rgba(0, 255, 136, 0.2);
-        border: 2px solid var(--success-color);
-        color: var(--success-color);
-      }
-
-      .demo-result.invalid {
-        background: rgba(255, 68, 68, 0.2);
-        border: 2px solid var(--error-color);
-        color: var(--error-color);
-      }
-
-      /* Code blocks */
-      .code-section {
-        margin: 2rem 0;
-      }
-
-      .code-tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-      }
-
-      .code-tab {
-        background: var(--secondary-bg);
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 10px 10px 0 0;
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .code-tab.active {
-        background: var(--card-bg);
-        color: var(--accent-color);
-      }
-
-      pre[class*="language-"] {
-        border-radius: 10px !important;
-        margin: 0 !important;
-        font-family: "Fira Code", "Consolas", monospace !important;
-      }
-
-      /* Complexity Analysis */
-      .complexity-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin: 2rem 0;
-      }
-
-      .complexity-card {
-        background: var(--secondary-bg);
-        border-radius: 15px;
-        padding: 1.5rem;
-        text-align: center;
-        border: 2px solid var(--border-color);
-        transition: all 0.3s ease;
-      }
-
-      .complexity-card:hover {
-        border-color: var(--accent-color);
-        transform: scale(1.02);
-      }
-
-      .complexity-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: var(--accent-color);
-        margin: 1rem 0;
-        font-family: "Fira Code", monospace;
-      }
-
-      /* Step visualization */
-      .steps-container {
-        margin: 2rem 0;
-      }
-
-      .step {
-        background: var(--secondary-bg);
-        border-left: 4px solid var(--accent-color);
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-radius: 0 10px 10px 0;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .step:hover {
-        background: var(--card-bg);
-        transform: translateX(10px);
-      }
-
-      .step h4 {
-        color: var(--accent-color);
-        margin-bottom: 0.5rem;
-      }
-
-      /* Animations */
-      @keyframes rotate {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .fade-in {
-        animation: fadeInUp 0.6s ease-out;
-      }
-
-      /* Responsive design */
-      @media (max-width: 768px) {
-        .header h1 {
-          font-size: 2.5rem;
-        }
-
-        .container {
-          padding: 1rem;
-        }
-
-        .card {
-          padding: 1.5rem;
-        }
-
-        .states-grid {
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        }
-
-        .state-node {
-          width: 80px;
-          height: 80px;
-          font-size: 0.8rem;
-        }
-
-        .input-demo {
-          flex-direction: column;
-        }
-
-        .demo-input {
-          min-width: 100%;
-        }
-      }
-
-      /* Prism overrides */
-      .line-numbers .line-numbers-rows {
-        border-right: 1px solid #444 !important;
-        background: #2d2d2d !important;
-      }
-
-      .line-numbers-rows > span:before {
-        color: #888 !important;
-        font-size: 0.9em !important;
-        padding: 1.3px;
-        margin: 0 1rem;
-      }
-
-      /* Toolbar styling */
-      div.code-toolbar {
-        position: relative !important;
-      }
-
-      div.code-toolbar > .toolbar {
-        position: absolute !important;
-        top: 0.3em !important;
-        right: 0.3em !important;
-        transition: opacity 0.3s ease-in-out !important;
-        opacity: 0 !important;
-      }
-
-      div.code-toolbar:hover > .toolbar {
-        opacity: 1 !important;
-      }
-
-      div.code-toolbar > .toolbar .toolbar-item {
-        display: inline-block !important;
-      }
-
-      div.code-toolbar > .toolbar a,
-      div.code-toolbar > .toolbar button,
-      div.code-toolbar > .toolbar span {
-        background: var(--accent-color) !important;
-        color: var(--primary-bg) !important;
-        font-size: 0.8em !important;
-        padding: 1em !important;
-        padding-left: 1.5em !important;
-        border-radius: 0.5em !important;
-        border: none !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
-        margin-top: 1rem;
-        margin-right: 1rem;
-      }
-
-      div.code-toolbar > .toolbar a:hover,
-      div.code-toolbar > .toolbar button:hover,
-      div.code-toolbar > .toolbar span:hover {
-        background: var(--success-color) !important;
-        transform: scale(1.05) !important;
-      }
-
-      /* コードブロック全体のスタイル調整 */
-      pre[class*="language-"] {
-        position: relative !important;
-        overflow: auto !important;
-        font-size: 0.9em !important;
-        line-height: 1.5 !important;
-        background: #272822 !important;
-      }
-
-      /* 行番号付きコードブロックの調整 */
-      pre[class*="language-"].line-numbers {
-        padding-left: 3.8em !important;
-        counter-reset: linenumber !important;
-      }
-
-      pre[class*="language-"].line-numbers > code {
-        position: relative !important;
-        white-space: inherit !important;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1><i class="fas fa-code"></i> Valid Number Problem</h1>
-      <p class="subtitle">
-        有限状態機械（Finite State Machine）による数値文字列判定システム
-      </p>
-      <div class="algorithm-badge">Algorithm: Finite State Machine (FSM)</div>
-    </div>
-
-    <div class="container">
-      <!-- アルゴリズム概要 -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-lightbulb"></i> アルゴリズム概要</h2>
-        <p>
-          有限状態機械（FSM）を使用して数値文字列の妥当性を判定するアルゴリズムです。文字列を左から右へ順次読み取り、各文字に応じて状態を遷移させながら、最終的に有効な終了状態に到達するかどうかで判定します。
-        </p>
-
-        <div class="complexity-grid">
-          <div class="complexity-card">
-            <i class="fas fa-clock"></i>
-            <h4>時間計算量</h4>
-            <div class="complexity-value">O(n)</div>
-            <p>文字列を一度だけ走査</p>
-          </div>
-          <div class="complexity-card">
-            <i class="fas fa-memory"></i>
-            <h4>空間計算量</h4>
-            <div class="complexity-value">O(1)</div>
-            <p>状態変数のみ使用</p>
-          </div>
-          <div class="complexity-card">
-            <i class="fas fa-sitemap"></i>
-            <h4>状態数</h4>
-            <div class="complexity-value">8</div>
-            <p>効率的な状態設計</p>
-          </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Valid Number Problem - 有限状態機械アルゴリズム解説</title>
+
+        <!-- CDN -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+
+        <!-- Prism.js - 正しい読み込み順序 -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <style>
+            /* Base styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --primary-bg: #0a0a0a;
+                --secondary-bg: #1a1a1a;
+                --card-bg: #252525;
+                --accent-color: #00d4ff;
+                --text-primary: #ffffff;
+                --text-secondary: #a0a0a0;
+                --border-color: #333;
+                --success-color: #00ff88;
+                --warning-color: #ffaa00;
+                --error-color: #ff4444;
+                --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+
+            body {
+                font-family:
+                    'Inter',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    sans-serif;
+                background: var(--primary-bg);
+                color: var(--text-primary);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            /* Header */
+            .header {
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                padding: 3rem 2rem;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+                animation: rotate 20s linear infinite;
+            }
+
+            .header h1 {
+                font-size: 3.5rem;
+                font-weight: 900;
+                margin-bottom: 1rem;
+                position: relative;
+                z-index: 2;
+                text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .header .subtitle {
+                font-size: 1.3rem;
+                opacity: 0.9;
+                position: relative;
+                z-index: 2;
+            }
+
+            .algorithm-badge {
+                display: inline-block;
+                background: var(--gradient-3);
+                padding: 0.5rem 2rem;
+                border-radius: 50px;
+                font-weight: bold;
+                margin-top: 1rem;
+                position: relative;
+                z-index: 2;
+            }
+
+            /* Main container */
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            /* Cards */
+            .card {
+                background: var(--card-bg);
+                border-radius: 20px;
+                padding: 2rem;
+                margin: 2rem 0;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: var(--gradient-1);
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            }
+
+            .card h2 {
+                font-size: 2rem;
+                margin-bottom: 1.5rem;
+                background: var(--gradient-1);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .card h3 {
+                font-size: 1.5rem;
+                margin: 1.5rem 0 1rem 0;
+                color: var(--accent-color);
+            }
+
+            /* State Machine Visualization */
+            .fsm-container {
+                background: var(--secondary-bg);
+                border-radius: 15px;
+                padding: 2rem;
+                margin: 2rem 0;
+                text-align: center;
+                position: relative;
+            }
+
+            .states-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+
+            .state-node {
+                background: var(--card-bg);
+                border: 3px solid var(--accent-color);
+                border-radius: 50%;
+                width: 120px;
+                height: 120px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                margin: 0 auto;
+            }
+
+            .state-node:hover {
+                transform: scale(1.1);
+                box-shadow: 0 0 30px var(--accent-color);
+            }
+
+            .state-node.active {
+                background: var(--accent-color);
+                color: var(--primary-bg);
+                animation: pulse 1s infinite;
+            }
+
+            .state-node.valid-end {
+                border-color: var(--success-color);
+            }
+
+            /* Interactive Demo */
+            .demo-section {
+                background: var(--secondary-bg);
+                border-radius: 15px;
+                padding: 2rem;
+                margin: 2rem 0;
+            }
+
+            .input-demo {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 2rem;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .demo-input {
+                flex: 1;
+                min-width: 200px;
+                padding: 1rem;
+                background: var(--card-bg);
+                border: 2px solid var(--border-color);
+                border-radius: 10px;
+                color: var(--text-primary);
+                font-size: 1.2rem;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .demo-button {
+                background: var(--gradient-2);
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .demo-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .demo-result {
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin-top: 1rem;
+                font-weight: bold;
+                text-align: center;
+                transition: all 0.5s ease;
+            }
+
+            .demo-result.valid {
+                background: rgba(0, 255, 136, 0.2);
+                border: 2px solid var(--success-color);
+                color: var(--success-color);
+            }
+
+            .demo-result.invalid {
+                background: rgba(255, 68, 68, 0.2);
+                border: 2px solid var(--error-color);
+                color: var(--error-color);
+            }
+
+            /* Code blocks */
+            .code-section {
+                margin: 2rem 0;
+            }
+
+            .code-tabs {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .code-tab {
+                background: var(--secondary-bg);
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 10px 10px 0 0;
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .code-tab.active {
+                background: var(--card-bg);
+                color: var(--accent-color);
+            }
+
+            pre[class*='language-'] {
+                border-radius: 10px !important;
+                margin: 0 !important;
+                font-family: 'Fira Code', 'Consolas', monospace !important;
+            }
+
+            /* Complexity Analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+
+            .complexity-card {
+                background: var(--secondary-bg);
+                border-radius: 15px;
+                padding: 1.5rem;
+                text-align: center;
+                border: 2px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .complexity-card:hover {
+                border-color: var(--accent-color);
+                transform: scale(1.02);
+            }
+
+            .complexity-value {
+                font-size: 2rem;
+                font-weight: bold;
+                color: var(--accent-color);
+                margin: 1rem 0;
+                font-family: 'Fira Code', monospace;
+            }
+
+            /* Step visualization */
+            .steps-container {
+                margin: 2rem 0;
+            }
+
+            .step {
+                background: var(--secondary-bg);
+                border-left: 4px solid var(--accent-color);
+                padding: 1.5rem;
+                margin: 1rem 0;
+                border-radius: 0 10px 10px 0;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .step:hover {
+                background: var(--card-bg);
+                transform: translateX(10px);
+            }
+
+            .step h4 {
+                color: var(--accent-color);
+                margin-bottom: 0.5rem;
+            }
+
+            /* Animations */
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .fade-in {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            /* Responsive design */
+            @media (max-width: 768px) {
+                .header h1 {
+                    font-size: 2.5rem;
+                }
+
+                .container {
+                    padding: 1rem;
+                }
+
+                .card {
+                    padding: 1.5rem;
+                }
+
+                .states-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                }
+
+                .state-node {
+                    width: 80px;
+                    height: 80px;
+                    font-size: 0.8rem;
+                }
+
+                .input-demo {
+                    flex-direction: column;
+                }
+
+                .demo-input {
+                    min-width: 100%;
+                }
+            }
+
+            /* Prism overrides */
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid #444 !important;
+                background: #2d2d2d !important;
+            }
+
+            .line-numbers-rows > span:before {
+                color: #888 !important;
+                font-size: 0.9em !important;
+                padding: 1.3px;
+                margin: 0 1rem;
+            }
+
+            /* Toolbar styling */
+            div.code-toolbar {
+                position: relative !important;
+            }
+
+            div.code-toolbar > .toolbar {
+                position: absolute !important;
+                top: 0.3em !important;
+                right: 0.3em !important;
+                transition: opacity 0.3s ease-in-out !important;
+                opacity: 0 !important;
+            }
+
+            div.code-toolbar:hover > .toolbar {
+                opacity: 1 !important;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item {
+                display: inline-block !important;
+            }
+
+            div.code-toolbar > .toolbar a,
+            div.code-toolbar > .toolbar button,
+            div.code-toolbar > .toolbar span {
+                background: var(--accent-color) !important;
+                color: var(--primary-bg) !important;
+                font-size: 0.8em !important;
+                padding: 1em !important;
+                padding-left: 1.5em !important;
+                border-radius: 0.5em !important;
+                border: none !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+                margin-top: 1rem;
+                margin-right: 1rem;
+            }
+
+            div.code-toolbar > .toolbar a:hover,
+            div.code-toolbar > .toolbar button:hover,
+            div.code-toolbar > .toolbar span:hover {
+                background: var(--success-color) !important;
+                transform: scale(1.05) !important;
+            }
+
+            /* コードブロック全体のスタイル調整 */
+            pre[class*='language-'] {
+                position: relative !important;
+                overflow: auto !important;
+                font-size: 0.9em !important;
+                line-height: 1.5 !important;
+                background: #272822 !important;
+            }
+
+            /* 行番号付きコードブロックの調整 */
+            pre[class*='language-'].line-numbers {
+                padding-left: 3.8em !important;
+                counter-reset: linenumber !important;
+            }
+
+            pre[class*='language-'].line-numbers > code {
+                position: relative !important;
+                white-space: inherit !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1><i class="fas fa-code"></i> Valid Number Problem</h1>
+            <p class="subtitle">有限状態機械（Finite State Machine）による数値文字列判定システム</p>
+            <div class="algorithm-badge">Algorithm: Finite State Machine (FSM)</div>
         </div>
-      </div>
 
-      <!-- インタラクティブデモ -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-play-circle"></i> インタラクティブデモ</h2>
-        <div class="demo-section">
-          <div class="input-demo">
-            <input
-              type="text"
-              class="demo-input"
-              id="testInput"
-              placeholder="数値文字列を入力してください (例: 3.14e-5)"
-              value="3.14e-5"
-            />
-            <button class="demo-button" onclick="validateNumber()">
-              検証実行
-            </button>
-          </div>
-          <div id="demoResult" class="demo-result" style="display: none"></div>
-          <div id="stateVisualization" class="fsm-container">
-            <h3>状態遷移の可視化</h3>
-            <div class="states-grid">
-              <div class="state-node" id="state-0">INITIAL</div>
-              <div class="state-node" id="state-1">SIGN</div>
-              <div class="state-node valid-end" id="state-2">INTEGER</div>
-              <div class="state-node" id="state-3">DOT</div>
-              <div class="state-node valid-end" id="state-4">DECIMAL</div>
-              <div class="state-node" id="state-5">EXP</div>
-              <div class="state-node" id="state-6">EXP_SIGN</div>
-              <div class="state-node valid-end" id="state-7">EXP_NUMBER</div>
+        <div class="container">
+            <!-- アルゴリズム概要 -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-lightbulb"></i> アルゴリズム概要</h2>
+                <p>
+                    有限状態機械（FSM）を使用して数値文字列の妥当性を判定するアルゴリズムです。文字列を左から右へ順次読み取り、各文字に応じて状態を遷移させながら、最終的に有効な終了状態に到達するかどうかで判定します。
+                </p>
+
+                <div class="complexity-grid">
+                    <div class="complexity-card">
+                        <i class="fas fa-clock"></i>
+                        <h4>時間計算量</h4>
+                        <div class="complexity-value">O(n)</div>
+                        <p>文字列を一度だけ走査</p>
+                    </div>
+                    <div class="complexity-card">
+                        <i class="fas fa-memory"></i>
+                        <h4>空間計算量</h4>
+                        <div class="complexity-value">O(1)</div>
+                        <p>状態変数のみ使用</p>
+                    </div>
+                    <div class="complexity-card">
+                        <i class="fas fa-sitemap"></i>
+                        <h4>状態数</h4>
+                        <div class="complexity-value">8</div>
+                        <p>効率的な状態設計</p>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- テストケース -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-vial"></i> テストケース</h2>
-        <div class="test-categories">
-          <div class="test-section">
-            <h3>✅ 有効な数値パターン</h3>
-            <div class="test-grid">
-              <div class="test-case valid" onclick="testCase('0')">
-                <code>"0"</code> - 単一桁数字
-              </div>
-              <div class="test-case valid" onclick="testCase('2')">
-                <code>"2"</code> - 整数
-              </div>
-              <div class="test-case valid" onclick="testCase('-0.1')">
-                <code>"-0.1"</code> - 負の小数
-              </div>
-              <div class="test-case valid" onclick="testCase('+3.14')">
-                <code>"+3.14"</code> - 正の小数
-              </div>
-              <div class="test-case valid" onclick="testCase('4.')">
-                <code>"4."</code> - 整数部のみの小数
-              </div>
-              <div class="test-case valid" onclick="testCase('-.9')">
-                <code>"-.9"</code> - 小数部のみの負数
-              </div>
-              <div class="test-case valid" onclick="testCase('2e10')">
-                <code>"2e10"</code> - 整数の指数表記
-              </div>
-              <div class="test-case valid" onclick="testCase('-90E3')">
-                <code>"-90E3"</code> - 負数の指数表記
-              </div>
-              <div class="test-case valid" onclick="testCase('3e+7')">
-                <code>"3e+7"</code> - 正の指数
-              </div>
-              <div class="test-case valid" onclick="testCase('53.5e93')">
-                <code>"53.5e93"</code> - 小数の指数表記
-              </div>
+            <!-- インタラクティブデモ -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-play-circle"></i> インタラクティブデモ</h2>
+                <div class="demo-section">
+                    <div class="input-demo">
+                        <input
+                            type="text"
+                            class="demo-input"
+                            id="testInput"
+                            placeholder="数値文字列を入力してください (例: 3.14e-5)"
+                            value="3.14e-5"
+                        />
+                        <button class="demo-button" onclick="validateNumber()">検証実行</button>
+                    </div>
+                    <div id="demoResult" class="demo-result" style="display: none"></div>
+                    <div id="stateVisualization" class="fsm-container">
+                        <h3>状態遷移の可視化</h3>
+                        <div class="states-grid">
+                            <div class="state-node" id="state-0">INITIAL</div>
+                            <div class="state-node" id="state-1">SIGN</div>
+                            <div class="state-node valid-end" id="state-2">INTEGER</div>
+                            <div class="state-node" id="state-3">DOT</div>
+                            <div class="state-node valid-end" id="state-4">DECIMAL</div>
+                            <div class="state-node" id="state-5">EXP</div>
+                            <div class="state-node" id="state-6">EXP_SIGN</div>
+                            <div class="state-node valid-end" id="state-7">EXP_NUMBER</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <div class="test-section">
-            <h3>❌ 無効な数値パターン</h3>
-            <div class="test-grid">
-              <div class="test-case invalid" onclick="testCase('abc')">
-                <code>"abc"</code> - アルファベット
-              </div>
-              <div class="test-case invalid" onclick="testCase('1a')">
-                <code>"1a"</code> - 数字+文字
-              </div>
-              <div class="test-case invalid" onclick="testCase('1e')">
-                <code>"1e"</code> - 指数部なし
-              </div>
-              <div class="test-case invalid" onclick="testCase('e3')">
-                <code>"e3"</code> - 指数のみ
-              </div>
-              <div class="test-case invalid" onclick="testCase('99e2.5')">
-                <code>"99e2.5"</code> - 小数点指数
-              </div>
-              <div class="test-case invalid" onclick="testCase('--6')">
-                <code>"--6"</code> - 二重符号
-              </div>
-              <div class="test-case invalid" onclick="testCase('-+3')">
-                <code>"-+3"</code> - 混合符号
-              </div>
-              <div class="test-case invalid" onclick="testCase('e')">
-                <code>"e"</code> - 指数記号のみ
-              </div>
-              <div class="test-case invalid" onclick="testCase('.')">
-                <code>"."</code> - ドットのみ
-              </div>
+            <!-- テストケース -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-vial"></i> テストケース</h2>
+                <div class="test-categories">
+                    <div class="test-section">
+                        <h3>✅ 有効な数値パターン</h3>
+                        <div class="test-grid">
+                            <div class="test-case valid" onclick="testCase('0')">
+                                <code>"0"</code> - 単一桁数字
+                            </div>
+                            <div class="test-case valid" onclick="testCase('2')">
+                                <code>"2"</code> - 整数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('-0.1')">
+                                <code>"-0.1"</code> - 負の小数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('+3.14')">
+                                <code>"+3.14"</code> - 正の小数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('4.')">
+                                <code>"4."</code> - 整数部のみの小数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('-.9')">
+                                <code>"-.9"</code> - 小数部のみの負数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('2e10')">
+                                <code>"2e10"</code> - 整数の指数表記
+                            </div>
+                            <div class="test-case valid" onclick="testCase('-90E3')">
+                                <code>"-90E3"</code> - 負数の指数表記
+                            </div>
+                            <div class="test-case valid" onclick="testCase('3e+7')">
+                                <code>"3e+7"</code> - 正の指数
+                            </div>
+                            <div class="test-case valid" onclick="testCase('53.5e93')">
+                                <code>"53.5e93"</code> - 小数の指数表記
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="test-section">
+                        <h3>❌ 無効な数値パターン</h3>
+                        <div class="test-grid">
+                            <div class="test-case invalid" onclick="testCase('abc')">
+                                <code>"abc"</code> - アルファベット
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('1a')">
+                                <code>"1a"</code> - 数字+文字
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('1e')">
+                                <code>"1e"</code> - 指数部なし
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('e3')">
+                                <code>"e3"</code> - 指数のみ
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('99e2.5')">
+                                <code>"99e2.5"</code> - 小数点指数
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('--6')">
+                                <code>"--6"</code> - 二重符号
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('-+3')">
+                                <code>"-+3"</code> - 混合符号
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('e')">
+                                <code>"e"</code> - 指数記号のみ
+                            </div>
+                            <div class="test-case invalid" onclick="testCase('.')">
+                                <code>"."</code> - ドットのみ
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ステップバイステップ解説 -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-list-ol"></i> ステップバイステップ解説</h2>
-        <div class="steps-container">
-          <div class="step">
-            <h4>ステップ 1: 状態の定義</h4>
-            <p>
-              8つの状態を定義します：INITIAL（初期状態）、SIGN（符号後）、INTEGER（整数部）、DOT（小数点後）、DECIMAL（小数部）、EXP（指数記号後）、EXP_SIGN（指数符号後）、EXP_NUMBER（指数部）
-            </p>
-          </div>
-          <div class="step">
-            <h4>ステップ 2: 状態遷移ルールの設計</h4>
-            <p>
-              各状態から有効な入力文字に対してどの状態に遷移するかを定義します。無効な入力の場合は即座にfalseを返します。
-            </p>
-          </div>
-          <div class="step">
-            <h4>ステップ 3: 文字列の順次処理</h4>
-            <p>
-              文字列を左から右へ一文字ずつ読み取り、現在の状態と入力文字に基づいて次の状態を決定します。
-            </p>
-          </div>
-          <div class="step">
-            <h4>ステップ 4: 終了状態の判定</h4>
-            <p>
-              文字列の終端に到達した時点で、現在の状態が有効な終了状態（INTEGER、DECIMAL、EXP_NUMBER）の一つであるかを確認します。
-            </p>
-          </div>
-        </div>
-      </div>
+            <!-- ステップバイステップ解説 -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-list-ol"></i> ステップバイステップ解説</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <h4>ステップ 1: 状態の定義</h4>
+                        <p>
+                            8つの状態を定義します：INITIAL（初期状態）、SIGN（符号後）、INTEGER（整数部）、DOT（小数点後）、DECIMAL（小数部）、EXP（指数記号後）、EXP_SIGN（指数符号後）、EXP_NUMBER（指数部）
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>ステップ 2: 状態遷移ルールの設計</h4>
+                        <p>
+                            各状態から有効な入力文字に対してどの状態に遷移するかを定義します。無効な入力の場合は即座にfalseを返します。
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>ステップ 3: 文字列の順次処理</h4>
+                        <p>
+                            文字列を左から右へ一文字ずつ読み取り、現在の状態と入力文字に基づいて次の状態を決定します。
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>ステップ 4: 終了状態の判定</h4>
+                        <p>
+                            文字列の終端に到達した時点で、現在の状態が有効な終了状態（INTEGER、DECIMAL、EXP_NUMBER）の一つであるかを確認します。
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-      <!-- コード実装 -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-code"></i> Python実装</h2>
-        <div class="code-section">
-          <div class="code-tabs">
-            <button class="code-tab active" onclick="showCode('competitive')">
-              競技プログラミング版
-            </button>
-            <button class="code-tab" onclick="showCode('production')">
-              業務開発版
-            </button>
-            <button class="code-tab" onclick="showCode('state-def')">
-              状態定義
-            </button>
-          </div>
+            <!-- コード実装 -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-code"></i> Python実装</h2>
+                <div class="code-section">
+                    <div class="code-tabs">
+                        <button class="code-tab active" onclick="showCode('competitive')">
+                            競技プログラミング版
+                        </button>
+                        <button class="code-tab" onclick="showCode('production')">
+                            業務開発版
+                        </button>
+                        <button class="code-tab" onclick="showCode('state-def')">状態定義</button>
+                    </div>
 
-          <div id="competitive-code" class="code-content">
-            <pre
-              class="line-numbers"
-            ><code class="language-python">class Solution:
+                    <div id="competitive-code" class="code-content">
+                        <pre class="line-numbers"><code class="language-python">class Solution:
     def isNumber(self, s: str) -> bool:
         """
         競技プログラミング向け最適化実装
@@ -795,12 +787,12 @@
             i += 1
 
         return state in valid_end_states</code></pre>
-          </div>
+                    </div>
 
-          <div id="production-code" class="code-content" style="display: none">
-            <pre
-              class="line-numbers"
-            ><code class="language-python">from typing import Optional, Dict, Set
+                    <div id="production-code" class="code-content" style="display: none">
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">from typing import Optional, Dict, Set
 from enum import IntEnum
 
 class State(IntEnum):
@@ -916,12 +908,12 @@ class Solution:
             return None
 
         return transitions.get(current_state, {}).get(key)</code></pre>
-          </div>
+                    </div>
 
-          <div id="state-def-code" class="code-content" style="display: none">
-            <pre
-              class="line-numbers"
-            ><code class="language-python">from enum import IntEnum
+                    <div id="state-def-code" class="code-content" style="display: none">
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">from enum import IntEnum
 from typing import Set, Final
 
 class State(IntEnum):
@@ -985,375 +977,356 @@ TRANSITION_TABLE = {
         '6': State.EXP_NUMBER, '7': State.EXP_NUMBER, '8': State.EXP_NUMBER, '9': State.EXP_NUMBER
     }
 }</code></pre>
-          </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- パフォーマンス分析 -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-chart-line"></i> パフォーマンス分析</h2>
+                <div class="complexity-grid">
+                    <div class="complexity-card">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <h4>実行速度</h4>
+                        <div class="complexity-value">2.2x</div>
+                        <p>競技版は業務版より高速</p>
+                    </div>
+                    <div class="complexity-card">
+                        <i class="fas fa-microchip"></i>
+                        <h4>CPython最適化</h4>
+                        <div class="complexity-value">100%</div>
+                        <p>整数比較・文字判定最適化</p>
+                    </div>
+                    <div class="complexity-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>型安全性</h4>
+                        <div class="complexity-value">0</div>
+                        <p>Pylanceエラー件数</p>
+                    </div>
+                </div>
+
+                <h3>最適化技術</h3>
+                <div class="steps-container">
+                    <div class="step">
+                        <h4>整数比較による状態遷移</h4>
+                        <p><code>state == State.INITIAL</code> - IntEnumにより文字列比較より高速</p>
+                    </div>
+                    <div class="step">
+                        <h4>文字判定の最適化</h4>
+                        <p><code>"0" <= char <= "9"</code> - isdigit()より高速なCPython最適化</p>
+                    </div>
+                    <div class="step">
+                        <h4>メンバーシップテストの活用</h4>
+                        <p><code>state in ValidEndStates</code> - C実装による高速判定</p>
+                    </div>
+                    <div class="step">
+                        <h4>同一状態継続の最適化</h4>
+                        <p><code>pass</code> - 不要な代入を省略してパフォーマンス向上</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 実装のポイント -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-key"></i> 実装のポイント</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <h4>🎯 二重実装戦略</h4>
+                        <p>
+                            <strong>競技プログラミング版</strong
+                            >（速度重視）と<strong>業務開発版</strong>（安全性重視）の2パターンを提供。用途に応じて選択可能。
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>⚡ CPython最適化</h4>
+                        <p>
+                            IntEnumによる整数比較、文字列比較演算子、セットメンバーシップテストなど、CPython特化の最適化技術を活用。
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>🔧 型システム設計</h4>
+                        <p>
+                            完全な型アノテーション、プロトコル定義、カスタム例外階層により、Pylanceエラー完全解消を実現。
+                        </p>
+                    </div>
+                    <div class="step">
+                        <h4>🧪 包括的テスト</h4>
+                        <p>
+                            有効・無効パターンの網羅的テスト、パフォーマンス測定、エラーハンドリング検証を含む完全なテストスイート。
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- パフォーマンス分析 -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-chart-line"></i> パフォーマンス分析</h2>
-        <div class="complexity-grid">
-          <div class="complexity-card">
-            <i class="fas fa-tachometer-alt"></i>
-            <h4>実行速度</h4>
-            <div class="complexity-value">2.2x</div>
-            <p>競技版は業務版より高速</p>
-          </div>
-          <div class="complexity-card">
-            <i class="fas fa-microchip"></i>
-            <h4>CPython最適化</h4>
-            <div class="complexity-value">100%</div>
-            <p>整数比較・文字判定最適化</p>
-          </div>
-          <div class="complexity-card">
-            <i class="fas fa-shield-alt"></i>
-            <h4>型安全性</h4>
-            <div class="complexity-value">0</div>
-            <p>Pylanceエラー件数</p>
-          </div>
-        </div>
-
-        <h3>最適化技術</h3>
-        <div class="steps-container">
-          <div class="step">
-            <h4>整数比較による状態遷移</h4>
-            <p>
-              <code>state == State.INITIAL</code> -
-              IntEnumにより文字列比較より高速
-            </p>
-          </div>
-          <div class="step">
-            <h4>文字判定の最適化</h4>
-            <p>
-              <code>"0" <= char <= "9"</code> - isdigit()より高速なCPython最適化
-            </p>
-          </div>
-          <div class="step">
-            <h4>メンバーシップテストの活用</h4>
-            <p><code>state in ValidEndStates</code> - C実装による高速判定</p>
-          </div>
-          <div class="step">
-            <h4>同一状態継続の最適化</h4>
-            <p><code>pass</code> - 不要な代入を省略してパフォーマンス向上</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 実装のポイント -->
-      <div class="card fade-in">
-        <h2><i class="fas fa-key"></i> 実装のポイント</h2>
-        <div class="steps-container">
-          <div class="step">
-            <h4>🎯 二重実装戦略</h4>
-            <p>
-              <strong>競技プログラミング版</strong
-              >（速度重視）と<strong>業務開発版</strong>（安全性重視）の2パターンを提供。用途に応じて選択可能。
-            </p>
-          </div>
-          <div class="step">
-            <h4>⚡ CPython最適化</h4>
-            <p>
-              IntEnumによる整数比較、文字列比較演算子、セットメンバーシップテストなど、CPython特化の最適化技術を活用。
-            </p>
-          </div>
-          <div class="step">
-            <h4>🔧 型システム設計</h4>
-            <p>
-              完全な型アノテーション、プロトコル定義、カスタム例外階層により、Pylanceエラー完全解消を実現。
-            </p>
-          </div>
-          <div class="step">
-            <h4>🧪 包括的テスト</h4>
-            <p>
-              有効・無効パターンの網羅的テスト、パフォーマンス測定、エラーハンドリング検証を含む完全なテストスイート。
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <style>
-      .test-section {
-        margin: 2rem 0;
-      }
-
-      .test-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-
-      .test-case {
-        background: var(--secondary-bg);
-        border-radius: 10px;
-        padding: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-      }
-
-      .test-case.valid {
-        border-left: 4px solid var(--success-color);
-      }
-
-      .test-case.invalid {
-        border-left: 4px solid var(--error-color);
-      }
-
-      .test-case:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      }
-
-      .test-case.valid:hover {
-        border-color: var(--success-color);
-      }
-
-      .test-case.invalid:hover {
-        border-color: var(--error-color);
-      }
-
-      .test-case code {
-        background: var(--card-bg);
-        padding: 0.25rem 0.5rem;
-        border-radius: 5px;
-        font-family: "Fira Code", monospace;
-        color: var(--accent-color);
-      }
-    </style>
-
-    <script>
-      // 有限状態機械の実装
-      const States = {
-        INITIAL: 0,
-        SIGN: 1,
-        INTEGER: 2,
-        DOT: 3,
-        DECIMAL: 4,
-        EXP: 5,
-        EXP_SIGN: 6,
-        EXP_NUMBER: 7,
-      };
-
-      const StateNames = [
-        "INITIAL",
-        "SIGN",
-        "INTEGER",
-        "DOT",
-        "DECIMAL",
-        "EXP",
-        "EXP_SIGN",
-        "EXP_NUMBER",
-      ];
-      const ValidEndStates = new Set([
-        States.INTEGER,
-        States.DECIMAL,
-        States.EXP_NUMBER,
-      ]);
-
-      function isValidNumber(s) {
-        if (!s) return false;
-
-        let state = States.INITIAL;
-        const stateHistory = [state];
-
-        for (let i = 0; i < s.length; i++) {
-          const char = s[i];
-          const prevState = state;
-
-          if (state === States.INITIAL) {
-            if (char === "+" || char === "-") {
-              state = States.SIGN;
-            } else if (char >= "0" && char <= "9") {
-              state = States.INTEGER;
-            } else if (char === ".") {
-              state = States.DOT;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+        <style>
+            .test-section {
+                margin: 2rem 0;
             }
-          } else if (state === States.SIGN) {
-            if (char >= "0" && char <= "9") {
-              state = States.INTEGER;
-            } else if (char === ".") {
-              state = States.DOT;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1rem;
+                margin-top: 1rem;
             }
-          } else if (state === States.INTEGER) {
-            if (char >= "0" && char <= "9") {
-              // 同一状態継続
-            } else if (char === ".") {
-              state = States.DECIMAL;
-            } else if (char === "e" || char === "E") {
-              state = States.EXP;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case {
+                background: var(--secondary-bg);
+                border-radius: 10px;
+                padding: 1rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
             }
-          } else if (state === States.DOT) {
-            if (char >= "0" && char <= "9") {
-              state = States.DECIMAL;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case.valid {
+                border-left: 4px solid var(--success-color);
             }
-          } else if (state === States.DECIMAL) {
-            if (char >= "0" && char <= "9") {
-              // 同一状態継続
-            } else if (char === "e" || char === "E") {
-              state = States.EXP;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case.invalid {
+                border-left: 4px solid var(--error-color);
             }
-          } else if (state === States.EXP) {
-            if (char === "+" || char === "-") {
-              state = States.EXP_SIGN;
-            } else if (char >= "0" && char <= "9") {
-              state = States.EXP_NUMBER;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             }
-          } else if (state === States.EXP_SIGN) {
-            if (char >= "0" && char <= "9") {
-              state = States.EXP_NUMBER;
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case.valid:hover {
+                border-color: var(--success-color);
             }
-          } else if (state === States.EXP_NUMBER) {
-            if (char >= "0" && char <= "9") {
-              // 同一状態継続
-            } else {
-              return { valid: false, stateHistory, errorAt: i };
+
+            .test-case.invalid:hover {
+                border-color: var(--error-color);
             }
-          }
 
-          stateHistory.push(state);
-        }
+            .test-case code {
+                background: var(--card-bg);
+                padding: 0.25rem 0.5rem;
+                border-radius: 5px;
+                font-family: 'Fira Code', monospace;
+                color: var(--accent-color);
+            }
+        </style>
 
-        const valid = ValidEndStates.has(state);
-        return { valid, stateHistory, finalState: state };
-      }
+        <script>
+            // 有限状態機械の実装
+            const States = {
+                INITIAL: 0,
+                SIGN: 1,
+                INTEGER: 2,
+                DOT: 3,
+                DECIMAL: 4,
+                EXP: 5,
+                EXP_SIGN: 6,
+                EXP_NUMBER: 7,
+            };
 
-      function clearStateVisualization() {
-        for (let i = 0; i < 8; i++) {
-          const node = document.getElementById(`state-${i}`);
-          node.classList.remove("active");
-        }
-      }
+            const StateNames = [
+                'INITIAL',
+                'SIGN',
+                'INTEGER',
+                'DOT',
+                'DECIMAL',
+                'EXP',
+                'EXP_SIGN',
+                'EXP_NUMBER',
+            ];
+            const ValidEndStates = new Set([States.INTEGER, States.DECIMAL, States.EXP_NUMBER]);
 
-      function highlightState(stateId, delay = 0) {
-        setTimeout(() => {
-          clearStateVisualization();
-          const node = document.getElementById(`state-${stateId}`);
-          node.classList.add("active");
-        }, delay);
-      }
+            function isValidNumber(s) {
+                if (!s) return false;
 
-      function animateStateTransition(stateHistory) {
-        clearStateVisualization();
+                let state = States.INITIAL;
+                const stateHistory = [state];
 
-        stateHistory.forEach((state, index) => {
-          setTimeout(() => {
-            clearStateVisualization();
-            highlightState(state, 0);
-          }, index * 500);
-        });
-      }
+                for (let i = 0; i < s.length; i++) {
+                    const char = s[i];
+                    const prevState = state;
 
-      function validateNumber() {
-        const input = document.getElementById("testInput").value;
-        const result = isValidNumber(input);
-        const resultDiv = document.getElementById("demoResult");
+                    if (state === States.INITIAL) {
+                        if (char === '+' || char === '-') {
+                            state = States.SIGN;
+                        } else if (char >= '0' && char <= '9') {
+                            state = States.INTEGER;
+                        } else if (char === '.') {
+                            state = States.DOT;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.SIGN) {
+                        if (char >= '0' && char <= '9') {
+                            state = States.INTEGER;
+                        } else if (char === '.') {
+                            state = States.DOT;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.INTEGER) {
+                        if (char >= '0' && char <= '9') {
+                            // 同一状態継続
+                        } else if (char === '.') {
+                            state = States.DECIMAL;
+                        } else if (char === 'e' || char === 'E') {
+                            state = States.EXP;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.DOT) {
+                        if (char >= '0' && char <= '9') {
+                            state = States.DECIMAL;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.DECIMAL) {
+                        if (char >= '0' && char <= '9') {
+                            // 同一状態継続
+                        } else if (char === 'e' || char === 'E') {
+                            state = States.EXP;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.EXP) {
+                        if (char === '+' || char === '-') {
+                            state = States.EXP_SIGN;
+                        } else if (char >= '0' && char <= '9') {
+                            state = States.EXP_NUMBER;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.EXP_SIGN) {
+                        if (char >= '0' && char <= '9') {
+                            state = States.EXP_NUMBER;
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    } else if (state === States.EXP_NUMBER) {
+                        if (char >= '0' && char <= '9') {
+                            // 同一状態継続
+                        } else {
+                            return { valid: false, stateHistory, errorAt: i };
+                        }
+                    }
 
-        resultDiv.style.display = "block";
-        resultDiv.className = `demo-result ${
-          result.valid ? "valid" : "invalid"
-        }`;
+                    stateHistory.push(state);
+                }
 
-        if (result.valid) {
-          resultDiv.innerHTML = `
+                const valid = ValidEndStates.has(state);
+                return { valid, stateHistory, finalState: state };
+            }
+
+            function clearStateVisualization() {
+                for (let i = 0; i < 8; i++) {
+                    const node = document.getElementById(`state-${i}`);
+                    node.classList.remove('active');
+                }
+            }
+
+            function highlightState(stateId, delay = 0) {
+                setTimeout(() => {
+                    clearStateVisualization();
+                    const node = document.getElementById(`state-${stateId}`);
+                    node.classList.add('active');
+                }, delay);
+            }
+
+            function animateStateTransition(stateHistory) {
+                clearStateVisualization();
+
+                stateHistory.forEach((state, index) => {
+                    setTimeout(() => {
+                        clearStateVisualization();
+                        highlightState(state, 0);
+                    }, index * 500);
+                });
+            }
+
+            function validateNumber() {
+                const input = document.getElementById('testInput').value;
+                const result = isValidNumber(input);
+                const resultDiv = document.getElementById('demoResult');
+
+                resultDiv.style.display = 'block';
+                resultDiv.className = `demo-result ${result.valid ? 'valid' : 'invalid'}`;
+
+                if (result.valid) {
+                    resultDiv.innerHTML = `
                     <i class="fas fa-check-circle"></i>
                     <strong>有効な数値です！</strong><br>
                     最終状態: ${StateNames[result.finalState]}
                 `;
-        } else {
-          resultDiv.innerHTML = `
+                } else {
+                    resultDiv.innerHTML = `
                     <i class="fas fa-times-circle"></i>
                     <strong>無効な数値です</strong><br>
                     ${
-                      result.errorAt !== undefined
-                        ? `エラー位置: ${Number(result.errorAt) + 1}文字目`
-                        : `最終状態: ${
-                            StateNames[
-                              result.stateHistory[
-                                result.stateHistory.length - 1
-                              ]
-                            ]
-                          }`
+                        result.errorAt !== undefined
+                            ? `エラー位置: ${Number(result.errorAt) + 1}文字目`
+                            : `最終状態: ${
+                                  StateNames[result.stateHistory[result.stateHistory.length - 1]]
+                              }`
                     }
                 `;
-        }
+                }
 
-        // 状態遷移をアニメーション表示
-        animateStateTransition(result.stateHistory);
-      }
-
-      function showCode(codeType) {
-        // タブの切り替え
-        document.querySelectorAll(".code-tab").forEach((tab) => {
-          tab.classList.remove("active");
-        });
-        document
-          .querySelector(`[onclick="showCode('${codeType}')"]`)
-          .classList.add("active");
-
-        // コンテンツの切り替え
-        document.querySelectorAll(".code-content").forEach((content) => {
-          content.style.display = "none";
-        });
-        document.getElementById(`${codeType}-code`).style.display = "block";
-
-        // Prismを再実行（遅延実行で確実に動作させる）
-        setTimeout(() => {
-          Prism.highlightAll();
-        }, 100);
-      }
-
-      function testCase(testString) {
-        document.getElementById("testInput").value = testString;
-        validateNumber();
-      }
-
-      // ページ読み込み時の初期化
-      document.addEventListener("DOMContentLoaded", function () {
-        // Prism.jsの初期化を少し遅らせる
-        setTimeout(() => {
-          Prism.highlightAll();
-        }, 200);
-
-        // 初期デモ実行
-        setTimeout(() => {
-          validateNumber();
-        }, 300);
-
-        // フェードインアニメーション
-        const cards = document.querySelectorAll(".card");
-        cards.forEach((card, index) => {
-          setTimeout(() => {
-            card.style.animation = `fadeInUp 0.6s ease-out ${
-              index * 0.1
-            }s both`;
-          }, 100);
-        });
-
-        // Enterキーでの実行
-        document
-          .getElementById("testInput")
-          .addEventListener("keypress", function (e) {
-            if (e.key === "Enter") {
-              validateNumber();
+                // 状態遷移をアニメーション表示
+                animateStateTransition(result.stateHistory);
             }
-          });
-      });
-    </script>
-  </body>
+
+            function showCode(codeType) {
+                // タブの切り替え
+                document.querySelectorAll('.code-tab').forEach((tab) => {
+                    tab.classList.remove('active');
+                });
+                document
+                    .querySelector(`[onclick="showCode('${codeType}')"]`)
+                    .classList.add('active');
+
+                // コンテンツの切り替え
+                document.querySelectorAll('.code-content').forEach((content) => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(`${codeType}-code`).style.display = 'block';
+
+                // Prismを再実行（遅延実行で確実に動作させる）
+                setTimeout(() => {
+                    Prism.highlightAll();
+                }, 100);
+            }
+
+            function testCase(testString) {
+                document.getElementById('testInput').value = testString;
+                validateNumber();
+            }
+
+            // ページ読み込み時の初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                // Prism.jsの初期化を少し遅らせる
+                setTimeout(() => {
+                    Prism.highlightAll();
+                }, 200);
+
+                // 初期デモ実行
+                setTimeout(() => {
+                    validateNumber();
+                }, 300);
+
+                // フェードインアニメーション
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+                    }, 100);
+                });
+
+                // Enterキーでの実行
+                document.getElementById('testInput').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        validateNumber();
+                    }
+                });
+            });
+        </script>
+    </body>
 </html>

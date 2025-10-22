@@ -83,58 +83,58 @@
  * @complexity Time: O(n), Space: O(n)  // Pure のため新規ノードを生成
  */
 function partition(head: ListNode | null, x: number): ListNode | null {
-  // --- 入力検証（軽量＆早期） ---
-  if (typeof x !== "number" || !Number.isFinite(x)) {
-    throw new TypeError("x must be a finite number");
-  }
-  if (x < -200 || x > 200) {
-    throw new RangeError("x is out of allowed range [-200, 200]");
-  }
-  if (head !== null && typeof head !== "object") {
-    throw new TypeError("head must be a ListNode or null");
-  }
-
-  // ダミー（番兵）ノードとテール
-  const lessDummy = new ListNode(0);
-  const geDummy = new ListNode(0);
-  let lessTail = lessDummy;
-  let geTail = geDummy;
-
-  let count = 0;
-  let cur = head;
-
-  // --- 単一走査：検証しつつ新ノードを安定追加 ---
-  while (cur !== null) {
-    count++;
-    if (count > 200) {
-      throw new RangeError("List size exceeds limit [0, 200]");
+    // --- 入力検証（軽量＆早期） ---
+    if (typeof x !== 'number' || !Number.isFinite(x)) {
+        throw new TypeError('x must be a finite number');
+    }
+    if (x < -200 || x > 200) {
+        throw new RangeError('x is out of allowed range [-200, 200]');
+    }
+    if (head !== null && typeof head !== 'object') {
+        throw new TypeError('head must be a ListNode or null');
     }
 
-    const v = cur.val;
-    if (typeof v !== "number" || !Number.isFinite(v)) {
-      throw new TypeError("ListNode.val must be a finite number");
+    // ダミー（番兵）ノードとテール
+    const lessDummy = new ListNode(0);
+    const geDummy = new ListNode(0);
+    let lessTail = lessDummy;
+    let geTail = geDummy;
+
+    let count = 0;
+    let cur = head;
+
+    // --- 単一走査：検証しつつ新ノードを安定追加 ---
+    while (cur !== null) {
+        count++;
+        if (count > 200) {
+            throw new RangeError('List size exceeds limit [0, 200]');
+        }
+
+        const v = cur.val;
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+            throw new TypeError('ListNode.val must be a finite number');
+        }
+        if (v < -100 || v > 100) {
+            throw new RangeError('ListNode.val is out of allowed range [-100, 100]');
+        }
+
+        // Pure：元ノードは触らず、新ノードで構築
+        if (v < x) {
+            lessTail.next = new ListNode(v);
+            lessTail = lessTail.next;
+        } else {
+            geTail.next = new ListNode(v);
+            geTail = geTail.next;
+        }
+
+        cur = cur.next;
     }
-    if (v < -100 || v > 100) {
-      throw new RangeError("ListNode.val is out of allowed range [-100, 100]");
-    }
 
-    // Pure：元ノードは触らず、新ノードで構築
-    if (v < x) {
-      lessTail.next = new ListNode(v);
-      lessTail = lessTail.next;
-    } else {
-      geTail.next = new ListNode(v);
-      geTail = geTail.next;
-    }
+    // (< x) の末尾に (>= x) を連結
+    lessTail.next = geDummy.next;
+    geTail.next = null;
 
-    cur = cur.next;
-  }
-
-  // (< x) の末尾に (>= x) を連結
-  lessTail.next = geDummy.next;
-  geTail.next = null;
-
-  return lessDummy.next;
+    return lessDummy.next;
 }
 // ```
 

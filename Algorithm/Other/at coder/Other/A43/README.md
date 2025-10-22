@@ -1,4 +1,3 @@
-
 ---
 
 ## 🧩 問題のイメージ
@@ -16,10 +15,10 @@
 人ごとに出口までの時間を求め、最大を取ればOK。
 
 | 人の位置 Ai | 方向 Bi | 出口までの距離 | 出るまでの時間（秒） |
-| ------- | ----- | ------- | ---------- |
-| 20      | E     | L - 20  | 80         |
-| 50      | E     | L - 50  | 50         |
-| 70      | W     | 70      | 70         |
+| ----------- | ------- | -------------- | -------------------- |
+| 20          | E       | L - 20         | 80                   |
+| 50          | E       | L - 50         | 50                   |
+| 70          | W       | 70             | 70                   |
 
 図で表すと：
 
@@ -103,16 +102,16 @@ input = [
                  （1人ずつ）                    （O(1)メモリ）
 ```
 
-* 💾 **メモリ消費は最小限（一定）**
-* ⏱️ **計算量は O(N)** → 高速
-* 🧠 **「すれ違いは無視してよい」という物理的簡略化を活用**
+- 💾 **メモリ消費は最小限（一定）**
+- ⏱️ **計算量は O(N)** → 高速
+- 🧠 **「すれ違いは無視してよい」という物理的簡略化を活用**
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-05-31 11:16:57 | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005) | 1000 | 542 Byte | **AC** | 500 ms | 62832 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284622) |
-| 2025-05-31 11:11:47 | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 496 Byte | **AC** | 135 ms | 6508 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284528) |
-| 2025-05-31 11:10:15 | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 316 Byte | **AC** | 54 ms | 21392 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284488) |
-| 2025-05-31 11:07:57 | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 429 Byte | **AC** | 66 ms | 8572 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284442) |
-| 2025-05-31 11:01:38 | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 732 Byte | **AC** | 156 ms | 55312 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284306) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                             | ユーザ                                            | 言語                                                                                                    | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-05-31 11:16:57                                                                           | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Java (OpenJDK 17)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5005)            | 1000                                                                                    | 542 Byte                                                                                  | **AC** | 500 ms                                                                                       | 62832 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284622) |
+| 2025-05-31 11:11:47                                                                           | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)               | 1000                                                                                    | 496 Byte                                                                                  | **AC** | 135 ms                                                                                       | 6508 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284528) |
+| 2025-05-31 11:10:15                                                                           | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)              | 1000                                                                                    | 316 Byte                                                                                  | **AC** | 54 ms                                                                                        | 21392 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284488) |
+| 2025-05-31 11:07:57                                                                           | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)      | 1000                                                                                    | 429 Byte                                                                                  | **AC** | 66 ms                                                                                        | 8572 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284442) |
+| 2025-05-31 11:01:38                                                                           | [A43 - Travel 3](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_aq) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000                                                                                    | 732 Byte                                                                                  | **AC** | 156 ms                                                                                       | 55312 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66284306) |

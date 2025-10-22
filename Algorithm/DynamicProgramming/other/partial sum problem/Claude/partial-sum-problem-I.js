@@ -37,14 +37,14 @@ for (let i = 1; i <= n; i++) {
 function canMakeSum(n, x, weights) {
     // dp[j] = 重さの和がjになるかどうか
     const dp = new Array(x + 1).fill(false);
-    
+
     // 初期状態：何も選ばなければ重さ0
     dp[0] = true;
-    
+
     // 各おもりについて処理
     for (let i = 0; i < n; i++) {
         const weight = weights[i];
-        
+
         // 逆順でループ（同じおもりの重複使用を防ぐため）
         for (let j = x; j >= weight; j--) {
             if (dp[j - weight]) {
@@ -52,13 +52,13 @@ function canMakeSum(n, x, weights) {
             }
         }
     }
-    
+
     return dp[x];
 }
 
 // 実行と出力
 const result = canMakeSum(n, x, weights);
-console.log(result ? "yes" : "no");
+console.log(result ? 'yes' : 'no');
 // ```
 
 // ## 計算量

@@ -11,17 +11,17 @@
 // ```typescript
 /**
  * 与えられた文字列が括弧として正しいかを判定する関数。
- * 
+ *
  * @param s - 入力文字列（'(', ')', '{', '}', '[', ']' からなる）
  * @returns boolean - 正しい括弧列ならtrue、不正ならfalse
- * 
+ *
  * 制約: 1 <= s.length <= 10^4
  * 時間計算量: O(n)
  * 空間計算量: O(n)（スタックを使用するため）
  */
 function isValid(s: string): boolean {
     const stack: string[] = [];
-    
+
     // 括弧の対応表
     const bracketMap: Record<string, string> = {
         ')': '(',

@@ -6,7 +6,7 @@
  * 配列 nums に存在しない最小の正の整数を返す
  * @param nums - 整数配列（順不同、負数や0を含む可能性あり）
  * @returns 配列に存在しない最小の正の整数
- * 
+ *
  * 時間計算量: O(n)
  * 空間計算量: O(1) 追加メモリ
  * 対応環境: TypeScript 5.1 / Node.js 18.16.1 / LeetCode
@@ -16,11 +16,7 @@ function firstMissingPositiveGPT(nums: number[]): number {
 
     // 正しい位置に [1, n] の範囲の値を移動
     for (let i = 0; i < n; i++) {
-        while (
-            nums[i] > 0 &&
-            nums[i] <= n &&
-            nums[nums[i] - 1] !== nums[i]
-        ) {
+        while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {
             const correctIndex: number = nums[i] - 1;
             [nums[i], nums[correctIndex]] = [nums[correctIndex], nums[i]];
         }
@@ -52,4 +48,3 @@ function firstMissingPositiveGPT(nums: number[]): number {
 // 4. **範囲外や重複は無視**
 
 //    * `[1, n]` の範囲外は位置合わせ対象外。
-

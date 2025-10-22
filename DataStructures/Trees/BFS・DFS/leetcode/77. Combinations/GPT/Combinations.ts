@@ -62,35 +62,35 @@
  * @complexity Time: O(C(n,k) \* k), Space: O(k + C(n,k))
  */
 export function combine(n: number, k: number): readonly number[][] {
-  // --- 入力検証 ---
-  if (!Number.isInteger(n) || !Number.isInteger(k)) {
-    throw new TypeError("Arguments n and k must be integers");
-  }
-  if (n < 1 || n > 20) {
-    throw new RangeError("n must be in range [1,20]");
-  }
-  if (k < 1 || k > n) {
-    throw new RangeError("k must be in range [1,n]");
-  }
-
-  const result: number[][] = [];
-  const path: number[] = [];
-
-  function dfs(start: number): void {
-    if (path.length === k) {
-      result.push([...path]); // コピーして保存
-      return;
+    // --- 入力検証 ---
+    if (!Number.isInteger(n) || !Number.isInteger(k)) {
+        throw new TypeError('Arguments n and k must be integers');
     }
-    // 残り数が足りない場合は枝刈り
-    for (let i = start; i <= n - (k - path.length) + 1; i++) {
-      path.push(i);
-      dfs(i + 1);
-      path.pop();
+    if (n < 1 || n > 20) {
+        throw new RangeError('n must be in range [1,20]');
     }
-  }
+    if (k < 1 || k > n) {
+        throw new RangeError('k must be in range [1,n]');
+    }
 
-  dfs(1);
-  return result;
+    const result: number[][] = [];
+    const path: number[] = [];
+
+    function dfs(start: number): void {
+        if (path.length === k) {
+            result.push([...path]); // コピーして保存
+            return;
+        }
+        // 残り数が足りない場合は枝刈り
+        for (let i = start; i <= n - (k - path.length) + 1; i++) {
+            path.push(i);
+            dfs(i + 1);
+            path.pop();
+        }
+    }
+
+    dfs(1);
+    return result;
 }
 // ```
 // ---

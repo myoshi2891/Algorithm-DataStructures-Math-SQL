@@ -79,9 +79,8 @@ ORDER BY player_id, event_date;
 
 - ウィンドウ版は可読性が高く汎用（同率処理や k>1 に拡張しやすい）。
 - データ量が大きいほど、`(player_id, event_date)` の複合インデックスが効きます。
-
-  - **DISTINCT ON** / **LATERAL+LIMIT** はインデックス順アクセスで「先頭だけ」取りやすい。
-  - 参照列が `player_id, event_date` のみなら **Index Only Scan** になりうる。
+    - **DISTINCT ON** / **LATERAL+LIMIT** はインデックス順アクセスで「先頭だけ」取りやすい。
+    - 参照列が `player_id, event_date` のみなら **Index Only Scan** になりうる。
 
 - 並び順は任意なので `ORDER BY` は付けず I/O を削減（上の DISTINCT ON 例は規則上必要）。
 

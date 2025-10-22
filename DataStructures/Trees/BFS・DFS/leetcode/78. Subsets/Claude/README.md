@@ -319,11 +319,11 @@ HTML ファイル内の `<code id="python-code">`タグを探し、その末尾�
 
 1. **グローバル変数追加**: `let demoInterval = null;` でタイマーの参照を保持
 2. **startDemo()の改良**:
-   - 既存のタイマーがあれば事前に停止
-   - タイマー完了時に参照をクリア
+    - 既存のタイマーがあれば事前に停止
+    - タイマー完了時に参照をクリア
 3. **resetDemo()の改良**:
-   - タイマーを確実に停止
-   - `isRunning` フラグも false に設定
+    - タイマーを確実に停止
+    - `isRunning` フラグも false に設定
 
 ## 追加改善案
 
@@ -332,16 +332,16 @@ HTML ファイル内の `<code id="python-code">`タグを探し、その末尾�
 ```javascript
 // ボタンの状態管理も追加
 function updateButtonStates() {
-  const startBtn = document.querySelector('[onclick="startDemo()"]');
-  const resetBtn = document.querySelector('[onclick="resetDemo()"]');
+    const startBtn = document.querySelector('[onclick="startDemo()"]');
+    const resetBtn = document.querySelector('[onclick="resetDemo()"]');
 
-  if (demoState.isRunning) {
-    startBtn.disabled = true;
-    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 実行中...';
-  } else {
-    startBtn.disabled = false;
-    startBtn.innerHTML = '<i class="fas fa-play"></i> デモ開始';
-  }
+    if (demoState.isRunning) {
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 実行中...';
+    } else {
+        startBtn.disabled = false;
+        startBtn.innerHTML = '<i class="fas fa-play"></i> デモ開始';
+    }
 }
 ```
 

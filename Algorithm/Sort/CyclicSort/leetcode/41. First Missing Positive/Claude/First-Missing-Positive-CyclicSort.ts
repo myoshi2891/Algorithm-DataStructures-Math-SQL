@@ -62,17 +62,17 @@
  * Cyclic Sort（配置スワップ法）を用いて配列から欠けている最小の正の整数を見つける
  * @param nums - 整数配列
  * @returns 欠けている最小の正の整数
- * 
+ *
  * 時間複雑度: O(n)
  * 空間複雑度: O(1)
- * 
+ *
  * アルゴリズムの概要:
  * 1. 各要素を正しい位置（値x → インデックスx-1）にスワップして配置
  * 2. 配置後、最初に正しくない位置の要素のインデックス+1が答え
  */
 function firstMissingPositiveCyclicSort(nums: number[]): number {
     const n: number = nums.length;
-    
+
     // Cyclic Sort: 各要素を正しい位置に配置
     for (let i: number = 0; i < n; i++) {
         // 現在の要素が正しい範囲内（1 <= nums[i] <= n）で
@@ -82,14 +82,14 @@ function firstMissingPositiveCyclicSort(nums: number[]): number {
             swap(nums, i, nums[i] - 1);
         }
     }
-    
+
     // 配置完了後、最初に正しくない位置を見つける
     for (let i: number = 0; i < n; i++) {
         if (nums[i] !== i + 1) {
             return i + 1;
         }
     }
-    
+
     // 1からnまで全て正しく配置されている場合、答えはn+1
     return n + 1;
 }
@@ -110,13 +110,13 @@ function swap(nums: number[], i: number, j: number): void {
  * パフォーマンス最適化版 - インライン展開とスワップの最適化
  * @param nums - 整数配列
  * @returns 欠けている最小の正の整数
- * 
+ *
  * 時間複雑度: O(n)
  * 空間複雑度: O(1)
  */
 function firstMissingPositiveOptimized(nums: number[]): number {
     const n: number = nums.length;
-    
+
     // Cyclic Sort with inline swap for better performance
     for (let i: number = 0; i < n; i++) {
         while (nums[i] >= 1 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {
@@ -127,14 +127,14 @@ function firstMissingPositiveOptimized(nums: number[]): number {
             nums[targetIndex] = temp;
         }
     }
-    
+
     // 結果検出
     for (let i: number = 0; i < n; i++) {
         if (nums[i] !== i + 1) {
             return i + 1;
         }
     }
-    
+
     return n + 1;
 }
 
@@ -142,15 +142,15 @@ function firstMissingPositiveOptimized(nums: number[]): number {
  * デストラクチャリング代入を使った現代的なスワップ版
  * @param nums - 整数配列
  * @returns 欠けている最小の正の整数
- * 
+ *
  * 時間複雑度: O(n)
  * 空間複雑度: O(1)
- * 
+ *
  * 注意: デストラクチャリング代入は可読性は高いが、わずかにパフォーマンスが劣る場合がある
  */
 function firstMissingPositiveModern(nums: number[]): number {
     const n: number = nums.length;
-    
+
     for (let i: number = 0; i < n; i++) {
         while (nums[i] >= 1 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {
             // ES6のデストラクチャリング代入を使ったスワップ
@@ -158,13 +158,13 @@ function firstMissingPositiveModern(nums: number[]): number {
             [nums[i], nums[targetIndex]] = [nums[targetIndex], nums[i]];
         }
     }
-    
+
     for (let i: number = 0; i < n; i++) {
         if (nums[i] !== i + 1) {
             return i + 1;
         }
     }
-    
+
     return n + 1;
 }
 
@@ -172,36 +172,36 @@ function firstMissingPositiveModern(nums: number[]): number {
  * ビット演算を使った最適化版（XORスワップ）
  * @param nums - 整数配列
  * @returns 欠けている最小の正の整数
- * 
+ *
  * 時間複雑度: O(n)
  * 空間複雑度: O(1)
- * 
+ *
  * 注意: 同じインデックスをスワップする場合の対策が必要
  */
 function firstMissingPositiveXOR(nums: number[]): number {
     const n: number = nums.length;
-    
+
     for (let i: number = 0; i < n; i++) {
         while (nums[i] >= 1 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {
             const targetIndex: number = nums[i] - 1;
-            
+
             // 同じインデックスの場合はスキップ（XORスワップの制約）
             if (i === targetIndex) {
                 break;
             }
-            
+
             // XORを使ったスワップ（一時変数不要）
             nums[i] = nums[i] ^ nums[targetIndex];
             nums[targetIndex] = nums[i] ^ nums[targetIndex];
             nums[i] = nums[i] ^ nums[targetIndex];
         }
     }
-    
+
     for (let i: number = 0; i < n; i++) {
         if (nums[i] !== i + 1) {
             return i + 1;
         }
     }
-    
+
     return n + 1;
 }

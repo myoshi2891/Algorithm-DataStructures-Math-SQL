@@ -3,9 +3,9 @@
 // 各処理は関数化し、パラメータや返却値はコメントにて明記しています。
 
 // ```javascript
-"use strict";
+'use strict';
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 10進数整数を2進数文字列に変換する関数
@@ -13,7 +13,7 @@ const fs = require("fs");
  * @returns {string} 2進数文字列（先頭0なし）
  */
 function decimalToBinary(num) {
-  return num.toString(2);
+    return num.toString(2);
 }
 
 /**
@@ -22,21 +22,21 @@ function decimalToBinary(num) {
  * @returns {string} 出力文字列（改行区切り）
  */
 function solve(input) {
-  const lines = input.trim().split("\n");
-  const T = Number(lines[0]);
-  const results = new Array(T);
+    const lines = input.trim().split('\n');
+    const T = Number(lines[0]);
+    const results = new Array(T);
 
-  for (let i = 0; i < T; i++) {
-    // 10^15までなのでBigIntで読み込み
-    const num = BigInt(lines[i + 1]);
-    results[i] = decimalToBinary(num);
-  }
+    for (let i = 0; i < T; i++) {
+        // 10^15までなのでBigIntで読み込み
+        const num = BigInt(lines[i + 1]);
+        results[i] = decimalToBinary(num);
+    }
 
-  return results.join("\n");
+    return results.join('\n');
 }
 
 // 標準入力から読み込み、処理結果を出力
-const input = fs.readFileSync(0, "utf8");
+const input = fs.readFileSync(0, 'utf8');
 console.log(solve(input));
 
 // ### 実装ポイント

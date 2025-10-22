@@ -68,7 +68,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * いもす法により範囲加算後の最大値を求める
@@ -82,68 +82,68 @@
  * 空間計算量: O(N)
  */
 function imosMethod(input) {
-  if (typeof input !== "string") {
-    throw new TypeError("input must be a string");
-  }
-
-  const lines = input.trim().split("\n");
-  if (lines.length < 1) {
-    throw new TypeError("input must contain at least one line");
-  }
-
-  const [Nstr, Qstr] = lines[0].trim().split(/\s+/);
-  const N = Number(Nstr);
-  const Q = Number(Qstr);
-
-  if (!Number.isInteger(N) || !Number.isInteger(Q)) {
-    throw new TypeError("N and Q must be integers");
-  }
-  if (!(1 <= N && N <= 1000)) {
-    throw new RangeError("N out of range");
-  }
-  if (!(1 <= Q && Q <= 1000)) {
-    throw new RangeError("Q out of range");
-  }
-
-  const diff = new Array(N + 2).fill(0);
-
-  for (let i = 1; i <= Q; i++) {
-    if (i >= lines.length) {
-      throw new TypeError("Insufficient query lines");
-    }
-    const [Lstr, Rstr] = lines[i].trim().split(/\s+/);
-    const L = Number(Lstr);
-    const R = Number(Rstr);
-
-    if (!Number.isInteger(L) || !Number.isInteger(R)) {
-      throw new TypeError("L and R must be integers");
-    }
-    if (!(1 <= L && L <= R && R <= N)) {
-      throw new RangeError(`Invalid range: [${L},${R}]`);
+    if (typeof input !== 'string') {
+        throw new TypeError('input must be a string');
     }
 
-    diff[L] += 1;
-    diff[R + 1] -= 1;
-  }
-
-  let maxVal = -Infinity;
-  let current = 0;
-  for (let i = 1; i <= N; i++) {
-    current += diff[i];
-    if (current > maxVal) {
-      maxVal = current;
+    const lines = input.trim().split('\n');
+    if (lines.length < 1) {
+        throw new TypeError('input must contain at least one line');
     }
-  }
 
-  return maxVal;
+    const [Nstr, Qstr] = lines[0].trim().split(/\s+/);
+    const N = Number(Nstr);
+    const Q = Number(Qstr);
+
+    if (!Number.isInteger(N) || !Number.isInteger(Q)) {
+        throw new TypeError('N and Q must be integers');
+    }
+    if (!(1 <= N && N <= 1000)) {
+        throw new RangeError('N out of range');
+    }
+    if (!(1 <= Q && Q <= 1000)) {
+        throw new RangeError('Q out of range');
+    }
+
+    const diff = new Array(N + 2).fill(0);
+
+    for (let i = 1; i <= Q; i++) {
+        if (i >= lines.length) {
+            throw new TypeError('Insufficient query lines');
+        }
+        const [Lstr, Rstr] = lines[i].trim().split(/\s+/);
+        const L = Number(Lstr);
+        const R = Number(Rstr);
+
+        if (!Number.isInteger(L) || !Number.isInteger(R)) {
+            throw new TypeError('L and R must be integers');
+        }
+        if (!(1 <= L && L <= R && R <= N)) {
+            throw new RangeError(`Invalid range: [${L},${R}]`);
+        }
+
+        diff[L] += 1;
+        diff[R + 1] -= 1;
+    }
+
+    let maxVal = -Infinity;
+    let current = 0;
+    for (let i = 1; i <= N; i++) {
+        current += diff[i];
+        if (current > maxVal) {
+            maxVal = current;
+        }
+    }
+
+    return maxVal;
 }
 
 // ===== 実行部 =====
 if (require.main === module) {
-  const fs = require("fs");
-  const input = fs.readFileSync("/dev/stdin", "utf8");
-  const result = imosMethod(input);
-  console.log(result);
+    const fs = require('fs');
+    const input = fs.readFileSync('/dev/stdin', 'utf8');
+    const result = imosMethod(input);
+    console.log(result);
 }
 
 module.exports = { imosMethod };

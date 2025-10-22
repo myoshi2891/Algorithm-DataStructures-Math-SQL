@@ -138,10 +138,10 @@ const fs = require('fs');
  */
 function canMakeZero(a, b, c) {
     const sum = a + b + c;
-    if (sum !== 0n) return "No";
+    if (sum !== 0n) return 'No';
 
     // 操作は (x++, y--) を繰り返す。総和が 0 なら必ず収束できる。
-    return "Yes";
+    return 'Yes';
 }
 
 // 標準入力から読み込み（例: node index.js < input.txt）

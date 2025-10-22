@@ -50,39 +50,34 @@ WHERE (
 ```
 
 - **注意点**：
-
-  - `COUNT(DISTINCT ...)` により「上の**ユニーク**給与数」が 0,1,2 の人だけを残します（=上位 3 つ以内）。
-  - `NOT IN` は **NULL 罠**があるため不採用（要件にも準拠）。
+    - `COUNT(DISTINCT ...)` により「上の**ユニーク**給与数」が 0,1,2 の人だけを残します（=上位 3 つ以内）。
+    - `NOT IN` は **NULL 罠**があるため不採用（要件にも準拠）。
 
 ---
 
 ## 3) 要点解説
 
 - **採用理由**
-
-  - 最適解：`DENSE_RANK()` は「ユニーク順位」→ タイがあっても 1 位, 2 位, 3 位の**3 つの給与水準**を正しく切り出せる。MySQL 8 のウィンドウ関数で **可読性・拡張性・速度**のバランスが良い。
-  - 代替解：ウィンドウ関数が使えない環境でも動く。`COUNT(DISTINCT salary)` を使うことでユニーク性を担保。
+    - 最適解：`DENSE_RANK()` は「ユニーク順位」→ タイがあっても 1 位, 2 位, 3 位の**3 つの給与水準**を正しく切り出せる。MySQL 8 のウィンドウ関数で **可読性・拡張性・速度**のバランスが良い。
+    - 代替解：ウィンドウ関数が使えない環境でも動く。`COUNT(DISTINCT salary)` を使うことでユニーク性を担保。
 
 - **エッジケース**
-
-  - 部門内のユニーク給与が 1〜2 個しかない：`DENSE_RANK <= 3` でも自然に該当行のみ出力。
-  - タイブレーク（同一給与複数人）：**全員**が対象（問題仕様通り）。
-  - `NULL` 給与は本問題のデータ設計上通常想定しないが、存在すると `DENSE_RANK` は最後尾に降順並び。代替解でも `> e.salary` 条件により影響は限定的。
-  - 表示列・並び順：出力順は任意、列名は指定に合わせて投影済み。
+    - 部門内のユニーク給与が 1〜2 個しかない：`DENSE_RANK <= 3` でも自然に該当行のみ出力。
+    - タイブレーク（同一給与複数人）：**全員**が対象（問題仕様通り）。
+    - `NULL` 給与は本問題のデータ設計上通常想定しないが、存在すると `DENSE_RANK` は最後尾に降順並び。代替解でも `> e.salary` 条件により影響は限定的。
+    - 表示列・並び順：出力順は任意、列名は指定に合わせて投影済み。
 
 ---
 
 ## 4) 計算量（概算）
 
 - **最適解（ウィンドウ関数）**：
-
-  - パーティション（部門）ごとに並べ替え：概ね `O(N log N)`（N=Employee 行数）。
-  - 適切なインデックス（例：`Employee(departmentId, salary DESC)`、`Department(id)`）があると実務では I/O を削減。
+    - パーティション（部門）ごとに並べ替え：概ね `O(N log N)`（N=Employee 行数）。
+    - 適切なインデックス（例：`Employee(departmentId, salary DESC)`、`Department(id)`）があると実務では I/O を削減。
 
 - **代替解（相関）**：
-
-  - 天然だと各行に対して同部門をスキャン → 最悪 `O(N^2)`。
-  - `Employee(departmentId, salary)` の複合インデックスでサブクエリが範囲探索になり大幅改善（実効は `O(N log N)` 近辺）。
+    - 天然だと各行に対して同部門をスキャン → 最悪 `O(N^2)`。
+    - `Employee(departmentId, salary)` の複合インデックスでサブクエリが範囲探索になり大幅改善（実効は `O(N log N)` 近辺）。
 
 ---
 
@@ -206,9 +201,9 @@ CREATE INDEX idx_dept_id ON Department(id);
 - その後の `JOIN e.departmentId = t.departmentId AND e.salary = t.salary` を**索引結合**に寄せやすくします。
 - 可能なら **カバリング**（`..., name` まで含める）でテーブルアクセス削減：
 
-  ```sql
-  CREATE INDEX idx_emp_cover ON Employee(departmentId, salary DESC, id, name);
-  ```
+    ```sql
+    CREATE INDEX idx_emp_cover ON Employee(departmentId, salary DESC, id, name);
+    ```
 
 ### 相関 EXISTS 案（2) を速くする索引
 
@@ -226,24 +221,22 @@ CREATE INDEX idx_emp_dept_salary ON Employee(departmentId, salary DESC);
 - **集計方向の一致**：降順のため `salary DESC` をインデックス定義でも DESC にしておく（MySQL 8 は昇降混在索引を利用可能）。
 - **超大規模時の分割**：部門が非常に多い＆偏っているなら、一時テーブルに `uniq` を落としてから `top3` を作るとメモリ消費の安定に効くことがあります。
 
-  ```sql
-  CREATE TEMPORARY TABLE uniq (INDEX(departmentId, salary))
-  AS SELECT DISTINCT departmentId, salary FROM Employee;
-  ```
+    ```sql
+    CREATE TEMPORARY TABLE uniq (INDEX(departmentId, salary))
+    AS SELECT DISTINCT departmentId, salary FROM Employee;
+    ```
 
 ---
 
 ## 5) 期待できる効果（概算）
 
 - **1) 改善版**：
-
-  - もとの `DENSE_RANK` は各部門で N 行に対し `O(N log N)` 的にソート。
-  - `DISTINCT` 後は **ユニーク給与数 U**（U≪N が多い）に対するソートに変わり、体感で 20–60% 改善するケースが多いです。
+    - もとの `DENSE_RANK` は各部門で N 行に対し `O(N log N)` 的にソート。
+    - `DISTINCT` 後は **ユニーク給与数 U**（U≪N が多い）に対するソートに変わり、体感で 20–60% 改善するケースが多いです。
 
 - **2) EXISTS**：
-
-  - インデックス化されていれば「外側 1 行あたり上位 3 件の距離だけ」走るため、分布次第で速い。
-  - ただし Optimizer 次第で再実行が多いと伸びづらい。
+    - インデックス化されていれば「外側 1 行あたり上位 3 件の距離だけ」走るため、分布次第で速い。
+    - ただし Optimizer 次第で再実行が多いと伸びづらい。
 
 ---
 

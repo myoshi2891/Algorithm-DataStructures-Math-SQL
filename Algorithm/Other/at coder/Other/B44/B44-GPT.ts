@@ -26,8 +26,8 @@ function processGridOperations(input: string): number[] {
     const N = parseInt(tokens[idx++], 10); // グリッドサイズ
 
     // グリッドの初期化（N x N）
-    const grid: number[][] = Array.from({ length: N }, () => 
-        Array.from({ length: N }, () => parseInt(tokens[idx++], 10))
+    const grid: number[][] = Array.from({ length: N }, () =>
+        Array.from({ length: N }, () => parseInt(tokens[idx++], 10)),
     );
 
     const Q = parseInt(tokens[idx++], 10); // クエリ数

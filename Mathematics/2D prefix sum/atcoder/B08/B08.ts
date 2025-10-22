@@ -16,36 +16,30 @@ const grid: number[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(0))
 
 // 点をgridに記録
 for (let i = 0; i < N; i++) {
-  const [x, y] = input[idx++].split(' ').map(Number);
-  grid[x][y]++;
+    const [x, y] = input[idx++].split(' ').map(Number);
+    grid[x][y]++;
 }
 
 // 2次元累積和配列を構築
 const prefixSum: number[][] = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
 
 for (let x = 1; x < SIZE; x++) {
-  for (let y = 1; y < SIZE; y++) {
-    prefixSum[x][y] =
-      grid[x][y] +
-      prefixSum[x - 1][y] +
-      prefixSum[x][y - 1] -
-      prefixSum[x - 1][y - 1];
-  }
+    for (let y = 1; y < SIZE; y++) {
+        prefixSum[x][y] =
+            grid[x][y] + prefixSum[x - 1][y] + prefixSum[x][y - 1] - prefixSum[x - 1][y - 1];
+    }
 }
 
 const Q = Number(input[idx++]);
 const results: number[] = [];
 
 for (let i = 0; i < Q; i++) {
-  const [a, b, c, d] = input[idx++].split(' ').map(Number);
+    const [a, b, c, d] = input[idx++].split(' ').map(Number);
 
-  const res =
-    prefixSum[c][d] -
-    prefixSum[a - 1][d] -
-    prefixSum[c][b - 1] +
-    prefixSum[a - 1][b - 1];
+    const res =
+        prefixSum[c][d] - prefixSum[a - 1][d] - prefixSum[c][b - 1] + prefixSum[a - 1][b - 1];
 
-  results.push(res);
+    results.push(res);
 }
 
 // 結果を標準出力
@@ -102,4 +96,3 @@ console.log(results.join('\n'));
 // ```
 
 // これは inclusion-exclusion によるもので、2D範囲の合計値を O(1) で取得できます。
-

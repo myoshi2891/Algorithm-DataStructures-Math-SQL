@@ -63,46 +63,46 @@
  * @complexity Time: O(n), Space: O(1)
  */
 function numDecodings(s: string): number {
-  const n = s.length;
-  if (n === 0) return 0;
+    const n = s.length;
+    if (n === 0) return 0;
 
-  // 先頭 '0' は不可能
-  const c0 = s.charCodeAt(0);
-  if (c0 < 48 || c0 > 57) return 0; // 非数字の防御（LeetCodeでは不要だが堅牢化）
-  if (c0 === 48) return 0;
+    // 先頭 '0' は不可能
+    const c0 = s.charCodeAt(0);
+    if (c0 < 48 || c0 > 57) return 0; // 非数字の防御（LeetCodeでは不要だが堅牢化）
+    if (c0 === 48) return 0;
 
-  // dp[-1]=1（空）、dp[0]=1（先頭が1..9）
-  let prev2 = 1; // dp[i-2]
-  let prev1 = 1; // dp[i-1]
+    // dp[-1]=1（空）、dp[0]=1（先頭が1..9）
+    let prev2 = 1; // dp[i-2]
+    let prev1 = 1; // dp[i-1]
 
-  for (let i = 1; i < n; i++) {
-    const ci = s.charCodeAt(i);
-    if (ci < 48 || ci > 57) return 0; // 非数字は不正
+    for (let i = 1; i < n; i++) {
+        const ci = s.charCodeAt(i);
+        if (ci < 48 || ci > 57) return 0; // 非数字は不正
 
-    const d1 = ci - 48;
-    const d0 = s.charCodeAt(i - 1) - 48;
+        const d1 = ci - 48;
+        const d0 = s.charCodeAt(i - 1) - 48;
 
-    // 現在位置の通り数
-    let cur = 0;
+        // 現在位置の通り数
+        let cur = 0;
 
-    // 1 桁（1..9）
-    if (d1 >= 1) {
-      cur += prev1;
+        // 1 桁（1..9）
+        if (d1 >= 1) {
+            cur += prev1;
+        }
+
+        // 2 桁（10..26）
+        const two = d0 * 10 + d1; // 'xy' → 10*x + y
+        if (two >= 10 && two <= 26) {
+            cur += prev2;
+        }
+
+        if (cur === 0) return 0; // どちらも不成立 → デコード不能
+
+        prev2 = prev1;
+        prev1 = cur;
     }
 
-    // 2 桁（10..26）
-    const two = d0 * 10 + d1; // 'xy' → 10*x + y
-    if (two >= 10 && two <= 26) {
-      cur += prev2;
-    }
-
-    if (cur === 0) return 0; // どちらも不成立 → デコード不能
-
-    prev2 = prev1;
-    prev1 = cur;
-  }
-
-  return prev1;
+    return prev1;
 }
 
 /*

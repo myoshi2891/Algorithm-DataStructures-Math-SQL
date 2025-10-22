@@ -15,7 +15,7 @@
 // ### ✅ 実装（Node.js, `fs` 使用）
 
 // ```javascript
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 最長回文部分列の長さを返す関数
@@ -36,7 +36,7 @@ function longestPalindromicSubsequence(S) {
         for (let i = 0; i <= N - len; i++) {
             const j = i + len - 1;
             if (S[i] === S[j]) {
-                dp[i][j] = (len === 2) ? 2 : dp[i + 1][j - 1] + 2;
+                dp[i][j] = len === 2 ? 2 : dp[i + 1][j - 1] + 2;
             } else {
                 dp[i][j] = Math.max(dp[i + 1][j], dp[i][j - 1]);
             }
@@ -47,7 +47,7 @@ function longestPalindromicSubsequence(S) {
 }
 
 // 入力読み取り
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const N = Number(input[0]);
 const S = input[1];
 
@@ -88,4 +88,3 @@ console.log(longestPalindromicSubsequence(S));
 
 // * **時間計算量**：O(N^2) （N ≦ 1000なので最大で約 1,000,000 ループ）
 // * **空間計算量**：O(N^2) （1000×1000 の 2次元配列 → 約 8MB）
-

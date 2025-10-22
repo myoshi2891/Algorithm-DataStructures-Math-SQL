@@ -13,10 +13,9 @@
   **キャンセル率**（`cancelled_by_driver` または `cancelled_by_client`）を算出し、小数第 2 位に丸める。
   対象日のうち、**少なくとも 1 件**の該当トリップがある日だけ返す。
 - 入力:
-
-  - `Trips(id int, client_id int, driver_id int, city_id int, status text, request_at text)`
-  - `Users(users_id int, banned text, role text)`
-    ※型は例。`request_at` は `YYYY-MM-DD` 文字列想定。
+    - `Trips(id int, client_id int, driver_id int, city_id int, status text, request_at text)`
+    - `Users(users_id int, banned text, role text)`
+      ※型は例。`request_at` は `YYYY-MM-DD` 文字列想定。
 
 - 出力: `Day text`, `Cancellation Rate numeric(?,2)`（丸め表示）
 
@@ -53,11 +52,10 @@ GROUP BY day;
 ```
 
 - ポイント
-
-  - **二重結合**で「両者未 BAN」を実体的に絞り込み。
-  - `AVG(0/1)` = 率。`numeric` にキャストし `ROUND(...,2)`。
-  - `request_at` が文字列でも `::date` で厳密に比較。
-  - 期間内に対象 0 件の日は CTE に行がないため自然に除外。
+    - **二重結合**で「両者未 BAN」を実体的に絞り込み。
+    - `AVG(0/1)` = 率。`numeric` にキャストし `ROUND(...,2)`。
+    - `request_at` が文字列でも `::date` で厳密に比較。
+    - 期間内に対象 0 件の日は CTE に行がないため自然に除外。
 
 ### 代替（EXISTS で未 BAN 確認）
 
@@ -202,12 +200,12 @@ GROUP BY (t.request_at)::date;
 
 - `banned` を **boolean** に（`No/Yes` より比較・統計が軽い）
 
-  ```sql
-  ALTER TABLE Users ADD COLUMN banned_bool boolean GENERATED ALWAYS AS (banned = 'Yes') STORED;
-  CREATE INDEX CONCURRENTLY idx_users_not_banned ON Users (users_id) WHERE NOT banned_bool;
-  ```
+    ```sql
+    ALTER TABLE Users ADD COLUMN banned_bool boolean GENERATED ALWAYS AS (banned = 'Yes') STORED;
+    CREATE INDEX CONCURRENTLY idx_users_not_banned ON Users (users_id) WHERE NOT banned_bool;
+    ```
 
-  既存アプリ互換が必要なら**生成列**で段階移行が安全。
+    既存アプリ互換が必要なら**生成列**で段階移行が安全。
 
 ---
 
@@ -219,13 +217,13 @@ GROUP BY (t.request_at)::date;
   （巨大テーブル＋広範囲なら Hash Join/Bitmap が選ばれるよう統計とインデックスで誘導）
 - レポート用途で該当期間が固定なら、**部分インデックスを期間に合わせる**のもアリ
 
-  ```sql
-  CREATE INDEX CONCURRENTLY idx_trips_req_20131001_03
-    ON Trips (request_at)
-    WHERE request_at >= '2013-10-01' AND request_at < '2013-10-04';
-  ```
+    ```sql
+    CREATE INDEX CONCURRENTLY idx_trips_req_20131001_03
+      ON Trips (request_at)
+      WHERE request_at >= '2013-10-01' AND request_at < '2013-10-04';
+    ```
 
-  （汎用性は落ちるが、該当クエリは極めて速くなる）
+    （汎用性は落ちるが、該当クエリは極めて速くなる）
 
 ---
 

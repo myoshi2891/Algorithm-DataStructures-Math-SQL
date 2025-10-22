@@ -18,28 +18,28 @@
  */
 function rotate(matrix: number[][]): void {
     const n = matrix.length;
-    
+
     // レイヤーごとに処理（外側から内側へ）
     for (let layer = 0; layer < Math.floor(n / 2); layer++) {
         const first = layer;
         const last = n - 1 - layer;
-        
+
         // 各レイヤーの各要素を4つずつ同時に回転
         for (let i = first; i < last; i++) {
             const offset = i - first;
-            
+
             // 4つの要素を一時的に保存
             const top = matrix[first][i];
-            
+
             // left -> top
             matrix[first][i] = matrix[last - offset][first];
-            
-            // bottom -> left  
+
+            // bottom -> left
             matrix[last - offset][first] = matrix[last][last - offset];
-            
+
             // right -> bottom
             matrix[last][last - offset] = matrix[i][last];
-            
+
             // top -> right
             matrix[i][last] = top;
         }

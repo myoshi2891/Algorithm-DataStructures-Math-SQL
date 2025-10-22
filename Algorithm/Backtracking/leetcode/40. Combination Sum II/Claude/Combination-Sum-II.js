@@ -22,10 +22,10 @@
  */
 function combinationSum2Js(candidates, target) {
     const result = [];
-    
+
     // ソートして重複要素を隣接させ、効率的な剪定を可能にする
     candidates.sort((a, b) => a - b);
-    
+
     /**
      * バックトラッキングによる組み合わせ探索
      * @param {number} startIndex - 探索開始インデックス
@@ -38,30 +38,30 @@ function combinationSum2Js(candidates, target) {
             result.push([...currentCombination]);
             return;
         }
-        
+
         // 目標値を超えた場合は探索を打ち切り（配列がソート済みなので以降も超える）
         if (currentSum > target) {
             return;
         }
-        
+
         for (let i = startIndex; i < candidates.length; i++) {
             // 同じレベルで重複要素をスキップ（重複組み合わせを防ぐ）
             // startIndexより大きいインデックスで同じ値の場合はスキップ
             if (i > startIndex && candidates[i] === candidates[i - 1]) {
                 continue;
             }
-            
+
             // 現在の数値を組み合わせに追加
             currentCombination.push(candidates[i]);
-            
+
             // 再帰的に探索（次のインデックスから開始、各要素は1回のみ使用）
             backtrack(i + 1, currentSum + candidates[i], currentCombination);
-            
+
             // バックトラック：現在の数値を組み合わせから削除
             currentCombination.pop();
         }
     }
-    
+
     backtrack(0, 0, []);
     return result;
 }

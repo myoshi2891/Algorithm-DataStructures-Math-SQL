@@ -323,7 +323,7 @@
 // # 修正版（反復・拡張区間限定, LeetCode 形式 / CommonJS）
 
 // ```js
-"use strict";
+'use strict';
 // Module: CommonJS
 // 実行: node solution.js
 
@@ -333,19 +333,16 @@
  * @throws {TypeError|RangeError}
  */
 function validateInput(arr) {
-  if (!Array.isArray(arr))
-    throw new TypeError("Input must be an array of numbers");
-  const n = arr.length;
-  if (n < 1 || n > 10)
-    throw new RangeError("Array length must be within [1, 10]");
-  for (let i = 0; i < n; i++) {
-    const v = arr[i];
-    if (typeof v !== "number" || !Number.isFinite(v) || (v | 0) !== v) {
-      throw new TypeError("All elements must be finite integers");
+    if (!Array.isArray(arr)) throw new TypeError('Input must be an array of numbers');
+    const n = arr.length;
+    if (n < 1 || n > 10) throw new RangeError('Array length must be within [1, 10]');
+    for (let i = 0; i < n; i++) {
+        const v = arr[i];
+        if (typeof v !== 'number' || !Number.isFinite(v) || (v | 0) !== v) {
+            throw new TypeError('All elements must be finite integers');
+        }
+        if (v < -10 || v > 10) throw new RangeError('Each number must be within [-10, 10]');
     }
-    if (v < -10 || v > 10)
-      throw new RangeError("Each number must be within [-10, 10]");
-  }
 }
 
 /**
@@ -361,39 +358,39 @@ function validateInput(arr) {
  * 空間: O(1) 追加（出力除く）
  */
 function subsetsWithDup(nums) {
-  validateInput(nums);
+    validateInput(nums);
 
-  const arr = nums.slice().sort((a, b) => a - b);
+    const arr = nums.slice().sort((a, b) => a - b);
 
-  /** @type {number[][]} */
-  const res = [[]];
+    /** @type {number[][]} */
+    const res = [[]];
 
-  // prevSize: 「直前イテレーション開始時点」での res.length
-  // 重複時はここから末尾までが「直前イテレーションで新規に追加された範囲」
-  let prevSize = 0;
+    // prevSize: 「直前イテレーション開始時点」での res.length
+    // 重複時はここから末尾までが「直前イテレーションで新規に追加された範囲」
+    let prevSize = 0;
 
-  for (let i = 0, n = arr.length; i < n; i++) {
-    const v = arr[i];
-    const size = res.length; // 今イテレーション開始時点の res.length
+    for (let i = 0, n = arr.length; i < n; i++) {
+        const v = arr[i];
+        const size = res.length; // 今イテレーション開始時点の res.length
 
-    // 非重複なら res 全体を拡張, 重複なら「前回追加範囲のみ」拡張
-    const start = i > 0 && v === arr[i - 1] ? prevSize : 0;
+        // 非重複なら res 全体を拡張, 重複なら「前回追加範囲のみ」拡張
+        const start = i > 0 && v === arr[i - 1] ? prevSize : 0;
 
-    for (let j = start; j < size; j++) {
-      const base = res[j];
-      const m = base.length + 1;
-      const next = new Array(m);
-      // 手書きコピー（slice/concat/spread を避けて型安定＆割当抑制）
-      for (let k = 0; k < m - 1; k++) next[k] = base[k];
-      next[m - 1] = v;
-      res.push(next);
+        for (let j = start; j < size; j++) {
+            const base = res[j];
+            const m = base.length + 1;
+            const next = new Array(m);
+            // 手書きコピー（slice/concat/spread を避けて型安定＆割当抑制）
+            for (let k = 0; k < m - 1; k++) next[k] = base[k];
+            next[m - 1] = v;
+            res.push(next);
+        }
+
+        // 次回のために「今回イテレーション開始時点の長さ」を保存
+        prevSize = size;
     }
 
-    // 次回のために「今回イテレーション開始時点の長さ」を保存
-    prevSize = size;
-  }
-
-  return res;
+    return res;
 }
 
 module.exports = { subsetsWithDup };

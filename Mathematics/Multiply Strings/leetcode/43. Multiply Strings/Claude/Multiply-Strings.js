@@ -22,45 +22,45 @@
  * @param {string} num2 - 第2の数値（文字列）
  * @return {string} - 掛け算の結果（文字列）
  */
-var multiply = function(num1, num2) {
+var multiply = function (num1, num2) {
     // 特殊ケース：どちらかが"0"の場合
-    if (num1 === "0" || num2 === "0") {
-        return "0";
+    if (num1 === '0' || num2 === '0') {
+        return '0';
     }
-    
+
     const m = num1.length;
     const n = num2.length;
-    
+
     // 結果を格納する配列（最大桁数は m + n）
     const result = new Array(m + n).fill(0);
-    
+
     // 筆算の掛け算を実装
     // 右端（最下位桁）から処理
     for (let i = m - 1; i >= 0; i--) {
         for (let j = n - 1; j >= 0; j--) {
             // 現在の桁の掛け算
             const mul = (num1[i] - '0') * (num2[j] - '0');
-            
+
             // 結果配列での位置
-            const p1 = i + j;     // 上位桁
+            const p1 = i + j; // 上位桁
             const p2 = i + j + 1; // 下位桁
-            
+
             // 現在の値に掛け算結果を加算
             const sum = mul + result[p2];
-            
+
             // 下位桁に余りを設定
             result[p2] = sum % 10;
-            
+
             // 上位桁に繰り上がりを加算
             result[p1] += Math.floor(sum / 10);
         }
     }
-    
+
     // 結果配列を文字列に変換（先頭の0を除去）
     let start = 0;
     while (start < result.length && result[start] === 0) {
         start++;
     }
-    
+
     return result.slice(start).join('');
 };

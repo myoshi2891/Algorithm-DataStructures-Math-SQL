@@ -3,7 +3,7 @@
 // **時間計算量：** O(log n)
 // - 分割統治法により、毎回指数を半分にしていくため
 
-// **空間計算量：** O(log n) 
+// **空間計算量：** O(log n)
 // - 再帰呼び出しのスタック深度がlog nになるため
 
 // **最適化のポイント：**
@@ -21,21 +21,21 @@
 /**
  * x を n 乗する関数
  * 高速指数演算（Fast Exponentiation）を使用してO(log n)で計算
- * 
+ *
  * @param {number} x - 底となる数値 (-100.0 < x < 100.0)
  * @param {number} n - 指数となる整数 (-2^31 <= n <= 2^31-1)
  * @return {number} x^n の結果
  */
-var myPow = function(x, n) {
+var myPow = function (x, n) {
     // 負の指数の場合、1/x の |n| 乗として計算
     if (n < 0) {
         x = 1 / x;
         n = -n;
     }
-    
+
     /**
      * 再帰による高速指数演算の実装
-     * 
+     *
      * @param {number} base - 底
      * @param {number} exp - 指数（非負）
      * @return {number} base^exp の結果
@@ -43,7 +43,7 @@ var myPow = function(x, n) {
     function fastPow(base, exp) {
         // ベースケース：指数が0の場合は1を返す
         if (exp === 0) return 1;
-        
+
         // 指数が偶数の場合：x^n = (x^2)^(n/2)
         if (exp % 2 === 0) {
             const half = fastPow(base, Math.floor(exp / 2));
@@ -54,6 +54,6 @@ var myPow = function(x, n) {
             return base * fastPow(base, exp - 1);
         }
     }
-    
+
     return fastPow(x, n);
 };

@@ -27,31 +27,31 @@ function insert(intervals: number[][], newInterval: number[]): number[][] {
     const result: number[][] = [];
     let i = 0;
     const n = intervals.length;
-    
+
     // Step 1: Add all intervals that end before newInterval starts
     while (i < n && intervals[i][1] < newInterval[0]) {
         result.push(intervals[i]);
         i++;
     }
-    
+
     // Step 2: Merge all overlapping intervals with newInterval
     let mergedStart = newInterval[0];
     let mergedEnd = newInterval[1];
-    
+
     while (i < n && intervals[i][0] <= newInterval[1]) {
         mergedStart = Math.min(mergedStart, intervals[i][0]);
         mergedEnd = Math.max(mergedEnd, intervals[i][1]);
         i++;
     }
-    
+
     // Add the merged interval
     result.push([mergedStart, mergedEnd]);
-    
+
     // Step 3: Add all remaining intervals that start after newInterval ends
     while (i < n) {
         result.push(intervals[i]);
         i++;
     }
-    
+
     return result;
 }

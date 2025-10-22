@@ -54,7 +54,7 @@
 // # 4. コード実装（solution.js / **CommonJS**, Node.js v18, 外部ライブラリなし）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * LeetCode形式: 関数名は isScramble をエクスポート（ローカル実行も可）
@@ -73,114 +73,114 @@
  * @complexity 最悪 O(n^4) 時間, O(n^3) 空間（n = s1.length）
  */
 function isScramble(s1, s2) {
-  // --- 入力検証 ---
-  if (typeof s1 !== "string" || typeof s2 !== "string") {
-    throw new TypeError("Inputs must be strings");
-  }
-  const n = s1.length;
-  if (n !== s2.length) throw new RangeError("Length mismatch");
-  if (n < 1 || n > 30) throw new RangeError("Length out of range (1..30)");
-  // 文字種チェック（a-z のみ）
-  for (let i = 0; i < n; i++) {
-    const c1 = s1.charCodeAt(i);
-    const c2 = s2.charCodeAt(i);
-    if (c1 < 97 || c1 > 122 || c2 < 97 || c2 > 122) {
-      throw new RangeError("Only lowercase a-z are allowed");
+    // --- 入力検証 ---
+    if (typeof s1 !== 'string' || typeof s2 !== 'string') {
+        throw new TypeError('Inputs must be strings');
     }
-  }
-
-  if (s1 === s2) return true;
-
-  // 全体頻度チェック（不一致なら即 false）
-  if (!sameMultiset(s1, 0, s2, 0, n)) return false;
-
-  // メモ化: key = "i1,i2,len"
-  const memo = new Map();
-
-  /**
-   * s1[i1..i1+len), s2[i2..i2+len) が scramble 一致するか
-   * @param {number} i1
-   * @param {number} i2
-   * @param {number} len
-   * @returns {boolean}
-   */
-  function dfs(i1, i2, len) {
-    const key = i1 + "," + i2 + "," + len;
-    const cached = memo.get(key);
-    if (cached !== undefined) return cached;
-
-    // 完全一致の早期判定
-    let allEq = true;
-    for (let k = 0; k < len; k++) {
-      if (s1.charCodeAt(i1 + k) !== s2.charCodeAt(i2 + k)) {
-        allEq = false;
-        break;
-      }
-    }
-    if (allEq) {
-      memo.set(key, true);
-      return true;
+    const n = s1.length;
+    if (n !== s2.length) throw new RangeError('Length mismatch');
+    if (n < 1 || n > 30) throw new RangeError('Length out of range (1..30)');
+    // 文字種チェック（a-z のみ）
+    for (let i = 0; i < n; i++) {
+        const c1 = s1.charCodeAt(i);
+        const c2 = s2.charCodeAt(i);
+        if (c1 < 97 || c1 > 122 || c2 < 97 || c2 > 122) {
+            throw new RangeError('Only lowercase a-z are allowed');
+        }
     }
 
-    // 頻度枝刈り（このペア全体でマルチセット一致しなければ false）
-    if (!sameMultiset(s1, i1, s2, i2, len)) {
-      memo.set(key, false);
-      return false;
+    if (s1 === s2) return true;
+
+    // 全体頻度チェック（不一致なら即 false）
+    if (!sameMultiset(s1, 0, s2, 0, n)) return false;
+
+    // メモ化: key = "i1,i2,len"
+    const memo = new Map();
+
+    /**
+     * s1[i1..i1+len), s2[i2..i2+len) が scramble 一致するか
+     * @param {number} i1
+     * @param {number} i2
+     * @param {number} len
+     * @returns {boolean}
+     */
+    function dfs(i1, i2, len) {
+        const key = i1 + ',' + i2 + ',' + len;
+        const cached = memo.get(key);
+        if (cached !== undefined) return cached;
+
+        // 完全一致の早期判定
+        let allEq = true;
+        for (let k = 0; k < len; k++) {
+            if (s1.charCodeAt(i1 + k) !== s2.charCodeAt(i2 + k)) {
+                allEq = false;
+                break;
+            }
+        }
+        if (allEq) {
+            memo.set(key, true);
+            return true;
+        }
+
+        // 頻度枝刈り（このペア全体でマルチセット一致しなければ false）
+        if (!sameMultiset(s1, i1, s2, i2, len)) {
+            memo.set(key, false);
+            return false;
+        }
+
+        // すべての分割点を試す
+        for (let cut = 1; cut < len; cut++) {
+            // ケース1: 非スワップ
+            // s1[i1..i1+cut) <-> s2[i2..i2+cut)
+            // s1[i1+cut..i1+len) <-> s2[i2+cut..i2+len)
+            if (
+                sameMultiset(s1, i1, s2, i2, cut) &&
+                sameMultiset(s1, i1 + cut, s2, i2 + cut, len - cut) &&
+                dfs(i1, i2, cut) &&
+                dfs(i1 + cut, i2 + cut, len - cut)
+            ) {
+                memo.set(key, true);
+                return true;
+            }
+
+            // ケース2: スワップ
+            // s1 前半 <-> s2 後半, s1 後半 <-> s2 前半
+            if (
+                sameMultiset(s1, i1, s2, i2 + (len - cut), cut) &&
+                sameMultiset(s1, i1 + cut, s2, i2, len - cut) &&
+                dfs(i1, i2 + (len - cut), cut) &&
+                dfs(i1 + cut, i2, len - cut)
+            ) {
+                memo.set(key, true);
+                return true;
+            }
+        }
+
+        memo.set(key, false);
+        return false;
     }
 
-    // すべての分割点を試す
-    for (let cut = 1; cut < len; cut++) {
-      // ケース1: 非スワップ
-      // s1[i1..i1+cut) <-> s2[i2..i2+cut)
-      // s1[i1+cut..i1+len) <-> s2[i2+cut..i2+len)
-      if (
-        sameMultiset(s1, i1, s2, i2, cut) &&
-        sameMultiset(s1, i1 + cut, s2, i2 + cut, len - cut) &&
-        dfs(i1, i2, cut) &&
-        dfs(i1 + cut, i2 + cut, len - cut)
-      ) {
-        memo.set(key, true);
+    return dfs(0, 0, n);
+
+    /**
+     * 2つの部分文字列のマルチセット（文字頻度）が一致するか
+     * @param {string} a
+     * @param {number} ia
+     * @param {string} b
+     * @param {number} ib
+     * @param {number} len
+     * @returns {boolean}
+     */
+    function sameMultiset(a, ia, b, ib, len) {
+        // 26個のカウント配列（number単型）
+        const cnt = new Array(26).fill(0);
+        for (let k = 0; k < len; k++) {
+            cnt[a.charCodeAt(ia + k) - 97]++;
+            cnt[b.charCodeAt(ib + k) - 97]--;
+        }
+        for (let i = 0; i < 26; i++) if (cnt[i] !== 0) return false;
         return true;
-      }
-
-      // ケース2: スワップ
-      // s1 前半 <-> s2 後半, s1 後半 <-> s2 前半
-      if (
-        sameMultiset(s1, i1, s2, i2 + (len - cut), cut) &&
-        sameMultiset(s1, i1 + cut, s2, i2, len - cut) &&
-        dfs(i1, i2 + (len - cut), cut) &&
-        dfs(i1 + cut, i2, len - cut)
-      ) {
-        memo.set(key, true);
-        return true;
-      }
     }
-
-    memo.set(key, false);
-    return false;
-  }
-
-  return dfs(0, 0, n);
-
-  /**
-   * 2つの部分文字列のマルチセット（文字頻度）が一致するか
-   * @param {string} a
-   * @param {number} ia
-   * @param {string} b
-   * @param {number} ib
-   * @param {number} len
-   * @returns {boolean}
-   */
-  function sameMultiset(a, ia, b, ib, len) {
-    // 26個のカウント配列（number単型）
-    const cnt = new Array(26).fill(0);
-    for (let k = 0; k < len; k++) {
-      cnt[a.charCodeAt(ia + k) - 97]++;
-      cnt[b.charCodeAt(ib + k) - 97]--;
-    }
-    for (let i = 0; i < 26; i++) if (cnt[i] !== 0) return false;
-    return true;
-  }
 }
 
 module.exports = { isScramble };

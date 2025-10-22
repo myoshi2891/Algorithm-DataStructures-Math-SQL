@@ -27,9 +27,9 @@ graph TD
 - `(N+1) × (M+1)` のサイズで累積和配列を初期化
 - 各セル `(i,j)` について、以下の公式で計算：
 
-  ```text
-  prefix[i+1][j+1] = matrix[i][j] + prefix[i][j+1] + prefix[i+1][j] - prefix[i][j]
-  ```
+    ```text
+    prefix[i+1][j+1] = matrix[i][j] + prefix[i][j+1] + prefix[i+1][j] - prefix[i][j]
+    ```
 
 ### 2. 長方形領域和の計算
 

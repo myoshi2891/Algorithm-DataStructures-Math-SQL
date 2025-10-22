@@ -16,38 +16,38 @@
 // ```javascript
 /**
  * 最長の有効な括弧部分文字列の長さを返す
- * 
+ *
  * @param {string} s - '(' と ')' のみからなる文字列
  * @returns {number} - 最長の well-formed な部分文字列の長さ
  */
 function longestValidParenthesesJs(s) {
-  const stack = [];
-  // 初期値として -1 を入れておくことで、長さ計算時に基準になる
-  stack.push(-1);
+    const stack = [];
+    // 初期値として -1 を入れておくことで、長さ計算時に基準になる
+    stack.push(-1);
 
-  let maxLength = 0;
+    let maxLength = 0;
 
-  for (let i = 0; i < s.length; i++) {
-    const c = s[i];
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
 
-    if (c === '(') {
-      // 開き括弧のインデックスをスタックに積む
-      stack.push(i);
-    } else {
-      // 閉じ括弧が出たので、対応する開き括弧をポップ
-      stack.pop();
+        if (c === '(') {
+            // 開き括弧のインデックスをスタックに積む
+            stack.push(i);
+        } else {
+            // 閉じ括弧が出たので、対応する開き括弧をポップ
+            stack.pop();
 
-      if (stack.length === 0) {
-        // ペア不成立：現在の閉じ括弧は無効 → 新たな基準位置
-        stack.push(i);
-      } else {
-        // ペア成立：現在位置と直前のインデックスとの差が有効長
-        maxLength = Math.max(maxLength, i - stack[stack.length - 1]);
-      }
+            if (stack.length === 0) {
+                // ペア不成立：現在の閉じ括弧は無効 → 新たな基準位置
+                stack.push(i);
+            } else {
+                // ペア成立：現在位置と直前のインデックスとの差が有効長
+                maxLength = Math.max(maxLength, i - stack[stack.length - 1]);
+            }
+        }
     }
-  }
 
-  return maxLength;
+    return maxLength;
 }
 // ```
 

@@ -13,19 +13,18 @@
 
 - 入力テーブル例:
 
-  **Employee**
+    **Employee**
 
-  | column     | type    | note                           |
-  | ---------- | ------- | ------------------------------ |
-  | id         | int     | PK                             |
-  | name       | varchar | 従業員名                       |
-  | department | varchar | 部署                           |
-  | managerId  | int     | 直属上長の id（NULL なら無し） |
+    | column     | type    | note                           |
+    | ---------- | ------- | ------------------------------ |
+    | id         | int     | PK                             |
+    | name       | varchar | 従業員名                       |
+    | department | varchar | 部署                           |
+    | managerId  | int     | 直属上長の id（NULL なら無し） |
 
 - 出力仕様:
-
-  - 列: `name`（**直属部下が 5 人以上いる**マネージャの名前）
-  - 順序は任意
+    - 列: `name`（**直属部下が 5 人以上いる**マネージャの名前）
+    - 順序は任意
 
 ## 2) 最適解（単一クエリ）
 
@@ -55,11 +54,10 @@ JOIN Employee AS e
 ```
 
 - ポイント
-
-  - `COUNT(*) OVER (PARTITION BY managerId)` で **直属部下数**を算出
-  - `DISTINCT` で `managerId` をユニーク化（重複行を抑止）
-  - 最後は **ID 結合**で氏名を取得
-  - `ORDER BY` なし（任意順）
+    - `COUNT(*) OVER (PARTITION BY managerId)` で **直属部下数**を算出
+    - `DISTINCT` で `managerId` をユニーク化（重複行を抑止）
+    - 最後は **ID 結合**で氏名を取得
+    - `ORDER BY` なし（任意順）
 
 ## 3) 代替解
 
@@ -104,9 +102,8 @@ WHERE EXISTS (
 
 - **方針**: 「部下側の行」を起点に `managerId` ごとに集計 → **マネージャ ID** を抽出 → **ID で名前へ解決**。
 - **NULL/重複**:
-
-  - `managerId IS NOT NULL` で部下行のみ対象。
-  - ウィンドウ版は `DISTINCT` で一意化してから結合。
+    - `managerId IS NOT NULL` で部下行のみ対象。
+    - ウィンドウ版は `DISTINCT` で一意化してから結合。
 
 - **安定性**: 順序指定不要なので `ORDER BY` を付けない方が速い。
 - **拡張**: 「最低人数」を可変にするなら `HAVING COUNT(*) >= ?` や CTE でパラメータ化。

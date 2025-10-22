@@ -12,10 +12,10 @@
 
 /**
  * 9x9 の数独盤面が有効かを判定する関数（ビットマスク版）
- * 
+ *
  * @param board - 9x9 の数独盤面。各マスは '1'-'9' または '.'（空）を表す。
  * @returns boolean - 数独盤面が有効なら true、無効なら false を返す。
- * 
+ *
  * 時間計算量: O(81) ≒ O(1)（9x9固定）
  * メモリ使用量: O(27) ≒ O(1)（行・列・ボックスのビットマスクを保持）
  */
@@ -28,7 +28,7 @@ function isValidSudokuGpt(board: string[][]): boolean {
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
             const val = board[r][c];
-            if (val === ".") continue;
+            if (val === '.') continue;
 
             const num: number = parseInt(val, 10);
             const mask: number = 1 << (num - 1); // 対応するビットを立てる
@@ -36,7 +36,7 @@ function isValidSudokuGpt(board: string[][]): boolean {
             const boxIndex: number = Math.floor(r / 3) * 3 + Math.floor(c / 3);
 
             // 既に同じ数字が出現していれば無効
-            if ((rows[r] & mask) || (cols[c] & mask) || (boxes[boxIndex] & mask)) {
+            if (rows[r] & mask || cols[c] & mask || boxes[boxIndex] & mask) {
                 return false;
             }
 

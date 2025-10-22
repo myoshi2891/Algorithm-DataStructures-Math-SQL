@@ -8,9 +8,9 @@
 // 3. これにより、重なりを重複カウントせず、正確に面積を求められる。
 
 // ### ✅ JavaScript（Node.js + `fs`）実装:
-const fs = require("fs");
+const fs = require('fs');
 
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const N = parseInt(input[0]);
 const gridSize = 1502; // 0-indexedで最大1501まで扱えるように
 
@@ -19,33 +19,33 @@ const grid = Array.from({ length: gridSize }, () => new Int16Array(gridSize));
 
 // 差分を記録
 for (let i = 1; i <= N; i++) {
-  const [a, b, c, d] = input[i].split(" ").map(Number);
-  grid[a][b] += 1;
-  grid[c][b] -= 1;
-  grid[a][d] -= 1;
-  grid[c][d] += 1;
+    const [a, b, c, d] = input[i].split(' ').map(Number);
+    grid[a][b] += 1;
+    grid[c][b] -= 1;
+    grid[a][d] -= 1;
+    grid[c][d] += 1;
 }
 
 // 横方向に累積和
 for (let x = 0; x < gridSize; x++) {
-  for (let y = 1; y < gridSize; y++) {
-    grid[x][y] += grid[x][y - 1];
-  }
+    for (let y = 1; y < gridSize; y++) {
+        grid[x][y] += grid[x][y - 1];
+    }
 }
 
 // 縦方向に累積和
 for (let y = 0; y < gridSize; y++) {
-  for (let x = 1; x < gridSize; x++) {
-    grid[x][y] += grid[x - 1][y];
-  }
+    for (let x = 1; x < gridSize; x++) {
+        grid[x][y] += grid[x - 1][y];
+    }
 }
 
 // 面積（1以上のセル数）をカウント
 let area = 0;
 for (let x = 0; x < 1501; x++) {
-  for (let y = 0; y < 1501; y++) {
-    if (grid[x][y] > 0) area++;
-  }
+    for (let y = 0; y < 1501; y++) {
+        if (grid[x][y] > 0) area++;
+    }
 }
 
 console.log(area);

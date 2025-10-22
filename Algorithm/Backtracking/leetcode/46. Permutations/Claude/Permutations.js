@@ -17,11 +17,11 @@
  * @param {number[]} nums - 異なる整数の配列
  * @return {number[][]} - 全ての可能な順列の配列
  */
-var permute = function(nums) {
+var permute = function (nums) {
     const result = [];
     const currentPermutation = [];
     const used = new Array(nums.length).fill(false);
-    
+
     /**
      * バックトラッキングを用いて順列を生成するヘルパー関数
      * @param {number[]} nums - 元の配列
@@ -35,25 +35,25 @@ var permute = function(nums) {
             result.push([...currentPermutation]); // スプレッド演算子でコピーを作成
             return;
         }
-        
+
         // 各要素を試行
         for (let i = 0; i < nums.length; i++) {
             // 既に使用されている要素はスキップ
             if (used[i]) continue;
-            
+
             // 要素を追加してマークする
             currentPermutation.push(nums[i]);
             used[i] = true;
-            
+
             // 再帰的に次の位置を埋める
             backtrack(nums, currentPermutation, used, result);
-            
+
             // バックトラック: 追加した要素を削除してマークを外す
             currentPermutation.pop();
             used[i] = false;
         }
     }
-    
+
     backtrack(nums, currentPermutation, used, result);
     return result;
 };

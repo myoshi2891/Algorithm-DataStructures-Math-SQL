@@ -15,15 +15,15 @@
  * -------------------------
  * Returns all unique combinations of numbers from `candidates` that sum up to `target`.
  * Each number from `candidates` can be used an unlimited number of times.
- * 
+ *
  * @param candidates - Distinct integers available for combination (length ≤ 30, 2 ≤ value ≤ 40)
  * @param target - Target sum to achieve (1 ≤ target ≤ 40)
  * @returns number[][] - Array of unique combinations where sum equals target
- * 
- * Time Complexity: O(N^(T/M)) in the worst case  
- *   - N = number of candidates  
- *   - T = target value  
- *   - M = smallest candidate value  
+ *
+ * Time Complexity: O(N^(T/M)) in the worst case
+ *   - N = number of candidates
+ *   - T = target value
+ *   - M = smallest candidate value
  *   (Efficient pruning is used to avoid unnecessary recursion)
  * Memory Usage: O(T/M) for recursion stack + O(#combinations) for results
  *   - Given constraints, memory remains low

@@ -52,7 +52,7 @@ function maxScoreAccurate(cards: [number, number][]): number {
 function main(): void {
     const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
     const N = Number(input[0]);
-    const cards: [number, number][] = input.slice(1, N + 1).map(line => {
+    const cards: [number, number][] = input.slice(1, N + 1).map((line) => {
         const [a, b] = line.split(' ').map(Number);
         return [a, b];
     });

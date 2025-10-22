@@ -28,10 +28,10 @@
 
 - **日本語回避**: すべて英語表記でレンダリングエラーを防止
 - **適切な図表選択**:
-  - フローチャート（処理の流れ）
-  - シーケンス図（時系列処理）
-  - 円グラフ（メモリ割り当て）
-  - 折れ線グラフ（性能特性）
+    - フローチャート（処理の流れ）
+    - シーケンス図（時系列処理）
+    - 円グラフ（メモリ割り当て）
+    - 折れ線グラフ（性能特性）
 
 ## 🔧 実用性重視の構成
 
@@ -272,14 +272,14 @@ graph TD
 ### JavaScript/Node.js
 
 ```javascript
-const result = simplifyPath("/home/user/../documents/./file.txt");
+const result = simplifyPath('/home/user/../documents/./file.txt');
 // Returns: "/home/documents/file.txt"
 ```
 
 ### TypeScript
 
 ```typescript
-const path: UnixPath = "/api/v1/../v2/users" as UnixPath;
+const path: UnixPath = '/api/v1/../v2/users' as UnixPath;
 const simplified = simplifyPath(path);
 // Type-safe result: "/api/v2/users"
 ```

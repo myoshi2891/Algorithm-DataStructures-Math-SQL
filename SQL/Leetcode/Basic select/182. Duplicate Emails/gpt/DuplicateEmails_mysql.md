@@ -73,9 +73,9 @@ Beats
 
 - 実運用では `email` に索引があると高速化します（集約・結合のキーだから）。
 
-  ```sql
-  CREATE INDEX idx_person_email ON Person(email);
-  ```
+    ```sql
+    CREATE INDEX idx_person_email ON Person(email);
+    ```
 
 - 小規模な問題環境（オンラインジャッジ）では上の索引作成は不要。提出クエリは **「標準解」1 行だけ** で十分です。
 

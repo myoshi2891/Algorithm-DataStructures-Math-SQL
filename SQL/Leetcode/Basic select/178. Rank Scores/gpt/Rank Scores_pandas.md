@@ -201,10 +201,9 @@ def rank_scores_fast_factorize(scores: pd.DataFrame) -> pd.DataFrame:
 
 - 発想：小数 2 桁が確定なら**整数（センチ）化**して比較・ユニーク化を高速化（浮動小数の誤差も回避）
 - アルゴリズム：
-
-  1. `score` を `int_cents = np.rint(score*100).astype(np.int32)` に
-  2. `uniques, inv = np.unique(int_cents, return_inverse=True)`（昇順ユニークと逆写像）
-  3. **降順 dense rank** = `uniques.size - inv`（1 始まり）
+    1. `score` を `int_cents = np.rint(score*100).astype(np.int32)` に
+    2. `uniques, inv = np.unique(int_cents, return_inverse=True)`（昇順ユニークと逆写像）
+    3. **降順 dense rank** = `uniques.size - inv`（1 始まり）
 
 ```python
 import pandas as pd

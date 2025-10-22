@@ -33,34 +33,34 @@ const fs = require('fs');
  * @returns {number} - 最小の合計値
  */
 function minTotalGrassHeight(N, S) {
-  const height = Array(N).fill(1);
+    const height = Array(N).fill(1);
 
-  // 1. 左からAに従って昇順にしていく
-  for (let i = 0; i < N - 1; i++) {
-    if (S[i] === 'A' && height[i] >= height[i + 1]) {
-      height[i + 1] = height[i] + 1;
+    // 1. 左からAに従って昇順にしていく
+    for (let i = 0; i < N - 1; i++) {
+        if (S[i] === 'A' && height[i] >= height[i + 1]) {
+            height[i + 1] = height[i] + 1;
+        }
     }
-  }
 
-  // 2. 右からBに従って降順に調整
-  for (let i = N - 2; i >= 0; i--) {
-    if (S[i] === 'B' && height[i] <= height[i + 1]) {
-      height[i] = height[i + 1] + 1;
+    // 2. 右からBに従って降順に調整
+    for (let i = N - 2; i >= 0; i--) {
+        if (S[i] === 'B' && height[i] <= height[i + 1]) {
+            height[i] = height[i + 1] + 1;
+        }
     }
-  }
 
-  // 合計を返す
-  return height.reduce((sum, h) => sum + h, 0);
+    // 合計を返す
+    return height.reduce((sum, h) => sum + h, 0);
 }
 
 // 標準入力から読み込み
 function main() {
-  const input = fs.readFileSync(0, 'utf-8').trim().split('\n');
-  const N = parseInt(input[0], 10);
-  const S = input[1];
+    const input = fs.readFileSync(0, 'utf-8').trim().split('\n');
+    const N = parseInt(input[0], 10);
+    const S = input[1];
 
-  const result = minTotalGrassHeight(N, S);
-  console.log(result);
+    const result = minTotalGrassHeight(N, S);
+    console.log(result);
 }
 
 main();

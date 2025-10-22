@@ -58,17 +58,15 @@ def solve_bonus_under_1000(employee_df: pd.DataFrame, bonus_df: pd.DataFrame) ->
 ## 3) アルゴリズム説明
 
 - 使用 API
-
-  - `DataFrame.drop_duplicates`：結合キーのユニーク化
-  - `Series.map`：単一キー → 値の軽量結合（LEFT JOIN 相当）
-  - ブールインデックス：条件抽出（`isna()` と比較演算の併用）
-  - `astype('Int64')`：欠損を保持できる整数型に変換
+    - `DataFrame.drop_duplicates`：結合キーのユニーク化
+    - `Series.map`：単一キー → 値の軽量結合（LEFT JOIN 相当）
+    - ブールインデックス：条件抽出（`isna()` と比較演算の併用）
+    - `astype('Int64')`：欠損を保持できる整数型に変換
 
 - **NULL / 重複 / 型**
-
-  - `map` はキー未一致に `NaN` を返すため、「ボーナス未登録」を自然に検出できる
-  - `drop_duplicates(subset=['empId'])` により、Bonus 側の想定外重複を無害化
-  - `Int64`（nullable integer）で `NULL` をそのまま表現
+    - `map` はキー未一致に `NaN` を返すため、「ボーナス未登録」を自然に検出できる
+    - `drop_duplicates(subset=['empId'])` により、Bonus 側の想定外重複を無害化
+    - `Int64`（nullable integer）で `NULL` をそのまま表現
 
 ## 4) 計算量（概算）
 

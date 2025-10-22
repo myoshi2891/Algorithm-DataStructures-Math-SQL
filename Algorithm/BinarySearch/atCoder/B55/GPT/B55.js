@@ -21,7 +21,7 @@
 // Node.js 18.16.1
 // fsを使った高速入出力と、処理時間・メモリ測定を含む
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 二分探索で配列にxを挿入すべき位置を返す
@@ -30,7 +30,8 @@ const fs = require("fs");
  * @returns {number} 挿入位置
  */
 function lowerBound(arr, x) {
-    let left = 0, right = arr.length;
+    let left = 0,
+        right = arr.length;
     while (left < right) {
         const mid = (left + right) >>> 1;
         if (arr[mid] < x) left = mid + 1;
@@ -75,7 +76,7 @@ function processQueries(Q, queries) {
 const startTime = process.hrtime.bigint();
 const startMem = process.memoryUsage().heapUsed;
 
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 const Q = input[0];
 const queries = [];
 let idx = 1;
@@ -85,7 +86,7 @@ for (let i = 0; i < Q; i++) {
 }
 
 const result = processQueries(Q, queries);
-console.log(result.join("\n"));
+console.log(result.join('\n'));
 
 const endTime = process.hrtime.bigint();
 const endMem = process.memoryUsage().heapUsed;
@@ -102,6 +103,3 @@ console.error(`Memory used: ${(endMem - startMem) / 1024 / 1024} MB`);
 
 // この実装なら制限内で十分間に合います。
 // もし望むなら、配列挿入を避けるために**平衡木構造の自作**にもできますが、今回は簡潔版にしました。
-
-
-

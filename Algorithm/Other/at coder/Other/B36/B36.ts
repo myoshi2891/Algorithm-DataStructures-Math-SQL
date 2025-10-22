@@ -45,26 +45,26 @@ import * as fs from 'fs';
  * @returns 'Yes' or 'No'
  */
 function canMakeKOn(n: number, k: number, s: string): string {
-  const count1 = [...s].reduce((acc, c) => acc + (c === '1' ? 1 : 0), 0);
-  const diff = Math.abs(count1 - k);
-  return diff % 2 === 0 ? 'Yes' : 'No';
+    const count1 = [...s].reduce((acc, c) => acc + (c === '1' ? 1 : 0), 0);
+    const diff = Math.abs(count1 - k);
+    return diff % 2 === 0 ? 'Yes' : 'No';
 }
 
 try {
-  // ✅ 修正：1行目を分割して N, K を取得する
-  const input = fs.readFileSync(0, 'utf8').trim().split('\n');
-  const [nStr, kStr] = input[0].trim().split(' ');
-  const n = parseInt(nStr);
-  const k = parseInt(kStr);
-  const s = input[1];
+    // ✅ 修正：1行目を分割して N, K を取得する
+    const input = fs.readFileSync(0, 'utf8').trim().split('\n');
+    const [nStr, kStr] = input[0].trim().split(' ');
+    const n = parseInt(nStr);
+    const k = parseInt(kStr);
+    const s = input[1];
 
-  // 🔍 デバッグ出力
-  console.error(`Parsed input: n=${n}, k=${k}, s=${s}`);
+    // 🔍 デバッグ出力
+    console.error(`Parsed input: n=${n}, k=${k}, s=${s}`);
 
-  const result = canMakeKOn(n, k, s);
-  console.log(result);
+    const result = canMakeKOn(n, k, s);
+    console.log(result);
 } catch (err) {
-  console.error('Runtime Error:', err);
+    console.error('Runtime Error:', err);
 }
 // ```
 

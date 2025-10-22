@@ -432,10 +432,10 @@ def print_grid(dp: List[List[int]], obstacles: List[List[int]]) -> None:
 
 - **通知システム**: アニメーション完了やリセット時に美しい通知表示
 - **キーボードショートカット**:
-  - `← →` : 前/次のステップ
-  - `Space` : Play/Pause
-  - `R` : Reset
-  - `1-5` : ダイレクトジャンプ
+    - `← →` : 前/次のステップ
+    - `Space` : Play/Pause
+    - `R` : Reset
+    - `1-5` : ダイレクトジャンプ
 - **アクセシビリティ強化**: スクリーンリーダー対応、ARIA 属性完備
 
 ### **🎨 UX 改善**

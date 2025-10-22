@@ -1,683 +1,647 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Largest Rectangle in Histogram - 単調スタックアルゴリズム解説</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Largest Rectangle in Histogram - 単調スタックアルゴリズム解説</title>
 
-    <!-- CDN Dependencies -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+        <!-- CDN Dependencies -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
 
-    <style>
-      :root {
-        --primary: #3b82f6;
-        --primary-light: #dbeafe;
-        --secondary: #8b5cf6;
-        --accent: #06d6a0;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --success: #10b981;
-        --bg-primary: #ffffff;
-        --bg-secondary: #f8fafc;
-        --bg-tertiary: #f1f5f9;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --text-muted: #94a3b8;
-        --border: #e2e8f0;
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-          0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      }
+        <style>
+            :root {
+                --primary: #3b82f6;
+                --primary-light: #dbeafe;
+                --secondary: #8b5cf6;
+                --accent: #06d6a0;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --success: #10b981;
+                --bg-primary: #ffffff;
+                --bg-secondary: #f8fafc;
+                --bg-tertiary: #f1f5f9;
+                --text-primary: #1e293b;
+                --text-secondary: #64748b;
+                --text-muted: #94a3b8;
+                --border: #e2e8f0;
+                --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg:
+                    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-      body {
-        font-family: "Inter", sans-serif;
-        line-height: 1.7;
-        color: var(--text-primary);
-        background: linear-gradient(
-          135deg,
-          var(--bg-primary) 0%,
-          var(--bg-secondary) 100%
-        );
-        min-height: 100vh;
-      }
+            body {
+                font-family: 'Inter', sans-serif;
+                line-height: 1.7;
+                color: var(--text-primary);
+                background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+                min-height: 100vh;
+            }
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
 
-      /* Header */
-      .header {
-        text-align: center;
-        margin-bottom: 3rem;
-        padding: 2rem 0;
-        background: linear-gradient(
-          135deg,
-          var(--primary) 0%,
-          var(--secondary) 100%
-        );
-        color: white;
-        border-radius: 20px;
-        box-shadow: var(--shadow-lg);
-        position: relative;
-        overflow: hidden;
-      }
+            /* Header */
+            .header {
+                text-align: center;
+                margin-bottom: 3rem;
+                padding: 2rem 0;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                border-radius: 20px;
+                box-shadow: var(--shadow-lg);
+                position: relative;
+                overflow: hidden;
+            }
 
-      .header::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      }
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            }
 
-      .header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        position: relative;
-        z-index: 1;
-      }
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                position: relative;
+                z-index: 1;
+            }
 
-      .header p {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        position: relative;
-        z-index: 1;
-      }
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.9;
+                position: relative;
+                z-index: 1;
+            }
 
-      /* Card Layout */
-      .card {
-        background: var(--bg-primary);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
+            /* Card Layout */
+            .card {
+                background: var(--bg-primary);
+                border-radius: 16px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                box-shadow: var(--shadow);
+                border: 1px solid var(--border);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
 
-      .card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-      }
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
 
-      .card-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--bg-tertiary);
-      }
+            .card-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 1.5rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid var(--bg-tertiary);
+            }
 
-      .card-header i {
-        font-size: 1.5rem;
-        color: var(--primary);
-        margin-right: 0.75rem;
-      }
+            .card-header i {
+                font-size: 1.5rem;
+                color: var(--primary);
+                margin-right: 0.75rem;
+            }
 
-      .card-header h2 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--text-primary);
-      }
+            .card-header h2 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
 
-      /* Step Navigation */
-      .step-nav {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 2rem;
-        background: var(--bg-secondary);
-        padding: 1rem;
-        border-radius: 12px;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
+            /* Step Navigation */
+            .step-nav {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 2rem;
+                background: var(--bg-secondary);
+                padding: 1rem;
+                border-radius: 12px;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
 
-      .step-btn {
-        padding: 0.75rem 1.5rem;
-        background: white;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-        color: var(--text-secondary);
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .step-btn {
+                padding: 0.75rem 1.5rem;
+                background: white;
+                border: 2px solid var(--border);
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
+                color: var(--text-secondary);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .step-btn:hover {
-        border-color: var(--primary);
-        color: var(--primary);
-        transform: translateY(-1px);
-      }
+            .step-btn:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+                transform: translateY(-1px);
+            }
 
-      .step-btn.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-      }
+            .step-btn.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
 
-      .step-btn i {
-        font-size: 0.9rem;
-      }
+            .step-btn i {
+                font-size: 0.9rem;
+            }
 
-      /* Code Block */
-      .code-container {
-        position: relative;
-        margin: 1.5rem 0;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: var(--shadow);
-      }
+            /* Code Block */
+            .code-container {
+                position: relative;
+                margin: 1.5rem 0;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: var(--shadow);
+            }
 
-      .code-header {
-        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-family: "JetBrains Mono", monospace;
-      }
+            .code-header {
+                background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+                color: white;
+                padding: 1rem 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-family: 'JetBrains Mono', monospace;
+            }
 
-      .copy-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .copy-btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .copy-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
+            .copy-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
 
-      pre {
-        margin: 0 !important;
-        background: #2d3748 !important;
-        font-family: "JetBrains Mono", monospace !important;
-        font-size: 0.9rem;
-        line-height: 1.6;
-        overflow-x: auto;
-      }
+            pre {
+                margin: 0 !important;
+                background: #2d3748 !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                overflow-x: auto;
+            }
 
-      /* Visualization */
-      .visualization {
-        background: var(--bg-secondary);
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        text-align: center;
-      }
+            /* Visualization */
+            .visualization {
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                padding: 2rem;
+                margin: 1.5rem 0;
+                text-align: center;
+            }
 
-      .histogram {
-        display: flex;
-        align-items: end;
-        justify-content: center;
-        gap: 4px;
-        margin: 2rem 0;
-        min-height: 200px;
-      }
+            .histogram {
+                display: flex;
+                align-items: end;
+                justify-content: center;
+                gap: 4px;
+                margin: 2rem 0;
+                min-height: 200px;
+            }
 
-      .bar {
-        background: linear-gradient(
-          135deg,
-          var(--primary) 0%,
-          var(--secondary) 100%
-        );
-        border-radius: 4px 4px 0 0;
-        transition: all 0.5s ease;
-        position: relative;
-        display: flex;
-        align-items: end;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        box-shadow: var(--shadow);
-      }
+            .bar {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                border-radius: 4px 4px 0 0;
+                transition: all 0.5s ease;
+                position: relative;
+                display: flex;
+                align-items: end;
+                justify-content: center;
+                color: white;
+                font-weight: 600;
+                font-size: 0.9rem;
+                padding: 0.5rem;
+                box-shadow: var(--shadow);
+            }
 
-      .bar.highlight {
-        background: linear-gradient(
-          135deg,
-          var(--accent) 0%,
-          var(--success) 100%
-        );
-        transform: scale(1.1);
-      }
+            .bar.highlight {
+                background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+                transform: scale(1.1);
+            }
 
-      .bar.processing {
-        background: linear-gradient(
-          135deg,
-          var(--warning) 0%,
-          var(--danger) 100%
-        );
-        animation: pulse 1s infinite;
-      }
+            .bar.processing {
+                background: linear-gradient(135deg, var(--warning) 0%, var(--danger) 100%);
+                animation: pulse 1s infinite;
+            }
 
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.7;
-        }
-      }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
 
-      /* Algorithm Steps */
-      .step-content {
-        display: none;
-        animation: fadeIn 0.5s ease-in;
-      }
+            /* Algorithm Steps */
+            .step-content {
+                display: none;
+                animation: fadeIn 0.5s ease-in;
+            }
 
-      .step-content.active {
-        display: block;
-      }
+            .step-content.active {
+                display: block;
+            }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
 
-      /* Complexity Analysis */
-      .complexity-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin: 1.5rem 0;
-      }
+            /* Complexity Analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }
 
-      .complexity-item {
-        background: var(--bg-secondary);
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-        transition: transform 0.3s ease;
-      }
+            .complexity-item {
+                background: var(--bg-secondary);
+                padding: 1.5rem;
+                border-radius: 12px;
+                text-align: center;
+                transition: transform 0.3s ease;
+            }
 
-      .complexity-item:hover {
-        transform: translateY(-2px);
-      }
+            .complexity-item:hover {
+                transform: translateY(-2px);
+            }
 
-      .complexity-item i {
-        font-size: 2rem;
-        color: var(--primary);
-        margin-bottom: 1rem;
-      }
+            .complexity-item i {
+                font-size: 2rem;
+                color: var(--primary);
+                margin-bottom: 1rem;
+            }
 
-      .complexity-item h3 {
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-      }
+            .complexity-item h3 {
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }
 
-      .complexity-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary);
-        font-family: "JetBrains Mono", monospace;
-      }
+            .complexity-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--primary);
+                font-family: 'JetBrains Mono', monospace;
+            }
 
-      /* Interactive Controls */
-      .controls {
-        background: var(--bg-tertiary);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin: 1.5rem 0;
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-      }
+            /* Interactive Controls */
+            .controls {
+                background: var(--bg-tertiary);
+                padding: 1.5rem;
+                border-radius: 12px;
+                margin: 1.5rem 0;
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+            }
 
-      .btn {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+            .btn {
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
 
-      .btn:hover {
-        background: var(--secondary);
-        transform: translateY(-1px);
-      }
+            .btn:hover {
+                background: var(--secondary);
+                transform: translateY(-1px);
+            }
 
-      .btn-secondary {
-        background: var(--text-secondary);
-      }
+            .btn-secondary {
+                background: var(--text-secondary);
+            }
 
-      .btn-secondary:hover {
-        background: var(--text-primary);
-      }
+            .btn-secondary:hover {
+                background: var(--text-primary);
+            }
 
-      /* Stack Visualization */
-      .stack-vis {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        margin: 2rem 0;
-      }
+            /* Stack Visualization */
+            .stack-vis {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                margin: 2rem 0;
+            }
 
-      .stack-container {
-        background: var(--bg-secondary);
-        border: 2px dashed var(--border);
-        border-radius: 8px;
-        padding: 1rem;
-        min-height: 150px;
-        min-width: 200px;
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: center;
-        justify-content: flex-start;
-      }
+            .stack-container {
+                background: var(--bg-secondary);
+                border: 2px dashed var(--border);
+                border-radius: 8px;
+                padding: 1rem;
+                min-height: 150px;
+                min-width: 200px;
+                display: flex;
+                flex-direction: column-reverse;
+                align-items: center;
+                justify-content: flex-start;
+            }
 
-      .stack-item {
-        background: var(--primary);
-        color: white;
-        padding: 0.5rem 1rem;
-        margin: 2px;
-        border-radius: 6px;
-        font-family: "JetBrains Mono", monospace;
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
+            .stack-item {
+                background: var(--primary);
+                color: white;
+                padding: 0.5rem 1rem;
+                margin: 2px;
+                border-radius: 6px;
+                font-family: 'JetBrains Mono', monospace;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
 
-      .stack-item.highlight {
-        background: var(--accent);
-        transform: scale(1.1);
-      }
+            .stack-item.highlight {
+                background: var(--accent);
+                transform: scale(1.1);
+            }
 
-      /* Responsive Design */
-      @media (max-width: 768px) {
-        .container {
-          padding: 1rem;
-        }
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
 
-        .header h1 {
-          font-size: 2rem;
-        }
+                .header h1 {
+                    font-size: 2rem;
+                }
 
-        .card {
-          padding: 1.5rem;
-        }
+                .card {
+                    padding: 1.5rem;
+                }
 
-        .step-nav {
-          flex-direction: column;
-        }
+                .step-nav {
+                    flex-direction: column;
+                }
 
-        .complexity-grid {
-          grid-template-columns: 1fr;
-        }
+                .complexity-grid {
+                    grid-template-columns: 1fr;
+                }
 
-        .controls {
-          flex-direction: column;
-        }
-      }
+                .controls {
+                    flex-direction: column;
+                }
+            }
 
-      /* Tooltip */
-      .tooltip {
-        position: relative;
-        display: inline-block;
-      }
+            /* Tooltip */
+            .tooltip {
+                position: relative;
+                display: inline-block;
+            }
 
-      .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 200px;
-        background-color: var(--text-primary);
-        color: white;
-        text-align: center;
-        border-radius: 6px;
-        padding: 0.5rem;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -100px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 0.9rem;
-      }
+            .tooltip .tooltiptext {
+                visibility: hidden;
+                width: 200px;
+                background-color: var(--text-primary);
+                color: white;
+                text-align: center;
+                border-radius: 6px;
+                padding: 0.5rem;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%;
+                left: 50%;
+                margin-left: -100px;
+                opacity: 0;
+                transition: opacity 0.3s;
+                font-size: 0.9rem;
+            }
 
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <!-- Header -->
-      <div class="header">
-        <h1><i class="fas fa-chart-bar"></i> Largest Rectangle in Histogram</h1>
-        <p>単調スタック (Monotonic Stack) アルゴリズムによる効率的解法</p>
-      </div>
-
-      <!-- Algorithm Overview -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-lightbulb"></i>
-          <h2>アルゴリズム概要</h2>
-        </div>
-        <p>
-          <strong>単調スタックアルゴリズム</strong
-          >は、ヒストグラム内の最大長方形面積を<strong>O(n)</strong>時間で求める効率的な手法です。
-          スタック内のインデックスを単調増加に保ちながら、各要素を一度だけ処理することで線形時間を実現します。
-        </p>
-
-        <div class="complexity-grid">
-          <div class="complexity-item">
-            <i class="fas fa-clock"></i>
-            <h3>時間計算量</h3>
-            <div class="complexity-value">O(n)</div>
-          </div>
-          <div class="complexity-item">
-            <i class="fas fa-memory"></i>
-            <h3>空間計算量</h3>
-            <div class="complexity-value">O(n)</div>
-          </div>
-          <div class="complexity-item">
-            <i class="fas fa-star"></i>
-            <h3>効率性</h3>
-            <div class="complexity-value">最適解</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Interactive Visualization -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-play-circle"></i>
-          <h2>インタラクティブデモ</h2>
-        </div>
-
-        <div class="controls">
-          <button class="btn" onclick="startDemo()">
-            <i class="fas fa-play"></i>デモ開始
-          </button>
-          <button class="btn btn-secondary" onclick="resetDemo()">
-            <i class="fas fa-undo"></i>リセット
-          </button>
-          <button class="btn btn-secondary" onclick="nextStep()">
-            <i class="fas fa-step-forward"></i>次のステップ
-          </button>
-        </div>
-
-        <div class="visualization">
-          <h3>例: heights = [2, 1, 5, 6, 2, 3]</h3>
-          <div class="histogram" id="histogram">
-            <div class="bar" data-height="2" style="height: 80px; width: 40px">
-              2
+            .tooltip:hover .tooltiptext {
+                visibility: visible;
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-chart-bar"></i> Largest Rectangle in Histogram</h1>
+                <p>単調スタック (Monotonic Stack) アルゴリズムによる効率的解法</p>
             </div>
-            <div class="bar" data-height="1" style="height: 40px; width: 40px">
-              1
+
+            <!-- Algorithm Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h2>アルゴリズム概要</h2>
+                </div>
+                <p>
+                    <strong>単調スタックアルゴリズム</strong
+                    >は、ヒストグラム内の最大長方形面積を<strong>O(n)</strong>時間で求める効率的な手法です。
+                    スタック内のインデックスを単調増加に保ちながら、各要素を一度だけ処理することで線形時間を実現します。
+                </p>
+
+                <div class="complexity-grid">
+                    <div class="complexity-item">
+                        <i class="fas fa-clock"></i>
+                        <h3>時間計算量</h3>
+                        <div class="complexity-value">O(n)</div>
+                    </div>
+                    <div class="complexity-item">
+                        <i class="fas fa-memory"></i>
+                        <h3>空間計算量</h3>
+                        <div class="complexity-value">O(n)</div>
+                    </div>
+                    <div class="complexity-item">
+                        <i class="fas fa-star"></i>
+                        <h3>効率性</h3>
+                        <div class="complexity-value">最適解</div>
+                    </div>
+                </div>
             </div>
-            <div class="bar" data-height="5" style="height: 200px; width: 40px">
-              5
+
+            <!-- Interactive Visualization -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-play-circle"></i>
+                    <h2>インタラクティブデモ</h2>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="startDemo()">
+                        <i class="fas fa-play"></i>デモ開始
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetDemo()">
+                        <i class="fas fa-undo"></i>リセット
+                    </button>
+                    <button class="btn btn-secondary" onclick="nextStep()">
+                        <i class="fas fa-step-forward"></i>次のステップ
+                    </button>
+                </div>
+
+                <div class="visualization">
+                    <h3>例: heights = [2, 1, 5, 6, 2, 3]</h3>
+                    <div class="histogram" id="histogram">
+                        <div class="bar" data-height="2" style="height: 80px; width: 40px">2</div>
+                        <div class="bar" data-height="1" style="height: 40px; width: 40px">1</div>
+                        <div class="bar" data-height="5" style="height: 200px; width: 40px">5</div>
+                        <div class="bar" data-height="6" style="height: 240px; width: 40px">6</div>
+                        <div class="bar" data-height="2" style="height: 80px; width: 40px">2</div>
+                        <div class="bar" data-height="3" style="height: 120px; width: 40px">3</div>
+                    </div>
+
+                    <div class="stack-vis">
+                        <h4>スタックの状態</h4>
+                        <div class="stack-container" id="stack-container">
+                            <div style="color: var(--text-muted); font-style: italic">
+                                空のスタック
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        id="step-info"
+                        style="margin-top: 1rem; font-weight: 500; color: var(--primary)"
+                    >
+                        デモを開始してください
+                    </div>
+                </div>
             </div>
-            <div class="bar" data-height="6" style="height: 240px; width: 40px">
-              6
+
+            <!-- Step by Step Explanation -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list-ol"></i>
+                    <h2>ステップバイステップ解説</h2>
+                </div>
+
+                <div class="step-nav">
+                    <div class="step-btn active" data-step="0">
+                        <i class="fas fa-info"></i>初期化
+                    </div>
+                    <div class="step-btn" data-step="1">
+                        <i class="fas fa-arrow-right"></i>要素処理
+                    </div>
+                    <div class="step-btn" data-step="2">
+                        <i class="fas fa-calculator"></i>面積計算
+                    </div>
+                    <div class="step-btn" data-step="3"><i class="fas fa-check"></i>完了</div>
+                </div>
+
+                <div class="step-content active" data-step="0">
+                    <h3>1. 初期化フェーズ</h3>
+                    <p>アルゴリズムの開始時に必要な変数を初期化します：</p>
+                    <ul style="margin: 1rem 0; padding-left: 2rem">
+                        <li>
+                            <strong>stack</strong>: インデックスを格納するスタック（単調増加を維持）
+                        </li>
+                        <li><strong>max_area</strong>: 最大面積を記録する変数</li>
+                        <li><strong>番兵</strong>: 配列の末尾に仮想的な高さ0の要素を追加</li>
+                    </ul>
+                </div>
+
+                <div class="step-content" data-step="1">
+                    <h3>2. 要素処理フェーズ</h3>
+                    <p>各要素を左から右へ順次処理し、スタックの単調性を維持します：</p>
+                    <ul style="margin: 1rem 0; padding-left: 2rem">
+                        <li>
+                            現在の高さがスタックトップより<strong>高い場合</strong>:
+                            そのままスタックにプッシュ
+                        </li>
+                        <li>
+                            現在の高さがスタックトップより<strong>低い場合</strong>:
+                            スタックから要素をポップして面積計算
+                        </li>
+                        <li>単調増加性により、効率的に候補を絞り込み</li>
+                    </ul>
+                </div>
+
+                <div class="step-content" data-step="2">
+                    <h3>3. 面積計算フェーズ</h3>
+                    <p>スタックからポップした要素を基準に長方形面積を計算します：</p>
+                    <ul style="margin: 1rem 0; padding-left: 2rem">
+                        <li><strong>高さ</strong>: ポップした要素の高さ</li>
+                        <li><strong>幅</strong>: 現在位置 - スタックの次の要素位置 - 1</li>
+                        <li><strong>面積</strong>: 高さ × 幅</li>
+                        <li>最大面積を逐次更新</li>
+                    </ul>
+                </div>
+
+                <div class="step-content" data-step="3">
+                    <h3>4. 完了フェーズ</h3>
+                    <p>全ての要素を処理した後の最終処理：</p>
+                    <ul style="margin: 1rem 0; padding-left: 2rem">
+                        <li>番兵（高さ0）により残りの要素を全てポップ</li>
+                        <li>最後まで残った長方形の面積も計算</li>
+                        <li>記録された最大面積を返却</li>
+                    </ul>
+                </div>
             </div>
-            <div class="bar" data-height="2" style="height: 80px; width: 40px">
-              2
-            </div>
-            <div class="bar" data-height="3" style="height: 120px; width: 40px">
-              3
-            </div>
-          </div>
 
-          <div class="stack-vis">
-            <h4>スタックの状態</h4>
-            <div class="stack-container" id="stack-container">
-              <div style="color: var(--text-muted); font-style: italic">
-                空のスタック
-              </div>
-            </div>
-          </div>
+            <!-- Code Implementation -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-code"></i>
+                    <h2>Python実装</h2>
+                </div>
 
-          <div
-            id="step-info"
-            style="margin-top: 1rem; font-weight: 500; color: var(--primary)"
-          >
-            デモを開始してください
-          </div>
-        </div>
-      </div>
-
-      <!-- Step by Step Explanation -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-list-ol"></i>
-          <h2>ステップバイステップ解説</h2>
-        </div>
-
-        <div class="step-nav">
-          <div class="step-btn active" data-step="0">
-            <i class="fas fa-info"></i>初期化
-          </div>
-          <div class="step-btn" data-step="1">
-            <i class="fas fa-arrow-right"></i>要素処理
-          </div>
-          <div class="step-btn" data-step="2">
-            <i class="fas fa-calculator"></i>面積計算
-          </div>
-          <div class="step-btn" data-step="3">
-            <i class="fas fa-check"></i>完了
-          </div>
-        </div>
-
-        <div class="step-content active" data-step="0">
-          <h3>1. 初期化フェーズ</h3>
-          <p>アルゴリズムの開始時に必要な変数を初期化します：</p>
-          <ul style="margin: 1rem 0; padding-left: 2rem">
-            <li>
-              <strong>stack</strong>:
-              インデックスを格納するスタック（単調増加を維持）
-            </li>
-            <li><strong>max_area</strong>: 最大面積を記録する変数</li>
-            <li>
-              <strong>番兵</strong>: 配列の末尾に仮想的な高さ0の要素を追加
-            </li>
-          </ul>
-        </div>
-
-        <div class="step-content" data-step="1">
-          <h3>2. 要素処理フェーズ</h3>
-          <p>各要素を左から右へ順次処理し、スタックの単調性を維持します：</p>
-          <ul style="margin: 1rem 0; padding-left: 2rem">
-            <li>
-              現在の高さがスタックトップより<strong>高い場合</strong>:
-              そのままスタックにプッシュ
-            </li>
-            <li>
-              現在の高さがスタックトップより<strong>低い場合</strong>:
-              スタックから要素をポップして面積計算
-            </li>
-            <li>単調増加性により、効率的に候補を絞り込み</li>
-          </ul>
-        </div>
-
-        <div class="step-content" data-step="2">
-          <h3>3. 面積計算フェーズ</h3>
-          <p>スタックからポップした要素を基準に長方形面積を計算します：</p>
-          <ul style="margin: 1rem 0; padding-left: 2rem">
-            <li><strong>高さ</strong>: ポップした要素の高さ</li>
-            <li><strong>幅</strong>: 現在位置 - スタックの次の要素位置 - 1</li>
-            <li><strong>面積</strong>: 高さ × 幅</li>
-            <li>最大面積を逐次更新</li>
-          </ul>
-        </div>
-
-        <div class="step-content" data-step="3">
-          <h3>4. 完了フェーズ</h3>
-          <p>全ての要素を処理した後の最終処理：</p>
-          <ul style="margin: 1rem 0; padding-left: 2rem">
-            <li>番兵（高さ0）により残りの要素を全てポップ</li>
-            <li>最後まで残った長方形の面積も計算</li>
-            <li>記録された最大面積を返却</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Code Implementation -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-code"></i>
-          <h2>Python実装</h2>
-        </div>
-
-        <div class="code-container">
-          <div class="code-header">
-            <span><i class="fab fa-python"></i> solution.py</span>
-            <button class="copy-btn" onclick="copyCode()">
-              <i class="fas fa-copy"></i>コピー
-            </button>
-          </div>
-          <pre><code class="language-python" id="main-code">from typing import List
+                <div class="code-container">
+                    <div class="code-header">
+                        <span><i class="fab fa-python"></i> solution.py</span>
+                        <button class="copy-btn" onclick="copyCode()">
+                            <i class="fas fa-copy"></i>コピー
+                        </button>
+                    </div>
+                    <pre><code class="language-python" id="main-code">from typing import List
 
 class Solution:
     """
@@ -741,398 +705,384 @@ def demo():
 
 if __name__ == "__main__":
     demo()</code></pre>
+                </div>
+            </div>
+
+            <!-- Key Points -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-key"></i>
+                    <h2>重要ポイント</h2>
+                </div>
+
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 1.5rem;
+                    "
+                >
+                    <div
+                        style="
+                            background: var(--primary-light);
+                            padding: 1.5rem;
+                            border-radius: 8px;
+                        "
+                    >
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem">
+                            <i class="fas fa-stack-overflow"></i> 単調スタック
+                        </h4>
+                        <p>スタック内のインデックスに対応する高さが常に単調増加になるよう維持</p>
+                    </div>
+
+                    <div
+                        style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px"
+                    >
+                        <h4 style="color: var(--secondary); margin-bottom: 0.5rem">
+                            <i class="fas fa-shield-alt"></i> 番兵テクニック
+                        </h4>
+                        <p>配列末尾に高さ0の仮想要素を追加し、残りの要素を一括処理</p>
+                    </div>
+
+                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px">
+                        <h4 style="color: var(--accent); margin-bottom: 0.5rem">
+                            <i class="fas fa-chart-line"></i> 線形時間
+                        </h4>
+                        <p>各要素は最大1回プッシュ・ポップされるため、全体でO(n)時間</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Key Points -->
-      <div class="card">
-        <div class="card-header">
-          <i class="fas fa-key"></i>
-          <h2>重要ポイント</h2>
-        </div>
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-          "
-        >
-          <div
-            style="
-              background: var(--primary-light);
-              padding: 1.5rem;
-              border-radius: 8px;
-            "
-          >
-            <h4 style="color: var(--primary); margin-bottom: 0.5rem">
-              <i class="fas fa-stack-overflow"></i> 単調スタック
-            </h4>
-            <p>
-              スタック内のインデックスに対応する高さが常に単調増加になるよう維持
-            </p>
-          </div>
+        <script>
+            // Global variables for demo
+            let demoStep = 0;
+            let demoRunning = false;
+            const heights = [2, 1, 5, 6, 2, 3];
+            let stack = [];
+            let currentIndex = 0;
+            let maxArea = 0;
 
-          <div
-            style="
-              background: var(--bg-secondary);
-              padding: 1.5rem;
-              border-radius: 8px;
-            "
-          >
-            <h4 style="color: var(--secondary); margin-bottom: 0.5rem">
-              <i class="fas fa-shield-alt"></i> 番兵テクニック
-            </h4>
-            <p>配列末尾に高さ0の仮想要素を追加し、残りの要素を一括処理</p>
-          </div>
-
-          <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px">
-            <h4 style="color: var(--accent); margin-bottom: 0.5rem">
-              <i class="fas fa-chart-line"></i> 線形時間
-            </h4>
-            <p>各要素は最大1回プッシュ・ポップされるため、全体でO(n)時間</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-
-    <script>
-      // Global variables for demo
-      let demoStep = 0;
-      let demoRunning = false;
-      const heights = [2, 1, 5, 6, 2, 3];
-      let stack = [];
-      let currentIndex = 0;
-      let maxArea = 0;
-
-      // Step navigation
-      document.querySelectorAll(".step-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const step = btn.dataset.step;
-          showStep(step);
-        });
-      });
-
-      function showStep(step) {
-        // Update button states
-        document.querySelectorAll(".step-btn").forEach((btn) => {
-          btn.classList.remove("active");
-        });
-        document.querySelector(`[data-step="${step}"]`).classList.add("active");
-
-        // Update content
-        document.querySelectorAll(".step-content").forEach((content) => {
-          content.classList.remove("active");
-        });
-        document
-          .querySelector(`.step-content[data-step="${step}"]`)
-          .classList.add("active");
-      }
-
-      // Demo functions
-      function startDemo() {
-        if (demoRunning) return;
-        demoRunning = true;
-        resetDemo();
-
-        const interval = setInterval(() => {
-          if (demoStep >= heights.length + 1) {
-            clearInterval(interval);
-            demoRunning = false;
-            updateStepInfo(`完了！最大面積: ${maxArea}`);
-            return;
-          }
-
-          processStep();
-          demoStep++;
-        }, 2000);
-      }
-
-      function nextStep() {
-        if (demoStep < heights.length + 1) {
-          processStep();
-          demoStep++;
-        }
-        if (demoStep >= heights.length + 1) {
-          updateStepInfo(`完了！最大面積: ${maxArea}`);
-        }
-      }
-
-      function resetDemo() {
-        demoStep = 0;
-        stack = [];
-        currentIndex = 0;
-        maxArea = 0;
-        demoRunning = false;
-
-        // Reset visualization
-        document.querySelectorAll(".bar").forEach((bar) => {
-          bar.classList.remove("highlight", "processing");
-        });
-
-        updateStackVisualization();
-        updateStepInfo("デモを開始してください");
-      }
-
-      function processStep() {
-        const bars = document.querySelectorAll(".bar");
-
-        // Remove previous highlights
-        bars.forEach((bar) => bar.classList.remove("highlight", "processing"));
-
-        if (demoStep < heights.length) {
-          const currentHeight = heights[demoStep];
-          bars[demoStep].classList.add("processing");
-
-          // Process monotonic stack logic
-          while (
-            stack.length > 0 &&
-            currentHeight < heights[stack[stack.length - 1]]
-          ) {
-            const heightIndex = stack.pop();
-            const height = heights[heightIndex];
-            const leftBoundary =
-              stack.length > 0 ? stack[stack.length - 1] : -1;
-            const width = demoStep - leftBoundary - 1;
-            const area = height * width;
-
-            if (area > maxArea) {
-              maxArea = area;
-            }
-
-            bars[heightIndex].classList.add("highlight");
-            updateStepInfo(
-              `インデックス ${heightIndex} (高さ ${height}) をポップ。面積: ${area}, 最大面積: ${maxArea}`
-            );
-          }
-
-          stack.push(demoStep);
-          updateStepInfo(
-            `インデックス ${demoStep} (高さ ${currentHeight}) をプッシュ`
-          );
-        } else {
-          // Process remaining elements in stack (sentinel)
-          while (stack.length > 0) {
-            const heightIndex = stack.pop();
-            const height = heights[heightIndex];
-            const leftBoundary =
-              stack.length > 0 ? stack[stack.length - 1] : -1;
-            const width = heights.length - leftBoundary - 1;
-            const area = height * width;
-
-            if (area > maxArea) {
-              maxArea = area;
-            }
-
-            bars[heightIndex].classList.add("highlight");
-            updateStepInfo(
-              `残りの要素を処理: インデックス ${heightIndex} (高さ ${height}), 面積: ${area}, 最大面積: ${maxArea}`
-            );
-          }
-        }
-
-        updateStackVisualization();
-      }
-
-      function updateStackVisualization() {
-        const container = document.getElementById("stack-container");
-        container.innerHTML = "";
-
-        if (stack.length === 0) {
-          const emptyMsg = document.createElement("div");
-          emptyMsg.style.color = "var(--text-muted)";
-          emptyMsg.style.fontStyle = "italic";
-          emptyMsg.textContent = "空のスタック";
-          container.appendChild(emptyMsg);
-        } else {
-          stack.forEach((index, i) => {
-            const item = document.createElement("div");
-            item.className = "stack-item";
-            item.textContent = `${index} (${heights[index]})`;
-            if (i === stack.length - 1) {
-              item.classList.add("highlight");
-            }
-            container.appendChild(item);
-          });
-        }
-      }
-
-      function updateStepInfo(message) {
-        document.getElementById("step-info").textContent = message;
-      }
-
-      // Copy code functionality
-      function copyCode() {
-        const code = document.getElementById("main-code").textContent;
-        navigator.clipboard.writeText(code).then(() => {
-          const btn = document.querySelector(".copy-btn");
-          const originalText = btn.innerHTML;
-          btn.innerHTML = '<i class="fas fa-check"></i>コピー完了';
-          btn.style.background = "var(--success)";
-
-          setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.style.background = "";
-          }, 2000);
-        });
-      }
-
-      // Initialize Prism for syntax highlighting
-      document.addEventListener("DOMContentLoaded", () => {
-        Prism.highlightAll();
-
-        // Add line numbers to code blocks
-        document.querySelectorAll("pre code").forEach((block) => {
-          block.parentNode.classList.add("line-numbers");
-        });
-      });
-
-      // Add smooth scrolling for internal links
-      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-        anchor.addEventListener("click", function (e) {
-          e.preventDefault();
-          const target = document.querySelector(this.getAttribute("href"));
-          if (target) {
-            target.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
+            // Step navigation
+            document.querySelectorAll('.step-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const step = btn.dataset.step;
+                    showStep(step);
+                });
             });
-          }
-        });
-      });
 
-      // Add interactive hover effects
-      document.querySelectorAll(".bar").forEach((bar, index) => {
-        bar.addEventListener("mouseenter", () => {
-          if (!demoRunning) {
-            bar.style.transform = "scale(1.05)";
-            bar.style.zIndex = "10";
-            updateStepInfo(`棒 ${index}: 高さ ${heights[index]}`);
-          }
-        });
+            function showStep(step) {
+                // Update button states
+                document.querySelectorAll('.step-btn').forEach((btn) => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-step="${step}"]`).classList.add('active');
 
-        bar.addEventListener("mouseleave", () => {
-          if (!demoRunning) {
-            bar.style.transform = "";
-            bar.style.zIndex = "";
-            updateStepInfo("マウスを棒の上に置くと詳細が表示されます");
-          }
-        });
-      });
-
-      // Initialize tooltips
-      function initTooltips() {
-        const tooltipElements = document.querySelectorAll(".tooltip");
-        tooltipElements.forEach((element) => {
-          element.addEventListener("mouseenter", () => {
-            const tooltip = element.querySelector(".tooltiptext");
-            if (tooltip) {
-              tooltip.style.visibility = "visible";
-              tooltip.style.opacity = "1";
-            }
-          });
-
-          element.addEventListener("mouseleave", () => {
-            const tooltip = element.querySelector(".tooltiptext");
-            if (tooltip) {
-              tooltip.style.visibility = "hidden";
-              tooltip.style.opacity = "0";
-            }
-          });
-        });
-      }
-
-      // Performance monitoring
-      function measureAlgorithmPerformance() {
-        const testSizes = [100, 1000, 10000];
-        const results = [];
-
-        testSizes.forEach((size) => {
-          const testData = Array.from({ length: size }, () =>
-            Math.floor(Math.random() * 100)
-          );
-          const startTime = performance.now();
-
-          // Run algorithm
-          const solution = new Solution();
-          solution.largestRectangleArea(testData);
-
-          const endTime = performance.now();
-          results.push({
-            size: size,
-            time: endTime - startTime,
-          });
-        });
-
-        console.table(results);
-      }
-
-      // Solution class for performance testing
-      class Solution {
-        largestRectangleArea(heights) {
-          const n = heights.length;
-          const stack = [];
-          let maxArea = 0;
-
-          for (let i = 0; i <= n; i++) {
-            const currentHeight = i === n ? 0 : heights[i];
-
-            while (
-              stack.length > 0 &&
-              currentHeight < heights[stack[stack.length - 1]]
-            ) {
-              const heightIndex = stack.pop();
-              const height = heights[heightIndex];
-              const leftBoundary =
-                stack.length > 0 ? stack[stack.length - 1] : -1;
-              const width = i - leftBoundary - 1;
-              const area = height * width;
-              maxArea = Math.max(maxArea, area);
+                // Update content
+                document.querySelectorAll('.step-content').forEach((content) => {
+                    content.classList.remove('active');
+                });
+                document
+                    .querySelector(`.step-content[data-step="${step}"]`)
+                    .classList.add('active');
             }
 
-            stack.push(i);
-          }
+            // Demo functions
+            function startDemo() {
+                if (demoRunning) return;
+                demoRunning = true;
+                resetDemo();
 
-          return maxArea;
-        }
-      }
+                const interval = setInterval(() => {
+                    if (demoStep >= heights.length + 1) {
+                        clearInterval(interval);
+                        demoRunning = false;
+                        updateStepInfo(`完了！最大面積: ${maxArea}`);
+                        return;
+                    }
 
-      // Initialize everything when page loads
-      document.addEventListener("DOMContentLoaded", () => {
-        initTooltips();
-        updateStepInfo("マウスを棒の上に置くと詳細が表示されます");
-
-        // Add keyboard shortcuts
-        document.addEventListener("keydown", (e) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            if (!demoRunning) {
-              startDemo();
+                    processStep();
+                    demoStep++;
+                }, 2000);
             }
-          } else if (e.key === "r" || e.key === "R") {
-            resetDemo();
-          } else if (e.key === "ArrowRight") {
-            nextStep();
-          }
-        });
 
-        // Add welcome message
-        setTimeout(() => {
-          console.log("🎯 Largest Rectangle in Histogram Algorithm Demo");
-          console.log("📊 キーボードショートカット:");
-          console.log("  - スペース/Enter: デモ開始");
-          console.log("  - R: リセット");
-          console.log("  - →: 次のステップ");
-          console.log(
-            "🔧 measureAlgorithmPerformance() でパフォーマンステストを実行できます"
-          );
-        }, 1000);
-      });
-    </script>
-  </body>
+            function nextStep() {
+                if (demoStep < heights.length + 1) {
+                    processStep();
+                    demoStep++;
+                }
+                if (demoStep >= heights.length + 1) {
+                    updateStepInfo(`完了！最大面積: ${maxArea}`);
+                }
+            }
+
+            function resetDemo() {
+                demoStep = 0;
+                stack = [];
+                currentIndex = 0;
+                maxArea = 0;
+                demoRunning = false;
+
+                // Reset visualization
+                document.querySelectorAll('.bar').forEach((bar) => {
+                    bar.classList.remove('highlight', 'processing');
+                });
+
+                updateStackVisualization();
+                updateStepInfo('デモを開始してください');
+            }
+
+            function processStep() {
+                const bars = document.querySelectorAll('.bar');
+
+                // Remove previous highlights
+                bars.forEach((bar) => bar.classList.remove('highlight', 'processing'));
+
+                if (demoStep < heights.length) {
+                    const currentHeight = heights[demoStep];
+                    bars[demoStep].classList.add('processing');
+
+                    // Process monotonic stack logic
+                    while (stack.length > 0 && currentHeight < heights[stack[stack.length - 1]]) {
+                        const heightIndex = stack.pop();
+                        const height = heights[heightIndex];
+                        const leftBoundary = stack.length > 0 ? stack[stack.length - 1] : -1;
+                        const width = demoStep - leftBoundary - 1;
+                        const area = height * width;
+
+                        if (area > maxArea) {
+                            maxArea = area;
+                        }
+
+                        bars[heightIndex].classList.add('highlight');
+                        updateStepInfo(
+                            `インデックス ${heightIndex} (高さ ${height}) をポップ。面積: ${area}, 最大面積: ${maxArea}`,
+                        );
+                    }
+
+                    stack.push(demoStep);
+                    updateStepInfo(`インデックス ${demoStep} (高さ ${currentHeight}) をプッシュ`);
+                } else {
+                    // Process remaining elements in stack (sentinel)
+                    while (stack.length > 0) {
+                        const heightIndex = stack.pop();
+                        const height = heights[heightIndex];
+                        const leftBoundary = stack.length > 0 ? stack[stack.length - 1] : -1;
+                        const width = heights.length - leftBoundary - 1;
+                        const area = height * width;
+
+                        if (area > maxArea) {
+                            maxArea = area;
+                        }
+
+                        bars[heightIndex].classList.add('highlight');
+                        updateStepInfo(
+                            `残りの要素を処理: インデックス ${heightIndex} (高さ ${height}), 面積: ${area}, 最大面積: ${maxArea}`,
+                        );
+                    }
+                }
+
+                updateStackVisualization();
+            }
+
+            function updateStackVisualization() {
+                const container = document.getElementById('stack-container');
+                container.innerHTML = '';
+
+                if (stack.length === 0) {
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.style.color = 'var(--text-muted)';
+                    emptyMsg.style.fontStyle = 'italic';
+                    emptyMsg.textContent = '空のスタック';
+                    container.appendChild(emptyMsg);
+                } else {
+                    stack.forEach((index, i) => {
+                        const item = document.createElement('div');
+                        item.className = 'stack-item';
+                        item.textContent = `${index} (${heights[index]})`;
+                        if (i === stack.length - 1) {
+                            item.classList.add('highlight');
+                        }
+                        container.appendChild(item);
+                    });
+                }
+            }
+
+            function updateStepInfo(message) {
+                document.getElementById('step-info').textContent = message;
+            }
+
+            // Copy code functionality
+            function copyCode() {
+                const code = document.getElementById('main-code').textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>コピー完了';
+                    btn.style.background = 'var(--success)';
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                    }, 2000);
+                });
+            }
+
+            // Initialize Prism for syntax highlighting
+            document.addEventListener('DOMContentLoaded', () => {
+                Prism.highlightAll();
+
+                // Add line numbers to code blocks
+                document.querySelectorAll('pre code').forEach((block) => {
+                    block.parentNode.classList.add('line-numbers');
+                });
+            });
+
+            // Add smooth scrolling for internal links
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                    }
+                });
+            });
+
+            // Add interactive hover effects
+            document.querySelectorAll('.bar').forEach((bar, index) => {
+                bar.addEventListener('mouseenter', () => {
+                    if (!demoRunning) {
+                        bar.style.transform = 'scale(1.05)';
+                        bar.style.zIndex = '10';
+                        updateStepInfo(`棒 ${index}: 高さ ${heights[index]}`);
+                    }
+                });
+
+                bar.addEventListener('mouseleave', () => {
+                    if (!demoRunning) {
+                        bar.style.transform = '';
+                        bar.style.zIndex = '';
+                        updateStepInfo('マウスを棒の上に置くと詳細が表示されます');
+                    }
+                });
+            });
+
+            // Initialize tooltips
+            function initTooltips() {
+                const tooltipElements = document.querySelectorAll('.tooltip');
+                tooltipElements.forEach((element) => {
+                    element.addEventListener('mouseenter', () => {
+                        const tooltip = element.querySelector('.tooltiptext');
+                        if (tooltip) {
+                            tooltip.style.visibility = 'visible';
+                            tooltip.style.opacity = '1';
+                        }
+                    });
+
+                    element.addEventListener('mouseleave', () => {
+                        const tooltip = element.querySelector('.tooltiptext');
+                        if (tooltip) {
+                            tooltip.style.visibility = 'hidden';
+                            tooltip.style.opacity = '0';
+                        }
+                    });
+                });
+            }
+
+            // Performance monitoring
+            function measureAlgorithmPerformance() {
+                const testSizes = [100, 1000, 10000];
+                const results = [];
+
+                testSizes.forEach((size) => {
+                    const testData = Array.from({ length: size }, () =>
+                        Math.floor(Math.random() * 100),
+                    );
+                    const startTime = performance.now();
+
+                    // Run algorithm
+                    const solution = new Solution();
+                    solution.largestRectangleArea(testData);
+
+                    const endTime = performance.now();
+                    results.push({
+                        size: size,
+                        time: endTime - startTime,
+                    });
+                });
+
+                console.table(results);
+            }
+
+            // Solution class for performance testing
+            class Solution {
+                largestRectangleArea(heights) {
+                    const n = heights.length;
+                    const stack = [];
+                    let maxArea = 0;
+
+                    for (let i = 0; i <= n; i++) {
+                        const currentHeight = i === n ? 0 : heights[i];
+
+                        while (
+                            stack.length > 0 &&
+                            currentHeight < heights[stack[stack.length - 1]]
+                        ) {
+                            const heightIndex = stack.pop();
+                            const height = heights[heightIndex];
+                            const leftBoundary = stack.length > 0 ? stack[stack.length - 1] : -1;
+                            const width = i - leftBoundary - 1;
+                            const area = height * width;
+                            maxArea = Math.max(maxArea, area);
+                        }
+
+                        stack.push(i);
+                    }
+
+                    return maxArea;
+                }
+            }
+
+            // Initialize everything when page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                initTooltips();
+                updateStepInfo('マウスを棒の上に置くと詳細が表示されます');
+
+                // Add keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!demoRunning) {
+                            startDemo();
+                        }
+                    } else if (e.key === 'r' || e.key === 'R') {
+                        resetDemo();
+                    } else if (e.key === 'ArrowRight') {
+                        nextStep();
+                    }
+                });
+
+                // Add welcome message
+                setTimeout(() => {
+                    console.log('🎯 Largest Rectangle in Histogram Algorithm Demo');
+                    console.log('📊 キーボードショートカット:');
+                    console.log('  - スペース/Enter: デモ開始');
+                    console.log('  - R: リセット');
+                    console.log('  - →: 次のステップ');
+                    console.log(
+                        '🔧 measureAlgorithmPerformance() でパフォーマンステストを実行できます',
+                    );
+                }, 1000);
+            });
+        </script>
+    </body>
 </html>

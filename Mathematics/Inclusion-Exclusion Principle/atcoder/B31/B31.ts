@@ -23,26 +23,30 @@ import * as fs from 'fs';
  * @returns {bigint} - 条件を満たす整数の個数
  */
 function countMultiples(N: bigint): bigint {
-  const div = (x: bigint): bigint => N / x;
+    const div = (x: bigint): bigint => N / x;
 
-  // Inclusion-Exclusion Principle
-  const count =
-    div(3n) + div(5n) + div(7n)
-    - div(3n * 5n) - div(3n * 7n) - div(5n * 7n)
-    + div(3n * 5n * 7n);
+    // Inclusion-Exclusion Principle
+    const count =
+        div(3n) +
+        div(5n) +
+        div(7n) -
+        div(3n * 5n) -
+        div(3n * 7n) -
+        div(5n * 7n) +
+        div(3n * 5n * 7n);
 
-  return count;
+    return count;
 }
 
 /**
  * メイン処理（標準入力から読み込み、結果を出力）
  */
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const N: bigint = BigInt(input);
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const N: bigint = BigInt(input);
 
-  const result: bigint = countMultiples(N);
-  console.log(result.toString()); // BigInt型を文字列で出力
+    const result: bigint = countMultiples(N);
+    console.log(result.toString()); // BigInt型を文字列で出力
 }
 
 main();

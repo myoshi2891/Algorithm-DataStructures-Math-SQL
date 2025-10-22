@@ -35,8 +35,8 @@ Grundy 数（グランディ数）は、あるゲーム状態が「どれだけ�
 プレイヤーは `(a, b)` にあるコマを **左または上** に1マス以上動かせます。
 つまり：
 
-* 左：`(a, b) → (a, b-1), (a, b-2), ...`
-* 上：`(a, b) → (a-1, b), (a-2, b), ...`
+- 左：`(a, b) → (a, b-1), (a, b-2), ...`
+- 上：`(a, b) → (a-1, b), (a-2, b), ...`
 
 > よって `(a, b)` の Grundy 数は `(a-1) ^ (b-1)` で計算できます。
 
@@ -101,24 +101,24 @@ Grundy 数（グランディ数）は、あるゲーム状態が「どれだけ�
 
 ```ts
 function determineWinner(N: number, positions: [number, number][]): string {
-  let xorSum = 0;
-  for (let i = 0; i < N; i++) {
-    const [a, b] = positions[i];
-    xorSum ^= (a - 1) ^ (b - 1); // Grundy 数計算
-  }
-  return xorSum === 0 ? 'Second' : 'First';
+    let xorSum = 0;
+    for (let i = 0; i < N; i++) {
+        const [a, b] = positions[i];
+        xorSum ^= (a - 1) ^ (b - 1); // Grundy 数計算
+    }
+    return xorSum === 0 ? 'Second' : 'First';
 }
 ```
 
 #### 処理内容：
 
-| 処理             | 説明                          |
-| -------------- | --------------------------- |
+| 処理           | 説明                              |
+| -------------- | --------------------------------- |
 | `(a - 1)`      | 0-indexed の行番号（1→0, 2→1, …） |
-| `(b - 1)`      | 0-indexed の列番号（同上）          |
-| `^`（XOR）       | Grundy 数の定義 `(a-1) ^ (b-1)` |
-| `xorSum ^=`    | 各コマの Grundy 数を累積 XOR        |
-| `xorSum === 0` | XOR の総和が0→後手勝ち              |
+| `(b - 1)`      | 0-indexed の列番号（同上）        |
+| `^`（XOR）     | Grundy 数の定義 `(a-1) ^ (b-1)`   |
+| `xorSum ^=`    | 各コマの Grundy 数を累積 XOR      |
+| `xorSum === 0` | XOR の総和が0→後手勝ち            |
 
 ---
 
@@ -126,26 +126,26 @@ function determineWinner(N: number, positions: [number, number][]): string {
 
 ```ts
 function main(): void {
-  const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-  const [N] = input[0].split(' ').map(Number);
-  const positions: [number, number][] = input.slice(1).map(line => {
-    const [a, b] = line.split(' ').map(Number);
-    return [a, b];
-  });
-  const result: string = determineWinner(N, positions);
-  console.log(result);
+    const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const [N] = input[0].split(' ').map(Number);
+    const positions: [number, number][] = input.slice(1).map((line) => {
+        const [a, b] = line.split(' ').map(Number);
+        return [a, b];
+    });
+    const result: string = determineWinner(N, positions);
+    console.log(result);
 }
 ```
 
 #### 処理内容：
 
-| ステップ                  | 説明                  |
-| --------------------- | ------------------- |
+| ステップ              | 説明                                   |
+| --------------------- | -------------------------------------- |
 | `fs.readFileSync`     | 高速な同期読み込み（全データ読み込み） |
-| `.split('\n')`        | 行単位に分割              |
-| `input[0].split(' ')` | `N` の抽出             |
-| `.map(...)`           | 各 `(a, b)` を数値配列に変換 |
-| `console.log(result)` | 勝者を出力               |
+| `.split('\n')`        | 行単位に分割                           |
+| `input[0].split(' ')` | `N` の抽出                             |
+| `.map(...)`           | 各 `(a, b)` を数値配列に変換           |
+| `console.log(result)` | 勝者を出力                             |
 
 ---
 
@@ -153,10 +153,10 @@ function main(): void {
 
 この問題は、**複数の Nim 山の合成**にすぎず、
 
-* 各コマ = 山（状態）
-* 移動 = 山を減らす操作
-* Grundy 数 = その山の有利度
-* XOR合計 = 全体のゲームの有利度
+- 各コマ = 山（状態）
+- 移動 = 山を減らす操作
+- Grundy 数 = その山の有利度
+- XOR合計 = 全体のゲームの有利度
 
 ---
 
@@ -173,9 +173,9 @@ function main(): void {
 
 Grundy 数:
 
-* `(0 ^ 0) = 0`
-* `(1 ^ 1) = 0`
-* `(2 ^ 2) = 0`
+- `(0 ^ 0) = 0`
+- `(1 ^ 1) = 0`
+- `(2 ^ 2) = 0`
 
 → XOR = `0 ^ 0 ^ 0 = 0` → `Second`
 
@@ -189,12 +189,12 @@ Grundy 数:
 
 ```ts
 function determineWinner(N: number, positions: [number, number][]): string {
-  let xorSum = 0;
-  for (let i = 0; i < N; i++) {
-    const [a, b] = positions[i];
-    xorSum ^= (a - 1) ^ (b - 1);
-  }
-  return xorSum === 0 ? 'Second' : 'First';
+    let xorSum = 0;
+    for (let i = 0; i < N; i++) {
+        const [a, b] = positions[i];
+        xorSum ^= (a - 1) ^ (b - 1);
+    }
+    return xorSum === 0 ? 'Second' : 'First';
 }
 ```
 
@@ -208,12 +208,11 @@ function determineWinner(N: number, positions: [number, number][]): string {
 
 ### 🎯 ゲームのルール（復習）
 
-* 各コマは `(a, b)` に配置
-* 移動可能な方向は「左または上に 1マス以上」
-* つまり、合法手：
-
-  * `(a, b) → (a', b)` where `a' < a`
-  * `(a, b) → (a, b')` where `b' < b`
+- 各コマは `(a, b)` に配置
+- 移動可能な方向は「左または上に 1マス以上」
+- つまり、合法手：
+    - `(a, b) → (a', b)` where `a' < a`
+    - `(a, b) → (a, b')` where `b' < b`
 
 ---
 
@@ -221,13 +220,13 @@ function determineWinner(N: number, positions: [number, number][]): string {
 
 Nimゲームでは、
 
-* 各山のサイズが Grundy 数
-* それらの XOR が 0 → 負け（後手必勝）
+- 各山のサイズが Grundy 数
+- それらの XOR が 0 → 負け（後手必勝）
 
 #### 本問題では：
 
-* 各コマは2次元の位置 `(a, b)` を持つ
-* 方向が独立なため、**Grundy 数 = (a-1) ^ (b-1)** で計算できる
+- 各コマは2次元の位置 `(a, b)` を持つ
+- 方向が独立なため、**Grundy 数 = (a-1) ^ (b-1)** で計算できる
 
 > この形式は「左上にしか動けない 2次元コマのゲーム」の Grundy 数の標準的な結果です（証明は後述）
 
@@ -237,7 +236,7 @@ Nimゲームでは、
 
 ### 🎲 単体のコマ `(a, b)` に着目
 
-* 移動先の候補：`(a-1, b)`, `(a-2, b)`, ..., `(1, b)`
+- 移動先の候補：`(a-1, b)`, `(a-2, b)`, ..., `(1, b)`
   `または`
   `(a, b-1)`, `(a, b-2)`, ..., `(a, 1)`
 
@@ -251,8 +250,8 @@ Nimゲームでは、
 
 **Grundy 数の性質（mex）** により、
 
-* その状態から到達できる Grundy 数の集合の「最小の使われていない非負整数」が Grundy 数になります。
-* このルールに従うと **(a-1) ^ (b-1)** が正しいことが帰納法などで導けます。
+- その状態から到達できる Grundy 数の集合の「最小の使われていない非負整数」が Grundy 数になります。
+- このルールに従うと **(a-1) ^ (b-1)** が正しいことが帰納法などで導けます。
 
 ---
 
@@ -269,19 +268,19 @@ Nimゲームでは、
 
 コマの位置（1-indexed）：
 
-* コマ1：(1,1)
-* コマ2：(2,2)
-* コマ3：(3,3)
+- コマ1：(1,1)
+- コマ2：(2,2)
+- コマ3：(3,3)
 
 ---
 
 ### 🧮 Grundy 数計算（0-indexed）
 
 | コマ | 座標 (a,b) | 0-indexed (a-1,b-1) | Grundy数 `(a-1) ^ (b-1)` |
-| -- | -------- | ------------------- | ----------------------- |
-| 1  | (1,1)    | (0,0)               | 0                       |
-| 2  | (2,2)    | (1,1)               | 1 ^ 1 = 0               |
-| 3  | (3,3)    | (2,2)               | 2 ^ 2 = 0               |
+| ---- | ---------- | ------------------- | ------------------------ |
+| 1    | (1,1)      | (0,0)               | 0                        |
+| 2    | (2,2)      | (1,1)               | 1 ^ 1 = 0                |
+| 3    | (3,3)      | (2,2)               | 2 ^ 2 = 0                |
 
 #### ✅ XOR 合計
 
@@ -300,9 +299,9 @@ Nimゲームでは、
 ```
 
 | コマ | 0-indexed | Grundy数 `(a-1) ^ (b-1)` |
-| -- | --------- | ----------------------- |
-| 1  | (1,2)     | 1 ^ 2 = 3               |
-| 2  | (3,0)     | 3 ^ 0 = 3               |
+| ---- | --------- | ------------------------ |
+| 1    | (1,2)     | 1 ^ 2 = 3                |
+| 2    | (3,0)     | 3 ^ 0 = 3                |
 
 ```
 3 ^ 3 = 0 → Second（後手）
@@ -320,20 +319,20 @@ Nimゲームでは、
 
 ```ts
 function determineWinner(N: number, positions: [number, number][]): string {
-  let xorSum = 0;
+    let xorSum = 0;
 
-  for (let i = 0; i < N; i++) {
-    const [a, b] = positions[i];
+    for (let i = 0; i < N; i++) {
+        const [a, b] = positions[i];
 
-    // Grundy 数の算出（0-indexed）
-    const grundy = (a - 1) ^ (b - 1);
+        // Grundy 数の算出（0-indexed）
+        const grundy = (a - 1) ^ (b - 1);
 
-    // XOR による累積
-    xorSum ^= grundy;
-  }
+        // XOR による累積
+        xorSum ^= grundy;
+    }
 
-  // 最終的な XOR 値により勝敗判定
-  return xorSum === 0 ? 'Second' : 'First';
+    // 最終的な XOR 値により勝敗判定
+    return xorSum === 0 ? 'Second' : 'First';
 }
 ```
 
@@ -351,18 +350,18 @@ console.log(`(${a}, ${b}) => (${a - 1}, ${b - 1}) => Grundy: ${(a - 1) ^ (b - 1)
 
 ## ✏️ 補足：Grundy 数の参考文献
 
-* Sprague–Grundy Theorem（スプレイグ・グランディ定理）
-* 本問題は「単純な方向制限付き 2次元移動 Nim」の一種
-* [AtCoder Library: Game Theory](https://atcoder.jp/posts/597)
+- Sprague–Grundy Theorem（スプレイグ・グランディ定理）
+- 本問題は「単純な方向制限付き 2次元移動 Nim」の一種
+- [AtCoder Library: Game Theory](https://atcoder.jp/posts/597)
 
 ---
 
 さらに深い例、コードの再構成、あるいは動作アニメーションが欲しければお申し付けください！
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-25 18:49:53 | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1265 Byte |  | 16 ms | 7820 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889561) |
-| 2025-07-25 18:46:11 | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1051 Byte |  | 56 ms | 44380 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889517) |
-| 2025-07-25 18:44:23 | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1117 Byte |  | 85 ms | 23948 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889487) |
-| 2025-07-25 18:19:50 | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1047 Byte |  | 152 ms | 79032 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889092) |
-| 2025-07-25 18:13:54 | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1079 Byte |  | 124 ms | 77480 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67888970) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                           | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-25 18:49:53                                                                           | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1265 Byte                                                                                 |      | 16 ms                                                                                        | 7820 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889561) |
+| 2025-07-25 18:46:11                                                                           | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1051 Byte                                                                                 |      | 56 ms                                                                                        | 44380 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889517) |
+| 2025-07-25 18:44:23                                                                           | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1117 Byte                                                                                 |      | 85 ms                                                                                        | 23948 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889487) |
+| 2025-07-25 18:19:50                                                                           | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1047 Byte                                                                                 |      | 152 ms                                                                                       | 79032 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67889092) |
+| 2025-07-25 18:13:54                                                                           | [B33 - Game 6](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_df) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1079 Byte                                                                                 |      | 124 ms                                                                                       | 77480 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67888970) |

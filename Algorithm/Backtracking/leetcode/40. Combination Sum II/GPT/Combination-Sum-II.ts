@@ -1,4 +1,3 @@
-
 // 以下は、LeetCode の **"Combination Sum II"** を TypeScript (Node.js 18.16.1 / TypeScript 5.1) で実装した例です。
 // クラスは使わず、**関数 + バックトラッキング** で処理しています。
 // 処理時間・メモリ消費量を抑えるために

@@ -32,17 +32,15 @@ graph TD
 ### 処理の流れ
 
 1. **差分配列の初期化**
-
-   - サイズ N+2 の差分配列 `diff` を 0 で初期化
+    - サイズ N+2 の差分配列 `diff` を 0 で初期化
 
 2. **範囲加算の記録**
-
-   - 範囲 [L, R] に +1 を加算する場合：
-     - `diff[L] += 1`（範囲開始点で+1）
-     - `diff[R+1] -= 1`（範囲終了点の次で-1）
+    - 範囲 [L, R] に +1 を加算する場合：
+        - `diff[L] += 1`（範囲開始点で+1）
+        - `diff[R+1] -= 1`（範囲終了点の次で-1）
 
 3. **累積和による復元**
-   - 差分配列から累積和を計算して元の配列を復元
+    - 差分配列から累積和を計算して元の配列を復元
 
 ### 具体例による説明
 
@@ -90,13 +88,13 @@ Value: 1  2  2  1  0
 
 ```javascript
 // 型チェック
-if (typeof input !== "string") {
-  throw new TypeError("input must be a string");
+if (typeof input !== 'string') {
+    throw new TypeError('input must be a string');
 }
 
 // 制約チェック
 if (!(1 <= N && N <= 1000)) {
-  throw new RangeError("N out of range");
+    throw new RangeError('N out of range');
 }
 ```
 
@@ -106,9 +104,9 @@ if (!(1 <= N && N <= 1000)) {
 const diff = new Array(N + 2).fill(0);
 
 for (let i = 1; i <= Q; i++) {
-  // 範囲 [L, R] に +1 を加算
-  diff[L] += 1; // 開始点で+1
-  diff[R + 1] -= 1; // 終了点の次で-1
+    // 範囲 [L, R] に +1 を加算
+    diff[L] += 1; // 開始点で+1
+    diff[R + 1] -= 1; // 終了点の次で-1
 }
 ```
 
@@ -119,10 +117,10 @@ let maxVal = -Infinity;
 let current = 0;
 
 for (let i = 1; i <= N; i++) {
-  current += diff[i]; // 累積和
-  if (current > maxVal) {
-    maxVal = current; // 最大値更新
-  }
+    current += diff[i]; // 累積和
+    if (current > maxVal) {
+        maxVal = current; // 最大値更新
+    }
 }
 ```
 
@@ -151,7 +149,7 @@ flowchart TD
 ### 基本的な使用方法
 
 ```javascript
-const { imosMethod } = require("./imos-method");
+const { imosMethod } = require('./imos-method');
 
 const input = `5 2
 2 4
@@ -180,20 +178,19 @@ LQ RQ
 ### 主なエラータイプ
 
 1. **TypeError**:
-
-   - 入力が文字列でない
-   - N, Q が整数でない
-   - クエリ行が不足
+    - 入力が文字列でない
+    - N, Q が整数でない
+    - クエリ行が不足
 
 2. **RangeError**:
-   - N, Q が制約範囲外
-   - L, R の範囲が無効
+    - N, Q が制約範囲外
+    - L, R の範囲が無効
 
 ### エラーメッセージ例
 
 ```javascript
 // 制約違反の例
-throw new RangeError("N out of range");
+throw new RangeError('N out of range');
 throw new RangeError(`Invalid range: [${L},${R}]`);
 ```
 

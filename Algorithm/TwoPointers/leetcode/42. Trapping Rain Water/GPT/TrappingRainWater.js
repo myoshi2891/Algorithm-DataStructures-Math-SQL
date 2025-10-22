@@ -6,11 +6,11 @@
  * Trapping Rain Water
  * @param {number[]} height - 各位置の柱の高さを表す配列
  * @returns {number} - 溜まる水の総量
- * 
+ *
  * 制約:
  * - 1 <= height.length <= 2 * 10^4
  * - 0 <= height[i] <= 10^5
- * 
+ *
  * 時間計算量: O(n)  (nは配列の長さ)
  * 空間計算量: O(1)  (定数メモリ)
  */
@@ -18,11 +18,11 @@ function trap(height) {
     const n = height.length;
     if (n < 3) return 0; // 3未満では水は溜まらない
 
-    let left = 0;         // 左ポインタ
-    let right = n - 1;    // 右ポインタ
-    let leftMax = 0;      // 左側で見た最大の高さ
-    let rightMax = 0;     // 右側で見た最大の高さ
-    let water = 0;        // 溜まった水の総量
+    let left = 0; // 左ポインタ
+    let right = n - 1; // 右ポインタ
+    let leftMax = 0; // 左側で見た最大の高さ
+    let rightMax = 0; // 右側で見た最大の高さ
+    let water = 0; // 溜まった水の総量
 
     // 左右から中央に向かってポインタを進める
     while (left < right) {

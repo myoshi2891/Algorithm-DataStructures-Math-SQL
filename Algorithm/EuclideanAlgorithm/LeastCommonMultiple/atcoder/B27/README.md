@@ -19,8 +19,8 @@ const b: bigint = BigInt(bStr);
 
 ### 🔹説明：
 
-* `/dev/stdin` から一行読み込み（例: `"25 30"`）
-* 空白で分割し、`BigInt` に変換
+- `/dev/stdin` から一行読み込み（例: `"25 30"`）
+- 空白で分割し、`BigInt` に変換
 
 ### 📘図解：
 
@@ -106,8 +106,8 @@ console.log(result.toString());
 
 ### 🔹説明：
 
-* `BigInt` は直接 `console.log` できるが、`toString()` をつけることで確実に文字列出力
-* 出力例: `150`
+- `BigInt` は直接 `console.log` できるが、`toString()` をつけることで確実に文字列出力
+- 出力例: `150`
 
 ---
 
@@ -136,11 +136,11 @@ graph TD
 
 ## ✅ パフォーマンス観点（処理時間・メモリ）
 
-| 項目    | 内容                       |
-| ----- | ------------------------ |
-| 時間計算量 | O(log(min(A, B)))（GCD）   |
+| 項目       | 内容                                 |
+| ---------- | ------------------------------------ |
+| 時間計算量 | O(log(min(A, B)))（GCD）             |
 | メモリ使用 | `BigInt`3個 + 一時変数（数百バイト） |
-| 出力    | O(1)（`console.log`）      |
+| 出力       | O(1)（`console.log`）                |
 
 ---
 
@@ -148,14 +148,14 @@ graph TD
 
 この処理は以下の特性を持ちます：
 
-* **精度重視**：BigIntにより桁あふれを防止
-* **効率的**：ユークリッドの互除法
-* **メモリ軽量**：再帰を使わず、固定変数のみ使用
+- **精度重視**：BigIntにより桁あふれを防止
+- **効率的**：ユークリッドの互除法
+- **メモリ軽量**：再帰を使わず、固定変数のみ使用
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-19 20:18:49 | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1077 Byte |  | 1 ms | 1704 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701246) |
-| 2025-07-19 20:16:13 | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1344 Byte |  | 14 ms | 21356 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701202) |
-| 2025-07-19 20:12:51 | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1019 Byte |  | 19 ms | 10616 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701149) |
-| 2025-07-19 20:03:09 | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1093 Byte |  | 41 ms | 42944 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701000) |
-| 2025-07-19 20:00:41 | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 827 Byte |  | 51 ms | 42764 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67700966) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                  | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-19 20:18:49                                                                           | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1077 Byte                                                                                 |      | 1 ms                                                                                         | 1704 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701246) |
+| 2025-07-19 20:16:13                                                                           | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1344 Byte                                                                                 |      | 14 ms                                                                                        | 21356 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701202) |
+| 2025-07-19 20:12:51                                                                           | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1019 Byte                                                                                 |      | 19 ms                                                                                        | 10616 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701149) |
+| 2025-07-19 20:03:09                                                                           | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1093 Byte                                                                                 |      | 41 ms                                                                                        | 42944 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67701000) |
+| 2025-07-19 20:00:41                                                                           | [B27 - Calculate LCM](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_cz) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 827 Byte                                                                                  |      | 51 ms                                                                                        | 42764 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67700966) |

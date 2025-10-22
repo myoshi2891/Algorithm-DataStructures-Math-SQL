@@ -17,7 +17,7 @@
  * 空間計算量: O(1)
  */
 function strStrJs(haystack, needle) {
-  return haystack.indexOf(needle);
+    return haystack.indexOf(needle);
 }
 
 // ## 🧪 テストケース例

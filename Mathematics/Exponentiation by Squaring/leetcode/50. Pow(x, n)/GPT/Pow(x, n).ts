@@ -10,7 +10,7 @@
  * - 高速累乗法 (Exponentiation by Squaring) を用いて O(log n) 時間で計算
  *
  * 計算量:
- * 時間計算量: O(log |n|)  
+ * 時間計算量: O(log |n|)
  * 空間計算量: O(1) （再帰を使わずループで処理するため）
  *
  * 実行環境: TypeScript 5.1 / Node.js 18.16.1 / LeetCode
@@ -48,4 +48,3 @@ function myPow(x: number, n: number): number {
 // * **高速累乗法 (Exponentiation by Squaring)** を採用しており、`O(log |n|)` で計算できるため大きな指数でも高速です。
 // * **while ループ**により **スタック消費を抑えて O(1) 空間**で処理します。
 // * LeetCode の提出形式（クラス不要・関数のみ）に準拠しています。
-

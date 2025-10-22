@@ -22,7 +22,9 @@ const phi = (p - 1n) * (q - 1n);
 
 // 拡張ユークリッド互除法で e^-1 mod φ(n) を求める
 function modInv(a, m) {
-    let m0 = m, x0 = 0n, x1 = 1n;
+    let m0 = m,
+        x0 = 0n,
+        x1 = 1n;
     while (a > 1n) {
         let q = a / m;
         [a, m] = [m, a % m];

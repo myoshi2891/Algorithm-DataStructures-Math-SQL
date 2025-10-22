@@ -103,9 +103,8 @@ flowchart LR
 ### Step 2. Validation
 
 - Check ranges:
-
-  - `1 ≤ N ≤ 1000`, `1 ≤ K ≤ 100000`
-  - `1 ≤ year ≤ 1e9`
+    - `1 ≤ N ≤ 1000`, `1 ≤ K ≤ 100000`
+    - `1 ≤ year ≤ 1e9`
 
 - Ensure `name ∈ members`.
 
@@ -153,24 +152,22 @@ flowchart LR
 ## 6. Complexity Analysis
 
 - **Time Complexity**:
-
-  - Parsing: `O(N + K)`
-  - Sorting: `O(K log K)`
-  - Output: `O(K)`
-    → **Total: O(K log K)**
+    - Parsing: `O(N + K)`
+    - Sorting: `O(K log K)`
+    - Output: `O(K)`
+      → **Total: O(K log K)**
 
 - **Space Complexity**:
-
-  - Members: `O(N)`
-  - Events: `O(K)`
-    → **Total: O(K)**
+    - Members: `O(N)`
+    - Events: `O(K)`
+      → **Total: O(K)**
 
 ---
 
 ## 7. Implementation (solution.js)
 
 ```javascript
-"use strict";
+'use strict';
 
 /**
  * @typedef {Object} Event
@@ -179,54 +176,54 @@ flowchart LR
  */
 
 function buildTimeline(n, k, members, events) {
-  if (!Number.isInteger(n) || !Number.isInteger(k)) {
-    throw new TypeError("n and k must be integers");
-  }
-  if (n < 1 || n > 1000) throw new RangeError("n out of range");
-  if (k < 1 || k > 100000) throw new RangeError("k out of range");
-  if (!Array.isArray(members) || members.length !== n) {
-    throw new TypeError("members must be an array of length n");
-  }
-  if (!Array.isArray(events) || events.length !== k) {
-    throw new TypeError("events must be an array of length k");
-  }
+    if (!Number.isInteger(n) || !Number.isInteger(k)) {
+        throw new TypeError('n and k must be integers');
+    }
+    if (n < 1 || n > 1000) throw new RangeError('n out of range');
+    if (k < 1 || k > 100000) throw new RangeError('k out of range');
+    if (!Array.isArray(members) || members.length !== n) {
+        throw new TypeError('members must be an array of length n');
+    }
+    if (!Array.isArray(events) || events.length !== k) {
+        throw new TypeError('events must be an array of length k');
+    }
 
-  const memberSet = new Set(members);
-  for (const ev of events) {
-    if (typeof ev.year !== "number" || !Number.isFinite(ev.year)) {
-      throw new TypeError("year must be finite");
+    const memberSet = new Set(members);
+    for (const ev of events) {
+        if (typeof ev.year !== 'number' || !Number.isFinite(ev.year)) {
+            throw new TypeError('year must be finite');
+        }
+        if (ev.year < 1 || ev.year > 1_000_000_000) {
+            throw new RangeError('year out of range');
+        }
+        if (!memberSet.has(ev.name)) {
+            throw new TypeError(`Invalid member: ${ev.name}`);
+        }
     }
-    if (ev.year < 1 || ev.year > 1_000_000_000) {
-      throw new RangeError("year out of range");
-    }
-    if (!memberSet.has(ev.name)) {
-      throw new TypeError(`Invalid member: ${ev.name}`);
-    }
-  }
 
-  events.sort((a, b) => a.year - b.year || a.name.localeCompare(b.name));
-  return events.map((ev) => ev.name);
+    events.sort((a, b) => a.year - b.year || a.name.localeCompare(b.name));
+    return events.map((ev) => ev.name);
 }
 
 // Main execution
 if (require.main === module) {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  let idx = 0;
-  const [nStr, kStr] = input[idx++].split(" ");
-  const n = Number(nStr),
-    k = Number(kStr);
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    let idx = 0;
+    const [nStr, kStr] = input[idx++].split(' ');
+    const n = Number(nStr),
+        k = Number(kStr);
 
-  const members = [];
-  for (let i = 0; i < n; i++) members.push(input[idx++].trim());
+    const members = [];
+    for (let i = 0; i < n; i++) members.push(input[idx++].trim());
 
-  const events = [];
-  for (let i = 0; i < k; i++) {
-    const [yStr, name] = input[idx++].split(" ");
-    events.push({ year: Number(yStr), name });
-  }
+    const events = [];
+    for (let i = 0; i < k; i++) {
+        const [yStr, name] = input[idx++].split(' ');
+        events.push({ year: Number(yStr), name });
+    }
 
-  const result = buildTimeline(n, k, members, events);
-  console.log(result.join("\n"));
+    const result = buildTimeline(n, k, members, events);
+    console.log(result.join('\n'));
 }
 
 module.exports = { buildTimeline };

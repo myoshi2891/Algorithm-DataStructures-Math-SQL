@@ -192,8 +192,7 @@ WHERE p.email = s.email
 ## 3) 実務チューニングのチェックリスト
 
 - **複合インデックス**: `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_person_email_id ON Person(email, id);`
-
-  - `self-join`／`DISTINCT ON` の両方に効きます。
+    - `self-join`／`DISTINCT ON` の両方に効きます。
 
 - **ANALYZE** 済みか（統計更新）
 - 大規模削除なら **バッチ削除** でロック・WAL 負荷を平準化
@@ -228,9 +227,8 @@ WHERE p.email = s.email
 ## 4) まとめ（どれを使う？）
 
 - **最速候補**:
-
-  1. **self-join 削除**（A）
-  2. **`DISTINCT ON` → `USING`**（B）
+    1. **self-join 削除**（A）
+    2. **`DISTINCT ON` → `USING`**（B）
 
 - **あなたの `ROW_NUMBER` 案**は可読性は高いものの、ソート負荷で **~250ms → さらに短縮できる余地**が十分あります。
 - **`LATERAL` 版**はスコープ上の理由で NG。上の **集約サブクエリ版**に置き換えてください。

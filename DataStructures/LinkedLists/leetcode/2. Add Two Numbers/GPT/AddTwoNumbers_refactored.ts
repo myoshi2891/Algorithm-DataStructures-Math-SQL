@@ -60,13 +60,13 @@
 // =======================================================
 
 export class ListNode {
-  val: number;
-  next: ListNode | null;
+    val: number;
+    next: ListNode | null;
 
-  constructor(val?: number, next?: ListNode | null) {
-    this.val = val ?? 0;
-    this.next = next ?? null;
-  }
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = val ?? 0;
+        this.next = next ?? null;
+    }
 }
 
 /**
@@ -78,58 +78,55 @@ export class ListNode {
  * @throws {RangeError} ノード値が 0–9 の範囲外（前提破り入力）を検出した場合
  * @complexity Time: O(n), Space: O(1)  ※出力ノードを除く
  */
-export function addTwoNumbers(
-  l1: ListNode | null,
-  l2: ListNode | null
-): ListNode | null {
-  // --- （任意）軽量バリデーション：LeetCodeの前提を壊す入力を明示検出 ---
-  // 実運用/本番コードでは前提に自信がない場合のみ有効化を検討。
-  // validateListDigits(l1);
-  // validateListDigits(l2);
+export function addTwoNumbers(l1: ListNode | null, l2: ListNode | null): ListNode | null {
+    // --- （任意）軽量バリデーション：LeetCodeの前提を壊す入力を明示検出 ---
+    // 実運用/本番コードでは前提に自信がない場合のみ有効化を検討。
+    // validateListDigits(l1);
+    // validateListDigits(l2);
 
-  let p: ListNode | null = l1;
-  let q: ListNode | null = l2;
-  let carry = 0;
+    let p: ListNode | null = l1;
+    let q: ListNode | null = l2;
+    let carry = 0;
 
-  const dummy = new ListNode(0);
-  let tail = dummy;
+    const dummy = new ListNode(0);
+    let tail = dummy;
 
-  // p または q が残っている、もしくは carry が残っている間ループ
-  while (p !== null || q !== null || carry !== 0) {
-    const x = p !== null ? p.val : 0;
-    const y = q !== null ? q.val : 0;
+    // p または q が残っている、もしくは carry が残っている間ループ
+    while (p !== null || q !== null || carry !== 0) {
+        const x = p !== null ? p.val : 0;
+        const y = q !== null ? q.val : 0;
 
-    // 前提破り検出（任意）
-    // if (x < 0 || x > 9 || y < 0 || y > 9) {
-    //   throw new RangeError('Digit out of [0,9] detected.');
-    // }
+        // 前提破り検出（任意）
+        // if (x < 0 || x > 9 || y < 0 || y > 9) {
+        //   throw new RangeError('Digit out of [0,9] detected.');
+        // }
 
-    const sum = x + y + carry;
-    carry = Math.floor(sum / 10);
-    const digit = sum % 10;
+        const sum = x + y + carry;
+        carry = Math.floor(sum / 10);
+        const digit = sum % 10;
 
-    tail.next = new ListNode(digit);
-    tail = tail.next;
+        tail.next = new ListNode(digit);
+        tail = tail.next;
 
-    if (p !== null) p = p.next;
-    if (q !== null) q = q.next;
-  }
+        if (p !== null) p = p.next;
+        if (q !== null) q = q.next;
+    }
 
-  return dummy.next;
+    return dummy.next;
 }
 
 // --- 任意の補助（無効化しても主処理に影響なし） ---
 /** 値域チェック（0–9）— 本来は不要だが堅牢性重視で用意 */
 function validateListDigits(head: ListNode | null): void {
-  let node = head;
-  while (node !== null) {
-    const v = node.val;
-    // 整数判定（TS では number は浮動小数なので整数性は明示チェック）
-    if (!Number.isInteger(v) || v < 0 || v > 9) {
-      throw new RangeError("List contains a digit outside [0,9].");
+    let node = head;
+    while (node !== null) {
+        const v = node.val;
+        // 整数判定（TS では number は浮動小数なので整数性は明示チェック）
+        if (!Number.isInteger(v) || v < 0 || v > 9) {
+            throw new RangeError('List contains a digit outside [0,9].');
+        }
+        node = node.next;
     }
-    node = node.next;
-  }
 }
 // ```
 

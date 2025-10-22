@@ -90,22 +90,22 @@ flowchart TD
 - **重複アドレス対策（任意）**
   仕様上は 1 人 0 または 1 住所が前提ですが、実データで重複がある場合は代表 1 行を選びます（例：最小の addressId を採用）。
 
-  ```python
-  if "addressId" in address.columns:
-      address_unique = (address
-                        .sort_values(["personId", "addressId"])
-                        .drop_duplicates("personId", keep="first"))
-  else:
-      address_unique = address.drop_duplicates("personId", keep="first")
-  out = person.merge(address_unique[["personId", "city", "state"]], on="personId", how="left")
-  ```
+    ```python
+    if "addressId" in address.columns:
+        address_unique = (address
+                          .sort_values(["personId", "addressId"])
+                          .drop_duplicates("personId", keep="first"))
+    else:
+        address_unique = address.drop_duplicates("personId", keep="first")
+    out = person.merge(address_unique[["personId", "city", "state"]], on="personId", how="left")
+    ```
 
 - **並び順**
   問題では順序自由ですが、必要なら：
 
-  ```python
-  out = out.sort_values(["lastName", "firstName"], kind="stable")
-  ```
+    ```python
+    out = out.sort_values(["lastName", "firstName"], kind="stable")
+    ```
 
 - **パフォーマンス**
   大規模データなら `personId` を `Int64`（NA あり）に揃える、`merge` 前に不要列を落とす、`category` 型の活用などでメモリ節約が可能です。
@@ -175,29 +175,29 @@ out = (person[["personId","firstName","lastName"]]             # 使う列だけ
 
 - `personId` / `addressId`：最小整数型へ
 
-  ```python
-  person  = person.assign(personId = pd.to_numeric(person["personId"], downcast="unsigned"))
-  address = address.assign(personId = pd.to_numeric(address["personId"], downcast="unsigned"),
-                           addressId= pd.to_numeric(address.get("addressId"), downcast="unsigned"))
-  ```
+    ```python
+    person  = person.assign(personId = pd.to_numeric(person["personId"], downcast="unsigned"))
+    address = address.assign(personId = pd.to_numeric(address["personId"], downcast="unsigned"),
+                             addressId= pd.to_numeric(address.get("addressId"), downcast="unsigned"))
+    ```
 
 - 文字列：pandas 2.x なら `string`（必要に応じて `string[pyarrow]`）
 
-  ```python
-  for c in ["firstName","lastName","city","state"]:
-      for df in (person, address):
-        if c in df.columns:
-            df[c] = df[c].astype("string")
-  ```
+    ```python
+    for c in ["firstName","lastName","city","state"]:
+        for df in (person, address):
+          if c in df.columns:
+              df[c] = df[c].astype("string")
+    ```
 
-  ※ `pyarrow` 文字列は大規模データでメモリ節約になることがあります（環境により）。
+    ※ `pyarrow` 文字列は大規模データでメモリ節約になることがあります（環境により）。
 
 - **カテゴリ型**（`lastName` など繰り返しが多い列）
 
-  ```python
-  person["lastName"] = person["lastName"].astype("category")
-  # 出力を文字列に戻したいなら最後に .astype("string")
-  ```
+    ```python
+    person["lastName"] = person["lastName"].astype("category")
+    # 出力を文字列に戻したいなら最後に .astype("string")
+    ```
 
 ---
 
@@ -205,32 +205,32 @@ out = (person[["personId","firstName","lastName"]]             # 使う列だけ
 
 - **インデックス活用（Address 側）**
 
-  ```python
-  addr = address.drop_duplicates("personId", keep="first").set_index("personId")
-  out = pd.DataFrame({
-      "firstName": person["firstName"].values,
-      "lastName":  person["lastName"].values,
-      "city":      person["personId"].map(addr["city"]),
-      "state":     person["personId"].map(addr["state"]),
-  })
-  ```
+    ```python
+    addr = address.drop_duplicates("personId", keep="first").set_index("personId")
+    out = pd.DataFrame({
+        "firstName": person["firstName"].values,
+        "lastName":  person["lastName"].values,
+        "city":      person["personId"].map(addr["city"]),
+        "state":     person["personId"].map(addr["state"]),
+    })
+    ```
 
-  `set_index` 後の `Series.__getitem__` は内部ハッシュで高速。
+    `set_index` 後の `Series.__getitem__` は内部ハッシュで高速。
 
 - **コピー回避**：`copy()` は必要時のみ。`values` で配列を直接束ねると列代入コストが下がることがあります。
 
 - **欠損表現**：NaN→ 文字列 `"Null"` へ置換は **最後に一括**（途中で文字列化すると結合が遅くなりがち）。
 
-  ```python
-  out = out.fillna({"city": pd.NA, "state": pd.NA})
-  ```
+    ```python
+    out = out.fillna({"city": pd.NA, "state": pd.NA})
+    ```
 
 - **メモリの見える化**
 
-  ```python
-  person.info(memory_usage="deep")
-  address.info(memory_usage="deep")
-  ```
+    ```python
+    person.info(memory_usage="deep")
+    address.info(memory_usage="deep")
+    ```
 
 ---
 

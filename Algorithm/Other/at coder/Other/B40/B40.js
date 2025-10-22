@@ -21,23 +21,23 @@ const fs = require('fs');
  * @returns {number} - 条件を満たす (x, y) の個数
  */
 function countPairsDivisibleBy100(N, A) {
-  const modCount = Array(100).fill(0);
-  for (let i = 0; i < N; i++) {
-    modCount[A[i] % 100]++;
-  }
+    const modCount = Array(100).fill(0);
+    for (let i = 0; i < N; i++) {
+        modCount[A[i] % 100]++;
+    }
 
-  let result = 0;
+    let result = 0;
 
-  // (0, 0), (50, 50)
-  result += (modCount[0] * (modCount[0] - 1)) >> 1;
-  result += (modCount[50] * (modCount[50] - 1)) >> 1;
+    // (0, 0), (50, 50)
+    result += (modCount[0] * (modCount[0] - 1)) >> 1;
+    result += (modCount[50] * (modCount[50] - 1)) >> 1;
 
-  // (r, 100-r)
-  for (let r = 1; r < 50; r++) {
-    result += modCount[r] * modCount[100 - r];
-  }
+    // (r, 100-r)
+    for (let r = 1; r < 50; r++) {
+        result += modCount[r] * modCount[100 - r];
+    }
 
-  return result;
+    return result;
 }
 
 // ----------- 入出力処理 -------------

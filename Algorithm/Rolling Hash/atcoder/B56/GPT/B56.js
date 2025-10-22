@@ -121,7 +121,6 @@
 // もし望めば、このコードを **ダブルハッシュ** にして衝突をさらに減らすこともできます。
 // このままでも、制約下で十分高速かつ安全に動作します。
 
-
 // 原因を確認したところ、** JavaScript の `Number`（倍精度浮動小数点）で大きな整数の乗算や剰余を繰り返すと丸め誤差が発生 ** し、ハッシュ値が正しく計算されずに誤判定が多発していました（特に大きめの基数や累乗を使うと顕著になります）。元の実装ではこの丸め誤差のために多数のクエリが誤判定になっていました。
 
 // 修正方針：
@@ -156,37 +155,37 @@ const S = input[idx++];
 //   hr[i] = prefix hash of reversed S up to i (1-indexed)
 // =========================
 function buildHash(S, base, mod) {
-  const n = S.length;
-  const pow = new Array(n + 1);
-  const hf = new Array(n + 1);
-  const hr = new Array(n + 1);
-  pow[0] = 1n;
-  for (let i = 1; i <= n; i++) pow[i] = (pow[i - 1] * base) % mod;
+    const n = S.length;
+    const pow = new Array(n + 1);
+    const hf = new Array(n + 1);
+    const hr = new Array(n + 1);
+    pow[0] = 1n;
+    for (let i = 1; i <= n; i++) pow[i] = (pow[i - 1] * base) % mod;
 
-  hf[0] = 0n;
-  for (let i = 0; i < n; i++) {
-    const val = BigInt(S.charCodeAt(i) - 96); // 'a' -> 1
-    hf[i + 1] = (hf[i] * base + val) % mod;
-  }
+    hf[0] = 0n;
+    for (let i = 0; i < n; i++) {
+        const val = BigInt(S.charCodeAt(i) - 96); // 'a' -> 1
+        hf[i + 1] = (hf[i] * base + val) % mod;
+    }
 
-  hr[0] = 0n;
-  for (let i = 0; i < n; i++) {
-    const val = BigInt(S.charCodeAt(n - 1 - i) - 96);
-    hr[i + 1] = (hr[i] * base + val) % mod;
-  }
+    hr[0] = 0n;
+    for (let i = 0; i < n; i++) {
+        const val = BigInt(S.charCodeAt(n - 1 - i) - 96);
+        hr[i + 1] = (hr[i] * base + val) % mod;
+    }
 
-  return { pow, hf, hr };
+    return { pow, hf, hr };
 }
 
 // 部分ハッシュ取得（1-indexed）
 // getSubHash(hf, pow, l, r, mod) -> BigInt
 function getSubHash(hf, pow, l, r, mod) {
-  const len = r - l + 1;
-  // (hf[r] - hf[l-1] * pow[len]) % mod
-  let res = hf[r] - (hf[l - 1] * pow[len]) % mod;
-  res %= mod;
-  if (res < 0n) res += mod;
-  return res;
+    const len = r - l + 1;
+    // (hf[r] - hf[l-1] * pow[len]) % mod
+    let res = hf[r] - ((hf[l - 1] * pow[len]) % mod);
+    res %= mod;
+    if (res < 0n) res += mod;
+    return res;
 }
 
 // =========================
@@ -205,32 +204,32 @@ const h2 = buildHash(S, BASE2, MOD2);
 // クエリ読み込み
 const queries = [];
 for (let i = 0; i < Q; i++) {
-  const L = Number(input[idx++]);
-  const R = Number(input[idx++]);
-  queries.push([L, R]);
+    const L = Number(input[idx++]);
+    const R = Number(input[idx++]);
+    queries.push([L, R]);
 }
 
 // メイン処理関数
 // solve(N, Q, queries) -> string[] ("Yes"/"No")
 function solve(N, Q, queries) {
-  const out = [];
-  for (let i = 0; i < Q; i++) {
-    const [L, R] = queries[i];
+    const out = [];
+    for (let i = 0; i < Q; i++) {
+        const [L, R] = queries[i];
 
-    // 正方向ハッシュ（両方）
-    const fh1 = getSubHash(h1.hf, h1.pow, L, R, MOD1);
-    const fh2 = getSubHash(h2.hf, h2.pow, L, R, MOD2);
+        // 正方向ハッシュ（両方）
+        const fh1 = getSubHash(h1.hf, h1.pow, L, R, MOD1);
+        const fh2 = getSubHash(h2.hf, h2.pow, L, R, MOD2);
 
-    // 逆方向に対応する区間: reversed index = N - R + 1 〜 N - L + 1
-    const revL = N - R + 1;
-    const revR = N - L + 1;
-    const rh1 = getSubHash(h1.hr, h1.pow, revL, revR, MOD1);
-    const rh2 = getSubHash(h2.hr, h2.pow, revL, revR, MOD2);
+        // 逆方向に対応する区間: reversed index = N - R + 1 〜 N - L + 1
+        const revL = N - R + 1;
+        const revR = N - L + 1;
+        const rh1 = getSubHash(h1.hr, h1.pow, revL, revR, MOD1);
+        const rh2 = getSubHash(h2.hr, h2.pow, revL, revR, MOD2);
 
-    if (fh1 === rh1 && fh2 === rh2) out.push('Yes');
-    else out.push('No');
-  }
-  return out;
+        if (fh1 === rh1 && fh2 === rh2) out.push('Yes');
+        else out.push('No');
+    }
+    return out;
 }
 
 // 実行＆出力
@@ -255,4 +254,3 @@ console.error(`Memory RSS: ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2
 
 // * 時間: 前処理 O(N)、各クエリ O(1) → 全体 O(N + Q)。
 // * メモリ: 配列は O(N)（ここでは pow/hf/hr をそれぞれ 2 系統で保持）。
-

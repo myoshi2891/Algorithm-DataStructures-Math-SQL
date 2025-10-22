@@ -1,4 +1,3 @@
-
 // ## ✅ 本問題の正しい解法方針（完全版）
 
 // この問題は **X=2, Y=3** 固定の **Nim変形ゲーム** で、山ごとに以下を判定します。
@@ -43,26 +42,26 @@ const fs = require('fs');
  * @returns {string} - 勝者 "First" または "Second"
  */
 function solve(A) {
-  // X=2, Y=3 における Grundy 数列は 5 を周期とする
-  const grundyMod = [0, 0, 1, 1, 2]; // index = n % 5 → Grundy数
+    // X=2, Y=3 における Grundy 数列は 5 を周期とする
+    const grundyMod = [0, 0, 1, 1, 2]; // index = n % 5 → Grundy数
 
-  let xorSum = 0;
-  for (const ai of A) {
-    const g = grundyMod[Number(ai % 5n)];
-    xorSum ^= g;
-  }
+    let xorSum = 0;
+    for (const ai of A) {
+        const g = grundyMod[Number(ai % 5n)];
+        xorSum ^= g;
+    }
 
-  return xorSum === 0 ? 'Second' : 'First';
+    return xorSum === 0 ? 'Second' : 'First';
 }
 
 // --- 入出力処理 ---
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/);
-  const N = Number(input[0]);
-  const A = input.slice(3).map(BigInt); // A1〜AN は BigInt 型で読む
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/);
+    const N = Number(input[0]);
+    const A = input.slice(3).map(BigInt); // A1〜AN は BigInt 型で読む
 
-  const result = solve(A);
-  console.log(result);
+    const result = solve(A);
+    console.log(result);
 }
 
 main();

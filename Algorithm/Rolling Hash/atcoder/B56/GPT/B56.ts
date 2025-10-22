@@ -15,8 +15,8 @@ import * as fs from 'fs';
  */
 type HashData = {
     pow: bigint[]; // base^i % mod
-    hf: bigint[];  // 正方向のprefix hash (1-indexed)
-    hr: bigint[];  // 逆方向のprefix hash (1-indexed)
+    hf: bigint[]; // 正方向のprefix hash (1-indexed)
+    hr: bigint[]; // 逆方向のprefix hash (1-indexed)
 };
 
 /**
@@ -63,7 +63,7 @@ function buildHash(S: string, base: bigint, mod: bigint): HashData {
  */
 function getSubHash(hf: bigint[], pow: bigint[], l: number, r: number, mod: bigint): bigint {
     const len = r - l + 1;
-    let res = hf[r] - (hf[l - 1] * pow[len]) % mod;
+    let res = hf[r] - ((hf[l - 1] * pow[len]) % mod);
     res %= mod;
     if (res < 0n) res += mod;
     return res;
@@ -103,9 +103,9 @@ function solve(N: number, Q: number, S: string, queries: [number, number][]): st
         const rh2 = getSubHash(h2.hr, h2.pow, revL, revR, MOD2);
 
         if (fh1 === rh1 && fh2 === rh2) {
-            res.push("Yes");
+            res.push('Yes');
         } else {
-            res.push("No");
+            res.push('No');
         }
     }
     return res;

@@ -21,7 +21,8 @@ let idx = 1;
  */
 function cnt2(i) {
     let k = 0;
-    while ((i & 1) === 0) { // 偶数判定
+    while ((i & 1) === 0) {
+        // 偶数判定
         k++;
         i >>= 1; // 右シフトで2で割る
     }
@@ -50,7 +51,7 @@ function getPath(n, I) {
 
 let output = [];
 for (let q = 0; q < Q; q++) {
-    const n = input[idx++]; 
+    const n = input[idx++];
     const I = input[idx++];
     const path = getPath(n, I);
     output.push(path.length.toString());

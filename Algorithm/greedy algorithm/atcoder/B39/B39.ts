@@ -30,91 +30,91 @@ type Job = [number, number];
  * @returns 最大で得られる報酬
  */
 function getMaxEarnings(N: number, D: number, jobs: Job[]): number {
-  const jobByDay: number[][] = Array.from({ length: D + 1 }, () => []);
+    const jobByDay: number[][] = Array.from({ length: D + 1 }, () => []);
 
-  // 各日の仕事を分類
-  for (const [x, y] of jobs) {
-    if (x <= D) jobByDay[x].push(y);
-  }
-
-  const maxHeap = new MaxHeap();
-  let total = 0;
-
-  for (let day = 1; day <= D; day++) {
-    for (const reward of jobByDay[day]) {
-      maxHeap.push(reward);
+    // 各日の仕事を分類
+    for (const [x, y] of jobs) {
+        if (x <= D) jobByDay[x].push(y);
     }
-    if (maxHeap.size() > 0) {
-      total += maxHeap.pop()!;
-    }
-  }
 
-  return total;
+    const maxHeap = new MaxHeap();
+    let total = 0;
+
+    for (let day = 1; day <= D; day++) {
+        for (const reward of jobByDay[day]) {
+            maxHeap.push(reward);
+        }
+        if (maxHeap.size() > 0) {
+            total += maxHeap.pop()!;
+        }
+    }
+
+    return total;
 }
 
 /**
  * 最大ヒープクラス（優先度付きキュー）
  */
 class MaxHeap {
-  private data: number[] = [];
+    private data: number[] = [];
 
-  push(val: number): void {
-    this.data.push(val);
-    this.heapifyUp(this.data.length - 1);
-  }
-
-  pop(): number | undefined {
-    if (this.data.length === 0) return undefined;
-    const top = this.data[0];
-    const last = this.data.pop()!;
-    if (this.data.length > 0) {
-      this.data[0] = last;
-      this.heapifyDown(0);
+    push(val: number): void {
+        this.data.push(val);
+        this.heapifyUp(this.data.length - 1);
     }
-    return top;
-  }
 
-  size(): number {
-    return this.data.length;
-  }
-
-  private heapifyUp(i: number): void {
-    while (i > 0) {
-      const parent = (i - 1) >> 1;
-      if (this.data[parent] >= this.data[i]) break;
-      [this.data[parent], this.data[i]] = [this.data[i], this.data[parent]];
-      i = parent;
+    pop(): number | undefined {
+        if (this.data.length === 0) return undefined;
+        const top = this.data[0];
+        const last = this.data.pop()!;
+        if (this.data.length > 0) {
+            this.data[0] = last;
+            this.heapifyDown(0);
+        }
+        return top;
     }
-  }
 
-  private heapifyDown(i: number): void {
-    const n = this.data.length;
-    while (true) {
-      let largest = i;
-      const left = 2 * i + 1;
-      const right = 2 * i + 2;
-      if (left < n && this.data[left] > this.data[largest]) largest = left;
-      if (right < n && this.data[right] > this.data[largest]) largest = right;
-      if (largest === i) break;
-      [this.data[i], this.data[largest]] = [this.data[largest], this.data[i]];
-      i = largest;
+    size(): number {
+        return this.data.length;
     }
-  }
+
+    private heapifyUp(i: number): void {
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (this.data[parent] >= this.data[i]) break;
+            [this.data[parent], this.data[i]] = [this.data[i], this.data[parent]];
+            i = parent;
+        }
+    }
+
+    private heapifyDown(i: number): void {
+        const n = this.data.length;
+        while (true) {
+            let largest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            if (left < n && this.data[left] > this.data[largest]) largest = left;
+            if (right < n && this.data[right] > this.data[largest]) largest = right;
+            if (largest === i) break;
+            [this.data[i], this.data[largest]] = [this.data[largest], this.data[i]];
+            i = largest;
+        }
+    }
 }
 
 /**
  * 標準入力からデータを読み込み、最大収益を出力
  */
 function main(): void {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-  const [N, D] = input[0].split(' ').map(Number);
-  const jobs: Job[] = input.slice(1).map(line => {
-    const [x, y] = line.split(' ').map(Number);
-    return [x, y];
-  });
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const [N, D] = input[0].split(' ').map(Number);
+    const jobs: Job[] = input.slice(1).map((line) => {
+        const [x, y] = line.split(' ').map(Number);
+        return [x, y];
+    });
 
-  const result = getMaxEarnings(N, D, jobs);
-  console.log(result);
+    const result = getMaxEarnings(N, D, jobs);
+    console.log(result);
 }
 
 main();

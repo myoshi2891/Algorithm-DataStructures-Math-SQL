@@ -4,7 +4,7 @@
 // 入力: n a b （整数）
 // 出力: n個以上のりんごを手に入れるための最小金額（改行付き）
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 最小金額をDPで計算する関数
@@ -29,7 +29,7 @@ function minAppleCost(n, a, b) {
 }
 
 // 標準入力読み込み
-const input = fs.readFileSync(0, "utf8").trim().split(" ").map(Number);
+const input = fs.readFileSync(0, 'utf8').trim().split(' ').map(Number);
 const [n, a, b] = input;
 
 // 結果出力

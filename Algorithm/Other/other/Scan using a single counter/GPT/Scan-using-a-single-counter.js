@@ -64,7 +64,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * 正しい括弧列かを判定する Pure Function
@@ -75,42 +75,42 @@
  * @complexity 時間 O(N), 空間 O(1)
  */
 function isValidParentheses(s) {
-  if (typeof s !== "string") throw new TypeError("Input must be string");
-  const n = s.length;
-  if (n < 1 || n >= 50000) throw new RangeError("String length out of range");
+    if (typeof s !== 'string') throw new TypeError('Input must be string');
+    const n = s.length;
+    if (n < 1 || n >= 50000) throw new RangeError('String length out of range');
 
-  let balance = 0;
-  for (let i = 0; i < n; i++) {
-    const ch = s[i];
-    if (ch === "(") {
-      balance++;
-    } else if (ch === ")") {
-      balance--;
-    } else {
-      throw new TypeError("Invalid character in input");
+    let balance = 0;
+    for (let i = 0; i < n; i++) {
+        const ch = s[i];
+        if (ch === '(') {
+            balance++;
+        } else if (ch === ')') {
+            balance--;
+        } else {
+            throw new TypeError('Invalid character in input');
+        }
+        if (balance < 0) return false; // 閉じすぎ
     }
-    if (balance < 0) return false; // 閉じすぎ
-  }
-  return balance === 0;
+    return balance === 0;
 }
 
 /**
  * メイン処理 (標準入力/標準出力)
  */
 function main() {
-  const input = require("fs").readFileSync(0, "utf8").trim().split("\n");
-  const n = parseInt(input[0], 10);
-  const s = input[1];
-  if (s.length !== n) {
-    throw new RangeError("Input length does not match N");
-  }
+    const input = require('fs').readFileSync(0, 'utf8').trim().split('\n');
+    const n = parseInt(input[0], 10);
+    const s = input[1];
+    if (s.length !== n) {
+        throw new RangeError('Input length does not match N');
+    }
 
-  const result = isValidParentheses(s);
-  console.log(result ? "Yes" : "No");
+    const result = isValidParentheses(s);
+    console.log(result ? 'Yes' : 'No');
 }
 
 if (require.main === module) {
-  main();
+    main();
 }
 
 module.exports = { isValidParentheses };

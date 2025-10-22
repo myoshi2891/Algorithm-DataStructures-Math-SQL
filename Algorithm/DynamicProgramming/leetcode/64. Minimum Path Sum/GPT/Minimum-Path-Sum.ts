@@ -235,27 +235,27 @@
  * @complexity Time: O(mn), Space: O(1)
  */
 function minPathSum(grid: number[][]): number {
-  const m = grid.length;
-  const n = grid[0].length;
+    const m = grid.length;
+    const n = grid[0].length;
 
-  // 1列目を累積
-  for (let i = 1; i < m; i++) {
-    grid[i][0] += grid[i - 1][0];
-  }
-
-  // 1行目を累積
-  for (let j = 1; j < n; j++) {
-    grid[0][j] += grid[0][j - 1];
-  }
-
-  // DP更新
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
+    // 1列目を累積
+    for (let i = 1; i < m; i++) {
+        grid[i][0] += grid[i - 1][0];
     }
-  }
 
-  return grid[m - 1][n - 1];
+    // 1行目を累積
+    for (let j = 1; j < n; j++) {
+        grid[0][j] += grid[0][j - 1];
+    }
+
+    // DP更新
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
+        }
+    }
+
+    return grid[m - 1][n - 1];
 }
 
 // ---

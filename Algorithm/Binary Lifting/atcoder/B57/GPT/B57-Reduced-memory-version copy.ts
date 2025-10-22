@@ -14,8 +14,8 @@
 // ```typescript
 // TypeScript 5.1 (Node.js 18.16.1)
 // fsを使った高速入出力
-import * as fs from "fs";
-const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+import * as fs from 'fs';
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
 const N: number = input[0];
 let K: bigint = BigInt(input[1]); // BigInt でビット演算
 
@@ -80,9 +80,9 @@ function solve(N: number, K: bigint): Uint32Array {
 const result = solve(N, K);
 
 // 出力
-let output = "";
+let output = '';
 for (let i = 0; i < N; i++) {
-    output += result[i] + "\n";
+    output += result[i] + '\n';
 }
 process.stdout.write(output);
 

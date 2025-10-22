@@ -21,11 +21,11 @@
 // ```typescript
 /**
  * 四つ組みの和を求める関数
- * 
+ *
  * @param nums - 入力配列（長さ 1～200、要素は-10^9～10^9）
  * @param target - 目標となる和（-10^9～10^9）
  * @returns number[][] - 条件を満たす4つ組の配列（重複なし、順不同）
- * 
+ *
  * 時間計算量：O(n^3)
  * 空間計算量：O(n)
  */
@@ -118,4 +118,3 @@ export function fourSum(nums: number[], target: number): number[][] {
 // | ソート時間  | O(n log n)           |
 // | ループ部分  | O(n³)（i, j, 内側ポインター） |
 // | メモリ使用量 | O(n)（ソート、結果リスト）      |
-

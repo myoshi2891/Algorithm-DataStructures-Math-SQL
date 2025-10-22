@@ -274,8 +274,8 @@ END;
 
 ---
 
-[1]: https://leetcode.com/problems/nth-highest-salary/discuss/498281/mysql-offset-by-n-1?utm_source=chatgpt.com "Nth Highest Salary - LeetCode"
-[2]: https://leetcode.com/discuss/post/1600719/database-sql-primer-part-2-window-functi-sm8m/?utm_source=chatgpt.com "Database SQL Primer (Part 2) [ Window Functions ] - Discuss"
+[1]: https://leetcode.com/problems/nth-highest-salary/discuss/498281/mysql-offset-by-n-1?utm_source=chatgpt.com 'Nth Highest Salary - LeetCode'
+[2]: https://leetcode.com/discuss/post/1600719/database-sql-primer-part-2-window-functi-sm8m/?utm_source=chatgpt.com 'Database SQL Primer (Part 2) [ Window Functions ] - Discuss'
 
 原因はシンプルで、**`DELIMITER` は MySQL サーバーの構文じゃなく “クライアント側専用ディレクティブ”** だからです。
 あなたの環境（LeetCode や一部 GUI ツール）は `DELIMITER` を解釈せず、そのままサーバーに送ってしまうため、

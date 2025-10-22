@@ -61,8 +61,8 @@
 // ## 5. コード実装（solution.js）
 
 // ```js
-const fs = require("fs");
-const input = fs.readFileSync("/dev/stdin", "utf8").trim();
+const fs = require('fs');
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
 
 /**
  * 長方形領域の和を2D累積和で求める
@@ -77,60 +77,59 @@ const input = fs.readFileSync("/dev/stdin", "utf8").trim();
  * @complexity O(NM + Q) （累積和構築 O(NM)、クエリ処理 O(1)）
  */
 function rectangleSum(matrix, queries) {
-  if (!Array.isArray(matrix) || matrix.length === 0) {
-    throw new TypeError("matrix must be a non-empty 2D array");
-  }
-  const N = matrix.length;
-  const M = matrix[0].length;
-  if (!matrix.every((row) => Array.isArray(row) && row.length === M)) {
-    throw new TypeError("matrix must be rectangular");
-  }
-  if (!Array.isArray(queries)) {
-    throw new TypeError("queries must be an array");
-  }
-
-  // 2D累積和構築 (N+1)×(M+1)
-  const prefix = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < M; j++) {
-      prefix[i + 1][j + 1] =
-        matrix[i][j] + prefix[i][j + 1] + prefix[i + 1][j] - prefix[i][j];
+    if (!Array.isArray(matrix) || matrix.length === 0) {
+        throw new TypeError('matrix must be a non-empty 2D array');
     }
-  }
-
-  // クエリ処理
-  const results = [];
-  for (const [a, b, c, d] of queries) {
-    if (a < 0 || b < 0 || c >= N || d >= M || a > c || b > d) {
-      throw new RangeError("query indices out of range");
+    const N = matrix.length;
+    const M = matrix[0].length;
+    if (!matrix.every((row) => Array.isArray(row) && row.length === M)) {
+        throw new TypeError('matrix must be rectangular');
     }
-    const sum =
-      prefix[c + 1][d + 1] - prefix[a][d + 1] - prefix[c + 1][b] + prefix[a][b];
-    results.push(sum);
-  }
-  return results;
+    if (!Array.isArray(queries)) {
+        throw new TypeError('queries must be an array');
+    }
+
+    // 2D累積和構築 (N+1)×(M+1)
+    const prefix = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < M; j++) {
+            prefix[i + 1][j + 1] =
+                matrix[i][j] + prefix[i][j + 1] + prefix[i + 1][j] - prefix[i][j];
+        }
+    }
+
+    // クエリ処理
+    const results = [];
+    for (const [a, b, c, d] of queries) {
+        if (a < 0 || b < 0 || c >= N || d >= M || a > c || b > d) {
+            throw new RangeError('query indices out of range');
+        }
+        const sum = prefix[c + 1][d + 1] - prefix[a][d + 1] - prefix[c + 1][b] + prefix[a][b];
+        results.push(sum);
+    }
+    return results;
 }
 
 // ---- 入出力処理 ----
 (function main() {
-  const lines = input
-    .split("\n")
-    .filter(Boolean)
-    .map((l) => l.trim());
-  const [N, M, Q] = lines[0].split(" ").map(Number);
+    const lines = input
+        .split('\n')
+        .filter(Boolean)
+        .map((l) => l.trim());
+    const [N, M, Q] = lines[0].split(' ').map(Number);
 
-  const matrix = [];
-  for (let i = 0; i < N; i++) {
-    matrix.push(lines[1 + i].split(" ").map(Number));
-  }
+    const matrix = [];
+    for (let i = 0; i < N; i++) {
+        matrix.push(lines[1 + i].split(' ').map(Number));
+    }
 
-  const queries = [];
-  for (let i = 0; i < Q; i++) {
-    queries.push(lines[1 + N + i].split(" ").map(Number));
-  }
+    const queries = [];
+    for (let i = 0; i < Q; i++) {
+        queries.push(lines[1 + N + i].split(' ').map(Number));
+    }
 
-  const results = rectangleSum(matrix, queries);
-  console.log(results.join("\n"));
+    const results = rectangleSum(matrix, queries);
+    console.log(results.join('\n'));
 })();
 
 module.exports = { rectangleSum };

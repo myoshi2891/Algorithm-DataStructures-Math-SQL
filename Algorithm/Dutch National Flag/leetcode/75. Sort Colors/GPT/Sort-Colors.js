@@ -63,7 +63,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * Sort Colors (Dutch National Flag Problem)
@@ -74,48 +74,48 @@
  * @complexity 時間 O(n), 空間 O(1)
  */
 var sortColors = function (nums) {
-  // 入力検証
-  if (!Array.isArray(nums)) {
-    throw new TypeError("Input must be an array");
-  }
-  const n = nums.length;
-  if (n < 1 || n > 300) {
-    throw new RangeError("Array size out of allowed range (1 <= n <= 300)");
-  }
-
-  for (let i = 0; i < n; i++) {
-    const v = nums[i];
-    if (!Number.isInteger(v)) {
-      throw new TypeError("Array must contain integers only");
+    // 入力検証
+    if (!Array.isArray(nums)) {
+        throw new TypeError('Input must be an array');
     }
-    if (v < 0 || v > 2) {
-      throw new RangeError("Array values must be 0, 1, or 2");
+    const n = nums.length;
+    if (n < 1 || n > 300) {
+        throw new RangeError('Array size out of allowed range (1 <= n <= 300)');
     }
-  }
 
-  // Dutch National Flag アルゴリズム
-  let low = 0;
-  let mid = 0;
-  let high = n - 1;
-
-  while (mid <= high) {
-    if (nums[mid] === 0) {
-      // swap(nums[low], nums[mid])
-      const tmp = nums[low];
-      nums[low] = nums[mid];
-      nums[mid] = tmp;
-      low++;
-      mid++;
-    } else if (nums[mid] === 1) {
-      mid++;
-    } else {
-      // nums[mid] === 2
-      const tmp = nums[mid];
-      nums[mid] = nums[high];
-      nums[high] = tmp;
-      high--;
+    for (let i = 0; i < n; i++) {
+        const v = nums[i];
+        if (!Number.isInteger(v)) {
+            throw new TypeError('Array must contain integers only');
+        }
+        if (v < 0 || v > 2) {
+            throw new RangeError('Array values must be 0, 1, or 2');
+        }
     }
-  }
+
+    // Dutch National Flag アルゴリズム
+    let low = 0;
+    let mid = 0;
+    let high = n - 1;
+
+    while (mid <= high) {
+        if (nums[mid] === 0) {
+            // swap(nums[low], nums[mid])
+            const tmp = nums[low];
+            nums[low] = nums[mid];
+            nums[mid] = tmp;
+            low++;
+            mid++;
+        } else if (nums[mid] === 1) {
+            mid++;
+        } else {
+            // nums[mid] === 2
+            const tmp = nums[mid];
+            nums[mid] = nums[high];
+            nums[high] = tmp;
+            high--;
+        }
+    }
 };
 
 module.exports = { sortColors };

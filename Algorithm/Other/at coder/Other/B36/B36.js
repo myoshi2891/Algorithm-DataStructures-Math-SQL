@@ -386,14 +386,14 @@ const fs = require('fs');
  * @returns {string} - 'Yes' または 'No'
  */
 function canMakeKOn(n, k, s) {
-  // 1の数を数える（ON状態の電球）
-  let count1 = 0;
-  for (let i = 0; i < s.length; i++) {
-    if (s[i] === '1') count1++;
-  }
+    // 1の数を数える（ON状態の電球）
+    let count1 = 0;
+    for (let i = 0; i < s.length; i++) {
+        if (s[i] === '1') count1++;
+    }
 
-  const diff = Math.abs(count1 - k);
-  return diff % 2 === 0 ? 'Yes' : 'No';
+    const diff = Math.abs(count1 - k);
+    return diff % 2 === 0 ? 'Yes' : 'No';
 }
 
 // ---------- 入力処理（AtCoder標準形式に対応） ----------

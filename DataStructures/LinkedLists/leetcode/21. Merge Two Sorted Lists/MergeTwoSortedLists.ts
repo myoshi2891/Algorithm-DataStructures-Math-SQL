@@ -8,25 +8,22 @@
 // LeetCode の TypeScript では通常以下が定義済み：
 
 class ListNode {
-    val: number
-    next: ListNode | null
+    val: number;
+    next: ListNode | null;
     constructor(val?: number, next?: ListNode | null) {
-        this.val = (val===undefined ? 0 : val)
-        this.next = (next===undefined ? null : next)
+        this.val = val === undefined ? 0 : val;
+        this.next = next === undefined ? null : next;
     }
 }
 
 /**
  * 2つのソート済み連結リストをマージする関数
- * 
+ *
  * @param list1 - ソート済みの単方向連結リストの先頭ノード（null可）
  * @param list2 - ソート済みの単方向連結リストの先頭ノード（null可）
  * @returns マージされたソート済み単方向連結リストの先頭ノード（null可）
  */
-function mergeTwoLists(
-    list1: ListNode | null, 
-    list2: ListNode | null
-): ListNode | null {
+function mergeTwoLists(list1: ListNode | null, list2: ListNode | null): ListNode | null {
     const dummy: ListNode = new ListNode(0);
     let current: ListNode = dummy;
 

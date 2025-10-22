@@ -34,11 +34,11 @@ WHERE EXISTS (
 
 - 推奨インデックス（無ければ作成）
 
-  ```sql
-  CREATE INDEX IF NOT EXISTS idx_employee_managerid ON Employee(managerId);
-  ```
+    ```sql
+    CREATE INDEX IF NOT EXISTS idx_employee_managerid ON Employee(managerId);
+    ```
 
-  `e.managerId = m.id` の探索が速くなります（`id` は PK 前提で OK）。
+    `e.managerId = m.id` の探索が速くなります（`id` は PK 前提で OK）。
 
 - 大規模データでは `EXPLAIN (ANALYZE, BUFFERS)` で実行計画の確認を推奨。
 
@@ -112,13 +112,11 @@ flowchart TD
 ### 📌 修正ポイント
 
 1. **ラベルのクォート削除**
-
-   - `SELECT e.name AS "Employee"` → `SELECT e.name AS Employee`
-   - Mermaid ノード内では `"` を避ける（代わりに `<br/>` で改行は可）。
+    - `SELECT e.name AS "Employee"` → `SELECT e.name AS Employee`
+    - Mermaid ノード内では `"` を避ける（代わりに `<br/>` で改行は可）。
 
 2. **ノード ID は英数字のみに統一**
-
-   - `proj`, `join`, `cond` などにしました。
+    - `proj`, `join`, `cond` などにしました。
 
 3. **矢印ラベルは `cond -- Yes -->` のように正規の記法に変更**。
 

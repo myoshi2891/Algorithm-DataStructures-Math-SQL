@@ -10,7 +10,7 @@
 // ```javascript
 /**
  * 判定: 配列 nums の最初の位置から最後の位置まで到達できるか
- * 
+ *
  * @param {number[]} nums - 各位置の最大ジャンプ長を格納した整数配列
  * @return {boolean} - 最後のインデックスに到達可能なら true、できなければ false
  */

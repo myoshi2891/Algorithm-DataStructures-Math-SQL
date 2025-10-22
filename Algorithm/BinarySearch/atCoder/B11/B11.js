@@ -7,17 +7,17 @@
 // 3. `fs` モジュールで高速入出力を行う。
 
 // ## ✅ コード
-const fs = require("fs");
+const fs = require('fs');
 
 // 高速入力
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split(/\s+/);
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(/\s+/);
 
 let idx = 0;
 const N = parseInt(input[idx++]);
 const A = [];
 
 for (let i = 0; i < N; i++) {
-  A.push(parseInt(input[idx++]));
+    A.push(parseInt(input[idx++]));
 }
 
 A.sort((a, b) => a - b); // 昇順ソート
@@ -26,27 +26,27 @@ const Q = parseInt(input[idx++]);
 const results = [];
 
 for (let q = 0; q < Q; q++) {
-  const X = parseInt(input[idx++]);
-  results.push(lowerBound(A, X)); // X 未満の個数
+    const X = parseInt(input[idx++]);
+    results.push(lowerBound(A, X)); // X 未満の個数
 }
 
 // 二分探索（lower_bound）：X より小さい要素数
 function lowerBound(arr, target) {
-  let left = 0;
-  let right = arr.length;
-  while (left < right) {
-    const mid = (left + right) >> 1;
-    if (arr[mid] < target) {
-      left = mid + 1;
-    } else {
-      right = mid;
+    let left = 0;
+    let right = arr.length;
+    while (left < right) {
+        const mid = (left + right) >> 1;
+        if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
     }
-  }
-  return left;
+    return left;
 }
 
 // 出力（高速）
-console.log(results.join("\n"));
+console.log(results.join('\n'));
 
 // ## ✅ 処理時間・メモリの見積り
 

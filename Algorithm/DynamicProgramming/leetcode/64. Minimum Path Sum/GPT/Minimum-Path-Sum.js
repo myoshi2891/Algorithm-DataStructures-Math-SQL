@@ -67,75 +67,101 @@
  * @complexity Time: O(mn), Space: O(1)
  */
 function minPathSum(grid) {
-  // --- 入力検証 ---
-  if (!Array.isArray(grid)) throw new TypeError('Input must be a 2D array');
-  const m = grid.length;
-  if (m === 0) throw new RangeError('Grid must have at least 1 row');
-  if (m > 200) throw new RangeError('Row size exceeds 200');
+    // --- 入力検証 ---
+    if (!Array.isArray(grid)) throw new TypeError('Input must be a 2D array');
+    const m = grid.length;
+    if (m === 0) throw new RangeError('Grid must have at least 1 row');
+    if (m > 200) throw new RangeError('Row size exceeds 200');
 
-  const n = grid[0].length;
-  if (n === 0) throw new RangeError('Grid must have at least 1 column');
-  if (n > 200) throw new RangeError('Column size exceeds 200');
+    const n = grid[0].length;
+    if (n === 0) throw new RangeError('Grid must have at least 1 column');
+    if (n > 200) throw new RangeError('Column size exceeds 200');
 
-  for (let i = 0; i < m; i++) {
-    if (!Array.isArray(grid[i]) || grid[i].length !== n) {
-      throw new TypeError('Grid must be rectangular');
+    for (let i = 0; i < m; i++) {
+        if (!Array.isArray(grid[i]) || grid[i].length !== n) {
+            throw new TypeError('Grid must be rectangular');
+        }
+        for (let j = 0; j < n; j++) {
+            const v = grid[i][j];
+            if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || v > 200) {
+                throw new RangeError('Grid values must be integers between 0 and 200');
+            }
+        }
     }
-    for (let j = 0; j < n; j++) {
-      const v = grid[i][j];
-      if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || v > 200) {
-        throw new RangeError('Grid values must be integers between 0 and 200');
-      }
+
+    // --- DP処理（破壊的更新）---
+    for (let i = 1; i < m; i++) grid[i][0] += grid[i - 1][0];
+    for (let j = 1; j < n; j++) grid[0][j] += grid[0][j - 1];
+
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
+        }
     }
-  }
 
-  // --- DP処理（破壊的更新）---
-  for (let i = 1; i < m; i++) grid[i][0] += grid[i - 1][0];
-  for (let j = 1; j < n; j++) grid[0][j] += grid[0][j - 1];
-
-  for (let i = 1; i < m; i++) {
-    for (let j = 1; j < n; j++) {
-      grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
-    }
-  }
-
-  return grid[m - 1][n - 1];
+    return grid[m - 1][n - 1];
 }
 
 // ---- 簡易テスト / ベンチ ----
 if (require.main === module) {
-  const assert = require('node:assert');
-  const { performance } = require('node:perf_hooks');
+    const assert = require('node:assert');
+    const { performance } = require('node:perf_hooks');
 
-  // 正常系テスト
-  assert.strictEqual(minPathSum([[1,3,1],[1,5,1],[4,2,1]]), 7);
-  assert.strictEqual(minPathSum([[1,2,3],[4,5,6]]), 12);
-  assert.strictEqual(minPathSum([[0]]), 0);
+    // 正常系テスト
+    assert.strictEqual(
+        minPathSum([
+            [1, 3, 1],
+            [1, 5, 1],
+            [4, 2, 1],
+        ]),
+        7,
+    );
+    assert.strictEqual(
+        minPathSum([
+            [1, 2, 3],
+            [4, 5, 6],
+        ]),
+        12,
+    );
+    assert.strictEqual(minPathSum([[0]]), 0);
 
-  // 境界ケース
-  assert.strictEqual(minPathSum([[5]]), 5);
+    // 境界ケース
+    assert.strictEqual(minPathSum([[5]]), 5);
 
-  // 例外系
-  try { minPathSum('x'); assert.fail(); } catch (e) { assert.ok(e instanceof TypeError); }
-  try { minPathSum([[201]]); assert.fail(); } catch (e) { assert.ok(e instanceof RangeError); }
+    // 例外系
+    try {
+        minPathSum('x');
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof TypeError);
+    }
+    try {
+        minPathSum([[201]]);
+        assert.fail();
+    } catch (e) {
+        assert.ok(e instanceof RangeError);
+    }
 
-  // 簡易ベンチ
-  const N = 200, M = 200;
-  const big = Array.from({ length: M }, () => Array(N).fill(1));
+    // 簡易ベンチ
+    const N = 200,
+        M = 200;
+    const big = Array.from({ length: M }, () => Array(N).fill(1));
 
-  // ウォームアップ
-  minPathSum(big.map(r => r.slice()));
+    // ウォームアップ
+    minPathSum(big.map((r) => r.slice()));
 
-  const t0 = performance.now();
-  const res = minPathSum(big.map(r => r.slice()));
-  const t1 = performance.now();
+    const t0 = performance.now();
+    const res = minPathSum(big.map((r) => r.slice()));
+    const t1 = performance.now();
 
-  console.log(JSON.stringify({
-    result: res,
-    ms: +(t1 - t0).toFixed(3),
-    m: M,
-    n: N
-  }));
+    console.log(
+        JSON.stringify({
+            result: res,
+            ms: +(t1 - t0).toFixed(3),
+            m: M,
+            n: N,
+        }),
+    );
 }
 
 module.exports = { minPathSum };

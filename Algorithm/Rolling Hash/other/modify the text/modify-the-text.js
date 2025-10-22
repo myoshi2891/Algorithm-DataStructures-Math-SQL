@@ -1,4 +1,3 @@
-
 // 以下は、与えられた問題を **Node.js (v18.16.1)**、`fs` モジュールを用いて効率的に処理するJavaScript実装です。
 
 // 大量データ（N, Q ≤ 200000）を高速に扱うために：
@@ -23,7 +22,7 @@ const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 function solve(input) {
     const [P, X, N, Q] = input[0].split(' ').map(Number);
     const S = input[1].trim().split('');
-    const queries = input.slice(2).map(line => {
+    const queries = input.slice(2).map((line) => {
         const [i, c] = line.trim().split(' ');
         return [parseInt(i) - 1, c]; // 0-indexed に変換
     });
@@ -33,7 +32,7 @@ function solve(input) {
     const len = S.length;
 
     // 英大文字 'A'〜'Z' を 1〜26 に変換する関数
-    const charToVal = c => BigInt(c.charCodeAt(0) - 'A'.charCodeAt(0) + 1);
+    const charToVal = (c) => BigInt(c.charCodeAt(0) - 'A'.charCodeAt(0) + 1);
 
     // X^i % P の累乗テーブル prePow[i] = X^i (mod P)
     const prePow = new Array(len);

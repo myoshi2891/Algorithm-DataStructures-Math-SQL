@@ -50,7 +50,7 @@
 // # 4. コード実装（solution.js）
 
 // ```javascript
-"use strict";
+'use strict';
 // CommonJS モジュール形式
 
 /**
@@ -63,46 +63,46 @@
  * @complexity Time O(n*m), Space O(min(n,m))
  */
 var minDistance = function (word1, word2) {
-  if (typeof word1 !== "string" || typeof word2 !== "string") {
-    throw new TypeError("Inputs must be strings");
-  }
-  const n = word1.length;
-  const m = word2.length;
-  if (n > 500 || m > 500) {
-    throw new RangeError("Input length exceeds limit");
-  }
-
-  // 短い方を基準にして空間 O(min(n,m)) にする
-  if (n < m) {
-    return minDistance(word2, word1);
-  }
-
-  // m <= n
-  const prev = new Array(m + 1);
-  const curr = new Array(m + 1);
-
-  // 初期化: word1 が空の場合
-  for (let j = 0; j <= m; j++) prev[j] = j;
-
-  for (let i = 1; i <= n; i++) {
-    curr[0] = i; // word2 が空なら i 回削除
-    for (let j = 1; j <= m; j++) {
-      if (word1[i - 1] === word2[j - 1]) {
-        curr[j] = prev[j - 1];
-      } else {
-        let del = prev[j] + 1; // 削除
-        let ins = curr[j - 1] + 1; // 挿入
-        let rep = prev[j - 1] + 1; // 置換
-        // Math.min を避け 3値比較で高速化
-        let min = del < ins ? del : ins;
-        if (rep < min) min = rep;
-        curr[j] = min;
-      }
+    if (typeof word1 !== 'string' || typeof word2 !== 'string') {
+        throw new TypeError('Inputs must be strings');
     }
-    // スワップ
-    for (let j = 0; j <= m; j++) prev[j] = curr[j];
-  }
-  return prev[m];
+    const n = word1.length;
+    const m = word2.length;
+    if (n > 500 || m > 500) {
+        throw new RangeError('Input length exceeds limit');
+    }
+
+    // 短い方を基準にして空間 O(min(n,m)) にする
+    if (n < m) {
+        return minDistance(word2, word1);
+    }
+
+    // m <= n
+    const prev = new Array(m + 1);
+    const curr = new Array(m + 1);
+
+    // 初期化: word1 が空の場合
+    for (let j = 0; j <= m; j++) prev[j] = j;
+
+    for (let i = 1; i <= n; i++) {
+        curr[0] = i; // word2 が空なら i 回削除
+        for (let j = 1; j <= m; j++) {
+            if (word1[i - 1] === word2[j - 1]) {
+                curr[j] = prev[j - 1];
+            } else {
+                let del = prev[j] + 1; // 削除
+                let ins = curr[j - 1] + 1; // 挿入
+                let rep = prev[j - 1] + 1; // 置換
+                // Math.min を避け 3値比較で高速化
+                let min = del < ins ? del : ins;
+                if (rep < min) min = rep;
+                curr[j] = min;
+            }
+        }
+        // スワップ
+        for (let j = 0; j <= m; j++) prev[j] = curr[j];
+    }
+    return prev[m];
 };
 
 module.exports = { minDistance };

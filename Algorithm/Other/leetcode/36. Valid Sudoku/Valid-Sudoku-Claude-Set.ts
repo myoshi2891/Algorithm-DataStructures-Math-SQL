@@ -33,29 +33,29 @@ function isValidSudoku(board: string[][]): boolean {
     const rows: Set<string>[] = Array.from({ length: 9 }, () => new Set());
     const cols: Set<string>[] = Array.from({ length: 9 }, () => new Set());
     const boxes: Set<string>[] = Array.from({ length: 9 }, () => new Set());
-    
+
     // ボード全体を一度だけスキャン
     for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
             const cell = board[i][j];
-            
+
             // 空のセルはスキップ
             if (cell === '.') continue;
-            
+
             // 3x3ボックスのインデックスを計算
             const boxIndex = Math.floor(i / 3) * 3 + Math.floor(j / 3);
-            
+
             // 重複チェック
             if (rows[i].has(cell) || cols[j].has(cell) || boxes[boxIndex].has(cell)) {
                 return false;
             }
-            
+
             // 数字を各Setに追加
             rows[i].add(cell);
             cols[j].add(cell);
             boxes[boxIndex].add(cell);
         }
     }
-    
+
     return true;
 }

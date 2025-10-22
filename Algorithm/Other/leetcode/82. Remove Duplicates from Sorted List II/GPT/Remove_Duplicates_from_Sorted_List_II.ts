@@ -61,12 +61,12 @@ export {};
  * Definition for singly-linked list.
  */
 export class ListNode {
-  val: number;
-  next: ListNode | null;
-  constructor(val?: number, next?: ListNode | null) {
-    this.val = val === undefined ? 0 : val;
-    this.next = next === undefined ? null : next;
-  }
+    val: number;
+    next: ListNode | null;
+    constructor(val?: number, next?: ListNode | null) {
+        this.val = val === undefined ? 0 : val;
+        this.next = next === undefined ? null : next;
+    }
 }
 
 /**
@@ -78,41 +78,41 @@ export class ListNode {
  * @complexity Time: O(n), Space: O(1)
  */
 export function deleteDuplicates(head: ListNode | null): ListNode | null {
-  if (head !== null && !(head instanceof ListNode)) {
-    throw new TypeError("Input must be a ListNode or null");
-  }
-
-  // 入力検証
-  let count = 0;
-  for (let p = head; p !== null; p = p.next) {
-    count++;
-    if (count > 300) {
-      throw new RangeError("Node count exceeds 300");
+    if (head !== null && !(head instanceof ListNode)) {
+        throw new TypeError('Input must be a ListNode or null');
     }
-    if (!Number.isInteger(p.val)) {
-      throw new TypeError("Node value must be an integer");
-    }
-    if (p.val < -100 || p.val > 100) {
-      throw new RangeError("Node value out of range [-100,100]");
-    }
-  }
 
-  const dummy = new ListNode(0, head);
-  let prev: ListNode = dummy;
+    // 入力検証
+    let count = 0;
+    for (let p = head; p !== null; p = p.next) {
+        count++;
+        if (count > 300) {
+            throw new RangeError('Node count exceeds 300');
+        }
+        if (!Number.isInteger(p.val)) {
+            throw new TypeError('Node value must be an integer');
+        }
+        if (p.val < -100 || p.val > 100) {
+            throw new RangeError('Node value out of range [-100,100]');
+        }
+    }
 
-  while (head !== null) {
-    if (head.next !== null && head.val === head.next.val) {
-      while (head.next !== null && head.val === head.next.val) {
+    const dummy = new ListNode(0, head);
+    let prev: ListNode = dummy;
+
+    while (head !== null) {
+        if (head.next !== null && head.val === head.next.val) {
+            while (head.next !== null && head.val === head.next.val) {
+                head = head.next;
+            }
+            prev.next = head.next; // skip duplicates
+        } else {
+            prev = prev.next as ListNode;
+        }
         head = head.next;
-      }
-      prev.next = head.next; // skip duplicates
-    } else {
-      prev = prev.next as ListNode;
     }
-    head = head.next;
-  }
 
-  return dummy.next;
+    return dummy.next;
 }
 // ```
 

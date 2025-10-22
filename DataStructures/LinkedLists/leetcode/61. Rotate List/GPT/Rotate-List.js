@@ -75,10 +75,10 @@ class ListNode {
 function rotateRight(head, k) {
     // 入力検証
     if (head !== null && !(head instanceof ListNode)) {
-        throw new TypeError("head must be a ListNode or null");
+        throw new TypeError('head must be a ListNode or null');
     }
-    if (typeof k !== "number" || k < 0) {
-        throw new TypeError("k must be a non-negative number");
+    if (typeof k !== 'number' || k < 0) {
+        throw new TypeError('k must be a non-negative number');
     }
 
     if (!head || !head.next || k === 0) return head;
@@ -117,7 +117,7 @@ function rotateRight(head, k) {
 // ## 5. 性能計測コード
 
 // ```javascript
-const { performance } = require("perf_hooks");
+const { performance } = require('perf_hooks');
 
 function measureTime(fn, ...args) {
     const start = performance.now();
@@ -142,7 +142,7 @@ function measureMemory(fn, ...args) {
 // ## 6. テストケース
 
 // ```javascript
-const assert = require("assert");
+const assert = require('assert');
 
 // ヘルパー: 配列からリストを作成
 function buildList(arr) {
@@ -167,28 +167,31 @@ function listToArray(head) {
 }
 
 (function runTests() {
-    console.log("=== 基本テスト ===");
-    assert.deepStrictEqual(listToArray(rotateRight(buildList([1,2,3,4,5]), 2)), [4,5,1,2,3]);
-    assert.deepStrictEqual(listToArray(rotateRight(buildList([0,1,2]), 4)), [2,0,1]);
-    console.log("✅ 基本テスト通過");
+    console.log('=== 基本テスト ===');
+    assert.deepStrictEqual(
+        listToArray(rotateRight(buildList([1, 2, 3, 4, 5]), 2)),
+        [4, 5, 1, 2, 3],
+    );
+    assert.deepStrictEqual(listToArray(rotateRight(buildList([0, 1, 2]), 4)), [2, 0, 1]);
+    console.log('✅ 基本テスト通過');
 
-    console.log("=== 境界値テスト ===");
+    console.log('=== 境界値テスト ===');
     assert.deepStrictEqual(listToArray(rotateRight(buildList([]), 5)), []);
     assert.deepStrictEqual(listToArray(rotateRight(buildList([1]), 99)), [1]);
-    console.log("✅ 境界値テスト通過");
+    console.log('✅ 境界値テスト通過');
 
-    console.log("=== エラーケーステスト ===");
-    assert.throws(() => rotateRight("invalid", 2), TypeError);
-    assert.throws(() => rotateRight(buildList([1,2,3]), -1), TypeError);
-    console.log("✅ エラーケース通過");
+    console.log('=== エラーケーステスト ===');
+    assert.throws(() => rotateRight('invalid', 2), TypeError);
+    assert.throws(() => rotateRight(buildList([1, 2, 3]), -1), TypeError);
+    console.log('✅ エラーケース通過');
 
-    console.log("=== 大規模データテスト ===");
-    const big = Array.from({length: 500}, (_, i) => i);
+    console.log('=== 大規模データテスト ===');
+    const big = Array.from({ length: 500 }, (_, i) => i);
     const rotated = listToArray(rotateRight(buildList(big), 123456));
     assert.strictEqual(rotated.length, 500);
-    console.log("✅ 大規模データテスト通過");
+    console.log('✅ 大規模データテスト通過');
 
-    console.log("\n🎉 全テスト成功");
+    console.log('\n🎉 全テスト成功');
 })();
 // ```
 

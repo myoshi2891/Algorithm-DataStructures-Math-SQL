@@ -1,4 +1,3 @@
-
 // 了解しました 👍
 // ご提示のテンプレートと要件に従い、LeetCode の「Unique Paths II」問題に対して **TypeScript 実装テンプレート**をまとめます。
 
@@ -248,41 +247,52 @@ import { performance } from 'node:perf_hooks';
  * @complexity Time: O(m*n), Space: O(n)
  */
 export function uniquePathsWithObstacles(obstacleGrid: number[][]): number {
-  if (!Array.isArray(obstacleGrid) || obstacleGrid.length === 0) {
-    throw new TypeError('Input must be a non-empty 2D array');
-  }
-
-  const m = obstacleGrid.length;
-  const n = obstacleGrid[0].length;
-
-  if (m > 100 || n > 100) {
-    throw new RangeError('Grid size exceeds constraints (100x100)');
-  }
-
-  // 1行でDP (空間 O(n))
-  const dp = new Array<number>(n).fill(0);
-  dp[0] = obstacleGrid[0][0] === 0 ? 1 : 0;
-
-  for (let i = 0; i < m; i++) {
-    for (let j = 0; j < n; j++) {
-      if (obstacleGrid[i][j] === 1) {
-        dp[j] = 0;
-      } else if (j > 0) {
-        dp[j] += dp[j - 1];
-      }
+    if (!Array.isArray(obstacleGrid) || obstacleGrid.length === 0) {
+        throw new TypeError('Input must be a non-empty 2D array');
     }
-  }
 
-  return dp[n - 1];
+    const m = obstacleGrid.length;
+    const n = obstacleGrid[0].length;
+
+    if (m > 100 || n > 100) {
+        throw new RangeError('Grid size exceeds constraints (100x100)');
+    }
+
+    // 1行でDP (空間 O(n))
+    const dp = new Array<number>(n).fill(0);
+    dp[0] = obstacleGrid[0][0] === 0 ? 1 : 0;
+
+    for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+            if (obstacleGrid[i][j] === 1) {
+                dp[j] = 0;
+            } else if (j > 0) {
+                dp[j] += dp[j - 1];
+            }
+        }
+    }
+
+    return dp[n - 1];
 }
 
 /* --- ローカルテスト & ベンチ（LeetCodeでは無視される） --- */
 if (require.main === module) {
-  const t0 = performance.now();
-  console.log(uniquePathsWithObstacles([[0, 0, 0], [0, 1, 0], [0, 0, 0]])); // 2
-  console.log(uniquePathsWithObstacles([[0, 1], [0, 0]])); // 1
-  const t1 = performance.now();
-  console.log(`Elapsed: ${(t1 - t0).toFixed(3)} ms`);
+    const t0 = performance.now();
+    console.log(
+        uniquePathsWithObstacles([
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0],
+        ]),
+    ); // 2
+    console.log(
+        uniquePathsWithObstacles([
+            [0, 1],
+            [0, 0],
+        ]),
+    ); // 1
+    const t1 = performance.now();
+    console.log(`Elapsed: ${(t1 - t0).toFixed(3)} ms`);
 }
 // ```
 

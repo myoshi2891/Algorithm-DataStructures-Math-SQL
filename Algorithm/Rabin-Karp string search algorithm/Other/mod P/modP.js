@@ -23,24 +23,24 @@ const fs = require('fs');
  * @returns {string[]} - 各クエリの結果（文字列の配列）
  */
 function processQueries(input) {
-  const lines = input.trim().split('\n');
-  const [P, Q] = lines[0].split(' ').map(BigInt); // P: 素数, Q: クエリ数
-  let X = 1n; // 初期値X
-  const result = [];
+    const lines = input.trim().split('\n');
+    const [P, Q] = lines[0].split(' ').map(BigInt); // P: 素数, Q: クエリ数
+    let X = 1n; // 初期値X
+    const result = [];
 
-  for (let i = 1; i <= Q; i++) {
-    const [q, y] = lines[i].split(' ').map(BigInt);
-    if (q === 1n) {
-      X = (X + y) % P;
-    } else if (q === 2n) {
-      X = (X - y + P) % P;
-    } else if (q === 3n) {
-      X = (X * y) % P;
+    for (let i = 1; i <= Q; i++) {
+        const [q, y] = lines[i].split(' ').map(BigInt);
+        if (q === 1n) {
+            X = (X + y) % P;
+        } else if (q === 2n) {
+            X = (X - y + P) % P;
+        } else if (q === 3n) {
+            X = (X * y) % P;
+        }
+        result.push(X.toString());
     }
-    result.push(X.toString());
-  }
 
-  return result;
+    return result;
 }
 
 // --- メイン処理 ---

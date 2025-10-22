@@ -72,37 +72,33 @@
  * @returns The head of the modified list
  * @complexity Time: O(n), Space: O(1)
  */
-function reverseBetween(
-  head: ListNode | null,
-  left: number,
-  right: number
-): ListNode | null {
-  if (head === null || left === right) return head;
+function reverseBetween(head: ListNode | null, left: number, right: number): ListNode | null {
+    if (head === null || left === right) return head;
 
-  const dummy = new ListNode(0, head);
-  // 1) Move `pre` to node right before `left`
-  let pre: ListNode = dummy;
-  for (let i = 1; i < left; i++) {
-    // pre.next は制約上 null にならない想定（1 <= left <= n）
-    // それでも TypeScript 的に non-null を保証するためにチェック
-    if (pre.next === null) return dummy.next;
-    pre = pre.next;
-  }
+    const dummy = new ListNode(0, head);
+    // 1) Move `pre` to node right before `left`
+    let pre: ListNode = dummy;
+    for (let i = 1; i < left; i++) {
+        // pre.next は制約上 null にならない想定（1 <= left <= n）
+        // それでも TypeScript 的に non-null を保証するためにチェック
+        if (pre.next === null) return dummy.next;
+        pre = pre.next;
+    }
 
-  // 2) `curr` は反転区間の先頭、ここから head-insertion で前に積む
-  let curr: ListNode | null = pre.next; // non-null のはず
-  // 3) 反転操作：`move` を curr.next から剥がし、pre.next の直後に挿入
-  for (let i = 0; i < right - left; i++) {
-    if (curr === null || curr.next === null) break; // 保険（入力制約上は到達しない）
-    const move: ListNode = curr.next;
-    // 剥がす
-    curr.next = move.next;
-    // 先頭挿入
-    move.next = pre.next;
-    pre.next = move;
-  }
+    // 2) `curr` は反転区間の先頭、ここから head-insertion で前に積む
+    let curr: ListNode | null = pre.next; // non-null のはず
+    // 3) 反転操作：`move` を curr.next から剥がし、pre.next の直後に挿入
+    for (let i = 0; i < right - left; i++) {
+        if (curr === null || curr.next === null) break; // 保険（入力制約上は到達しない）
+        const move: ListNode = curr.next;
+        // 剥がす
+        curr.next = move.next;
+        // 先頭挿入
+        move.next = pre.next;
+        pre.next = move;
+    }
 
-  return dummy.next;
+    return dummy.next;
 }
 // ```
 
@@ -179,51 +175,51 @@ function reverseBetween(
  * @complexity Time: O(n), Space: O(1)
  */
 function reverseBetweenRefactored(
-  head: ListNode | null,
-  left: number,
-  right: number
+    head: ListNode | null,
+    left: number,
+    right: number,
 ): ListNode | null {
-  if (head === null || left === right) return head;
+    if (head === null || left === right) return head;
 
-  // Case 1: reverse from head (left === 1)
-  if (left === 1) {
-    let prev: ListNode | null = null;
-    let curr: ListNode | null = head;
-    for (let i = 0; i < right; i++) {
-      // 制約より curr は null にならない
-      const next: ListNode | null = (curr as ListNode).next;
-      (curr as ListNode).next = prev;
-      prev = curr;
-      curr = next;
+    // Case 1: reverse from head (left === 1)
+    if (left === 1) {
+        let prev: ListNode | null = null;
+        let curr: ListNode | null = head;
+        for (let i = 0; i < right; i++) {
+            // 制約より curr は null にならない
+            const next: ListNode | null = (curr as ListNode).next;
+            (curr as ListNode).next = prev;
+            prev = curr;
+            curr = next;
+        }
+        // head は反転後の末尾になっている
+        (head as ListNode).next = curr;
+        return prev; // 新しい先頭
     }
-    // head は反転後の末尾になっている
-    (head as ListNode).next = curr;
-    return prev; // 新しい先頭
-  }
 
-  // Case 2: reverse a middle/tail segment (left > 1)
-  // 1) move `pre` to node just before `left`
-  let pre: ListNode = head;
-  for (let i = 1; i < left - 1; i++) {
-    pre = pre.next as ListNode; // 制約により非null
-  }
+    // Case 2: reverse a middle/tail segment (left > 1)
+    // 1) move `pre` to node just before `left`
+    let pre: ListNode = head;
+    for (let i = 1; i < left - 1; i++) {
+        pre = pre.next as ListNode; // 制約により非null
+    }
 
-  // 2) reverse `count = right - left + 1` nodes starting from `start`
-  const start: ListNode = pre.next as ListNode; // left位置のノード
-  let prev: ListNode | null = null;
-  let curr: ListNode | null = start;
-  for (let i = 0, count = right - left + 1; i < count; i++) {
-    const next: ListNode | null = (curr as ListNode).next;
-    (curr as ListNode).next = prev;
-    prev = curr;
-    curr = next;
-  }
+    // 2) reverse `count = right - left + 1` nodes starting from `start`
+    const start: ListNode = pre.next as ListNode; // left位置のノード
+    let prev: ListNode | null = null;
+    let curr: ListNode | null = start;
+    for (let i = 0, count = right - left + 1; i < count; i++) {
+        const next: ListNode | null = (curr as ListNode).next;
+        (curr as ListNode).next = prev;
+        prev = curr;
+        curr = next;
+    }
 
-  // 3) reconnect: pre -> (reversed head=prev) -> ... -> (reversed tail=start) -> curr
-  pre.next = prev;
-  start.next = curr;
+    // 3) reconnect: pre -> (reversed head=prev) -> ... -> (reversed tail=start) -> curr
+    pre.next = prev;
+    start.next = curr;
 
-  return head;
+    return head;
 }
 // ```
 

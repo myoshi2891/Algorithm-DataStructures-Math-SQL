@@ -10,7 +10,7 @@
 // ### 関数の型定義
 // ```typescript
 // function lowerBound(arr: number[], target: number): number
-// function insertSorted(arr: number[], value: number): void  
+// function insertSorted(arr: number[], value: number): void
 // function findMinDifference(cards: number[], x: number): number
 // function solve(input: string): string
 // function main(): void
@@ -23,7 +23,7 @@
 // ## パフォーマンス特性（JavaScriptと同等）
 
 // ### 時間計算量
-// - **クエリ1（カード追加）**: O(n) 
+// - **クエリ1（カード追加）**: O(n)
 // - **クエリ2（最小差検索）**: O(log n)
 // - **全体**: O(Q × n)
 
@@ -39,7 +39,6 @@
 // 4. **ランタイム性能**: コンパイル後はJavaScriptと同等の性能
 
 // このTypeScript実装は、元のJavaScript版と同じアルゴリズムを使用しながら、型安全性と開発体験を大幅に向上させています。
-
 
 import * as fs from 'fs';
 

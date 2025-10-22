@@ -62,14 +62,12 @@ GROUP BY player_id;
 ## 4) 要点解説
 
 - **方針**: プレイヤー単位で最初のログイン日を求める
-
-  - ウィンドウ解: 1 行だけ取りたい時に汎用的
-  - 集約解: 純粋に最小日だけでよい時は最速
+    - ウィンドウ解: 1 行だけ取りたい時に汎用的
+    - 集約解: 純粋に最小日だけでよい時は最速
 
 - **NULL / 重複**:
-
-  - 本テーブルは PK により `(player_id, event_date)` が一意 → 同日重複なし
-  - `event_date` はログイン発生日であり通常 `NULL` 想定なし（もしあれば `WHERE event_date IS NOT NULL` を追加）
+    - 本テーブルは PK により `(player_id, event_date)` が一意 → 同日重複なし
+    - `event_date` はログイン発生日であり通常 `NULL` 想定なし（もしあれば `WHERE event_date IS NOT NULL` を追加）
 
 - **安定性**: 返却順不問 → `ORDER BY` 省略で I/O を減らす
 

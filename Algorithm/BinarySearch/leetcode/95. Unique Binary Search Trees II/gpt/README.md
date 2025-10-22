@@ -22,28 +22,25 @@
 - **タイトル**: Unique Binary Search Trees II
 - **要約**: `1..n` の **連続整数**を各ノード値に持つ **構造的に一意な BST** を **すべて生成**して返す。
 - **入出力仕様（簡潔）**
-
-  - 入力: `n: int`
-  - 出力: `List[Optional[TreeNode]]`（各要素は 1 本の BST の根。空木は `None`）
+    - 入力: `n: int`
+    - 出力: `List[Optional[TreeNode]]`（各要素は 1 本の BST の根。空木は `None`）
 
 - **データ構造**: `TreeNode`（二分木）
 - **代表例**
-
-  - `n=3` → `5` 本
-  - `n=1` → `1` 本
+    - `n=3` → `5` 本
+    - `n=1` → `1` 本
 
 - **関数シグネチャ（LeetCode 準拠）**
 
-  ```python
-  class Solution:
-      def generateTrees(self, n: int) -> List[Optional[TreeNode]]:
-          ...
-  ```
+    ```python
+    class Solution:
+        def generateTrees(self, n: int) -> List[Optional[TreeNode]]:
+            ...
+    ```
 
 - **要件**
-
-  - 正当性: すべての構造（同型を 1 回のみ）を網羅
-  - 制約: `1 <= n <= 8`（便宜上 `n==0` は空配列として扱うと自然）
+    - 正当性: すべての構造（同型を 1 回のみ）を網羅
+    - 制約: `1 <= n <= 8`（便宜上 `n==0` は空配列として扱うと自然）
 
 ---
 
@@ -358,23 +355,23 @@ graph LR
 
 - **Tree A**:
 
-  ```text
-  1
-   \
-    2
+    ```text
+    1
      \
-      3
-  ```
+      2
+       \
+        3
+    ```
 
 - **Tree B**:
 
-  ```text
-  1
-   \
-    3
-   /
-  2
-  ```
+    ```text
+    1
+     \
+      3
+     /
+    2
+    ```
 
 ---
 
@@ -399,53 +396,53 @@ graph LR
 
 1. `1, null, 2, null, 3`
 
-   ```text
-   1
-    \
-     2
-      \
-       3
-   ```
+    ```text
+    1
+     \
+      2
+       \
+        3
+    ```
 
 2. `1, null, 3, 2`
 
-   ```text
-   1
-    \
-     3
-    /
-   2
-   ```
+    ```text
+    1
+     \
+      3
+     /
+    2
+    ```
 
 3. `2, 1, 3`
 
-   ```text
-     2
-    / \
-   1   3
-   ```
+    ```text
+      2
+     / \
+    1   3
+    ```
 
 4. `3, 1, null, null, 2`
 
-   ```text
-   3
+    ```text
+    3
 
-   /
-   1
+    /
+    1
 
-   2
+    2
 
-   ```
+    ```
 
 5. `3, 2, null, 1`
 
-   ```text
-   3
-   /
-   2
-   /
-   1
-   ```
+    ```text
+    3
+    /
+    2
+    /
+    1
+    ```
 
 ---
 

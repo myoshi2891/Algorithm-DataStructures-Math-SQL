@@ -25,42 +25,43 @@ const fs = require('fs');
  * @returns {number} - 最大のネスト数
  */
 function maxNestingDepth(boxes) {
-  // 1. X昇順、Xが同じならY降順でソート
-  boxes.sort((a, b) => {
-    if (a[0] === b[0]) return b[1] - a[1]; // Y降順
-    return a[0] - b[0]; // X昇順
-  });
+    // 1. X昇順、Xが同じならY降順でソート
+    boxes.sort((a, b) => {
+        if (a[0] === b[0]) return b[1] - a[1]; // Y降順
+        return a[0] - b[0]; // X昇順
+    });
 
-  // 2. Yのみを取り出して LIS を求める
-  const lis = []; // 単調増加部分列（パイル）
+    // 2. Yのみを取り出して LIS を求める
+    const lis = []; // 単調増加部分列（パイル）
 
-  for (const [_, y] of boxes) {
-    // 二分探索で挿入位置を探す
-    let left = 0, right = lis.length;
-    while (left < right) {
-      const mid = (left + right) >> 1;
-      if (lis[mid] < y) left = mid + 1;
-      else right = mid;
+    for (const [_, y] of boxes) {
+        // 二分探索で挿入位置を探す
+        let left = 0,
+            right = lis.length;
+        while (left < right) {
+            const mid = (left + right) >> 1;
+            if (lis[mid] < y) left = mid + 1;
+            else right = mid;
+        }
+
+        if (left === lis.length) {
+            lis.push(y);
+        } else {
+            lis[left] = y;
+        }
     }
 
-    if (left === lis.length) {
-      lis.push(y);
-    } else {
-      lis[left] = y;
-    }
-  }
-
-  return lis.length;
+    return lis.length;
 }
 
 // 標準入力の読み取り
 function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-  const N = Number(input[0]);
-  const boxes = input.slice(1).map(line => line.split(' ').map(Number));
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const N = Number(input[0]);
+    const boxes = input.slice(1).map((line) => line.split(' ').map(Number));
 
-  const result = maxNestingDepth(boxes);
-  console.log(result);
+    const result = maxNestingDepth(boxes);
+    console.log(result);
 }
 
 main();

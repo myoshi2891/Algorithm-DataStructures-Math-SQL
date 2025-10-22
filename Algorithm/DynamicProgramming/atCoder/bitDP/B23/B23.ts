@@ -15,52 +15,52 @@ import * as fs from 'fs';
  * @returns 最短距離（小数で返却）
  */
 function solveTSP(N: number, coords: [number, number][]): number {
-  const dist: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
+    const dist: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
 
-  // 距離を前計算（ユークリッド距離）
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      const dx = coords[i][0] - coords[j][0];
-      const dy = coords[i][1] - coords[j][1];
-      dist[i][j] = Math.hypot(dx, dy);
+    // 距離を前計算（ユークリッド距離）
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const dx = coords[i][0] - coords[j][0];
+            const dy = coords[i][1] - coords[j][1];
+            dist[i][j] = Math.hypot(dx, dy);
+        }
     }
-  }
 
-  const INF = Infinity;
-  const dp: number[][] = Array.from({ length: 1 << N }, () => Array(N).fill(INF));
-  dp[1][0] = 0; // スタートは都市0（ビット1）
+    const INF = Infinity;
+    const dp: number[][] = Array.from({ length: 1 << N }, () => Array(N).fill(INF));
+    dp[1][0] = 0; // スタートは都市0（ビット1）
 
-  for (let s = 1; s < (1 << N); s++) {
-    for (let u = 0; u < N; u++) {
-      if (!(s & (1 << u))) continue;
-      for (let v = 0; v < N; v++) {
-        if (s & (1 << v)) continue;
-        const ns = s | (1 << v);
-        dp[ns][v] = Math.min(dp[ns][v], dp[s][u] + dist[u][v]);
-      }
+    for (let s = 1; s < 1 << N; s++) {
+        for (let u = 0; u < N; u++) {
+            if (!(s & (1 << u))) continue;
+            for (let v = 0; v < N; v++) {
+                if (s & (1 << v)) continue;
+                const ns = s | (1 << v);
+                dp[ns][v] = Math.min(dp[ns][v], dp[s][u] + dist[u][v]);
+            }
+        }
     }
-  }
 
-  let res = INF;
-  for (let u = 1; u < N; u++) {
-    res = Math.min(res, dp[(1 << N) - 1][u] + dist[u][0]); // 最後にスタートに戻る
-  }
+    let res = INF;
+    for (let u = 1; u < N; u++) {
+        res = Math.min(res, dp[(1 << N) - 1][u] + dist[u][0]); // 最後にスタートに戻る
+    }
 
-  return res;
+    return res;
 }
 
 // --- 入力処理と出力 ---
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const lines: string[] = input.split('\n');
-  const N: number = Number(lines[0]);
-  const coords: [number, number][] = lines.slice(1).map(line => {
-    const [x, y] = line.split(' ').map(Number);
-    return [x, y];
-  });
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const lines: string[] = input.split('\n');
+    const N: number = Number(lines[0]);
+    const coords: [number, number][] = lines.slice(1).map((line) => {
+        const [x, y] = line.split(' ').map(Number);
+        return [x, y];
+    });
 
-  const result = solveTSP(N, coords);
-  console.log(result.toFixed(12)); // 小数第12位まで出力
+    const result = solveTSP(N, coords);
+    console.log(result.toFixed(12)); // 小数第12位まで出力
 }
 
 main();

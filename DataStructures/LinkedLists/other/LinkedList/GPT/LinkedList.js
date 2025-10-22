@@ -56,7 +56,7 @@
 // # 4. コード実装（solution.js）
 
 // ```js
-"use strict";
+'use strict';
 
 /**
  * 単方向リストのノード
@@ -64,8 +64,8 @@
  * @param {number} val - 値
  */
 function ListNode(val) {
-  this.val = val;
-  this.next = null;
+    this.val = val;
+    this.next = null;
 }
 
 /**
@@ -75,82 +75,82 @@ function ListNode(val) {
  * @throws {TypeError|RangeError}
  */
 function solve(input) {
-  const lines = input.trim().split("\n");
-  const [N, Q] = lines[0].split(" ").map(Number);
-  if (!Number.isInteger(N) || !Number.isInteger(Q)) {
-    throw new TypeError("N and Q must be integers");
-  }
-  if (N < 1 || N >= 100 || Q < 1 || Q >= 100) {
-    throw new RangeError("N and Q out of bounds");
-  }
-
-  // 初期リスト作成
-  let head = null,
-    tail = null;
-  for (let i = 0; i < N; i++) {
-    const v = Number(lines[1 + i]);
-    if (!Number.isInteger(v)) throw new TypeError("A_i must be integer");
-    const node = new ListNode(v);
-    if (!head) {
-      head = tail = node;
-    } else {
-      tail.next = node;
-      tail = node;
+    const lines = input.trim().split('\n');
+    const [N, Q] = lines[0].split(' ').map(Number);
+    if (!Number.isInteger(N) || !Number.isInteger(Q)) {
+        throw new TypeError('N and Q must be integers');
     }
-  }
-
-  // クエリ処理
-  let curLine = 1 + N;
-  for (let qi = 0; qi < Q; qi++) {
-    const parts = lines[curLine++].split(" ").map(Number);
-    const type = parts[0];
-
-    if (type === 1) {
-      const [_, P, X] = parts;
-      const newNode = new ListNode(X);
-      if (P === 1) {
-        newNode.next = head;
-        head = newNode;
-        if (!tail) tail = newNode;
-      } else {
-        let prev = head;
-        for (let i = 1; i < P - 1; i++) prev = prev.next;
-        newNode.next = prev.next;
-        prev.next = newNode;
-        if (!newNode.next) tail = newNode;
-      }
-    } else if (type === 2) {
-      const [_, P] = parts;
-      if (P === 1) {
-        head = head.next;
-        if (!head) tail = null;
-      } else {
-        let prev = head;
-        for (let i = 1; i < P - 1; i++) prev = prev.next;
-        prev.next = prev.next.next;
-        if (!prev.next) tail = prev;
-      }
-    } else {
-      throw new RangeError("Invalid query type");
+    if (N < 1 || N >= 100 || Q < 1 || Q >= 100) {
+        throw new RangeError('N and Q out of bounds');
     }
-  }
 
-  // 出力作成
-  const out = [];
-  let node = head;
-  while (node) {
-    out.push(String(node.val));
-    node = node.next;
-  }
-  return out.join("\n");
+    // 初期リスト作成
+    let head = null,
+        tail = null;
+    for (let i = 0; i < N; i++) {
+        const v = Number(lines[1 + i]);
+        if (!Number.isInteger(v)) throw new TypeError('A_i must be integer');
+        const node = new ListNode(v);
+        if (!head) {
+            head = tail = node;
+        } else {
+            tail.next = node;
+            tail = node;
+        }
+    }
+
+    // クエリ処理
+    let curLine = 1 + N;
+    for (let qi = 0; qi < Q; qi++) {
+        const parts = lines[curLine++].split(' ').map(Number);
+        const type = parts[0];
+
+        if (type === 1) {
+            const [_, P, X] = parts;
+            const newNode = new ListNode(X);
+            if (P === 1) {
+                newNode.next = head;
+                head = newNode;
+                if (!tail) tail = newNode;
+            } else {
+                let prev = head;
+                for (let i = 1; i < P - 1; i++) prev = prev.next;
+                newNode.next = prev.next;
+                prev.next = newNode;
+                if (!newNode.next) tail = newNode;
+            }
+        } else if (type === 2) {
+            const [_, P] = parts;
+            if (P === 1) {
+                head = head.next;
+                if (!head) tail = null;
+            } else {
+                let prev = head;
+                for (let i = 1; i < P - 1; i++) prev = prev.next;
+                prev.next = prev.next.next;
+                if (!prev.next) tail = prev;
+            }
+        } else {
+            throw new RangeError('Invalid query type');
+        }
+    }
+
+    // 出力作成
+    const out = [];
+    let node = head;
+    while (node) {
+        out.push(String(node.val));
+        node = node.next;
+    }
+    return out.join('\n');
 }
 
 // 標準入出力
 if (require.main === module) {
-  const fs = require("fs");
-  const input = fs.readFileSync(0, "utf8");
-  const result = solve(input);
-  if (result.length > 0) process.stdout.write(result + "\n");
+    const fs = require('fs');
+    const input = fs.readFileSync(0, 'utf8');
+    const result = solve(input);
+    if (result.length > 0) process.stdout.write(result + '\n');
 }
 
 module.exports = { solve, ListNode };

@@ -70,22 +70,19 @@ WHERE NOT EXISTS (
 ## 3) 要点解説
 
 - アプローチ比較
-
-  - **最適解**は **DENSE_RANK() OVER (PARTITION BY departmentId ORDER BY salary DESC)** で各部門ごとに順位付けし、`rk=1`（最高給与）だけ抽出。**同率（タイ）に強い**のが長所。
-  - **代替 A（GROUP BY + JOIN）** は教科書的な定番：各部門の`MAX(salary)`を求め、同額の行を JOIN で復元するので**タイも網羅**できる。
-  - **代替 B（NOT EXISTS）** は**NULL 罠を避けられるアンチ結合**。`NOT IN`は NULL を含むと全否定になるため不採用方針に合致。
+    - **最適解**は **DENSE_RANK() OVER (PARTITION BY departmentId ORDER BY salary DESC)** で各部門ごとに順位付けし、`rk=1`（最高給与）だけ抽出。**同率（タイ）に強い**のが長所。
+    - **代替 A（GROUP BY + JOIN）** は教科書的な定番：各部門の`MAX(salary)`を求め、同額の行を JOIN で復元するので**タイも網羅**できる。
+    - **代替 B（NOT EXISTS）** は**NULL 罠を避けられるアンチ結合**。`NOT IN`は NULL を含むと全否定になるため不採用方針に合致。
 
 - エッジケース
-
-  - **同率首位**：3 案とも網羅。
-  - **Department に社員不在**：問題仕様上、出力は「最高給与の社員」なので社員がいない部門は自然に不出力（LEFT JOIN は不要）。
-  - **NULL**：`salary`が NULL でも最高にはならない（`>`比較・降順ソートで最後方）。`Department.name`は非 NULL 保証あり。
-  - **重複レコード**：主キー`Employee.id`で一意なので、表示は同一社員が重複しない。
+    - **同率首位**：3 案とも網羅。
+    - **Department に社員不在**：問題仕様上、出力は「最高給与の社員」なので社員がいない部門は自然に不出力（LEFT JOIN は不要）。
+    - **NULL**：`salary`が NULL でも最高にはならない（`>`比較・降順ソートで最後方）。`Department.name`は非 NULL 保証あり。
+    - **重複レコード**：主キー`Employee.id`で一意なので、表示は同一社員が重複しない。
 
 - 実務 Tips
-
-  - 大規模データでは**複合索引 `(departmentId, salary)`** が効く。Window 関数案でもソート・パーティションに利く。
-  - クエリプランにより、集約＋ JOIN 案が最速になるケースもある（カーディナリティが高いほど有利な傾向）。
+    - 大規模データでは**複合索引 `(departmentId, salary)`** が効く。Window 関数案でもソート・パーティションに利く。
+    - クエリプランにより、集約＋ JOIN 案が最速になるケースもある（カーディナリティが高いほど有利な傾向）。
 
 ## 4) 計算量（概算）
 

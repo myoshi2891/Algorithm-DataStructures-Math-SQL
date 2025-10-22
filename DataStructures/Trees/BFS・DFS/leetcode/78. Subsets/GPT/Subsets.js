@@ -158,30 +158,30 @@
 // その場合は以下のように書き換える必要があります。
 
 // ```javascript
-"use strict";
+'use strict';
 
 /**
  * @param {number[]} nums
  * @return {number[][]}
  */
 var subsets = function (nums) {
-  const n = nums.length;
-  const res = [];
-  const subset = [];
+    const n = nums.length;
+    const res = [];
+    const subset = [];
 
-  function dfs(idx) {
-    if (idx === n) {
-      res.push(subset.slice());
-      return;
+    function dfs(idx) {
+        if (idx === n) {
+            res.push(subset.slice());
+            return;
+        }
+        dfs(idx + 1);
+        subset.push(nums[idx]);
+        dfs(idx + 1);
+        subset.pop();
     }
-    dfs(idx + 1);
-    subset.push(nums[idx]);
-    dfs(idx + 1);
-    subset.pop();
-  }
 
-  dfs(0);
-  return res;
+    dfs(0);
+    return res;
 };
 
 module.exports = { subsets }; // LeetCode 実行環境用

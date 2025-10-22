@@ -29,7 +29,7 @@ function longestPalindromicSubsequence(S: string): number {
         for (let i = 0; i <= N - len; i++) {
             const j = i + len - 1;
             if (S[i] === S[j]) {
-                dp[i][j] = (len === 2) ? 2 : dp[i + 1][j - 1] + 2;
+                dp[i][j] = len === 2 ? 2 : dp[i + 1][j - 1] + 2;
             } else {
                 dp[i][j] = Math.max(dp[i + 1][j], dp[i][j - 1]);
             }
@@ -40,7 +40,7 @@ function longestPalindromicSubsequence(S: string): number {
 }
 
 // --- 入力処理 ---
-const input: string[] = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
+const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const N: number = Number(input[0]);
 const S: string = input[1];
 

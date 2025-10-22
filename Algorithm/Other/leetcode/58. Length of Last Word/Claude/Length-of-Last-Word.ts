@@ -21,18 +21,18 @@
 function lengthOfLastWord(s: string): number {
     // 文字列の末尾から開始して、スペースをスキップ
     let i = s.length - 1;
-    
+
     // 末尾のスペースをスキップ
     while (i >= 0 && s[i] === ' ') {
         i--;
     }
-    
+
     // 最後の単語の長さをカウント
     let length = 0;
     while (i >= 0 && s[i] !== ' ') {
         length++;
         i--;
     }
-    
+
     return length;
 }

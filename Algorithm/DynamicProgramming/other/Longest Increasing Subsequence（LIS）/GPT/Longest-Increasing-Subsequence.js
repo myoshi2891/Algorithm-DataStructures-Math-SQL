@@ -16,7 +16,7 @@
 // ### 実装 (JavaScript, Node.js v16.17.1)
 
 // ```javascript
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * n人の身長配列から「背の順である区間の最長長さ」を求める
@@ -27,7 +27,7 @@ function longestNonDecreasingSubarray(heights) {
     const n = heights.length;
     if (n === 0) return 0;
 
-    let maxLen = 1;    // 最長区間長
+    let maxLen = 1; // 最長区間長
     let currentLen = 1; // 現在の区間長
 
     for (let i = 1; i < n; i++) {
@@ -45,7 +45,7 @@ function longestNonDecreasingSubarray(heights) {
 }
 
 // 標準入力処理
-const input = fs.readFileSync(0, "utf8").trim().split("\n").map(Number);
+const input = fs.readFileSync(0, 'utf8').trim().split('\n').map(Number);
 const n = input[0];
 const heights = input.slice(1, n + 1);
 
@@ -67,4 +67,3 @@ console.log(result);
 // ---
 
 // ✅ **効率的で、大規模入力 (n=200,000) でも高速に処理可能です。**
-

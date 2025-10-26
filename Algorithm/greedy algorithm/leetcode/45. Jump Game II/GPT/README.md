@@ -8,23 +8,23 @@
 
 ```typescript
 function jump(nums: number[]): number {
-  const n: number = nums.length;
-  if (n <= 1) return 0;
+    const n: number = nums.length;
+    if (n <= 1) return 0;
 
-  let jumps: number = 0;        // 最小ジャンプ回数
-  let currentEnd: number = 0;   // 現在のジャンプで到達できる範囲の終端
-  let farthest: number = 0;     // 現時点で到達可能な最も遠い位置
+    let jumps: number = 0; // 最小ジャンプ回数
+    let currentEnd: number = 0; // 現在のジャンプで到達できる範囲の終端
+    let farthest: number = 0; // 現時点で到達可能な最も遠い位置
 
-  for (let i = 0; i < n - 1; i++) {
-    farthest = Math.max(farthest, i + nums[i]);
-    if (i === currentEnd) {
-      jumps++;
-      currentEnd = farthest;
-      if (currentEnd >= n - 1) break;
+    for (let i = 0; i < n - 1; i++) {
+        farthest = Math.max(farthest, i + nums[i]);
+        if (i === currentEnd) {
+            jumps++;
+            currentEnd = farthest;
+            if (currentEnd >= n - 1) break;
+        }
     }
-  }
 
-  return jumps;
+    return jumps;
 }
 ```
 
@@ -32,9 +32,9 @@ function jump(nums: number[]): number {
 
 ## アルゴリズムの考え方
 
-* **currentEnd** … 今のジャンプで行ける「区間の終端」
-* **farthest** … 次のジャンプで到達可能な「最も遠いインデックス」
-* **jumps** … ジャンプ回数
+- **currentEnd** … 今のジャンプで行ける「区間の終端」
+- **farthest** … 次のジャンプで到達可能な「最も遠いインデックス」
+- **jumps** … ジャンプ回数
 
 `for` ループで **i が currentEnd に到達したときにジャンプ回数を増やす** のがポイントです。
 
@@ -57,7 +57,7 @@ farthest = 0
 
 ### ステップ 1: i = 0
 
-* `farthest = max(0, 0 + nums[0]) = max(0, 2) = 2`
+- `farthest = max(0, 0 + nums[0]) = max(0, 2) = 2`
 
 ```
 [0]───→(到達可能: 1,2)
@@ -65,16 +65,15 @@ currentEnd = 0
 farthest   = 2
 ```
 
-* `i === currentEnd (0)` なのでジャンプ回数を増加
-
-  * `jumps = 1`
-  * `currentEnd = farthest = 2`
+- `i === currentEnd (0)` なのでジャンプ回数を増加
+    - `jumps = 1`
+    - `currentEnd = farthest = 2`
 
 ---
 
 ### ステップ 2: i = 1
 
-* `farthest = max(2, 1 + nums[1]) = max(2, 4) = 4`
+- `farthest = max(2, 1 + nums[1]) = max(2, 4) = 4`
 
 ```
 [1]───→(到達可能: 2,3,4)
@@ -82,13 +81,13 @@ currentEnd = 2
 farthest   = 4
 ```
 
-* `i !== currentEnd` なのでジャンプ回数はまだ増えない
+- `i !== currentEnd` なのでジャンプ回数はまだ増えない
 
 ---
 
 ### ステップ 3: i = 2
 
-* `farthest = max(4, 2 + nums[2]) = max(4, 3) = 4`
+- `farthest = max(4, 2 + nums[2]) = max(4, 3) = 4`
 
 ```
 [2]───→(到達可能: 3)
@@ -96,17 +95,16 @@ currentEnd = 2
 farthest   = 4
 ```
 
-* `i === currentEnd (2)` → ジャンプ回数を増加
-
-  * `jumps = 2`
-  * `currentEnd = farthest = 4`
+- `i === currentEnd (2)` → ジャンプ回数を増加
+    - `jumps = 2`
+    - `currentEnd = farthest = 4`
 
 ---
 
 ### ステップ 4: currentEnd >= n-1 で終了
 
-* `currentEnd = 4 (最後のインデックス)`
-* ループ終了 → 答え = `jumps = 2`
+- `currentEnd = 4 (最後のインデックス)`
+- ループ終了 → 答え = `jumps = 2`
 
 ---
 
@@ -137,12 +135,11 @@ jump2:          [===========] (1 → 4)
 
 ## 計算量とメモリ消費
 
-* **計算量**: `O(n)`
+- **計算量**: `O(n)`
+    - 各要素を一度走査するだけ。
 
-  * 各要素を一度走査するだけ。
-* **メモリ使用量**: `O(1)`
-
-  * `jumps`, `currentEnd`, `farthest` の3変数だけ。
+- **メモリ使用量**: `O(1)`
+    - `jumps`, `currentEnd`, `farthest` の3変数だけ。
 
 ---
 

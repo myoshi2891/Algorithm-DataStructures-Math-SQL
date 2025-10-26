@@ -29,9 +29,9 @@ function searchInsertGPT(nums: number[], target: number): number {
         const mid = left + ((right - left) >> 1);
 
         if (nums[mid] === target) {
-            return mid;  // targetが見つかった場合
+            return mid; // targetが見つかった場合
         } else if (nums[mid] < target) {
-            left = mid + 1;  // 右半分を探索
+            left = mid + 1; // 右半分を探索
         } else {
             right = mid - 1; // 左半分を探索
         }

@@ -30,7 +30,7 @@ function countWays(n, a, b, c) {
     // メモリ効率のために長さ n+1 の配列のみ使用
     const dp = Array(n + 1).fill(0);
     dp[0] = 1; // 段数0の場合、何もしない1通り
-    
+
     // i 段目までの方法数を計算
     for (let i = 1; i <= n; i++) {
         if (i - a >= 0) dp[i] += dp[i - a];
@@ -56,7 +56,7 @@ console.log(result);
 
 // 処理時間とメモリ使用量を出力（参考）
 console.error(`処理時間: ${(Number(endTime - startTime) / 1e6).toFixed(3)} ms`);
-console.error(`メモリ使用量: ${(endMem - startMem)} bytes`);
+console.error(`メモリ使用量: ${endMem - startMem} bytes`);
 // ```
 
 // ---

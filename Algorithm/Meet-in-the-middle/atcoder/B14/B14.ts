@@ -8,53 +8,54 @@
 import * as fs from 'fs';
 
 function getSubsetSums(arr: number[]): number[] {
-  const result: number[] = [];
-  const n: number = arr.length;
-  for (let bit = 0; bit < (1 << n); bit++) {
-    let sum = 0;
-    for (let i = 0; i < n; i++) {
-      if (bit & (1 << i)) sum += arr[i];
+    const result: number[] = [];
+    const n: number = arr.length;
+    for (let bit = 0; bit < 1 << n; bit++) {
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+            if (bit & (1 << i)) sum += arr[i];
+        }
+        result.push(sum);
     }
-    result.push(sum);
-  }
-  return result;
+    return result;
 }
 
 function binarySearch(arr: number[], target: number): boolean {
-  let left = 0, right = arr.length - 1;
-  while (left <= right) {
-    const mid = (left + right) >> 1;
-    if (arr[mid] === target) return true;
-    if (arr[mid] < target) left = mid + 1;
-    else right = mid - 1;
-  }
-  return false;
+    let left = 0,
+        right = arr.length - 1;
+    while (left <= right) {
+        const mid = (left + right) >> 1;
+        if (arr[mid] === target) return true;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return false;
 }
 
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const tokens: number[] = input.split(/\s+/).map(Number);
-  const N: number = tokens[0];
-  const K: number = tokens[1];
-  const A: number[] = tokens.slice(2);
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const tokens: number[] = input.split(/\s+/).map(Number);
+    const N: number = tokens[0];
+    const K: number = tokens[1];
+    const A: number[] = tokens.slice(2);
 
-  const mid: number = Math.floor(N / 2);
-  const left: number[] = A.slice(0, mid);
-  const right: number[] = A.slice(mid);
+    const mid: number = Math.floor(N / 2);
+    const left: number[] = A.slice(0, mid);
+    const right: number[] = A.slice(mid);
 
-  const leftSums: number[] = getSubsetSums(left);
-  const rightSums: number[] = getSubsetSums(right);
-  rightSums.sort((a, b) => a - b);
+    const leftSums: number[] = getSubsetSums(left);
+    const rightSums: number[] = getSubsetSums(right);
+    rightSums.sort((a, b) => a - b);
 
-  for (const x of leftSums) {
-    const remain = K - x;
-    if (binarySearch(rightSums, remain)) {
-      console.log("Yes");
-      return;
+    for (const x of leftSums) {
+        const remain = K - x;
+        if (binarySearch(rightSums, remain)) {
+            console.log('Yes');
+            return;
+        }
     }
-  }
 
-  console.log("No");
+    console.log('No');
 }
 
 main();

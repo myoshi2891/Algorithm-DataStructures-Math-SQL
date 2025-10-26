@@ -1,7 +1,7 @@
-const fs = require("fs");
+const fs = require('fs');
 
 // 標準入力を読み込み（Node.js向け）
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 
 const Q = parseInt(input[0]);
 const queries = input.slice(1).map(Number);
@@ -12,17 +12,17 @@ const is_prime = new Array(MAX + 1).fill(true);
 is_prime[0] = is_prime[1] = false;
 
 for (let i = 2; i * i <= MAX; i++) {
-	if (is_prime[i]) {
-		for (let j = i * i; j <= MAX; j += i) {
-			is_prime[j] = false;
-		}
-	}
+    if (is_prime[i]) {
+        for (let j = i * i; j <= MAX; j += i) {
+            is_prime[j] = false;
+        }
+    }
 }
 
 // ===== 質問に答える =====
 for (let i = 0; i < Q; i++) {
-	const x = queries[i];
-	console.log(is_prime[x] ? "Yes" : "No");
+    const x = queries[i];
+    console.log(is_prime[x] ? 'Yes' : 'No');
 }
 
 // const fs = require("fs");

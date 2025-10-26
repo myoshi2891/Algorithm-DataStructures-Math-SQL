@@ -31,93 +31,93 @@
 
 /**
  * k個のソート済み連結リストをマージして1つのソート済み連結リストを返す
- * 
+ *
  * @param lists - ListNode型の配列。各要素はソート済み連結リストの先頭ノード
  * @returns ListNode | null - マージされたソート済み連結リストの先頭ノード
  */
 function mergeKLists(lists: Array<ListNode | null>): ListNode | null {
-  // 最小ヒープを表現するクラス（バイナリヒープ）
-  class MinHeap {
-    private heap: Array<ListNode>;
+    // 最小ヒープを表現するクラス（バイナリヒープ）
+    class MinHeap {
+        private heap: Array<ListNode>;
 
-    constructor() {
-      this.heap = [];
-    }
-
-    push(node: ListNode): void {
-      this.heap.push(node);
-      this._heapifyUp(this.heap.length - 1);
-    }
-
-    pop(): ListNode | undefined {
-      if (this.heap.length === 0) return undefined;
-      const min = this.heap[0];
-      const end = this.heap.pop()!;
-      if (this.heap.length > 0) {
-        this.heap[0] = end;
-        this._heapifyDown(0);
-      }
-      return min;
-    }
-
-    size(): number {
-      return this.heap.length;
-    }
-
-    private _heapifyUp(index: number): void {
-      while (index > 0) {
-        const parent = Math.floor((index - 1) / 2);
-        if (this.heap[index].val < this.heap[parent].val) {
-          [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
-          index = parent;
-        } else {
-          break;
+        constructor() {
+            this.heap = [];
         }
-      }
-    }
 
-    private _heapifyDown(index: number): void {
-      const length = this.heap.length;
-      while (true) {
-        let smallest = index;
-        const left = 2 * index + 1;
-        const right = 2 * index + 2;
-
-        if (left < length && this.heap[left].val < this.heap[smallest].val) {
-          smallest = left;
+        push(node: ListNode): void {
+            this.heap.push(node);
+            this._heapifyUp(this.heap.length - 1);
         }
-        if (right < length && this.heap[right].val < this.heap[smallest].val) {
-          smallest = right;
+
+        pop(): ListNode | undefined {
+            if (this.heap.length === 0) return undefined;
+            const min = this.heap[0];
+            const end = this.heap.pop()!;
+            if (this.heap.length > 0) {
+                this.heap[0] = end;
+                this._heapifyDown(0);
+            }
+            return min;
         }
-        if (smallest === index) break;
-        [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
-        index = smallest;
-      }
+
+        size(): number {
+            return this.heap.length;
+        }
+
+        private _heapifyUp(index: number): void {
+            while (index > 0) {
+                const parent = Math.floor((index - 1) / 2);
+                if (this.heap[index].val < this.heap[parent].val) {
+                    [this.heap[index], this.heap[parent]] = [this.heap[parent], this.heap[index]];
+                    index = parent;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        private _heapifyDown(index: number): void {
+            const length = this.heap.length;
+            while (true) {
+                let smallest = index;
+                const left = 2 * index + 1;
+                const right = 2 * index + 2;
+
+                if (left < length && this.heap[left].val < this.heap[smallest].val) {
+                    smallest = left;
+                }
+                if (right < length && this.heap[right].val < this.heap[smallest].val) {
+                    smallest = right;
+                }
+                if (smallest === index) break;
+                [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
+                index = smallest;
+            }
+        }
     }
-  }
 
-  const heap = new MinHeap();
+    const heap = new MinHeap();
 
-  // 各リストの先頭ノードをヒープに追加
-  for (const node of lists) {
-    if (node !== null) {
-      heap.push(node);
+    // 各リストの先頭ノードをヒープに追加
+    for (const node of lists) {
+        if (node !== null) {
+            heap.push(node);
+        }
     }
-  }
 
-  const dummy = new ListNode(0);
-  let current = dummy;
+    const dummy = new ListNode(0);
+    let current = dummy;
 
-  while (heap.size() > 0) {
-    const node = heap.pop()!;
-    current.next = node;
-    current = current.next;
-    if (node.next !== null) {
-      heap.push(node.next);
+    while (heap.size() > 0) {
+        const node = heap.pop()!;
+        current.next = node;
+        current = current.next;
+        if (node.next !== null) {
+            heap.push(node.next);
+        }
     }
-  }
 
-  return dummy.next;
+    return dummy.next;
 }
 // ```
 

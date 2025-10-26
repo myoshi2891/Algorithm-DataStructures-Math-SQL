@@ -1,4 +1,3 @@
-
 ---
 
 # 🌳 AVL木とは？
@@ -35,7 +34,7 @@ a                   b
 コードでの呼び出し：
 
 ```ts
-rotateRight(y)
+rotateRight(y);
 ```
 
 ---
@@ -56,7 +55,7 @@ rotateRight(y)
 コードでの呼び出し：
 
 ```ts
-rotateLeft(x)
+rotateLeft(x);
 ```
 
 ---
@@ -77,8 +76,8 @@ rotateLeft(x)
 コード：
 
 ```ts
-node.left = rotateLeft(node.left)
-rotateRight(node)
+node.left = rotateLeft(node.left);
+rotateRight(node);
 ```
 
 ---
@@ -99,8 +98,8 @@ rotateRight(node)
 コード：
 
 ```ts
-node.right = rotateRight(node.right)
-rotateLeft(node)
+node.right = rotateRight(node.right);
+rotateLeft(node);
 ```
 
 ---
@@ -199,10 +198,9 @@ Step 3: insert(30)
 
 ### ロジック：
 
-* 木を辿りながら、
-
-  * `node.value >= x` → 候補に入れ、左部分木へ（より小さい値があるかも）
-  * `node.value < x` → 右部分木へ
+- 木を辿りながら、
+    - `node.value >= x` → 候補に入れ、左部分木へ（より小さい値があるかも）
+    - `node.value < x` → 右部分木へ
 
 ---
 
@@ -228,19 +226,18 @@ Step 3: insert(30)
 
 # ✅ まとめ：AVL木の強み
 
-| 操作         | 計算量      | 安定性 | 説明             |
-| ---------- | -------- | --- | -------------- |
-| 挿入         | O(log N) | 高   | 自動で回転調整        |
-| 削除         | O(log N) | 高   | 回転により常に平衡維持    |
-| lowerBound | O(log N) | 高   | 左右どちらにも探索できる構造 |
+| 操作       | 計算量   | 安定性 | 説明                         |
+| ---------- | -------- | ------ | ---------------------------- |
+| 挿入       | O(log N) | 高     | 自動で回転調整               |
+| 削除       | O(log N) | 高     | 回転により常に平衡維持       |
+| lowerBound | O(log N) | 高     | 左右どちらにも探索できる構造 |
 
 ---
 
 ## 📘 補足
 
-* AVL木はキーが頻繁に追加・削除される場合に非常に有効です。
-* 二分探索配列に比べて挿入・削除が効率的（O(N) → O(log N)）。
-* バランスロジックは回転だけで実現可能なため、意外とシンプルです。
+- AVL木はキーが頻繁に追加・削除される場合に非常に有効です。
+- 二分探索配列に比べて挿入・削除が効率的（O(N) → O(log N)）。
+- バランスロジックは回転だけで実現可能なため、意外とシンプルです。
 
 ---
-

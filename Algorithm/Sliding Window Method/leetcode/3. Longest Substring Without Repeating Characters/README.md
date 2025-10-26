@@ -4,9 +4,9 @@
 
 ### ✅ 解法概要（スライディングウィンドウ + ハッシュマップ）
 
-* `start`：ウィンドウの左端のインデックス
-* `charIndexMap`：各文字が最後に現れたインデックスを記録
-* `maxLength`：重複なし部分文字列の最大長
+- `start`：ウィンドウの左端のインデックス
+- `charIndexMap`：各文字が最後に現れたインデックスを記録
+- `maxLength`：重複なし部分文字列の最大長
 
 ---
 
@@ -42,19 +42,19 @@ function lengthOfLongestSubstring(s: string): number {
 ### 🧪 例の検証
 
 ```typescript
-console.log(lengthOfLongestSubstring("abcabcbb")); // 3 ("abc")
-console.log(lengthOfLongestSubstring("bbbbb"));    // 1 ("b")
-console.log(lengthOfLongestSubstring("pwwkew"));   // 3 ("wke")
-console.log(lengthOfLongestSubstring(""));         // 0
-console.log(lengthOfLongestSubstring(" "));        // 1
-console.log(lengthOfLongestSubstring("au"));       // 2
+console.log(lengthOfLongestSubstring('abcabcbb')); // 3 ("abc")
+console.log(lengthOfLongestSubstring('bbbbb')); // 1 ("b")
+console.log(lengthOfLongestSubstring('pwwkew')); // 3 ("wke")
+console.log(lengthOfLongestSubstring('')); // 0
+console.log(lengthOfLongestSubstring(' ')); // 1
+console.log(lengthOfLongestSubstring('au')); // 2
 ```
 
 ---
 
 ### 📊 計算量
 
-* **時間計算量**: O(n)（各文字を一度ずつスキャン）
-* **空間計算量**: O(min(n, m))（mは使用される文字の種類の数）
+- **時間計算量**: O(n)（各文字を一度ずつスキャン）
+- **空間計算量**: O(min(n, m))（mは使用される文字の種類の数）
 
 ---

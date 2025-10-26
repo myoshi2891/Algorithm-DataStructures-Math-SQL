@@ -6,8 +6,8 @@
  * 最小の欠けている正整数を返す
  * @param {number[]} nums - 整数配列（順不同、重複あり、負数あり）
  * @returns {number} - 配列に存在しない最小の正の整数
- * 
- * 時間計算量: O(n)  
+ *
+ * 時間計算量: O(n)
  * 空間計算量: O(1) （インプレース処理）
  * Node.js 18.16.1 / LeetCode 環境対応
  */
@@ -16,11 +16,7 @@ function firstMissingPositive(nums) {
 
     // インプレースで正しい位置に正整数を配置
     for (let i = 0; i < n; i++) {
-        while (
-            nums[i] > 0 &&
-            nums[i] <= n &&
-            nums[nums[i] - 1] !== nums[i]
-        ) {
+        while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {
             const correctIndex = nums[i] - 1;
             // ES6構文でスワップ
             [nums[i], nums[correctIndex]] = [nums[correctIndex], nums[i]];

@@ -24,7 +24,7 @@
  */
 function removeDuplicatesJs(nums) {
     // 先頭要素は常にユニーク
-    let k = 1; 
+    let k = 1;
 
     // 配列が空でないことが保証されているので、0番目を基準として開始
     for (let i = 1; i < nums.length; i++) {

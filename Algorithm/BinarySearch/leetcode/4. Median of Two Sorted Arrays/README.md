@@ -1,11 +1,8 @@
-
 ---
-
 ## 🎯 目的
 
 与えられた **ソート済み配列 `nums1` と `nums2`** を統合したときの **中央値（median）** を求める。
 ただし、**O(log(min(m, n)))** の時間で解くことが条件。
-
 ---
 
 ## 🔑 アルゴリズムの核心アイデア
@@ -44,10 +41,10 @@ nums2 = [2]
         [2 | ]
 ```
 
-* maxLeftX = 1
-* minRightX = 3
-* maxLeftY = 2
-* minRightY = +∞（右側が空）
+- maxLeftX = 1
+- minRightX = 3
+- maxLeftY = 2
+- minRightY = +∞（右側が空）
 
 ### ✅ 条件チェック
 

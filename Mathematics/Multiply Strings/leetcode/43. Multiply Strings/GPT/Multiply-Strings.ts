@@ -10,7 +10,7 @@
  */
 function multiply(num1: string, num2: string): string {
     // "0" の場合は即座に返す（不要な計算を避ける）
-    if (num1 === "0" || num2 === "0") return "0";
+    if (num1 === '0' || num2 === '0') return '0';
 
     const m: number = num1.length;
     const n: number = num2.length;
@@ -35,7 +35,7 @@ function multiply(num1: string, num2: string): string {
         start++;
     }
 
-    return result.slice(start).join("");
+    return result.slice(start).join('');
 }
 // ```
 
@@ -52,4 +52,3 @@ function multiply(num1: string, num2: string): string {
 
 //   * 計算配列 `result` は 401 要素以内で固定。
 //   * 追加の文字列連結は最後に一度だけ。
-

@@ -12,12 +12,12 @@
 
 // ### ✅ 実装（`fs` 使用, JavaScript）：
 
-const fs = require("fs");
+const fs = require('fs');
 
 // 入力読み込み
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
-const [N, K] = input[0].split(" ").map(Number);
-const A = input[1].split(" ").map(Number);
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+const [N, K] = input[0].split(' ').map(Number);
+const A = input[1].split(' ').map(Number);
 
 // Two pointers 法（しゃくとり法）
 let count = 0;
@@ -61,4 +61,3 @@ console.log(count);
 // * **一度に全要素読み取り (`fs.readFileSync`)**
 // * **不要な再計算を避ける (`sum`の再利用)**
 // * **定数倍も意識し、`split(" ")`最小限使用**
-

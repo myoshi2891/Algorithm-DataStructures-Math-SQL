@@ -12,9 +12,9 @@
 // ## 実装（JavaScript / Node.js v16.17.1）
 
 // ```javascript
-"use strict";
+'use strict';
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * n: 必要なりんごの個数
@@ -24,7 +24,7 @@ const fs = require("fs");
  * b: y個入りセットの価格
  * z: z個入りセットのりんご
  * c: z個入りセットの価格
- * 
+ *
  * @returns {number} n個以上のりんごを買うのに必要な最小金額
  */
 function minCost(n, x, a, y, b, z, c) {
@@ -51,7 +51,7 @@ function minCost(n, x, a, y, b, z, c) {
 
 // ---------- メイン処理 ----------
 (function main() {
-    const input = fs.readFileSync(0, "utf8").trim().split(/\s+/).map(Number);
+    const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
     const [n, x, a, y, b, z, c] = input;
     const result = minCost(n, x, a, y, b, z, c);
 

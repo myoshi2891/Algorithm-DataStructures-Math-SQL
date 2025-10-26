@@ -1,13 +1,13 @@
 // ```javascript
 /**
  * 最大部分配列和を求める関数
- * 
+ *
  * @param {number[]} nums - 整数配列（長さは 1 <= nums.length <= 1e5, 要素は -1e4 <= nums[i] <= 1e4）
  * @returns {number} - 最大部分配列の和
- * 
+ *
  * 処理時間: O(n)  （1回の走査のみ）
  * メモリ使用量: O(1) （追加で使用する変数は定数個のみ）
- * 
+ *
  * アルゴリズム: Kadane's Algorithm
  * - 各要素を見ながら「その位置で終わる最大部分和」を更新
  * - 全体の最大部分和を追跡
@@ -35,4 +35,3 @@ function maxSubArray(nums) {
 // * LeetCode の制約（配列長最大 `1e5`）でも十分高速に動作します。
 
 // もしご希望なら、次に **Divide and Conquer** アプローチ (O(n log n)) の解法も実装可能ですが、まずは O(n) 解法を示しました。
-

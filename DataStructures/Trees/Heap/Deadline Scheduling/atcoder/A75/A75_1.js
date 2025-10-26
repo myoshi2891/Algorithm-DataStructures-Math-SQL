@@ -1,10 +1,10 @@
-const fs = require("fs");
+const fs = require('fs');
 
 function main(input) {
-    const lines = input.trim().split("\n");
+    const lines = input.trim().split('\n');
     const N = parseInt(lines[0]);
-    const problems = lines.slice(1).map(line => {
-        const [T, D] = line.split(" ").map(Number);
+    const problems = lines.slice(1).map((line) => {
+        const [T, D] = line.split(' ').map(Number);
         return { T, D };
     });
 
@@ -32,4 +32,4 @@ function main(input) {
 }
 
 // 標準入力から
-main(fs.readFileSync(0, "utf8"));
+main(fs.readFileSync(0, 'utf8'));

@@ -14,53 +14,53 @@ const fs = require('fs');
  * @returns {number} - 最短距離（絶対/相対誤差10^-3未満で正解）
  */
 function solveTSP(N, coords) {
-  const dist = Array.from({ length: N }, () => Array(N).fill(0));
+    const dist = Array.from({ length: N }, () => Array(N).fill(0));
 
-  // 距離を前計算
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      const dx = coords[i][0] - coords[j][0];
-      const dy = coords[i][1] - coords[j][1];
-      dist[i][j] = Math.hypot(dx, dy); // √(dx² + dy²)
+    // 距離を前計算
+    for (let i = 0; i < N; i++) {
+        for (let j = 0; j < N; j++) {
+            const dx = coords[i][0] - coords[j][0];
+            const dy = coords[i][1] - coords[j][1];
+            dist[i][j] = Math.hypot(dx, dy); // √(dx² + dy²)
+        }
     }
-  }
 
-  const INF = Infinity;
-  const dp = Array.from({ length: 1 << N }, () => Array(N).fill(INF));
+    const INF = Infinity;
+    const dp = Array.from({ length: 1 << N }, () => Array(N).fill(INF));
 
-  // 初期位置を全都市として開始（0都市からスタート）
-  dp[1][0] = 0;
+    // 初期位置を全都市として開始（0都市からスタート）
+    dp[1][0] = 0;
 
-  for (let s = 1; s < (1 << N); s++) {
-    for (let u = 0; u < N; u++) {
-      if (!(s & (1 << u))) continue;
-      for (let v = 0; v < N; v++) {
-        if (s & (1 << v)) continue;
-        const ns = s | (1 << v);
-        dp[ns][v] = Math.min(dp[ns][v], dp[s][u] + dist[u][v]);
-      }
+    for (let s = 1; s < 1 << N; s++) {
+        for (let u = 0; u < N; u++) {
+            if (!(s & (1 << u))) continue;
+            for (let v = 0; v < N; v++) {
+                if (s & (1 << v)) continue;
+                const ns = s | (1 << v);
+                dp[ns][v] = Math.min(dp[ns][v], dp[s][u] + dist[u][v]);
+            }
+        }
     }
-  }
 
-  // 最後に戻る距離を加える
-  let res = INF;
-  for (let u = 1; u < N; u++) {
-    res = Math.min(res, dp[(1 << N) - 1][u] + dist[u][0]);
-  }
+    // 最後に戻る距離を加える
+    let res = INF;
+    for (let u = 1; u < N; u++) {
+        res = Math.min(res, dp[(1 << N) - 1][u] + dist[u][0]);
+    }
 
-  return res;
+    return res;
 }
 
 // 入力処理
 (function main() {
-  const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-  const N = parseInt(input[0], 10);
-  const coords = input.slice(1).map(line => line.split(' ').map(Number));
+    const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const N = parseInt(input[0], 10);
+    const coords = input.slice(1).map((line) => line.split(' ').map(Number));
 
-  const result = solveTSP(N, coords);
+    const result = solveTSP(N, coords);
 
-  // 絶対誤差・相対誤差が 1e-3 未満になるように出力（12桁精度）
-  console.log(result.toFixed(12));
+    // 絶対誤差・相対誤差が 1e-3 未満になるように出力（12桁精度）
+    console.log(result.toFixed(12));
 })();
 
 // ### ✅ 解説

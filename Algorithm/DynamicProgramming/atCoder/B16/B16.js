@@ -60,23 +60,20 @@
 const fs = require('fs');
 
 function main(input) {
-  const lines = input.trim().split('\n');
-  const N = parseInt(lines[0], 10);
-  const h = lines[1].split(' ').map(Number);
+    const lines = input.trim().split('\n');
+    const N = parseInt(lines[0], 10);
+    const h = lines[1].split(' ').map(Number);
 
-  let prev2 = 0;  // dp[i-2]
-  let prev1 = Math.abs(h[1] - h[0]);  // dp[i-1]
+    let prev2 = 0; // dp[i-2]
+    let prev1 = Math.abs(h[1] - h[0]); // dp[i-1]
 
-  for (let i = 2; i < N; i++) {
-    const curr = Math.min(
-      prev1 + Math.abs(h[i] - h[i - 1]),
-      prev2 + Math.abs(h[i] - h[i - 2])
-    );
-    prev2 = prev1;
-    prev1 = curr;
-  }
+    for (let i = 2; i < N; i++) {
+        const curr = Math.min(prev1 + Math.abs(h[i] - h[i - 1]), prev2 + Math.abs(h[i] - h[i - 2]));
+        prev2 = prev1;
+        prev1 = curr;
+    }
 
-  console.log(prev1);
+    console.log(prev1);
 }
 
 main(fs.readFileSync('/dev/stdin', 'utf8'));
@@ -91,4 +88,3 @@ main(fs.readFileSync('/dev/stdin', 'utf8'));
 // 出力:
 // 30
 // ```
-

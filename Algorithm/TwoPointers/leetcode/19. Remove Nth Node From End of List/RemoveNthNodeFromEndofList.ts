@@ -32,53 +32,53 @@ class ListNode {
 }
 /**
  * 指定されたリンクリストの末尾から n 番目のノードを削除し、リストの先頭を返す
- * 
+ *
  * @param head - リンクリストの先頭ノード
  * @param n - 末尾から数えて削除するノードの位置（1-based index）
  * @returns リンクリストの先頭ノード（n番目を削除後）
- * 
+ *
  * 時間計算量: O(sz)
  * メモリ消費量: O(1)（追加のメモリは定数）
  */
 function removeNthFromEnd(head: ListNode | null, n: number): ListNode | null {
-/**
- * 指定されたリンクリストの末尾から n 番目のノードを削除し、リストの先頭を返します。
- * 
- * @param head - リンクリストの先頭ノード。null の場合、何もしないで null を返します。
- * @param n - 末尾から数えて削除するノードの位置（1-based index）。
- * @returns リンクリストの先頭ノード（n番目を削除後）。
- * 
- * 時間計算量: O(sz)
- * メモリ消費量: O(1)（追加のメモリは定数）
- */
-function removeNthFromEnd(head: ListNode | null, n: number): ListNode | null {
+    /**
+     * 指定されたリンクリストの末尾から n 番目のノードを削除し、リストの先頭を返します。
+     *
+     * @param head - リンクリストの先頭ノード。null の場合、何もしないで null を返します。
+     * @param n - 末尾から数えて削除するノードの位置（1-based index）。
+     * @returns リンクリストの先頭ノード（n番目を削除後）。
+     *
+     * 時間計算量: O(sz)
+     * メモリ消費量: O(1)（追加のメモリは定数）
+     */
+    function removeNthFromEnd(head: ListNode | null, n: number): ListNode | null {
+        // ダミーノードの作成（head削除にも対応）
+        const dummy: ListNode = new ListNode(0, head);
+
+        let fast: ListNode | null = dummy;
+        let slow: ListNode | null = dummy;
+
+        // fastをn+1個先に進める
+        for (let i = 0; i <= n; i++) {
+            if (fast) fast = fast.next;
+        }
+
+        // fastとslowを同時に進める
+        while (fast !== null) {
+            fast = fast.next;
+            if (slow) slow = slow.next;
+        }
+
+        // slow.nextが削除対象
+        if (slow && slow.next) {
+            slow.next = slow.next.next;
+        }
+
+        return dummy.next;
+    }
     // ダミーノードの作成（head削除にも対応）
     const dummy: ListNode = new ListNode(0, head);
-    
-    let fast: ListNode | null = dummy;
-    let slow: ListNode | null = dummy;
 
-    // fastをn+1個先に進める
-    for (let i = 0; i <= n; i++) {
-        if (fast) fast = fast.next;
-    }
-
-    // fastとslowを同時に進める
-    while (fast !== null) {
-        fast = fast.next;
-        if (slow) slow = slow.next;
-    }
-
-    // slow.nextが削除対象
-    if (slow && slow.next) {
-        slow.next = slow.next.next;
-    }
-
-    return dummy.next;
-}
-    // ダミーノードの作成（head削除にも対応）
-    const dummy: ListNode = new ListNode(0, head);
-    
     let fast: ListNode | null = dummy;
     let slow: ListNode | null = dummy;
 

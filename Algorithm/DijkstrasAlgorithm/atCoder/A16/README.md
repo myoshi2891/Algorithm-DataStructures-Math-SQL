@@ -1,5 +1,7 @@
 ## **ダイクストラ法を使った解法（JavaScript）**
+
 ### **1. アプローチ**
+
 ダイクストラ法を使うことで、最短経路を求めることができます。  
 この問題では、部屋 `1` から部屋 `N` までの最短時間を求めるために、**グラフの最短経路問題** として考えます。
 
@@ -11,17 +13,18 @@
 ---
 
 ### **2. 実装の流れ**
+
 1. **グラフの構築**
-   - 各部屋 `i` から `i+1` への辺（コスト `A[i]`）
-   - 各部屋 `i` から `i+2` への辺（コスト `B[i]`）
-   
+    - 各部屋 `i` から `i+1` への辺（コスト `A[i]`）
+    - 各部屋 `i` から `i+2` への辺（コスト `B[i]`）
 2. **ダイクストラ法の適用**
-   - **優先度付きキュー**（最小ヒープ）を用いて、最短時間を管理する。
-   - 部屋 `1` から出発し、各部屋への最短時間を求める。
+    - **優先度付きキュー**（最小ヒープ）を用いて、最短時間を管理する。
+    - 部屋 `1` から出発し、各部屋への最短時間を求める。
 
 ---
 
 ### **3. JavaScript の実装**
+
 JavaScript には**組み込みの優先度付きキューがない**ため、**最小ヒープ（Min Heap）** を自作するか、`PriorityQueue` のライブラリを使う方法があります。  
 ここでは、**バイナリヒープを用いた最小ヒープ** を自作して実装します。
 
@@ -61,10 +64,16 @@ class MinHeap {
             let rightChildIndex = 2 * index + 2;
             let smallest = index;
 
-            if (leftChildIndex < this.heap.length && this.heap[leftChildIndex][0] < this.heap[smallest][0]) {
+            if (
+                leftChildIndex < this.heap.length &&
+                this.heap[leftChildIndex][0] < this.heap[smallest][0]
+            ) {
                 smallest = leftChildIndex;
             }
-            if (rightChildIndex < this.heap.length && this.heap[rightChildIndex][0] < this.heap[smallest][0]) {
+            if (
+                rightChildIndex < this.heap.length &&
+                this.heap[rightChildIndex][0] < this.heap[smallest][0]
+            ) {
                 smallest = rightChildIndex;
             }
             if (smallest === index) break;
@@ -110,22 +119,22 @@ function dijkstra(N, A, B) {
 
 // 入力処理
 function main(input) {
-    let lines = input.trim().split("\n");
+    let lines = input.trim().split('\n');
     let N = parseInt(lines[0]);
-    let A = lines[1].split(" ").map(Number);
-    let B = lines.length > 2 ? lines[2].split(" ").map(Number) : [];
+    let A = lines[1].split(' ').map(Number);
+    let B = lines.length > 2 ? lines[2].split(' ').map(Number) : [];
 
     console.log(dijkstra(N, A, B));
 }
 
 // 標準入力の処理
 process.stdin.resume();
-process.stdin.setEncoding("utf-8");
-let inputData = "";
-process.stdin.on("data", function (chunk) {
+process.stdin.setEncoding('utf-8');
+let inputData = '';
+process.stdin.on('data', function (chunk) {
     inputData += chunk;
 });
-process.stdin.on("end", function () {
+process.stdin.on('end', function () {
     main(inputData);
 });
 ```
@@ -133,7 +142,9 @@ process.stdin.on("end", function () {
 ---
 
 ### **4. 解説**
+
 #### **1) 最小ヒープ（Min Heap）**
+
 ダイクストラ法では、次に探索する最短距離のノードをすぐに取り出せる必要があるため、**優先度付きキュー（最小ヒープ）** を用います。
 
 - `push([距離, 部屋番号])`：距離が小さい順に並ぶように要素を追加
@@ -141,6 +152,7 @@ process.stdin.on("end", function () {
 - `isEmpty()`：キューが空かどうか判定
 
 #### **2) ダイクストラ法**
+
 1. `dist[i]` を「部屋 `i` への最短時間」とする。
 2. `dist[1] = 0`（出発地点）にし、優先度付きキュー `pq` に入れる。
 3. `pq` から取り出し、隣接する部屋（`i+1`, `i+2`）を更新。
@@ -149,6 +161,7 @@ process.stdin.on("end", function () {
 ---
 
 ### **5. 計算量**
+
 - `N` 個のノードがあり、各ノードから最大2つの辺（`i → i+1`, `i → i+2`）がある。
 - 優先度付きキューの操作（`push`, `pop`）は **`O(log N)`**。
 - 各ノードに対して `O(log N)` の操作を行うため、**全体の計算量は `O(N log N)`** となる。
@@ -156,13 +169,17 @@ process.stdin.on("end", function () {
 ---
 
 ### **6. 例**
+
 #### **入力**
+
 ```
 5
 2 4 1 3
 5 3 7
 ```
+
 #### **処理**
+
 ```
 (1) → (2) コスト2
 (1) → (3) コスト5
@@ -172,7 +189,9 @@ process.stdin.on("end", function () {
 (3) → (5) コスト12
 (4) → (5) コスト8
 ```
+
 #### **出力**
+
 ```
 8
 ```
@@ -180,6 +199,7 @@ process.stdin.on("end", function () {
 ---
 
 ### **7. まとめ**
+
 - **ダイクストラ法** を使うことで、**`O(N log N)`** の計算量で最短経路を求めることができる。
 - **最小ヒープ** を使うことで、最短距離を効率よく管理できる。
 - **動的計画法（DP）** と比べても、大きな `N` でも高速に解ける。

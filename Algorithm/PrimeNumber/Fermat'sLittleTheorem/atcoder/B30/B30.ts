@@ -23,14 +23,14 @@ let invFact: bigint[] = [];
  * @returns 累乗結果 base^exp mod MOD
  */
 function modPow(base: bigint, exp: bigint): bigint {
-  let result = 1n;
-  base %= MOD;
-  while (exp > 0n) {
-    if (exp % 2n === 1n) result = (result * base) % MOD;
-    base = (base * base) % MOD;
-    exp >>= 1n;
-  }
-  return result;
+    let result = 1n;
+    base %= MOD;
+    while (exp > 0n) {
+        if (exp % 2n === 1n) result = (result * base) % MOD;
+        base = (base * base) % MOD;
+        exp >>= 1n;
+    }
+    return result;
 }
 
 /**
@@ -38,18 +38,18 @@ function modPow(base: bigint, exp: bigint): bigint {
  * 計算結果を global な fact[], invFact[] に格納
  */
 function precomputeFactorials(): void {
-  fact = Array(MAX + 1);
-  invFact = Array(MAX + 1);
+    fact = Array(MAX + 1);
+    invFact = Array(MAX + 1);
 
-  fact[0] = 1n;
-  for (let i = 1; i <= MAX; i++) {
-    fact[i] = (fact[i - 1] * BigInt(i)) % MOD;
-  }
+    fact[0] = 1n;
+    for (let i = 1; i <= MAX; i++) {
+        fact[i] = (fact[i - 1] * BigInt(i)) % MOD;
+    }
 
-  invFact[MAX] = modPow(fact[MAX], MOD - 2n); // フェルマーの小定理による逆元
-  for (let i = MAX - 1; i >= 0; i--) {
-    invFact[i] = (invFact[i + 1] * BigInt(i + 1)) % MOD;
-  }
+    invFact[MAX] = modPow(fact[MAX], MOD - 2n); // フェルマーの小定理による逆元
+    for (let i = MAX - 1; i >= 0; i--) {
+        invFact[i] = (invFact[i + 1] * BigInt(i + 1)) % MOD;
+    }
 }
 
 /**
@@ -59,8 +59,8 @@ function precomputeFactorials(): void {
  * @returns nCr % MOD の値（BigInt）
  */
 function combination(n: number, r: number): bigint {
-  if (r < 0 || r > n) return 0n;
-  return (fact[n] * invFact[r] % MOD) * invFact[n - r] % MOD;
+    if (r < 0 || r > n) return 0n;
+    return (((fact[n] * invFact[r]) % MOD) * invFact[n - r]) % MOD;
 }
 
 /**
@@ -69,11 +69,11 @@ function combination(n: number, r: number): bigint {
  * @returns 経路数（BigInt）
  */
 function calculateGridPaths(input: string): bigint {
-  const [H, W] = input.trim().split(/\s+/).map(Number);
-  precomputeFactorials(); // 階乗と逆元の前計算
-  const totalSteps = H + W - 2;
-  const downSteps = H - 1;
-  return combination(totalSteps, downSteps); // C(H+W-2, H-1)
+    const [H, W] = input.trim().split(/\s+/).map(Number);
+    precomputeFactorials(); // 階乗と逆元の前計算
+    const totalSteps = H + W - 2;
+    const downSteps = H - 1;
+    return combination(totalSteps, downSteps); // C(H+W-2, H-1)
 }
 
 // 標準入力から読み込み & 実行

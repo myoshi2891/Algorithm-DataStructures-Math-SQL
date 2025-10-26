@@ -15,7 +15,7 @@
 // ### ✅ TypeScript 解答コード（Node.js 18.16.1）
 
 // ```ts
-import * as fs from 'fs'
+import * as fs from 'fs';
 
 /**
  * 勝者を判定する関数
@@ -24,12 +24,12 @@ import * as fs from 'fs'
  * @returns {string} - 先手が勝つ場合は 'First'、後手が勝つ場合は 'Second'
  */
 function determineWinner(N: number, positions: [number, number][]): string {
-  let xorSum = 0
-  for (let i = 0; i < N; i++) {
-    const [a, b] = positions[i]
-    xorSum ^= (a - 1) ^ (b - 1)
-  }
-  return xorSum === 0 ? 'Second' : 'First'
+    let xorSum = 0;
+    for (let i = 0; i < N; i++) {
+        const [a, b] = positions[i];
+        xorSum ^= (a - 1) ^ (b - 1);
+    }
+    return xorSum === 0 ? 'Second' : 'First';
 }
 
 /**
@@ -37,17 +37,17 @@ function determineWinner(N: number, positions: [number, number][]): string {
  * @returns {void}
  */
 function main(): void {
-  const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n')
-  const [N] = input[0].split(' ').map(Number)
-  const positions: [number, number][] = input.slice(1).map(line => {
-    const [a, b] = line.split(' ').map(Number)
-    return [a, b]
-  })
-  const result: string = determineWinner(N, positions)
-  console.log(result)
+    const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+    const [N] = input[0].split(' ').map(Number);
+    const positions: [number, number][] = input.slice(1).map((line) => {
+        const [a, b] = line.split(' ').map(Number);
+        return [a, b];
+    });
+    const result: string = determineWinner(N, positions);
+    console.log(result);
 }
 
-main()
+main();
 // ```
 
 // ---

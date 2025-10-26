@@ -1,4 +1,3 @@
-
 ---
 
 # 🧭 問題の概要再掲
@@ -49,18 +48,18 @@
 v       /         \
 4 -----            \
       \             \
-       \------------> 
+       \------------>
 ```
 
-* 各辺には容量（最大流量）が記載されています。
-* ノード1が始点（source）、ノード6が終点（sink）です。
+- 各辺には容量（最大流量）が記載されています。
+- ノード1が始点（source）、ノード6が終点（sink）です。
 
 ---
 
 ## 🔎 ステップ2：BFSで**増加経路**を探す
 
-* BFS（幅優先探索）を用いて、`source(1)` から `sink(6)` までの**残余容量が正の経路**を探します。
-* **残余容量**とは、`capacity[u][v] - flow[u][v]` のこと。
+- BFS（幅優先探索）を用いて、`source(1)` から `sink(6)` までの**残余容量が正の経路**を探します。
+- **残余容量**とは、`capacity[u][v] - flow[u][v]` のこと。
 
 ### 🌊 BFSで見つかる最初の経路
 
@@ -68,7 +67,7 @@ v       /         \
 1 → 2 → 3 → 6
 ```
 
-* 残余容量: min(5, 4, 3) = 3
+- 残余容量: min(5, 4, 3) = 3
 
 ### 更新される容量
 
@@ -134,8 +133,8 @@ capacity[5][6] -= 3
 
 ## 🧮 ステップ5：残余容量が無くなり、終了
 
-* もうBFSで `source → sink` 経路が見つからなくなると終了。
-* 最後に足した流量 `flow` が答え（最大流）です。
+- もうBFSで `source → sink` 経路が見つからなくなると終了。
+- 最後に足した流量 `flow` が答え（最大流）です。
 
 ---
 
@@ -187,13 +186,13 @@ capacity[5][6] -= 3
 
 # 💡 まとめ：各処理と対応する役割
 
-| 処理名     | 内容                             | 役割          |
-| ------- | ------------------------------ | ----------- |
-| グラフ構築   | 入力に基づき `graph`, `capacity` を作成 | 流量ネットワークの準備 |
-| BFS探索   | source→sink の増加経路を探す           | まだ流せるかの判断   |
-| 流量更新    | 経路上の最小容量分だけ流す                  | フロー計算の核     |
-| 残余グラフ更新 | capacity, 逆辺も調整                | 次の経路のための準備  |
-| 終了条件    | 経路が見つからない時                     | 最大流が完成した証   |
+| 処理名         | 内容                                    | 役割                   |
+| -------------- | --------------------------------------- | ---------------------- |
+| グラフ構築     | 入力に基づき `graph`, `capacity` を作成 | 流量ネットワークの準備 |
+| BFS探索        | source→sink の増加経路を探す            | まだ流せるかの判断     |
+| 流量更新       | 経路上の最小容量分だけ流す              | フロー計算の核         |
+| 残余グラフ更新 | capacity, 逆辺も調整                    | 次の経路のための準備   |
+| 終了条件       | 経路が見つからない時                    | 最大流が完成した証     |
 
 ---
 
@@ -336,7 +335,7 @@ console.log(`\n🎯 最大流量: ${maxFlow(1, N)}`);
 
 ```ts
 function outputDOT(capacity: number[][]) {
-    console.log("digraph G {");
+    console.log('digraph G {');
     for (let u = 1; u <= N; u++) {
         for (const v of graph[u]) {
             const cap = capacity[u][v];
@@ -345,7 +344,7 @@ function outputDOT(capacity: number[][]) {
             }
         }
     }
-    console.log("}");
+    console.log('}');
 }
 ```
 
@@ -380,20 +379,21 @@ dot -Tpng graph.dot -o graph.png
 
 # ✅ まとめ
 
-| 機能                | 内容                    |
-| ----------------- | --------------------- |
-| ✅ BFS処理の可視化       | 増加経路・pathFlow のデバッグ表示 |
-| ✅ 残余容量の変化         | flow の更新を逐次出力         |
-| ✅ DOT形式の可視化       | グラフ描画ツールと連携可能         |
-| ✅ 入力例でも出力例でも動作確認済 | ✔️                    |
+| 機能                              | 内容                              |
+| --------------------------------- | --------------------------------- |
+| ✅ BFS処理の可視化                | 増加経路・pathFlow のデバッグ表示 |
+| ✅ 残余容量の変化                 | flow の更新を逐次出力             |
+| ✅ DOT形式の可視化                | グラフ描画ツールと連携可能        |
+| ✅ 入力例でも出力例でも動作確認済 | ✔️                                |
 
 ---
+
 他にも「ブラウザ上でアニメーション表示」したい等があれば、`p5.js` や `D3.js` などを用いたビジュアル化も対応可能です。希望があればお知らせください！
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-22 20:14:39 | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1660 Byte | **AC** | 17 ms | 24428 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67001058) |
-| 2025-06-22 20:11:12 | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1810 Byte | **AC** | 1 ms | 3036 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67001000) |
-| 2025-06-22 20:08:26 | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1572 Byte | **AC** | 16 ms | 10712 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000947) |
-| 2025-06-22 19:54:12 | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 2024 Byte | **AC** | 45 ms | 48776 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000709) |
-| 2025-06-22 19:46:46 | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1860 Byte | **AC** | 76 ms | 48608 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000597) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                 | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-22 20:14:39                                                                           | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1660 Byte                                                                                 | **AC** | 17 ms                                                                                        | 24428 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67001058) |
+| 2025-06-22 20:11:12                                                                           | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1810 Byte                                                                                 | **AC** | 1 ms                                                                                         | 3036 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67001000) |
+| 2025-06-22 20:08:26                                                                           | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1572 Byte                                                                                 | **AC** | 16 ms                                                                                        | 10712 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000947) |
+| 2025-06-22 19:54:12                                                                           | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 2024 Byte                                                                                 | **AC** | 45 ms                                                                                        | 48776 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000709) |
+| 2025-06-22 19:46:46                                                                           | [A68 - Maximum Flow](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bp) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1860 Byte                                                                                 | **AC** | 76 ms                                                                                        | 48608 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67000597) |

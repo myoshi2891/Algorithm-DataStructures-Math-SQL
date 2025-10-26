@@ -47,4 +47,3 @@ function merge(intervals: number[][]): number[][] {
 // * **O(n)** の追加メモリ消費（出力配列に依存）
 
 // となり、LeetCodeのTypeScript環境（Node.js 18系）でも効率的に動作します。
-

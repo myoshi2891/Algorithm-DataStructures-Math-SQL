@@ -21,56 +21,56 @@
  * @return {number[]} - 該当する部分文字列の開始インデックス配列（順不同でよい）
  */
 function findSubstringJs(s, words) {
-  if (!s || !words || words.length === 0) return [];
+    if (!s || !words || words.length === 0) return [];
 
-  const wordLen = words[0].length;
-  const wordCount = words.length;
-  const totalLen = wordLen * wordCount;
-  const n = s.length;
-  const result = [];
+    const wordLen = words[0].length;
+    const wordCount = words.length;
+    const totalLen = wordLen * wordCount;
+    const n = s.length;
+    const result = [];
 
-  if (n < totalLen) return [];
+    if (n < totalLen) return [];
 
-  // 単語の頻度マップを構築
-  const wordMap = new Map();
-  for (const word of words) {
-    wordMap.set(word, (wordMap.get(word) || 0) + 1);
-  }
-
-  // wordLen の位置ずれに対応するためのループ
-  for (let i = 0; i < wordLen; i++) {
-    let left = i;
-    let right = i;
-    let windowMap = new Map();
-    let count = 0;
-
-    while (right + wordLen <= n) {
-      const word = s.slice(right, right + wordLen);
-      right += wordLen;
-
-      if (wordMap.has(word)) {
-        windowMap.set(word, (windowMap.get(word) || 0) + 1);
-        count++;
-
-        while (windowMap.get(word) > wordMap.get(word)) {
-          const leftWord = s.slice(left, left + wordLen);
-          windowMap.set(leftWord, windowMap.get(leftWord) - 1);
-          left += wordLen;
-          count--;
-        }
-
-        if (count === wordCount) {
-          result.push(left);
-        }
-      } else {
-        windowMap.clear();
-        count = 0;
-        left = right;
-      }
+    // 単語の頻度マップを構築
+    const wordMap = new Map();
+    for (const word of words) {
+        wordMap.set(word, (wordMap.get(word) || 0) + 1);
     }
-  }
 
-  return result;
+    // wordLen の位置ずれに対応するためのループ
+    for (let i = 0; i < wordLen; i++) {
+        let left = i;
+        let right = i;
+        let windowMap = new Map();
+        let count = 0;
+
+        while (right + wordLen <= n) {
+            const word = s.slice(right, right + wordLen);
+            right += wordLen;
+
+            if (wordMap.has(word)) {
+                windowMap.set(word, (windowMap.get(word) || 0) + 1);
+                count++;
+
+                while (windowMap.get(word) > wordMap.get(word)) {
+                    const leftWord = s.slice(left, left + wordLen);
+                    windowMap.set(leftWord, windowMap.get(leftWord) - 1);
+                    left += wordLen;
+                    count--;
+                }
+
+                if (count === wordCount) {
+                    result.push(left);
+                }
+            } else {
+                windowMap.clear();
+                count = 0;
+                left = right;
+            }
+        }
+    }
+
+    return result;
 }
 // ```
 

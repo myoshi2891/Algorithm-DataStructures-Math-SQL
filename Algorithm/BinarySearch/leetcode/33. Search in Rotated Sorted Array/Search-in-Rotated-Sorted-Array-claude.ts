@@ -25,22 +25,22 @@
  * @param nums - 回転された可能性のある昇順ソート済み配列（重複なし）
  * @param target - 検索対象の整数値
  * @returns targetが存在する場合はそのインデックス、存在しない場合は-1
- * 
+ *
  * 時間計算量: O(log n) - 二分探索を使用
  * 空間計算量: O(1) - 定数の追加メモリのみ使用
  */
 function search(nums: number[], target: number): number {
     let left = 0;
     let right = nums.length - 1;
-    
+
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        
+
         // targetが見つかった場合
         if (nums[mid] === target) {
             return mid;
         }
-        
+
         // 左半分がソートされている場合
         if (nums[left] <= nums[mid]) {
             // targetが左半分の範囲内にある場合
@@ -49,7 +49,7 @@ function search(nums: number[], target: number): number {
             } else {
                 left = mid + 1;
             }
-        } 
+        }
         // 右半分がソートされている場合
         else {
             // targetが右半分の範囲内にある場合
@@ -60,13 +60,13 @@ function search(nums: number[], target: number): number {
             }
         }
     }
-    
+
     return -1;
 }
 
 // テストケース
-console.log(search([4,5,6,7,0,1,2], 0)); // Expected: 4
-console.log(search([4,5,6,7,0,1,2], 3)); // Expected: -1
+console.log(search([4, 5, 6, 7, 0, 1, 2], 0)); // Expected: 4
+console.log(search([4, 5, 6, 7, 0, 1, 2], 3)); // Expected: -1
 console.log(search([1], 0)); // Expected: -1
 console.log(search([1], 1)); // Expected: 0
-console.log(search([1,3], 3)); // Expected: 1
+console.log(search([1, 3], 3)); // Expected: 1

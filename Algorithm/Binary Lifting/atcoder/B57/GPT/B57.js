@@ -46,7 +46,7 @@ const N = input[0];
 let K = BigInt(input[1]); // K は最大 1e9 だが BigInt で扱う
 
 // 桁和計算関数
-/** 
+/**
  * @param {number} x - 計算対象の整数
  * @returns {number} - 桁和
  */
@@ -116,4 +116,3 @@ process.stdout.write(out);
 //   * jump: 32 × (N+1) × 4byte ≈ 38MB
 //   * res: 1.2MB
 //     → 合計 40MB 程度
-

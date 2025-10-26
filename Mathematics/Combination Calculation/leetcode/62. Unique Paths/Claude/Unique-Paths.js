@@ -69,7 +69,7 @@
 /**
  * ロボットがグリッドの左上から右下へ移動する経路数を計算
  * 数学的解法（組み合わせ計算）を使用してO(min(m,n))で解決
- * 
+ *
  * @param {number} m - グリッドの行数
  * @param {number} n - グリッドの列数
  * @returns {number} 一意な経路の総数
@@ -82,45 +82,45 @@ function uniquePaths(m, n) {
     if (typeof m !== 'number' || typeof n !== 'number') {
         throw new TypeError('Arguments must be numbers');
     }
-    
+
     if (!Number.isInteger(m) || !Number.isInteger(n)) {
         throw new TypeError('Arguments must be integers');
     }
-    
+
     if (m < 1 || n < 1 || m > 100 || n > 100) {
         throw new RangeError('Arguments must be in range [1, 100]');
     }
-    
+
     // 数学的解法: C(m+n-2, min(m-1, n-1))を計算
     // 総移動回数: m+n-2 (右にn-1回、下にm-1回)
     // そのうち右移動(またはdown移動)を選ぶ組み合わせ数
-    
+
     const totalMoves = m + n - 2;
     const rightMoves = n - 1;
     const downMoves = m - 1;
-    
+
     // 計算効率のため、小さい方を選択
     const k = Math.min(rightMoves, downMoves);
-    
+
     // C(totalMoves, k) = totalMoves! / (k! * (totalMoves-k)!)
     // オーバーフローを避けるため逐次計算
     let result = 1;
-    
+
     // V8最適化: 単純なforループを使用
     for (let i = 0; i < k; i++) {
         // result = result * (totalMoves - i) / (i + 1)
         // 整数除算を保証するため、先に乗算してから除算
-        result = result * (totalMoves - i) / (i + 1);
+        result = (result * (totalMoves - i)) / (i + 1);
     }
-    
+
     return Math.round(result); // 浮動小数点誤差対策
 }
 
 /**
  * 動的プログラミング解法（1次元配列使用）
  * メモリ効率を重視した実装
- * 
- * @param {number} m - グリッドの行数  
+ *
+ * @param {number} m - グリッドの行数
  * @param {number} n - グリッドの列数
  * @returns {number} 一意な経路の総数
  * @throws {TypeError} 引数が数値でない場合
@@ -132,27 +132,27 @@ function uniquePathsDP(m, n) {
     if (typeof m !== 'number' || typeof n !== 'number') {
         throw new TypeError('Arguments must be numbers');
     }
-    
+
     if (!Number.isInteger(m) || !Number.isInteger(n)) {
         throw new TypeError('Arguments must be integers');
     }
-    
+
     if (m < 1 || n < 1 || m > 100 || n > 100) {
         throw new RangeError('Arguments must be in range [1, 100]');
     }
-    
+
     // メモリ効率のため、小さい方の次元で配列を作成
     const cols = Math.min(m, n);
     const rows = Math.max(m, n);
-    
+
     // V8最適化: 配列サイズを事前確保し、単型配列を維持
     const dp = new Array(cols);
-    
+
     // 初期化: 最初の行は全て1
     for (let j = 0; j < cols; j++) {
         dp[j] = 1;
     }
-    
+
     // DPテーブル更新
     for (let i = 1; i < rows; i++) {
         for (let j = 1; j < cols; j++) {
@@ -161,7 +161,7 @@ function uniquePathsDP(m, n) {
             dp[j] += dp[j - 1];
         }
     }
-    
+
     return dp[cols - 1];
 }
 
@@ -170,30 +170,30 @@ function uniquePathsDP(m, n) {
  */
 function benchmark() {
     const testCases = [
-        [3, 7],   // Example 1
-        [3, 2],   // Example 2  
+        [3, 7], // Example 1
+        [3, 2], // Example 2
         [23, 12], // 中規模
-        [100, 100] // 最大サイズ
+        [100, 100], // 最大サイズ
     ];
-    
+
     console.log('Performance Benchmark:');
     console.log('=====================');
-    
+
     testCases.forEach(([m, n]) => {
         console.log(`\nTest case: m=${m}, n=${n}`);
-        
+
         // 数学的解法のベンチマーク
         const start1 = performance.now();
         const result1 = uniquePaths(m, n);
         const end1 = performance.now();
-        
+
         // DP解法のベンチマーク
         const start2 = performance.now();
         const result2 = uniquePathsDP(m, n);
         const end2 = performance.now();
-        
-        console.log(`Mathematical: ${result1} (${(end1-start1).toFixed(4)}ms)`);
-        console.log(`DP Solution:  ${result2} (${(end2-start2).toFixed(4)}ms)`);
+
+        console.log(`Mathematical: ${result1} (${(end1 - start1).toFixed(4)}ms)`);
+        console.log(`DP Solution:  ${result2} (${(end2 - start2).toFixed(4)}ms)`);
         console.log(`Results match: ${result1 === result2}`);
     });
 }
@@ -204,7 +204,7 @@ console.log('=== Robot Unique Paths Solution ===\n');
 // Example 1
 console.log(`uniquePaths(3, 7) = ${uniquePaths(3, 7)}`); // 28
 
-// Example 2  
+// Example 2
 console.log(`uniquePaths(3, 2) = ${uniquePaths(3, 2)}`); // 3
 
 // エラーハンドリングテスト
@@ -228,6 +228,6 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         uniquePaths,
         uniquePathsDP,
-        benchmark
+        benchmark,
     };
 }

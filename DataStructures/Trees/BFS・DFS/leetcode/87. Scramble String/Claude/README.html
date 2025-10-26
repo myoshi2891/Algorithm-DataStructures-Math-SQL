@@ -1,0 +1,2568 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 87: Scramble String - Top-down Memoized DFS</title>
+        <meta
+            name="description"
+            content="LeetCode 87 Scramble String問題をTop-down recursion with memoization & pruningで解説。視覚化とステップバイステップで理解。"
+        />
+
+        <!-- CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <style>
+            :root {
+                --code-lh: 1.6;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    'Liberation Mono', 'Courier New', monospace;
+            }
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            /* Prism toolbar cosmetic */
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 6px 10px;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            .step-card {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .step-card:hover,
+            .step-card:focus {
+                transform: translateY(-2px);
+                box-shadow:
+                    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .step-card.active {
+                background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+                border-color: #10b981;
+            }
+
+            .stage {
+                opacity: 0;
+                transition: opacity 0.4s ease-in-out;
+            }
+            .stage.active {
+                opacity: 1;
+            }
+
+            .nav-button {
+                transition: all 0.2s ease;
+            }
+            .nav-button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .step-card,
+                .stage,
+                .nav-button {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+
+    <body class="bg-slate-50 text-slate-800 font-sans leading-relaxed">
+        <header class="bg-white border-b border-slate-200 shadow-sm">
+            <div class="max-w-4xl mx-auto px-4 py-8">
+                <h1 class="text-4xl font-bold text-slate-900 mb-2">LeetCode 87: Scramble String</h1>
+                <p class="text-lg text-slate-600 mb-6">
+                    Top-down recursion with memoization & pruning を用いた分割統治アルゴリズム
+                </p>
+
+                <nav class="flex flex-wrap gap-3" aria-label="ページナビゲーション">
+                    <a
+                        href="#overview"
+                        class="nav-button px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="概要セクションへ"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="nav-button px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="ステップセクションへ"
+                        >ステップ</a
+                    >
+                    <a
+                        href="#code"
+                        class="nav-button px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="コードセクションへ"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="nav-button px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="図解セクションへ"
+                        >図解</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="nav-button px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        aria-label="計算量セクションへ"
+                        >計算量</a
+                    >
+                </nav>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-8 space-y-12">
+            <!-- Algorithm Overview -->
+            <section
+                id="overview"
+                class="bg-white rounded-xl border border-slate-200 shadow-sm p-8"
+            >
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                    <span
+                        class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3"
+                        >1</span
+                    >
+                    アルゴリズム概要
+                </h2>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-700 leading-7 mb-4">
+                        <strong>Scramble String</strong
+                        >問題は、文字列がスクランブル変換によって別の文字列になり得るかを判定する問題です。
+                        スクランブル変換では、文字列を任意の位置で分割し、左右の部分文字列を交換するかどうかを選択できます。
+                    </p>
+                    <p class="text-slate-700 leading-7 mb-4">
+                        この問題の核心は<strong>分割統治</strong>です。文字列を全ての可能な位置で分割し、それぞれについて：
+                    </p>
+                    <ol class="list-decimal list-inside text-slate-700 space-y-2 ml-4">
+                        <li><strong>非交換パターン</strong>: s1[0:i] → s2[0:i], s1[i:] → s2[i:]</li>
+                        <li>
+                            <strong>交換パターン</strong>: s1[0:i] → s2[len-i:], s1[i:] → s2[:len-i]
+                        </li>
+                    </ol>
+                    <p class="text-slate-700 leading-7 mt-4">
+                        <strong>メモ化</strong
+                        >により重複計算を避け、<strong>文字頻度チェック</strong>による枝刈りで効率化を図ります。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Step by Step -->
+            <!-- Step by Step -->
+            <section id="steps" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                    <span
+                        class="w-8 h-8 bg-sky-100 text-sky-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3"
+                        >2</span
+                    >
+                    ステップバイステップ解説
+                </h2>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Step List -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">実行ステップ</h3>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="1"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >1</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">ベースケース判定</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        同じ文字列または長さ1の場合は即座にTrueを返す
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="2"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >2</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">文字頻度チェック</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        文字の出現頻度が異なる場合はスクランブル不可能
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="3"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >3</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">全分割点の試行</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        位置i（1からlen-1）で両方の文字列を分割
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="4"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >4</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">非交換パターン検査</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        s1[0:i]とs2[0:i]、s1[i:]とs2[i:]が一致するかチェック
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="5"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >5</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">交換パターン検査</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        s1[0:i]とs2[len-i:]、s1[i:]とs2[0:len-i]が一致するかチェック
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border border-slate-200 rounded-lg p-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            data-step="6"
+                            role="button"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <div class="flex items-start">
+                                <span
+                                    class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5"
+                                    >6</span
+                                >
+                                <div>
+                                    <h4 class="font-semibold text-slate-800">メモ化と結果返却</h4>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        結果をメモ辞書に保存し、最終答えを返す
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="flex gap-2 mt-6 pt-4 border-t border-slate-200">
+                            <button
+                                data-action="play"
+                                class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"
+                            >
+                                Play
+                            </button>
+                            <button
+                                data-action="prev"
+                                class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm font-medium"
+                            >
+                                Prev
+                            </button>
+                            <button
+                                data-action="next"
+                                class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm font-medium"
+                            >
+                                Next
+                            </button>
+                            <button
+                                data-action="reset"
+                                class="px-4 py-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm font-medium"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SVG Visualization -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4">ステップ解説図</h3>
+                        <div class="relative">
+                            <svg
+                                viewBox="0 0 500 400"
+                                class="w-full h-auto border border-slate-200 bg-white rounded-lg"
+                            >
+                                <!-- Stage 1: Base Case -->
+                                <g class="stage" data-step="1">
+                                    <rect
+                                        x="50"
+                                        y="50"
+                                        width="400"
+                                        height="100"
+                                        rx="15"
+                                        fill="#f0fdf4"
+                                        stroke="#10b981"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="85"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#059669"
+                                    >
+                                        ベースケース判定
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="105"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#065f46"
+                                    >
+                                        if s1 == s2: return True
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="125"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#065f46"
+                                    >
+                                        同じ文字列なら即座にTrue
+                                    </text>
+
+                                    <!-- Example -->
+                                    <rect
+                                        x="80"
+                                        y="180"
+                                        width="120"
+                                        height="40"
+                                        rx="8"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="140"
+                                        y="200"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        s1 = "ab"
+                                    </text>
+                                    <text
+                                        x="140"
+                                        y="215"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        s2 = "ab"
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="205"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="20"
+                                        fill="#059669"
+                                    >
+                                        → True
+                                    </text>
+
+                                    <rect
+                                        x="300"
+                                        y="180"
+                                        width="120"
+                                        height="40"
+                                        rx="8"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="360"
+                                        y="200"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        len(s) = 1
+                                    </text>
+                                    <text
+                                        x="360"
+                                        y="215"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        always True
+                                    </text>
+                                </g>
+
+                                <!-- Stage 2: Character Frequency -->
+                                <g class="stage" data-step="2">
+                                    <rect
+                                        x="50"
+                                        y="30"
+                                        width="400"
+                                        height="80"
+                                        rx="15"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="60"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#d97706"
+                                    >
+                                        文字頻度チェック（枝刈り）
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="80"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#92400e"
+                                    >
+                                        sorted(s1) == sorted(s2)?
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="95"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#78350f"
+                                    >
+                                        頻度が異なる場合はスクランブル不可能
+                                    </text>
+
+                                    <!-- Example -->
+                                    <rect
+                                        x="60"
+                                        y="140"
+                                        width="160"
+                                        height="60"
+                                        rx="8"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="140"
+                                        y="165"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="13"
+                                        fill="#15803d"
+                                    >
+                                        s1 = "great"
+                                    </text>
+                                    <text
+                                        x="140"
+                                        y="180"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="13"
+                                        fill="#15803d"
+                                    >
+                                        s2 = "rgeat"
+                                    </text>
+                                    <text
+                                        x="140"
+                                        y="192"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="11"
+                                        fill="#15803d"
+                                    >
+                                        頻度一致 ✓
+                                    </text>
+
+                                    <rect
+                                        x="280"
+                                        y="140"
+                                        width="160"
+                                        height="60"
+                                        rx="8"
+                                        fill="#fecaca"
+                                        stroke="#ef4444"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="360"
+                                        y="165"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="13"
+                                        fill="#dc2626"
+                                    >
+                                        s1 = "abcd"
+                                    </text>
+                                    <text
+                                        x="360"
+                                        y="180"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="13"
+                                        fill="#dc2626"
+                                    >
+                                        s2 = "efgh"
+                                    </text>
+                                    <text
+                                        x="360"
+                                        y="192"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="11"
+                                        fill="#dc2626"
+                                    >
+                                        頻度不一致 → False
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="230"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        font-weight="bold"
+                                        fill="#7c2d12"
+                                    >
+                                        O(n log n) で効率的な枝刈り
+                                    </text>
+                                </g>
+
+                                <!-- Stage 3: Split Points -->
+                                <g class="stage" data-step="3">
+                                    <rect
+                                        x="50"
+                                        y="30"
+                                        width="400"
+                                        height="60"
+                                        rx="15"
+                                        fill="#dbeafe"
+                                        stroke="#3b82f6"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="55"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#1d4ed8"
+                                    >
+                                        全分割点の試行
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="75"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#1e40af"
+                                    >
+                                        i = 1 から len-1 まで分割位置を試す
+                                    </text>
+
+                                    <!-- Split visualization -->
+                                    <text
+                                        x="250"
+                                        y="120"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="18"
+                                        font-weight="bold"
+                                        fill="#1d4ed8"
+                                    >
+                                        s1 = "great"
+                                    </text>
+
+                                    <!-- i=1 -->
+                                    <rect
+                                        x="80"
+                                        y="160"
+                                        width="30"
+                                        height="30"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="95"
+                                        y="180"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        g
+                                    </text>
+                                    <rect
+                                        x="115"
+                                        y="160"
+                                        width="90"
+                                        height="30"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="160"
+                                        y="180"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        reat
+                                    </text>
+                                    <text
+                                        x="50"
+                                        y="180"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#374151"
+                                    >
+                                        i=1:
+                                    </text>
+
+                                    <!-- i=2 -->
+                                    <rect
+                                        x="80"
+                                        y="200"
+                                        width="50"
+                                        height="30"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="105"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        gr
+                                    </text>
+                                    <rect
+                                        x="135"
+                                        y="200"
+                                        width="70"
+                                        height="30"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="170"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        eat
+                                    </text>
+                                    <text
+                                        x="50"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#374151"
+                                    >
+                                        i=2:
+                                    </text>
+
+                                    <!-- i=3 -->
+                                    <rect
+                                        x="80"
+                                        y="240"
+                                        width="70"
+                                        height="30"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="115"
+                                        y="260"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        gre
+                                    </text>
+                                    <rect
+                                        x="155"
+                                        y="240"
+                                        width="50"
+                                        height="30"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="180"
+                                        y="260"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        at
+                                    </text>
+                                    <text
+                                        x="50"
+                                        y="260"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#374151"
+                                    >
+                                        i=3:
+                                    </text>
+
+                                    <!-- i=4 -->
+                                    <rect
+                                        x="80"
+                                        y="280"
+                                        width="90"
+                                        height="30"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="125"
+                                        y="300"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        grea
+                                    </text>
+                                    <rect
+                                        x="175"
+                                        y="280"
+                                        width="30"
+                                        height="30"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="190"
+                                        y="300"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        t
+                                    </text>
+                                    <text
+                                        x="50"
+                                        y="300"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#374151"
+                                    >
+                                        i=4:
+                                    </text>
+
+                                    <text
+                                        x="350"
+                                        y="240"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        font-weight="bold"
+                                        fill="#1e40af"
+                                    >
+                                        各分割で2パターンをテスト
+                                    </text>
+                                </g>
+
+                                <!-- Stage 4: No-Swap Pattern -->
+                                <g class="stage" data-step="4">
+                                    <rect
+                                        x="50"
+                                        y="20"
+                                        width="400"
+                                        height="60"
+                                        rx="15"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="45"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#15803d"
+                                    >
+                                        非交換パターン
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="65"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#166534"
+                                    >
+                                        s1の左右 → s2の左右（順序保持）
+                                    </text>
+
+                                    <!-- Visual representation -->
+                                    <text
+                                        x="250"
+                                        y="110"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#059669"
+                                    >
+                                        例: i = 2 での分割
+                                    </text>
+
+                                    <!-- s1 split -->
+                                    <rect
+                                        x="80"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="110"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        gr
+                                    </text>
+                                    <text
+                                        x="110"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#92400e"
+                                    >
+                                        s1[0:2]
+                                    </text>
+
+                                    <rect
+                                        x="150"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="180"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        eat
+                                    </text>
+                                    <text
+                                        x="180"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#166534"
+                                    >
+                                        s1[2:]
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="155"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="20"
+                                        fill="#6b7280"
+                                    >
+                                        vs
+                                    </text>
+
+                                    <!-- s2 split -->
+                                    <rect
+                                        x="290"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="320"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        rg
+                                    </text>
+                                    <text
+                                        x="320"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#92400e"
+                                    >
+                                        s2[0:2]
+                                    </text>
+
+                                    <rect
+                                        x="360"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="390"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        eat
+                                    </text>
+                                    <text
+                                        x="390"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#166534"
+                                    >
+                                        s2[2:]
+                                    </text>
+
+                                    <!-- Arrows -->
+                                    <defs>
+                                        <marker
+                                            id="arrow-green"
+                                            markerWidth="8"
+                                            markerHeight="6"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                        >
+                                            <polygon points="0 0, 8 3, 0 6" fill="#16a34a" />
+                                        </marker>
+                                    </defs>
+
+                                    <path
+                                        d="M 110 175 Q 200 190 320 175"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                        fill="none"
+                                        marker-end="url(#arrow-green)"
+                                    />
+                                    <path
+                                        d="M 180 175 Q 280 190 390 175"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                        fill="none"
+                                        marker-end="url(#arrow-green)"
+                                    />
+
+                                    <text
+                                        x="250"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        dfs("gr", "rg") AND dfs("eat", "eat")
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="240"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#166534"
+                                    >
+                                        両方ともTrueならこの分割でTrue
+                                    </text>
+                                </g>
+
+                                <!-- Stage 5: Swap Pattern -->
+                                <g class="stage" data-step="5">
+                                    <rect
+                                        x="50"
+                                        y="20"
+                                        width="400"
+                                        height="60"
+                                        rx="15"
+                                        fill="#f3e8ff"
+                                        stroke="#8b5cf6"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="45"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#7c3aed"
+                                    >
+                                        交換パターン
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="65"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#6b21a8"
+                                    >
+                                        s1の左右 → s2の右左（交換）
+                                    </text>
+
+                                    <!-- Visual representation -->
+                                    <text
+                                        x="250"
+                                        y="110"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#7c3aed"
+                                    >
+                                        例: i = 2 での分割
+                                    </text>
+
+                                    <!-- s1 split -->
+                                    <rect
+                                        x="80"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="110"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        gr
+                                    </text>
+                                    <text
+                                        x="110"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#92400e"
+                                    >
+                                        s1[0:2]
+                                    </text>
+
+                                    <rect
+                                        x="150"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="180"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        eat
+                                    </text>
+                                    <text
+                                        x="180"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#166534"
+                                    >
+                                        s1[2:]
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="155"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="20"
+                                        fill="#6b7280"
+                                    >
+                                        vs
+                                    </text>
+
+                                    <!-- s2 split (swapped) -->
+                                    <rect
+                                        x="290"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="320"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#15803d"
+                                    >
+                                        eat
+                                    </text>
+                                    <text
+                                        x="320"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#166534"
+                                    >
+                                        s2[3:]
+                                    </text>
+
+                                    <rect
+                                        x="360"
+                                        y="130"
+                                        width="60"
+                                        height="35"
+                                        rx="5"
+                                        fill="#fef3c7"
+                                        stroke="#f59e0b"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="390"
+                                        y="150"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="14"
+                                        fill="#d97706"
+                                    >
+                                        rg
+                                    </text>
+                                    <text
+                                        x="390"
+                                        y="162"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="10"
+                                        fill="#92400e"
+                                    >
+                                        s2[0:3]
+                                    </text>
+
+                                    <!-- Crossed arrows -->
+                                    <defs>
+                                        <marker
+                                            id="arrow-purple"
+                                            markerWidth="8"
+                                            markerHeight="6"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                        >
+                                            <polygon points="0 0, 8 3, 0 6" fill="#8b5cf6" />
+                                        </marker>
+                                    </defs>
+
+                                    <path
+                                        d="M 110 175 Q 200 210 390 175"
+                                        stroke="#8b5cf6"
+                                        stroke-width="2"
+                                        fill="none"
+                                        marker-end="url(#arrow-purple)"
+                                    />
+                                    <path
+                                        d="M 180 175 Q 280 210 320 175"
+                                        stroke="#8b5cf6"
+                                        stroke-width="2"
+                                        fill="none"
+                                        marker-end="url(#arrow-purple)"
+                                    />
+
+                                    <text
+                                        x="250"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#7c3aed"
+                                    >
+                                        dfs("gr", "rg") AND dfs("eat", "eat")
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="240"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#6b21a8"
+                                    >
+                                        クロスマッチング（交換後の一致）
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="280"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="13"
+                                        font-weight="bold"
+                                        fill="#581c87"
+                                    >
+                                        s2[len-i:] と s2[0:len-i] で分割
+                                    </text>
+                                </g>
+
+                                <!-- Stage 6: Memoization -->
+                                <g class="stage" data-step="6">
+                                    <rect
+                                        x="50"
+                                        y="40"
+                                        width="400"
+                                        height="80"
+                                        rx="15"
+                                        fill="#f3e8ff"
+                                        stroke="#8b5cf6"
+                                        stroke-width="3"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="70"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="16"
+                                        font-weight="bold"
+                                        fill="#7c3aed"
+                                    >
+                                        メモ化による最適化
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="90"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        fill="#6b21a8"
+                                    >
+                                        memo[(s1, s2)] = result
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="105"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#581c87"
+                                    >
+                                        重複計算を避けてO(n³)に最適化
+                                    </text>
+
+                                    <!-- Cache visualization -->
+                                    <rect
+                                        x="80"
+                                        y="140"
+                                        width="340"
+                                        height="120"
+                                        rx="10"
+                                        fill="#faf5ff"
+                                        stroke="#d8b4fe"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="160"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="14"
+                                        font-weight="bold"
+                                        fill="#7c3aed"
+                                    >
+                                        メモリキャッシュ
+                                    </text>
+
+                                    <!-- Cache entries -->
+                                    <rect
+                                        x="100"
+                                        y="175"
+                                        width="120"
+                                        height="25"
+                                        rx="5"
+                                        fill="#e0e7ff"
+                                        stroke="#6366f1"
+                                        stroke-width="1"
+                                    />
+                                    <text
+                                        x="160"
+                                        y="190"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="11"
+                                        fill="#4338ca"
+                                    >
+                                        ("gr", "rg") → False
+                                    </text>
+
+                                    <rect
+                                        x="230"
+                                        y="175"
+                                        width="120"
+                                        height="25"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="1"
+                                    />
+                                    <text
+                                        x="290"
+                                        y="190"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="11"
+                                        fill="#15803d"
+                                    >
+                                        ("eat", "eat") → True
+                                    </text>
+
+                                    <rect
+                                        x="100"
+                                        y="205"
+                                        width="120"
+                                        height="25"
+                                        rx="5"
+                                        fill="#fecaca"
+                                        stroke="#ef4444"
+                                        stroke-width="1"
+                                    />
+                                    <text
+                                        x="160"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="11"
+                                        fill="#dc2626"
+                                    >
+                                        ("abc", "def") → False
+                                    </text>
+
+                                    <rect
+                                        x="230"
+                                        y="205"
+                                        width="120"
+                                        height="25"
+                                        rx="5"
+                                        fill="#dcfce7"
+                                        stroke="#16a34a"
+                                        stroke-width="1"
+                                    />
+                                    <text
+                                        x="290"
+                                        y="220"
+                                        text-anchor="middle"
+                                        font-family="monospace"
+                                        font-size="11"
+                                        fill="#15803d"
+                                    >
+                                        ("ab", "ba") → True
+                                    </text>
+
+                                    <text
+                                        x="250"
+                                        y="245"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        fill="#6b21a8"
+                                    >
+                                        部分問題の結果を保存し、再利用
+                                    </text>
+
+                                    <!-- Performance note -->
+                                    <rect
+                                        x="100"
+                                        y="280"
+                                        width="300"
+                                        height="40"
+                                        rx="8"
+                                        fill="#f0fdf4"
+                                        stroke="#10b981"
+                                        stroke-width="2"
+                                    />
+                                    <text
+                                        x="250"
+                                        y="295"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="12"
+                                        font-weight="bold"
+                                        fill="#059669"
+                                    >
+                                        計算量改善
+                                    </text>
+                                    <text
+                                        x="250"
+                                        y="310"
+                                        text-anchor="middle"
+                                        font-family="Arial, sans-serif"
+                                        font-size="11"
+                                        fill="#065f46"
+                                    >
+                                        O(4^n) → O(n³) + O(n) stack
+                                    </text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Code Example -->
+            <section id="code" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                    <span
+                        class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3"
+                        >3</span
+                    >
+                    コード例
+                </h2>
+                <div class="prose prose-slate max-w-none mb-6">
+                    <p class="text-slate-700">
+                        LeetCode形式のPython実装です。メモ化により重複計算を避け、文字頻度チェックによる枝刈りで効率化を図っています。
+                    </p>
+                </div>
+
+                <pre
+                    class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto"
+                ><code class="language-python">class Solution:
+    def isScramble(self, s1: str, s2: str) -> bool:
+        memo = {}
+
+        def dfs(s1, s2):
+            # Base case: identical strings
+            if s1 == s2:
+                return True
+
+            # Memoization check
+            if (s1, s2) in memo:
+                return memo[(s1, s2)]
+
+            # Character frequency check (pruning)
+            if sorted(s1) != sorted(s2):
+                memo[(s1, s2)] = False
+                return False
+
+            # Try all possible split points
+            for i in range(1, len(s1)):
+                # No swap: s1[0:i] + s1[i:] vs s2[0:i] + s2[i:]
+                if dfs(s1[:i], s2[:i]) and dfs(s1[i:], s2[i:]):
+                    memo[(s1, s2)] = True
+                    return True
+
+                # Swap: s1[0:i] + s1[i:] vs s2[len-i:] + s2[:len-i]
+                if dfs(s1[:i], s2[len(s1)-i:]) and dfs(s1[i:], s2[:len(s1)-i]):
+                    memo[(s1, s2)] = True
+                    return True
+
+            memo[(s1, s2)] = False
+            return False
+
+        return dfs(s1, s2)</code></pre>
+            </section>
+
+            <!-- Visual Diagram -->
+            <section id="diagram" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                    <span
+                        class="w-8 h-8 bg-sky-100 text-sky-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3"
+                        >4</span
+                    >
+                    視覚的図解・フローチャート
+                </h2>
+
+                <div class="prose prose-slate max-w-none mb-6">
+                    <p class="text-slate-700">
+                        アルゴリズムの全体的な流れを示すフローチャートです。分割統治の2つのパターン（非交換・交換）を明確に表現しています。
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                    <svg viewBox="0 0 800 1200" class="w-full h-auto">
+                        <defs>
+                            <linearGradient id="startGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: #10b981; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #059669; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="decisionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: #3b82f6; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #1d4ed8; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="processGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: #f59e0b; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #d97706; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="returnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color: #8b5cf6; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #7c3aed; stop-opacity: 1" />
+                            </linearGradient>
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.3" />
+                            </filter>
+                            <marker
+                                id="arrowhead"
+                                markerWidth="10"
+                                markerHeight="7"
+                                refX="9"
+                                refY="3.5"
+                                orient="auto"
+                            >
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+                            </marker>
+                        </defs>
+
+                        <!-- Start node -->
+                        <rect
+                            x="300"
+                            y="20"
+                            width="200"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#startGrad)"
+                            filter="url(#shadow)"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="45"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Start DFS
+                        </text>
+                        <text
+                            x="400"
+                            y="63"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            fill="white"
+                        >
+                            dfs(s1, s2)
+                        </text>
+
+                        <!-- Equal strings decision -->
+                        <polygon
+                            points="400,140 480,190 400,240 320,190"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                            stroke="#1d4ed8"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="185"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            s1 == s2?
+                        </text>
+
+                        <!-- Return True (from Equal) -->
+                        <rect
+                            x="550"
+                            y="160"
+                            width="120"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#returnGrad)"
+                            filter="url(#shadow)"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="610"
+                            y="185"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Return
+                        </text>
+                        <text
+                            x="610"
+                            y="203"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            True
+                        </text>
+
+                        <!-- Memo check decision -->
+                        <polygon
+                            points="400,300 480,350 400,400 320,350"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                            stroke="#1d4ed8"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="345"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            In memo?
+                        </text>
+
+                        <!-- Return memo result -->
+                        <rect
+                            x="130"
+                            y="320"
+                            width="120"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#returnGrad)"
+                            filter="url(#shadow)"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="190"
+                            y="345"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Return
+                        </text>
+                        <text
+                            x="190"
+                            y="363"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            memo[key]
+                        </text>
+
+                        <!-- Frequency check decision -->
+                        <polygon
+                            points="400,460 480,510 400,560 320,510"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                            stroke="#1d4ed8"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="500"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            sorted(s1) ==
+                        </text>
+                        <text
+                            x="400"
+                            y="515"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            sorted(s2)?
+                        </text>
+
+                        <!-- Return False (from frequency) -->
+                        <rect
+                            x="130"
+                            y="480"
+                            width="120"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#returnGrad)"
+                            filter="url(#shadow)"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="190"
+                            y="505"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Return
+                        </text>
+                        <text
+                            x="190"
+                            y="523"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            False
+                        </text>
+
+                        <!-- Loop process -->
+                        <rect
+                            x="320"
+                            y="620"
+                            width="160"
+                            height="60"
+                            rx="10"
+                            ry="10"
+                            fill="url(#processGrad)"
+                            filter="url(#shadow)"
+                            stroke="#d97706"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="645"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Loop Split
+                        </text>
+                        <text
+                            x="400"
+                            y="663"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="13"
+                            fill="white"
+                        >
+                            i = 1 to len-1
+                        </text>
+
+                        <!-- No-swap check -->
+                        <polygon
+                            points="250,740 330,790 250,840 170,790"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                            stroke="#1d4ed8"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="250"
+                            y="785"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            No-swap
+                        </text>
+                        <text
+                            x="250"
+                            y="800"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            match?
+                        </text>
+
+                        <!-- Swap check -->
+                        <polygon
+                            points="550,740 630,790 550,840 470,790"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                            stroke="#1d4ed8"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="550"
+                            y="785"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Swap
+                        </text>
+                        <text
+                            x="550"
+                            y="800"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="11"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            match?
+                        </text>
+
+                        <!-- Return True (from checks) -->
+                        <rect
+                            x="340"
+                            y="920"
+                            width="120"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#returnGrad)"
+                            filter="url(#shadow)"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="945"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Return
+                        </text>
+                        <text
+                            x="400"
+                            y="963"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            True
+                        </text>
+
+                        <!-- Return False (final) -->
+                        <rect
+                            x="340"
+                            y="1080"
+                            width="120"
+                            height="60"
+                            rx="30"
+                            ry="30"
+                            fill="url(#returnGrad)"
+                            filter="url(#shadow)"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="400"
+                            y="1105"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            Return
+                        </text>
+                        <text
+                            x="400"
+                            y="1123"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            False
+                        </text>
+
+                        <!-- Arrows -->
+                        <!-- Start to Equal -->
+                        <line
+                            x1="400"
+                            y1="80"
+                            x2="400"
+                            y2="140"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+
+                        <!-- Equal Yes to Return True -->
+                        <line
+                            x1="480"
+                            y1="190"
+                            x2="550"
+                            y2="190"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="515"
+                            y="185"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#10b981"
+                        >
+                            Yes
+                        </text>
+
+                        <!-- Equal No to Memo -->
+                        <line
+                            x1="400"
+                            y1="240"
+                            x2="400"
+                            y2="300"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="415"
+                            y="275"
+                            text-anchor="start"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#ef4444"
+                        >
+                            No
+                        </text>
+
+                        <!-- Memo Yes to Return memo -->
+                        <line
+                            x1="320"
+                            y1="350"
+                            x2="250"
+                            y2="350"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="285"
+                            y="345"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#10b981"
+                        >
+                            Yes
+                        </text>
+
+                        <!-- Memo No to Frequency -->
+                        <line
+                            x1="400"
+                            y1="400"
+                            x2="400"
+                            y2="460"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="415"
+                            y="435"
+                            text-anchor="start"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#ef4444"
+                        >
+                            No
+                        </text>
+
+                        <!-- Frequency No to Return False -->
+                        <line
+                            x1="320"
+                            y1="510"
+                            x2="250"
+                            y2="510"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="285"
+                            y="505"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#ef4444"
+                        >
+                            No
+                        </text>
+
+                        <!-- Frequency Yes to Loop -->
+                        <line
+                            x1="400"
+                            y1="560"
+                            x2="400"
+                            y2="620"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="415"
+                            y="595"
+                            text-anchor="start"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#10b981"
+                        >
+                            Yes
+                        </text>
+
+                        <!-- Loop to checks -->
+                        <line
+                            x1="350"
+                            y1="680"
+                            x2="250"
+                            y2="740"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <line
+                            x1="450"
+                            y1="680"
+                            x2="550"
+                            y2="740"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+
+                        <!-- Checks Yes to Return True -->
+                        <line
+                            x1="250"
+                            y1="840"
+                            x2="380"
+                            y2="920"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <line
+                            x1="550"
+                            y1="840"
+                            x2="420"
+                            y2="920"
+                            stroke="#374151"
+                            stroke-width="2"
+                            marker-end="url(#arrowhead)"
+                        />
+                        <text
+                            x="320"
+                            y="880"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#10b981"
+                        >
+                            Yes
+                        </text>
+                        <text
+                            x="480"
+                            y="880"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#10b981"
+                        >
+                            Yes
+                        </text>
+
+                        <!-- Loop continuation -->
+                        <path
+                            d="M 480 650 Q 650 650 650 1050 Q 650 1050 460 1050"
+                            stroke="#374151"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowhead)"
+                            stroke-dasharray="5,5"
+                        />
+                        <text
+                            x="580"
+                            y="850"
+                            text-anchor="middle"
+                            font-family="Arial, sans-serif"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#ef4444"
+                        >
+                            All splits failed
+                        </text>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- Complexity Analysis -->
+            <section
+                id="complexity"
+                class="bg-white rounded-xl border border-slate-200 shadow-sm p-8"
+            >
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                    <span
+                        class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3"
+                        >5</span
+                    >
+                    計算量説明
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Time Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg p-6"
+                    >
+                        <h3 class="text-xl font-semibold text-emerald-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            時間計算量
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-lg p-4 border border-emerald-200">
+                                <p class="font-mono text-lg text-emerald-700 mb-2">
+                                    <strong>O(4^n) → O(n³) with memoization</strong>
+                                </p>
+                                <p class="text-sm text-emerald-600 leading-relaxed">
+                                    <strong>Without memoization:</strong>
+                                    各分割点で4つの再帰呼び出し（最悪）により指数時間<br />
+                                    <strong>With memoization:</strong>
+                                    部分問題の数がO(n³)（異なる部分文字列の組み合わせ）
+                                </p>
+                            </div>
+                            <div class="text-sm text-emerald-700">
+                                <p><strong>詳細分析:</strong></p>
+                                <ul class="list-disc list-inside space-y-1 ml-2 mt-2">
+                                    <li>部分文字列のペア: O(n²)</li>
+                                    <li>各ペアでの分割試行: O(n)</li>
+                                    <li>頻度チェック（枝刈り）: O(n log n)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Space Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 rounded-lg p-6"
+                    >
+                        <h3 class="text-xl font-semibold text-sky-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+                                />
+                            </svg>
+                            空間計算量
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-lg p-4 border border-sky-200">
+                                <p class="font-mono text-lg text-sky-700 mb-2">
+                                    <strong>O(n³) for memoization + O(n) recursion stack</strong>
+                                </p>
+                                <p class="text-sm text-sky-600 leading-relaxed">
+                                    メモ化辞書が支配的。再帰の深さは最大O(n)なので、スタック使用量は比較的小さい
+                                </p>
+                            </div>
+                            <div class="text-sm text-sky-700">
+                                <p><strong>構成要素:</strong></p>
+                                <ul class="list-disc list-inside space-y-1 ml-2 mt-2">
+                                    <li><strong>Memoization:</strong> O(n³) 個のキー</li>
+                                    <li><strong>Recursion Stack:</strong> O(n) の深さ</li>
+                                    <li><strong>String Slicing:</strong> O(n) の一時的な文字列</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-slate-50 border border-slate-200 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-slate-800 mb-4">最適化のポイント</h4>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h5 class="font-medium text-slate-700 mb-2">✅ 効果的な最適化</h5>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>メモ化:</strong> 重複計算の排除</li>
+                                <li>• <strong>頻度チェック:</strong> 不可能なケースの早期除外</li>
+                                <li>• <strong>ベースケース:</strong> 同一文字列の即座判定</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-slate-700 mb-2">⚠️ 注意点</h5>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• 文字列スライシングのコスト</li>
+                                <li>• メモリ使用量（長い文字列では問題になる可能性）</li>
+                                <li>• sorted()による頻度チェックのコスト</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            // State management
+            let currentStep = 1;
+            let isPlaying = false;
+            const totalSteps = 6;
+
+            // DOM elements
+            const stepCards = document.querySelectorAll('.step-card');
+            const stages = document.querySelectorAll('.stage');
+            const playBtn = document.querySelector('[data-action="play"]');
+            const prevBtn = document.querySelector('[data-action="prev"]');
+            const nextBtn = document.querySelector('[data-action="next"]');
+            const resetBtn = document.querySelector('[data-action="reset"]');
+
+            // Initialize
+            function init() {
+                showStep(1);
+                updateButtons();
+            }
+
+            // Show specific step
+            function showStep(step) {
+                // Update step cards
+                stepCards.forEach((card, index) => {
+                    const stepNum = index + 1;
+                    if (stepNum === step) {
+                        card.classList.add('active');
+                        card.setAttribute('aria-pressed', 'true');
+                    } else {
+                        card.classList.remove('active');
+                        card.setAttribute('aria-pressed', 'false');
+                    }
+                });
+
+                // Update SVG stages
+                stages.forEach((stage) => {
+                    const stageStep = parseInt(stage.getAttribute('data-step'));
+                    if (stageStep === step) {
+                        stage.classList.add('active');
+                        stage.setAttribute('aria-hidden', 'false');
+                    } else {
+                        stage.classList.remove('active');
+                        stage.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                currentStep = step;
+                updateButtons();
+            }
+
+            // Update button states
+            function updateButtons() {
+                prevBtn.disabled = currentStep <= 1;
+                nextBtn.disabled = currentStep >= totalSteps;
+
+                if (prevBtn.disabled) {
+                    prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+
+                if (nextBtn.disabled) {
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            // Play animation
+            function playAnimation() {
+                if (isPlaying) return; // Prevent multiple plays
+
+                isPlaying = true;
+                playBtn.disabled = true;
+                playBtn.textContent = 'Playing...';
+
+                let step = 1;
+                const interval = setInterval(() => {
+                    showStep(step);
+                    step++;
+
+                    if (step > totalSteps) {
+                        clearInterval(interval);
+                        // Auto reset after completion
+                        setTimeout(() => {
+                            showStep(1);
+                            isPlaying = false;
+                            playBtn.disabled = false;
+                            playBtn.textContent = 'Play';
+                        }, 1000);
+                    }
+                }, 1500);
+            }
+
+            // Event listeners
+            stepCards.forEach((card, index) => {
+                const stepNum = index + 1;
+
+                card.addEventListener('click', () => {
+                    if (!isPlaying) showStep(stepNum);
+                });
+
+                card.addEventListener('keydown', (e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isPlaying) {
+                        e.preventDefault();
+                        showStep(stepNum);
+                    }
+                });
+            });
+
+            playBtn.addEventListener('click', playAnimation);
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 1 && !isPlaying) {
+                    showStep(currentStep - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps && !isPlaying) {
+                    showStep(currentStep + 1);
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                if (!isPlaying) {
+                    showStep(1);
+                }
+            });
+
+            // Smooth scrolling for navigation
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                    }
+                });
+            });
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', init);
+        </script>
+    </body>
+</html>

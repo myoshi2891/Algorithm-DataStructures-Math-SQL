@@ -23,13 +23,13 @@ type Item = { w: number; v: number };
  * @returns 品物数N、容量W、品物配列items
  */
 function parseInput(input: string): { N: number; W: number; items: Item[] } {
-  const lines = input.trim().split('\n');
-  const [N, W] = lines[0].split(' ').map(Number);
-  const items: Item[] = lines.slice(1).map(line => {
-    const [w, v] = line.split(' ').map(Number);
-    return { w, v };
-  });
-  return { N, W, items };
+    const lines = input.trim().split('\n');
+    const [N, W] = lines[0].split(' ').map(Number);
+    const items: Item[] = lines.slice(1).map((line) => {
+        const [w, v] = line.split(' ').map(Number);
+        return { w, v };
+    });
+    return { N, W, items };
 }
 
 /**
@@ -40,23 +40,23 @@ function parseInput(input: string): { N: number; W: number; items: Item[] } {
  * @returns 価値の合計としてあり得る最大の値
  */
 function solveKnapsack(N: number, W: number, items: Item[]): number {
-  const maxValue = items.reduce((sum, item) => sum + item.v, 0);
-  const dp: number[] = Array(maxValue + 1).fill(Infinity);
-  dp[0] = 0;
+    const maxValue = items.reduce((sum, item) => sum + item.v, 0);
+    const dp: number[] = Array(maxValue + 1).fill(Infinity);
+    dp[0] = 0;
 
-  for (const { w, v } of items) {
-    for (let val = maxValue; val >= v; val--) {
-      if (dp[val - v] + w <= W) {
-        dp[val] = Math.min(dp[val], dp[val - v] + w);
-      }
+    for (const { w, v } of items) {
+        for (let val = maxValue; val >= v; val--) {
+            if (dp[val - v] + w <= W) {
+                dp[val] = Math.min(dp[val], dp[val - v] + w);
+            }
+        }
     }
-  }
 
-  // dp[v] <= W となる最大の v を返す
-  for (let v = maxValue; v >= 0; v--) {
-    if (dp[v] <= W) return v;
-  }
-  return 0;
+    // dp[v] <= W となる最大の v を返す
+    for (let v = maxValue; v >= 0; v--) {
+        if (dp[v] <= W) return v;
+    }
+    return 0;
 }
 
 /**
@@ -64,10 +64,10 @@ function solveKnapsack(N: number, W: number, items: Item[]): number {
  * @returns void（標準出力）
  */
 function main(): void {
-  const input = fs.readFileSync('/dev/stdin', 'utf8');
-  const { N, W, items } = parseInput(input);
-  const result = solveKnapsack(N, W, items);
-  console.log(result);
+    const input = fs.readFileSync('/dev/stdin', 'utf8');
+    const { N, W, items } = parseInput(input);
+    const result = solveKnapsack(N, W, items);
+    console.log(result);
 }
 
 // エントリーポイント

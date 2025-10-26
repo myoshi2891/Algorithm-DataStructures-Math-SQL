@@ -50,9 +50,9 @@
 // Node.js v16.17.1 で動作し、fs を用いて標準入力から読み込みます。
 
 // ```javascript
-"use strict";
+'use strict';
 
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * n 段の階段を上る方法の数を DP で計算
@@ -72,7 +72,7 @@ function countWaysDP(n) {
 }
 
 // 標準入力から n を取得
-const input = fs.readFileSync(0, "utf8").trim();
+const input = fs.readFileSync(0, 'utf8').trim();
 const n = parseInt(input, 10);
 
 // 出力

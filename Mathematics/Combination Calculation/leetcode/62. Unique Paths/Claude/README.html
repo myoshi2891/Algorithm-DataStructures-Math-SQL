@@ -1,348 +1,365 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Unique Paths - 技術解説</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
-    
-    <style>
-        /* カスタムCSS - Tailwindクラスの統合 */
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-        
-        .section-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-        
-        .card-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 32px;
-            margin-bottom: 32px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s ease;
-        }
-        
-        .card-container:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-        
-        .algorithm-step {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 16px 0;
-            transition: all 0.3s ease;
-        }
-        
-        .algorithm-step:hover {
-            border-color: #667eea;
-            background: #f1f5f9;
-        }
-        
-        .grid-cell {
-            width: 48px;
-            height: 48px;
-            border: 2px solid #cbd5e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .grid-cell.start {
-            background: #10b981;
-            color: white;
-            border-color: #059669;
-        }
-        
-        .grid-cell.end {
-            background: #ef4444;
-            color: white;
-            border-color: #dc2626;
-        }
-        
-        .grid-cell.path {
-            background: #3b82f6;
-            color: white;
-            border-color: #2563eb;
-        }
-        
-        .grid-cell.highlighted {
-            background: #fbbf24;
-            color: #92400e;
-            border-color: #f59e0b;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Robot Unique Paths - 技術解説</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            /* カスタムCSS - Tailwindクラスの統合 */
+            .hero-section {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 80px 0;
+                text-align: center;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .section-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 24px;
             }
-        }
-        
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-        
-        /* コードブロックの最適化 */
-        pre, code {
-            font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
-            white-space: pre !important;
-            overflow-x: auto;
-            line-height: 1.6;
-        }
-        
-        pre {
-            padding: 20px;
-            background: #1a1b26 !important;
-            border-radius: 12px;
-            position: relative;
-            margin: 20px 0;
-        }
-        
-        .line-numbers {
-            counter-reset: linenumber;
-        }
-        
-        .line-numbers .line-numbers-rows {
-            position: absolute;
-            pointer-events: none;
-            top: 20px;
-            left: 0;
-            width: 3em;
-            letter-spacing: -1px;
-            border-right: 1px solid #363b54;
-            user-select: none;
-        }
-        
-        .line-numbers .line-numbers-rows > span {
-            pointer-events: none;
-            display: block;
-            counter-increment: linenumber;
-        }
-        
-        .line-numbers .line-numbers-rows > span:before {
-            content: counter(linenumber);
-            color: #6272a4;
-            display: block;
-            padding-right: 0.8em;
-            text-align: right;
-        }
-        
-        .copy-button {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: #44475a;
-            color: #f8f8f2;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .copy-button:hover {
-            background: #6272a4;
-        }
-        
-        .tab-button {
-            background: #e2e8f0;
-            border: none;
-            padding: 12px 24px;
-            margin-right: 4px;
-            border-radius: 8px 8px 0 0;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .tab-button.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .complexity-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin: 4px;
-        }
-        
-        .time-complexity {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .space-complexity {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-        
-        .visualization-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 16px;
-            background: #f1f5f9;
-            border-radius: 8px;
-        }
-        
-        .control-button {
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 16px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .control-button:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
-        
-        .control-button:disabled {
-            background: #cbd5e0;
-            color: #6b7280;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .formula-display {
-            background: #1a202c;
-            color: #e2e8f0;
-            padding: 24px;
-            border-radius: 12px;
-            font-family: 'Times New Roman', serif;
-            font-size: 18px;
-            text-align: center;
-            margin: 20px 0;
-            position: relative;
-        }
-        
-        .formula-display::before {
-            content: "数式";
-            position: absolute;
-            top: -12px;
-            left: 20px;
-            background: #1a202c;
-            padding: 0 8px;
-            font-size: 12px;
-            color: #9ca3af;
-        }
-    </style>
-</head>
 
-<body class="bg-gray-50 font-sans">
-    <!-- ヘロー セクション -->
-    <header class="hero-section">
-        <div class="section-container">
-            <h1 class="text-5xl font-bold mb-6 fade-in-up">Robot Unique Paths</h1>
-            <p class="text-xl mb-8 fade-in-up" style="animation-delay: 0.2s">動的プログラミングと数学的解法による経路数計算の技術解説</p>
-            <div class="complexity-badge time-complexity">時間計算量: O(1)</div>
-            <div class="complexity-badge space-complexity">空間計算量: O(1)</div>
-        </div>
-    </header>
+            .card-container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                padding: 32px;
+                margin-bottom: 32px;
+                border-left: 4px solid #667eea;
+                transition: all 0.3s ease;
+            }
 
-    <main class="section-container py-12">
-        <!-- 問題概要 -->
-        <section class="card-container fade-in-up">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">📋 問題概要</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <div>
-                    <p class="text-gray-700 leading-relaxed mb-4">
-                        ロボットがm×nグリッドの左上角(0,0)から右下角(m-1,n-1)に移動する際の、
-                        <strong>一意な経路数</strong>を計算する問題です。
-                    </p>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
-                        <li>ロボットは右または下にのみ移動可能</li>
-                        <li>制約: 1 ≤ m, n ≤ 100</li>
-                        <li>結果は 2 × 10⁹ 以下が保証</li>
-                    </ul>
-                </div>
-                <div id="problemGrid" class="flex justify-center items-center">
-                    <!-- グリッド表示エリア -->
-                </div>
+            .card-container:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            }
+
+            .algorithm-step {
+                background: #f8fafc;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 16px 0;
+                transition: all 0.3s ease;
+            }
+
+            .algorithm-step:hover {
+                border-color: #667eea;
+                background: #f1f5f9;
+            }
+
+            .grid-cell {
+                width: 48px;
+                height: 48px;
+                border: 2px solid #cbd5e0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .grid-cell.start {
+                background: #10b981;
+                color: white;
+                border-color: #059669;
+            }
+
+            .grid-cell.end {
+                background: #ef4444;
+                color: white;
+                border-color: #dc2626;
+            }
+
+            .grid-cell.path {
+                background: #3b82f6;
+                color: white;
+                border-color: #2563eb;
+            }
+
+            .grid-cell.highlighted {
+                background: #fbbf24;
+                color: #92400e;
+                border-color: #f59e0b;
+                animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .fade-in-up {
+                animation: fadeInUp 0.8s ease-out forwards;
+            }
+
+            /* コードブロックの最適化 */
+            pre,
+            code {
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.6;
+            }
+
+            pre {
+                padding: 20px;
+                background: #1a1b26 !important;
+                border-radius: 12px;
+                position: relative;
+                margin: 20px 0;
+            }
+
+            .line-numbers {
+                counter-reset: linenumber;
+            }
+
+            .line-numbers .line-numbers-rows {
+                position: absolute;
+                pointer-events: none;
+                top: 20px;
+                left: 0;
+                width: 3em;
+                letter-spacing: -1px;
+                border-right: 1px solid #363b54;
+                user-select: none;
+            }
+
+            .line-numbers .line-numbers-rows > span {
+                pointer-events: none;
+                display: block;
+                counter-increment: linenumber;
+            }
+
+            .line-numbers .line-numbers-rows > span:before {
+                content: counter(linenumber);
+                color: #6272a4;
+                display: block;
+                padding-right: 0.8em;
+                text-align: right;
+            }
+
+            .copy-button {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                background: #44475a;
+                color: #f8f8f2;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .copy-button:hover {
+                background: #6272a4;
+            }
+
+            .tab-button {
+                background: #e2e8f0;
+                border: none;
+                padding: 12px 24px;
+                margin-right: 4px;
+                border-radius: 8px 8px 0 0;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+
+            .tab-button.active {
+                background: #667eea;
+                color: white;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
+            .complexity-badge {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 600;
+                margin: 4px;
+            }
+
+            .time-complexity {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .space-complexity {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
+
+            .visualization-controls {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                margin-bottom: 20px;
+                padding: 16px;
+                background: #f1f5f9;
+                border-radius: 8px;
+            }
+
+            .control-button {
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 16px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+
+            .control-button:hover {
+                background: #5a67d8;
+                transform: translateY(-2px);
+            }
+
+            .control-button:disabled {
+                background: #cbd5e0;
+                color: #6b7280;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .formula-display {
+                background: #1a202c;
+                color: #e2e8f0;
+                padding: 24px;
+                border-radius: 12px;
+                font-family: 'Times New Roman', serif;
+                font-size: 18px;
+                text-align: center;
+                margin: 20px 0;
+                position: relative;
+            }
+
+            .formula-display::before {
+                content: '数式';
+                position: absolute;
+                top: -12px;
+                left: 20px;
+                background: #1a202c;
+                padding: 0 8px;
+                font-size: 12px;
+                color: #9ca3af;
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-50 font-sans">
+        <!-- ヘロー セクション -->
+        <header class="hero-section">
+            <div class="section-container">
+                <h1 class="text-5xl font-bold mb-6 fade-in-up">Robot Unique Paths</h1>
+                <p class="text-xl mb-8 fade-in-up" style="animation-delay: 0.2s">
+                    動的プログラミングと数学的解法による経路数計算の技術解説
+                </p>
+                <div class="complexity-badge time-complexity">時間計算量: O(1)</div>
+                <div class="complexity-badge space-complexity">空間計算量: O(1)</div>
             </div>
-        </section>
+        </header>
 
-        <!-- アルゴリズム選択タブ -->
-        <section class="card-container">
-            <div class="mb-6">
-                <button class="tab-button active" onclick="switchTab(event, 'mathematical')">数学的解法</button>
-                <button class="tab-button" onclick="switchTab(event, 'dp1d')">1次元DP</button>
-                <button class="tab-button" onclick="switchTab(event, 'dp2d')">2次元DP</button>
-                <button class="tab-button" onclick="switchTab(event, 'comparison')">比較分析</button>
-            </div>
-
-            <!-- 数学的解法タブ -->
-            <div id="mathematical" class="tab-content active">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">🧮 数学的解法 (最適解)</h2>
-                
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
-                    <p class="text-gray-700 mb-4">
-                        この問題は<strong>組み合わせ数学</strong>の問題として解けます。
-                        ロボットは合計 <code>(m-1) + (n-1) = m+n-2</code> 回移動し、
-                        そのうち右に <code>n-1</code> 回、下に <code>m-1</code> 回移動します。
-                    </p>
-                    
-                    <div class="formula-display">
-                        C(m+n-2, min(m-1, n-1))
+        <main class="section-container py-12">
+            <!-- 問題概要 -->
+            <section class="card-container fade-in-up">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">📋 問題概要</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            ロボットがm×nグリッドの左上角(0,0)から右下角(m-1,n-1)に移動する際の、
+                            <strong>一意な経路数</strong>を計算する問題です。
+                        </p>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>ロボットは右または下にのみ移動可能</li>
+                            <li>制約: 1 ≤ m, n ≤ 100</li>
+                            <li>結果は 2 × 10⁹ 以下が保証</li>
+                        </ul>
                     </div>
-                    
-                    <p class="text-gray-700">
-                        これは「m+n-2回の移動のうち、右移動（または下移動）の回数を選ぶ組み合わせ」として表現できます。
-                    </p>
+                    <div id="problemGrid" class="flex justify-center items-center">
+                        <!-- グリッド表示エリア -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- アルゴリズム選択タブ -->
+            <section class="card-container">
+                <div class="mb-6">
+                    <button class="tab-button active" onclick="switchTab(event, 'mathematical')">
+                        数学的解法
+                    </button>
+                    <button class="tab-button" onclick="switchTab(event, 'dp1d')">1次元DP</button>
+                    <button class="tab-button" onclick="switchTab(event, 'dp2d')">2次元DP</button>
+                    <button class="tab-button" onclick="switchTab(event, 'comparison')">
+                        比較分析
+                    </button>
                 </div>
 
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
-                    <pre class="line-numbers"><code class="language-python">import math
+                <!-- 数学的解法タブ -->
+                <div id="mathematical" class="tab-content active">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">🧮 数学的解法 (最適解)</h2>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
+                        <p class="text-gray-700 mb-4">
+                            この問題は<strong>組み合わせ数学</strong>の問題として解けます。
+                            ロボットは合計 <code>(m-1) + (n-1) = m+n-2</code> 回移動し、
+                            そのうち右に <code>n-1</code> 回、下に <code>m-1</code> 回移動します。
+                        </p>
+
+                        <div class="formula-display">C(m+n-2, min(m-1, n-1))</div>
+
+                        <p class="text-gray-700">
+                            これは「m+n-2回の移動のうち、右移動（または下移動）の回数を選ぶ組み合わせ」として表現できます。
+                        </p>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
+                        <pre class="line-numbers"><code class="language-python">import math
 
 class Solution:
     def uniquePaths(self, m: int, n: int) -> int:
@@ -370,42 +387,46 @@ class Solution:
             result = result * (total_moves - i) // (i + 1)
         
         return result</code><button class="copy-button" onclick="copyCode(this)">Copy</button></pre>
-                </div>
+                    </div>
 
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">📊 計算例: m=3, n=7</h3>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <h4 class="font-semibold mb-2">計算過程:</h4>
-                            <div class="bg-gray-100 p-4 rounded-lg font-mono text-sm">
-                                <div>総移動回数: 3+7-2 = 8</div>
-                                <div>右移動回数: 7-1 = 6</div>
-                                <div>下移動回数: 3-1 = 2</div>
-                                <div class="mt-2 text-blue-600">C(8, 2) = 8!/(2!×6!) = 28</div>
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">📊 計算例: m=3, n=7</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold mb-2">計算過程:</h4>
+                                <div class="bg-gray-100 p-4 rounded-lg font-mono text-sm">
+                                    <div>総移動回数: 3+7-2 = 8</div>
+                                    <div>右移動回数: 7-1 = 6</div>
+                                    <div>下移動回数: 3-1 = 2</div>
+                                    <div class="mt-2 text-blue-600">C(8, 2) = 8!/(2!×6!) = 28</div>
+                                </div>
                             </div>
-                        </div>
-                        <div id="mathVisualization">
-                            <!-- 数学的可視化 -->
+                            <div id="mathVisualization">
+                                <!-- 数学的可視化 -->
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 1次元DP タブ -->
-            <div id="dp1d" class="tab-content">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">📈 1次元動的プログラミング</h2>
-                
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
-                    <p class="text-gray-700 mb-4">
-                        2次元DPの空間計算量を最適化し、<strong>O(min(m,n))</strong>まで削減。
-                        前の行の情報のみを保持することで実現します。
-                    </p>
-                </div>
+                <!-- 1次元DP タブ -->
+                <div id="dp1d" class="tab-content">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">
+                        📈 1次元動的プログラミング
+                    </h2>
 
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
-                    <pre class="line-numbers"><code class="language-python">def uniquePathsDP1D(self, m: int, n: int) -> int:
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
+                        <p class="text-gray-700 mb-4">
+                            2次元DPの空間計算量を最適化し、<strong>O(min(m,n))</strong>まで削減。
+                            前の行の情報のみを保持することで実現します。
+                        </p>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">def uniquePathsDP1D(self, m: int, n: int) -> int:
     """
     1次元DPによる実装
     Time: O(m×n), Space: O(min(m,n))
@@ -424,36 +445,46 @@ class Solution:
             dp[j] += dp[j - 1]
     
     return dp[cols - 1]</code><button class="copy-button" onclick="copyCode(this)">Copy</button></pre>
-                </div>
-
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">🎯 可視化デモ</h3>
-                    <div class="visualization-controls">
-                        <button class="control-button" onclick="startDP1DAnimation()">アニメーション開始</button>
-                        <button class="control-button" onclick="resetDP1DAnimation()">リセット</button>
-                        <span class="text-gray-700">ステップ: <span id="dp1dStep">0</span></span>
                     </div>
-                    <div id="dp1dVisualization" class="bg-white p-6 rounded-lg border">
-                        <!-- 1次元DP可視化エリア -->
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">🎯 可視化デモ</h3>
+                        <div class="visualization-controls">
+                            <button class="control-button" onclick="startDP1DAnimation()">
+                                アニメーション開始
+                            </button>
+                            <button class="control-button" onclick="resetDP1DAnimation()">
+                                リセット
+                            </button>
+                            <span class="text-gray-700"
+                                >ステップ: <span id="dp1dStep">0</span></span
+                            >
+                        </div>
+                        <div id="dp1dVisualization" class="bg-white p-6 rounded-lg border">
+                            <!-- 1次元DP可視化エリア -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2次元DP タブ -->
-            <div id="dp2d" class="tab-content">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">📋 2次元動的プログラミング</h2>
-                
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
-                    <p class="text-gray-700 mb-4">
-                        最も直感的な解法。各セル(i,j)への経路数は、
-                        <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code> で計算。
-                    </p>
-                </div>
+                <!-- 2次元DP タブ -->
+                <div id="dp2d" class="tab-content">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">
+                        📋 2次元動的プログラミング
+                    </h2>
 
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
-                    <pre class="line-numbers"><code class="language-python">def uniquePaths2D(self, m: int, n: int) -> int:
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">💡 核心アイデア</h3>
+                        <p class="text-gray-700 mb-4">
+                            最も直感的な解法。各セル(i,j)への経路数は、
+                            <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code> で計算。
+                        </p>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">⚡ 実装コード</h3>
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">def uniquePaths2D(self, m: int, n: int) -> int:
     """
     2次元DPによる実装
     Time: O(m×n), Space: O(m×n)
@@ -473,210 +504,249 @@ class Solution:
             dp[i][j] = dp[i-1][j] + dp[i][j-1]
     
     return dp[m-1][n-1]</code><button class="copy-button" onclick="copyCode(this)">Copy</button></pre>
-                </div>
+                    </div>
 
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">🎯 可視化デモ</h3>
-                    <div class="visualization-controls">
-                        <button class="control-button" onclick="startDP2DAnimation()">アニメーション開始</button>
-                        <button class="control-button" onclick="resetDP2DAnimation()">リセット</button>
-                        <span class="text-gray-700">ステップ: <span id="dp2dStep">0</span></span>
-                    </div>
-                    <div id="dp2dVisualization" class="bg-white p-6 rounded-lg border">
-                        <!-- 2次元DP可視化エリア -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- 比較分析タブ -->
-            <div id="comparison" class="tab-content">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6">📊 アルゴリズム比較分析</h2>
-                
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">⚖️ 計算量比較</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="border border-gray-300 px-4 py-2">解法</th>
-                                    <th class="border border-gray-300 px-4 py-2">時間計算量</th>
-                                    <th class="border border-gray-300 px-4 py-2">空間計算量</th>
-                                    <th class="border border-gray-300 px-4 py-2">可読性</th>
-                                    <th class="border border-gray-300 px-4 py-2">実装難易度</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2 font-semibold">数学的解法</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-green-600">O(1)</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-green-600">O(1)</td>
-                                    <td class="border border-gray-300 px-4 py-2">高</td>
-                                    <td class="border border-gray-300 px-4 py-2">低</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2 font-semibold">1次元DP</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-yellow-600">O(m×n)</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-blue-600">O(min(m,n))</td>
-                                    <td class="border border-gray-300 px-4 py-2">中</td>
-                                    <td class="border border-gray-300 px-4 py-2">中</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2 font-semibold">2次元DP</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-yellow-600">O(m×n)</td>
-                                    <td class="border border-gray-300 px-4 py-2 text-red-600">O(m×n)</td>
-                                    <td class="border border-gray-300 px-4 py-2">最高</td>
-                                    <td class="border border-gray-300 px-4 py-2">低</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">🚀 パフォーマンステスト</h3>
-                    <div class="visualization-controls">
-                        <button class="control-button" onclick="runPerformanceTest()">テスト実行</button>
-                        <button class="control-button" onclick="clearResults()">結果クリア</button>
-                    </div>
-                    <div id="performanceResults" class="bg-gray-50 p-4 rounded-lg min-h-32">
-                        <p class="text-gray-500">パフォーマンステストを実行してください</p>
-                    </div>
-                </div>
-
-                <div class="algorithm-step">
-                    <h3 class="text-xl font-semibold mb-4">💡 選択指針</h3>
-                    <div class="grid md:grid-cols-3 gap-4">
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-green-800 mb-2">数学的解法 推奨</h4>
-                            <ul class="text-sm text-green-700 list-disc list-inside space-y-1">
-                                <li>競技プログラミング</li>
-                                <li>高速処理が必要</li>
-                                <li>メモリ制約が厳しい</li>
-                            </ul>
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">🎯 可視化デモ</h3>
+                        <div class="visualization-controls">
+                            <button class="control-button" onclick="startDP2DAnimation()">
+                                アニメーション開始
+                            </button>
+                            <button class="control-button" onclick="resetDP2DAnimation()">
+                                リセット
+                            </button>
+                            <span class="text-gray-700"
+                                >ステップ: <span id="dp2dStep">0</span></span
+                            >
                         </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-blue-800 mb-2">1次元DP 推奨</h4>
-                            <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
-                                <li>メモリ効率重視</li>
-                                <li>DPの学習目的</li>
-                                <li>拡張性が必要</li>
-                            </ul>
-                        </div>
-                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-purple-800 mb-2">2次元DP 推奨</h4>
-                            <ul class="text-sm text-purple-700 list-disc list-inside space-y-1">
-                                <li>教育・学習目的</li>
-                                <li>可読性最優先</li>
-                                <li>デバッグが必要</li>
-                            </ul>
+                        <div id="dp2dVisualization" class="bg-white p-6 rounded-lg border">
+                            <!-- 2次元DP可視化エリア -->
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- まとめ -->
-        <section class="card-container">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">🎯 まとめ</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">📈 学習ポイント</h3>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
-                        <li><strong>問題の抽象化</strong>: 格子経路問題を組み合わせ数学で解く</li>
-                        <li><strong>空間計算量最適化</strong>: 2次元→1次元DPへの変換</li>
-                        <li><strong>数学的洞察</strong>: 動的プログラミングを数式で置き換え</li>
-                        <li><strong>実装選択</strong>: 用途に応じた最適解法の選択</li>
-                    </ul>
+                <!-- 比較分析タブ -->
+                <div id="comparison" class="tab-content">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">📊 アルゴリズム比較分析</h2>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">⚖️ 計算量比較</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="border border-gray-300 px-4 py-2">解法</th>
+                                        <th class="border border-gray-300 px-4 py-2">時間計算量</th>
+                                        <th class="border border-gray-300 px-4 py-2">空間計算量</th>
+                                        <th class="border border-gray-300 px-4 py-2">可読性</th>
+                                        <th class="border border-gray-300 px-4 py-2">実装難易度</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2 font-semibold">
+                                            数学的解法
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-green-600">
+                                            O(1)
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-green-600">
+                                            O(1)
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2">高</td>
+                                        <td class="border border-gray-300 px-4 py-2">低</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2 font-semibold">
+                                            1次元DP
+                                        </td>
+                                        <td
+                                            class="border border-gray-300 px-4 py-2 text-yellow-600"
+                                        >
+                                            O(m×n)
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-blue-600">
+                                            O(min(m,n))
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2">中</td>
+                                        <td class="border border-gray-300 px-4 py-2">中</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2 font-semibold">
+                                            2次元DP
+                                        </td>
+                                        <td
+                                            class="border border-gray-300 px-4 py-2 text-yellow-600"
+                                        >
+                                            O(m×n)
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-red-600">
+                                            O(m×n)
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2">最高</td>
+                                        <td class="border border-gray-300 px-4 py-2">低</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">🚀 パフォーマンステスト</h3>
+                        <div class="visualization-controls">
+                            <button class="control-button" onclick="runPerformanceTest()">
+                                テスト実行
+                            </button>
+                            <button class="control-button" onclick="clearResults()">
+                                結果クリア
+                            </button>
+                        </div>
+                        <div id="performanceResults" class="bg-gray-50 p-4 rounded-lg min-h-32">
+                            <p class="text-gray-500">パフォーマンステストを実行してください</p>
+                        </div>
+                    </div>
+
+                    <div class="algorithm-step">
+                        <h3 class="text-xl font-semibold mb-4">💡 選択指針</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-green-800 mb-2">数学的解法 推奨</h4>
+                                <ul class="text-sm text-green-700 list-disc list-inside space-y-1">
+                                    <li>競技プログラミング</li>
+                                    <li>高速処理が必要</li>
+                                    <li>メモリ制約が厳しい</li>
+                                </ul>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-blue-800 mb-2">1次元DP 推奨</h4>
+                                <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+                                    <li>メモリ効率重視</li>
+                                    <li>DPの学習目的</li>
+                                    <li>拡張性が必要</li>
+                                </ul>
+                            </div>
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-purple-800 mb-2">2次元DP 推奨</h4>
+                                <ul class="text-sm text-purple-700 list-disc list-inside space-y-1">
+                                    <li>教育・学習目的</li>
+                                    <li>可読性最優先</li>
+                                    <li>デバッグが必要</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">🔧 実装のコツ</h3>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
-                        <li><strong>境界条件</strong>: 最初の行・列の初期化</li>
-                        <li><strong>オーバーフロー対策</strong>: 整数演算の順序に注意</li>
-                        <li><strong>メモリ最適化</strong>: 必要最小限のデータ構造使用</li>
-                        <li><strong>型安全性</strong>: 適切な型ヒントの活用</li>
-                    </ul>
+            </section>
+
+            <!-- まとめ -->
+            <section class="card-container">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">🎯 まとめ</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">📈 学習ポイント</h3>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>
+                                <strong>問題の抽象化</strong>: 格子経路問題を組み合わせ数学で解く
+                            </li>
+                            <li><strong>空間計算量最適化</strong>: 2次元→1次元DPへの変換</li>
+                            <li><strong>数学的洞察</strong>: 動的プログラミングを数式で置き換え</li>
+                            <li><strong>実装選択</strong>: 用途に応じた最適解法の選択</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">🔧 実装のコツ</h3>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li><strong>境界条件</strong>: 最初の行・列の初期化</li>
+                            <li><strong>オーバーフロー対策</strong>: 整数演算の順序に注意</li>
+                            <li><strong>メモリ最適化</strong>: 必要最小限のデータ構造使用</li>
+                            <li><strong>型安全性</strong>: 適切な型ヒントの活用</li>
+                        </ul>
+                    </div>
                 </div>
+            </section>
+        </main>
+
+        <footer class="bg-gray-800 text-white text-center py-8">
+            <div class="section-container">
+                <p>&copy; 2024 Robot Unique Paths Technical Guide. All rights reserved.</p>
             </div>
-        </section>
-    </main>
+        </footer>
 
-    <footer class="bg-gray-800 text-white text-center py-8">
-        <div class="section-container">
-            <p>&copy; 2024 Robot Unique Paths Technical Guide. All rights reserved.</p>
-        </div>
-    </footer>
+        <script>
+            // ========== グローバル変数 ==========
+            let dp1dAnimationInterval = null;
+            let dp2dAnimationInterval = null;
+            let currentDP1DStep = 0;
+            let currentDP2DStep = 0;
+            const ANIMATION_SPEED = 800; // ms
 
-    <script>
-        // ========== グローバル変数 ==========
-        let dp1dAnimationInterval = null;
-        let dp2dAnimationInterval = null;
-        let currentDP1DStep = 0;
-        let currentDP2DStep = 0;
-        const ANIMATION_SPEED = 800; // ms
+            // ========== ユーティリティ関数 ==========
 
-        // ========== ユーティリティ関数 ==========
-        
-        /**
-         * 要素作成のヘルパー関数
-         */
-        function createElement(tag, className = '', content = '') {
-            const element = document.createElement(tag);
-            if (className) element.className = className;
-            if (content) element.textContent = content;
-            return element;
-        }
-
-        /**
-         * グリッドセル作成関数
-         */
-        function createGridCell(value = '', extraClasses = '') {
-            const cell = createElement('div', `grid-cell ${extraClasses}`);
-            cell.textContent = value;
-            return cell;
-        }
-
-        // ========== 初期化関数 ==========
-        
-        /**
-         * 問題概要のグリッド表示
-         */
-        function initializeProblemGrid() {
-            const container = document.getElementById('problemGrid');
-            const gridContainer = createElement('div', 'grid grid-cols-4 gap-1');
-            
-            // 3x4のサンプルグリッド作成
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 4; j++) {
-                    let extraClasses = '';
-                    if (i === 0 && j === 0) extraClasses = 'start';
-                    else if (i === 2 && j === 3) extraClasses = 'end';
-                    else if ((i === 0 && j <= 3) || (i === 1 && j === 3) || (i === 2 && j === 3)) {
-                        extraClasses = 'path';
-                    }
-                    gridContainer.appendChild(createGridCell('', extraClasses));
-                }
+            /**
+             * 要素作成のヘルパー関数
+             */
+            function createElement(tag, className = '', content = '') {
+                const element = document.createElement(tag);
+                if (className) element.className = className;
+                if (content) element.textContent = content;
+                return element;
             }
-            
-            container.appendChild(gridContainer);
-            
-            // 説明テキスト
-            const description = createElement('div', 'text-center mt-4 text-sm text-gray-600');
-            description.innerHTML = '<strong>緑:</strong> 開始点 | <strong>赤:</strong> 終了点 | <strong>青:</strong> 可能な経路';
-            container.appendChild(description);
-        }
 
-        /**
-         * 数学的解法の可視化
-         */
-        function initializeMathVisualization() {
-            const container = document.getElementById('mathVisualization');
-            
-            const visualDiv = createElement('div', 'text-center');
-            
-            // 組み合わせの視覚的表現
-            const combinationDisplay = createElement('div', 'bg-blue-50 p-4 rounded-lg');
-            combinationDisplay.innerHTML = `
+            /**
+             * グリッドセル作成関数
+             */
+            function createGridCell(value = '', extraClasses = '') {
+                const cell = createElement('div', `grid-cell ${extraClasses}`);
+                cell.textContent = value;
+                return cell;
+            }
+
+            // ========== 初期化関数 ==========
+
+            /**
+             * 問題概要のグリッド表示
+             */
+            function initializeProblemGrid() {
+                const container = document.getElementById('problemGrid');
+                const gridContainer = createElement('div', 'grid grid-cols-4 gap-1');
+
+                // 3x4のサンプルグリッド作成
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        let extraClasses = '';
+                        if (i === 0 && j === 0) extraClasses = 'start';
+                        else if (i === 2 && j === 3) extraClasses = 'end';
+                        else if (
+                            (i === 0 && j <= 3) ||
+                            (i === 1 && j === 3) ||
+                            (i === 2 && j === 3)
+                        ) {
+                            extraClasses = 'path';
+                        }
+                        gridContainer.appendChild(createGridCell('', extraClasses));
+                    }
+                }
+
+                container.appendChild(gridContainer);
+
+                // 説明テキスト
+                const description = createElement('div', 'text-center mt-4 text-sm text-gray-600');
+                description.innerHTML =
+                    '<strong>緑:</strong> 開始点 | <strong>赤:</strong> 終了点 | <strong>青:</strong> 可能な経路';
+                container.appendChild(description);
+            }
+
+            /**
+             * 数学的解法の可視化
+             */
+            function initializeMathVisualization() {
+                const container = document.getElementById('mathVisualization');
+
+                const visualDiv = createElement('div', 'text-center');
+
+                // 組み合わせの視覚的表現
+                const combinationDisplay = createElement('div', 'bg-blue-50 p-4 rounded-lg');
+                combinationDisplay.innerHTML = `
                 <div class="text-lg font-semibold mb-2">組み合わせの可視化</div>
                 <div class="text-sm text-gray-600">
                     8つの移動のうち、2つの下移動を選ぶ
@@ -686,86 +756,109 @@ class Solution:
                     <div class="mt-1 text-blue-600">右:6回, 下:2回 = 28通り</div>
                 </div>
             `;
-            
-            visualDiv.appendChild(combinationDisplay);
-            container.appendChild(visualDiv);
-        }
 
-        // ========== タブ切り替え機能 ==========
-        
-        /**
-         * タブ切り替え関数
-         */
-        function switchTab(event, tabName) {
-            // すべてのタブコンテンツを非表示
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(tab => tab.classList.remove('active'));
-            
-            // すべてのタブボタンを非アクティブ
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => button.classList.remove('active'));
-            
-            // 選択されたタブを表示
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-            
-            // タブ固有の初期化
-            if (tabName === 'mathematical') {
-                setTimeout(initializeMathVisualization, 100);
-            } else if (tabName === 'dp1d') {
-                setTimeout(initializeDP1DVisualization, 100);
-            } else if (tabName === 'dp2d') {
-                setTimeout(initializeDP2DVisualization, 100);
+                visualDiv.appendChild(combinationDisplay);
+                container.appendChild(visualDiv);
             }
-        }
 
-        // ========== 1次元DP可視化 ==========
-        
-        /**
-         * 1次元DP可視化の初期化
-         */
-        function initializeDP1DVisualization() {
-            const container = document.getElementById('dp1dVisualization');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            const m = 3, n = 4; // サンプルサイズ
-            const cols = Math.min(m, n);
-            
-            // DPテーブル表示
-            const tableContainer = createElement('div', 'mb-6');
-            const table = createElement('div', 'inline-block border border-gray-300');
-            
-            // ヘッダー
-            const headerRow = createElement('div', 'flex bg-gray-100');
-            headerRow.appendChild(createElement('div', 'w-16 h-12 flex items-center justify-center border border-gray-300 font-semibold', 'DP[j]'));
-            for (let j = 0; j < cols; j++) {
-                headerRow.appendChild(createElement('div', 'w-16 h-12 flex items-center justify-center border border-gray-300 font-semibold', `j=${j}`));
-            }
-            table.appendChild(headerRow);
-            
-            // データ行
-            const dataRow = createElement('div', 'flex', 'dp1d-row');
-            dataRow.appendChild(createElement('div', 'w-16 h-12 flex items-center justify-center border border-gray-300 bg-blue-50 font-semibold', '値'));
-            for (let j = 0; j < cols; j++) {
-                const cell = createElement('div', 'w-16 h-12 flex items-center justify-center border border-gray-300 bg-white', '1');
-                cell.id = `dp1d-cell-${j}`;
-                dataRow.appendChild(cell);
-            }
-            table.appendChild(dataRow);
-            
-            tableContainer.appendChild(table);
-            container.appendChild(tableContainer);
-            
-            // ステップ説明
-            const explanation = createElement('div', 'mt-4 p-4 bg-gray-50 rounded-lg');
-            explanation.id = 'dp1d-explanation';
-            explanation.textContent = '初期状態: すべての値が1で初期化されています';
-            container.appendChild(explanation);
-        }
+            // ========== タブ切り替え機能 ==========
 
-        // ========== 1次元DP可視化 - 修正版 ==========
+            /**
+             * タブ切り替え関数
+             */
+            function switchTab(event, tabName) {
+                // すべてのタブコンテンツを非表示
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach((tab) => tab.classList.remove('active'));
+
+                // すべてのタブボタンを非アクティブ
+                const tabButtons = document.querySelectorAll('.tab-button');
+                tabButtons.forEach((button) => button.classList.remove('active'));
+
+                // 選択されたタブを表示
+                document.getElementById(tabName).classList.add('active');
+                event.target.classList.add('active');
+
+                // タブ固有の初期化
+                if (tabName === 'mathematical') {
+                    setTimeout(initializeMathVisualization, 100);
+                } else if (tabName === 'dp1d') {
+                    setTimeout(initializeDP1DVisualization, 100);
+                } else if (tabName === 'dp2d') {
+                    setTimeout(initializeDP2DVisualization, 100);
+                }
+            }
+
+            // ========== 1次元DP可視化 ==========
+
+            /**
+             * 1次元DP可視化の初期化
+             */
+            function initializeDP1DVisualization() {
+                const container = document.getElementById('dp1dVisualization');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                const m = 3,
+                    n = 4; // サンプルサイズ
+                const cols = Math.min(m, n);
+
+                // DPテーブル表示
+                const tableContainer = createElement('div', 'mb-6');
+                const table = createElement('div', 'inline-block border border-gray-300');
+
+                // ヘッダー
+                const headerRow = createElement('div', 'flex bg-gray-100');
+                headerRow.appendChild(
+                    createElement(
+                        'div',
+                        'w-16 h-12 flex items-center justify-center border border-gray-300 font-semibold',
+                        'DP[j]',
+                    ),
+                );
+                for (let j = 0; j < cols; j++) {
+                    headerRow.appendChild(
+                        createElement(
+                            'div',
+                            'w-16 h-12 flex items-center justify-center border border-gray-300 font-semibold',
+                            `j=${j}`,
+                        ),
+                    );
+                }
+                table.appendChild(headerRow);
+
+                // データ行
+                const dataRow = createElement('div', 'flex', 'dp1d-row');
+                dataRow.appendChild(
+                    createElement(
+                        'div',
+                        'w-16 h-12 flex items-center justify-center border border-gray-300 bg-blue-50 font-semibold',
+                        '値',
+                    ),
+                );
+                for (let j = 0; j < cols; j++) {
+                    const cell = createElement(
+                        'div',
+                        'w-16 h-12 flex items-center justify-center border border-gray-300 bg-white',
+                        '1',
+                    );
+                    cell.id = `dp1d-cell-${j}`;
+                    dataRow.appendChild(cell);
+                }
+                table.appendChild(dataRow);
+
+                tableContainer.appendChild(table);
+                container.appendChild(tableContainer);
+
+                // ステップ説明
+                const explanation = createElement('div', 'mt-4 p-4 bg-gray-50 rounded-lg');
+                explanation.id = 'dp1d-explanation';
+                explanation.textContent = '初期状態: すべての値が1で初期化されています';
+                container.appendChild(explanation);
+            }
+
+            // ========== 1次元DP可視化 - 修正版 ==========
 
             /**
              * 1次元DP可視化の初期化
@@ -777,7 +870,8 @@ class Solution:
 
                 container.innerHTML = '';
 
-                const m = 4, n = 3; // 4行3列のグリッド
+                const m = 4,
+                    n = 3; // 4行3列のグリッド
                 const cols = Math.min(m, n); // 3列
                 const rows = Math.max(m, n); // 4行
 
@@ -798,7 +892,11 @@ class Solution:
                             value = '?';
                             bgClass = 'bg-gray-100';
                         }
-                        const cell = createElement('div', `w-12 h-12 flex items-center justify-center border border-gray-300 text-xs font-semibold ${bgClass}`, value);
+                        const cell = createElement(
+                            'div',
+                            `w-12 h-12 flex items-center justify-center border border-gray-300 text-xs font-semibold ${bgClass}`,
+                            value,
+                        );
                         cell.id = `grid2d-cell-${i}-${j}`;
                         row.appendChild(cell);
                     }
@@ -814,14 +912,21 @@ class Solution:
                 const dpArray = createElement('div', 'inline-block');
 
                 // 行インジケーター
-                const rowIndicator = createElement('div', 'mb-2 text-sm font-semibold text-blue-600');
+                const rowIndicator = createElement(
+                    'div',
+                    'mb-2 text-sm font-semibold text-blue-600',
+                );
                 rowIndicator.id = 'current-row-indicator';
                 rowIndicator.textContent = '処理中の行: 0';
 
                 // 1D配列表示
                 const arrayContainer = createElement('div', 'flex border border-gray-300');
                 for (let j = 0; j < cols; j++) {
-                    const cell = createElement('div', 'w-16 h-16 flex items-center justify-center border border-gray-300 bg-white font-semibold', '1');
+                    const cell = createElement(
+                        'div',
+                        'w-16 h-16 flex items-center justify-center border border-gray-300 bg-white font-semibold',
+                        '1',
+                    );
                     cell.id = `dp1d-cell-${j}`;
                     arrayContainer.appendChild(cell);
                 }
@@ -859,7 +964,8 @@ class Solution:
                 resetDP1DAnimation();
                 currentDP1DStep = 0;
 
-                const m = 4, n = 3; // 4行3列
+                const m = 4,
+                    n = 3; // 4行3列
                 const cols = Math.min(m, n); // 3
                 const rows = Math.max(m, n); // 4
 
@@ -870,12 +976,17 @@ class Solution:
                     if (currentRow >= rows) {
                         clearInterval(dp1dAnimationInterval);
                         dp1dAnimationInterval = null;
-                        updateDP1DExplanation('アニメーション完了！最終結果: ' + document.getElementById('dp1d-cell-2').textContent + ' 通りの経路があります。');
+                        updateDP1DExplanation(
+                            'アニメーション完了！最終結果: ' +
+                                document.getElementById('dp1d-cell-2').textContent +
+                                ' 通りの経路があります。',
+                        );
                         return;
                     }
 
                     // 現在の行を表示
-                    document.getElementById('current-row-indicator').textContent = `処理中の行: ${currentRow}`;
+                    document.getElementById('current-row-indicator').textContent =
+                        `処理中の行: ${currentRow}`;
 
                     animateDP1DStep(currentRow, currentCol, rows, cols);
                     currentDP1DStep++;
@@ -984,305 +1095,314 @@ class Solution:
             // let dp1dAnimationInterval = null;
             // let currentDP1DStep = 0;
             // const ANIMATION_SPEED = 800; // ms
-        // /**
-        //  * 1次元DPアニメーション開始
-        //  */
-        // function startDP1DAnimation() {
-        //     if (dp1dAnimationInterval) return;
-            
-        //     resetDP1DAnimation();
-        //     currentDP1DStep = 0;
-            
-        //     const m = 3, n = 4;
-        //     const cols = Math.min(m, n);
-        //     const rows = Math.max(m, n);
-            
-        //     dp1dAnimationInterval = setInterval(() => {
-        //         if (currentDP1DStep >= (rows - 1) * (cols - 1)) {
-        //             clearInterval(dp1dAnimationInterval);
-        //             dp1dAnimationInterval = null;
-        //             updateDP1DExplanation('アニメーション完了！最終結果が右下に表示されています。');
-        //             return;
-        //         }
-                
-        //         const row = Math.floor(currentDP1DStep / (cols - 1)) + 1;
-        //         const col = (currentDP1DStep % (cols - 1)) + 1;
-                
-        //         animateDP1DStep(row, col, rows, cols);
-        //         currentDP1DStep++;
-                
-        //         document.getElementById('dp1dStep').textContent = currentDP1DStep;
-        //     }, ANIMATION_SPEED);
-        // }
+            // /**
+            //  * 1次元DPアニメーション開始
+            //  */
+            // function startDP1DAnimation() {
+            //     if (dp1dAnimationInterval) return;
 
-        // /**
-        //  * 1次元DPの1ステップをアニメーション
-        //  */
-        // function animateDP1DStep(row, col, rows, cols) {
-        //     // 現在の値を取得
-        //     const currentCell = document.getElementById(`dp1d-cell-${col}`);
-        //     const leftCell = document.getElementById(`dp1d-cell-${col-1}`);
-            
-        //     if (!currentCell || !leftCell) return;
-            
-        //     const currentValue = parseInt(currentCell.textContent);
-        //     const leftValue = parseInt(leftCell.textContent);
-        //     const newValue = currentValue + leftValue;
-            
-        //     // アニメーション効果
-        //     currentCell.classList.add('highlighted');
-        //     leftCell.classList.add('highlighted');
-            
-        //     setTimeout(() => {
-        //         currentCell.textContent = newValue;
-        //         currentCell.classList.remove('highlighted');
-        //         leftCell.classList.remove('highlighted');
-                
-        //         updateDP1DExplanation(`行 ${row}, 列 ${col}: dp[${col}] = ${currentValue} + ${leftValue} = ${newValue}`);
-        //     }, ANIMATION_SPEED / 2);
-        // }
+            //     resetDP1DAnimation();
+            //     currentDP1DStep = 0;
 
-        // /**
-        //  * 1次元DP説明更新
-        //  */
-        // function updateDP1DExplanation(text) {
-        //     const explanation = document.getElementById('dp1d-explanation');
-        //     if (explanation) explanation.textContent = text;
-        // }
+            //     const m = 3, n = 4;
+            //     const cols = Math.min(m, n);
+            //     const rows = Math.max(m, n);
 
-        // /**
-        //  * 1次元DPアニメーションリセット
-        //  */
-        // function resetDP1DAnimation() {
-        //     if (dp1dAnimationInterval) {
-        //         clearInterval(dp1dAnimationInterval);
-        //         dp1dAnimationInterval = null;
-        //     }
-        //     currentDP1DStep = 0;
-        //     document.getElementById('dp1dStep').textContent = '0';
-        //     initializeDP1DVisualization();
-        // }
+            //     dp1dAnimationInterval = setInterval(() => {
+            //         if (currentDP1DStep >= (rows - 1) * (cols - 1)) {
+            //             clearInterval(dp1dAnimationInterval);
+            //             dp1dAnimationInterval = null;
+            //             updateDP1DExplanation('アニメーション完了！最終結果が右下に表示されています。');
+            //             return;
+            //         }
 
-        // ========== 2次元DP可視化 ==========
-        
-        /**
-         * 2次元DP可視化の初期化
-         */
-        function initializeDP2DVisualization() {
-            const container = document.getElementById('dp2dVisualization');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            const m = 3, n = 4; // サンプルサイズ
-            
-            // グリッドコンテナ
-            const gridContainer = createElement('div', 'inline-block border border-gray-300');
-            
-            for (let i = 0; i < m; i++) {
-                const row = createElement('div', 'flex');
-                for (let j = 0; j < n; j++) {
-                    let value = '0';
-                    let extraClasses = 'bg-white';
-                    
-                    if (i === 0 || j === 0) {
-                        value = '1';
-                        extraClasses = 'bg-blue-50';
+            //         const row = Math.floor(currentDP1DStep / (cols - 1)) + 1;
+            //         const col = (currentDP1DStep % (cols - 1)) + 1;
+
+            //         animateDP1DStep(row, col, rows, cols);
+            //         currentDP1DStep++;
+
+            //         document.getElementById('dp1dStep').textContent = currentDP1DStep;
+            //     }, ANIMATION_SPEED);
+            // }
+
+            // /**
+            //  * 1次元DPの1ステップをアニメーション
+            //  */
+            // function animateDP1DStep(row, col, rows, cols) {
+            //     // 現在の値を取得
+            //     const currentCell = document.getElementById(`dp1d-cell-${col}`);
+            //     const leftCell = document.getElementById(`dp1d-cell-${col-1}`);
+
+            //     if (!currentCell || !leftCell) return;
+
+            //     const currentValue = parseInt(currentCell.textContent);
+            //     const leftValue = parseInt(leftCell.textContent);
+            //     const newValue = currentValue + leftValue;
+
+            //     // アニメーション効果
+            //     currentCell.classList.add('highlighted');
+            //     leftCell.classList.add('highlighted');
+
+            //     setTimeout(() => {
+            //         currentCell.textContent = newValue;
+            //         currentCell.classList.remove('highlighted');
+            //         leftCell.classList.remove('highlighted');
+
+            //         updateDP1DExplanation(`行 ${row}, 列 ${col}: dp[${col}] = ${currentValue} + ${leftValue} = ${newValue}`);
+            //     }, ANIMATION_SPEED / 2);
+            // }
+
+            // /**
+            //  * 1次元DP説明更新
+            //  */
+            // function updateDP1DExplanation(text) {
+            //     const explanation = document.getElementById('dp1d-explanation');
+            //     if (explanation) explanation.textContent = text;
+            // }
+
+            // /**
+            //  * 1次元DPアニメーションリセット
+            //  */
+            // function resetDP1DAnimation() {
+            //     if (dp1dAnimationInterval) {
+            //         clearInterval(dp1dAnimationInterval);
+            //         dp1dAnimationInterval = null;
+            //     }
+            //     currentDP1DStep = 0;
+            //     document.getElementById('dp1dStep').textContent = '0';
+            //     initializeDP1DVisualization();
+            // }
+
+            // ========== 2次元DP可視化 ==========
+
+            /**
+             * 2次元DP可視化の初期化
+             */
+            function initializeDP2DVisualization() {
+                const container = document.getElementById('dp2dVisualization');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                const m = 3,
+                    n = 4; // サンプルサイズ
+
+                // グリッドコンテナ
+                const gridContainer = createElement('div', 'inline-block border border-gray-300');
+
+                for (let i = 0; i < m; i++) {
+                    const row = createElement('div', 'flex');
+                    for (let j = 0; j < n; j++) {
+                        let value = '0';
+                        let extraClasses = 'bg-white';
+
+                        if (i === 0 || j === 0) {
+                            value = '1';
+                            extraClasses = 'bg-blue-50';
+                        }
+
+                        const cell = createElement(
+                            'div',
+                            `w-16 h-16 flex items-center justify-center border border-gray-300 font-semibold ${extraClasses}`,
+                            value,
+                        );
+                        cell.id = `dp2d-cell-${i}-${j}`;
+                        row.appendChild(cell);
                     }
-                    
-                    const cell = createElement('div', `w-16 h-16 flex items-center justify-center border border-gray-300 font-semibold ${extraClasses}`, value);
-                    cell.id = `dp2d-cell-${i}-${j}`;
-                    row.appendChild(cell);
+                    gridContainer.appendChild(row);
                 }
-                gridContainer.appendChild(row);
-            }
-            
-            container.appendChild(gridContainer);
-            
-            // ステップ説明
-            const explanation = createElement('div', 'mt-4 p-4 bg-gray-50 rounded-lg');
-            explanation.id = 'dp2d-explanation';
-            explanation.textContent = '初期状態: 最初の行と列が1で初期化されています';
-            container.appendChild(explanation);
-        }
 
-        /**
-         * 2次元DPアニメーション開始
-         */
-        function startDP2DAnimation() {
-            if (dp2dAnimationInterval) return;
-            
-            resetDP2DAnimation();
-            currentDP2DStep = 0;
-            
-            const m = 3, n = 4;
-            const totalSteps = (m - 1) * (n - 1);
-            
-            dp2dAnimationInterval = setInterval(() => {
-                if (currentDP2DStep >= totalSteps) {
+                container.appendChild(gridContainer);
+
+                // ステップ説明
+                const explanation = createElement('div', 'mt-4 p-4 bg-gray-50 rounded-lg');
+                explanation.id = 'dp2d-explanation';
+                explanation.textContent = '初期状態: 最初の行と列が1で初期化されています';
+                container.appendChild(explanation);
+            }
+
+            /**
+             * 2次元DPアニメーション開始
+             */
+            function startDP2DAnimation() {
+                if (dp2dAnimationInterval) return;
+
+                resetDP2DAnimation();
+                currentDP2DStep = 0;
+
+                const m = 3,
+                    n = 4;
+                const totalSteps = (m - 1) * (n - 1);
+
+                dp2dAnimationInterval = setInterval(() => {
+                    if (currentDP2DStep >= totalSteps) {
+                        clearInterval(dp2dAnimationInterval);
+                        dp2dAnimationInterval = null;
+                        updateDP2DExplanation('アニメーション完了！最終結果は右下のセルです。');
+                        return;
+                    }
+
+                    const i = Math.floor(currentDP2DStep / (n - 1)) + 1;
+                    const j = (currentDP2DStep % (n - 1)) + 1;
+
+                    animateDP2DStep(i, j);
+                    currentDP2DStep++;
+
+                    document.getElementById('dp2dStep').textContent = currentDP2DStep;
+                }, ANIMATION_SPEED);
+            }
+
+            /**
+             * 2次元DPの1ステップをアニメーション
+             */
+            function animateDP2DStep(i, j) {
+                const currentCell = document.getElementById(`dp2d-cell-${i}-${j}`);
+                const topCell = document.getElementById(`dp2d-cell-${i - 1}-${j}`);
+                const leftCell = document.getElementById(`dp2d-cell-${i}-${j - 1}`);
+
+                if (!currentCell || !topCell || !leftCell) return;
+
+                const topValue = parseInt(topCell.textContent);
+                const leftValue = parseInt(leftCell.textContent);
+                const newValue = topValue + leftValue;
+
+                // アニメーション効果
+                currentCell.classList.add('highlighted');
+                topCell.classList.add('highlighted');
+                leftCell.classList.add('highlighted');
+
+                setTimeout(() => {
+                    currentCell.textContent = newValue;
+                    currentCell.className =
+                        'w-16 h-16 flex items-center justify-center border border-gray-300 font-semibold bg-green-50';
+
+                    topCell.classList.remove('highlighted');
+                    leftCell.classList.remove('highlighted');
+                    currentCell.classList.remove('highlighted');
+
+                    updateDP2DExplanation(
+                        `セル (${i},${j}): dp[${i}][${j}] = ${topValue} + ${leftValue} = ${newValue}`,
+                    );
+                }, ANIMATION_SPEED / 2);
+            }
+
+            /**
+             * 2次元DP説明更新
+             */
+            function updateDP2DExplanation(text) {
+                const explanation = document.getElementById('dp2d-explanation');
+                if (explanation) explanation.textContent = text;
+            }
+
+            /**
+             * 2次元DPアニメーションリセット
+             */
+            function resetDP2DAnimation() {
+                if (dp2dAnimationInterval) {
                     clearInterval(dp2dAnimationInterval);
                     dp2dAnimationInterval = null;
-                    updateDP2DExplanation('アニメーション完了！最終結果は右下のセルです。');
-                    return;
                 }
-                
-                const i = Math.floor(currentDP2DStep / (n - 1)) + 1;
-                const j = (currentDP2DStep % (n - 1)) + 1;
-                
-                animateDP2DStep(i, j);
-                currentDP2DStep++;
-                
-                document.getElementById('dp2dStep').textContent = currentDP2DStep;
-            }, ANIMATION_SPEED);
-        }
-
-        /**
-         * 2次元DPの1ステップをアニメーション
-         */
-        function animateDP2DStep(i, j) {
-            const currentCell = document.getElementById(`dp2d-cell-${i}-${j}`);
-            const topCell = document.getElementById(`dp2d-cell-${i-1}-${j}`);
-            const leftCell = document.getElementById(`dp2d-cell-${i}-${j-1}`);
-            
-            if (!currentCell || !topCell || !leftCell) return;
-            
-            const topValue = parseInt(topCell.textContent);
-            const leftValue = parseInt(leftCell.textContent);
-            const newValue = topValue + leftValue;
-            
-            // アニメーション効果
-            currentCell.classList.add('highlighted');
-            topCell.classList.add('highlighted');
-            leftCell.classList.add('highlighted');
-            
-            setTimeout(() => {
-                currentCell.textContent = newValue;
-                currentCell.className = 'w-16 h-16 flex items-center justify-center border border-gray-300 font-semibold bg-green-50';
-                
-                topCell.classList.remove('highlighted');
-                leftCell.classList.remove('highlighted');
-                currentCell.classList.remove('highlighted');
-                
-                updateDP2DExplanation(`セル (${i},${j}): dp[${i}][${j}] = ${topValue} + ${leftValue} = ${newValue}`);
-            }, ANIMATION_SPEED / 2);
-        }
-
-        /**
-         * 2次元DP説明更新
-         */
-        function updateDP2DExplanation(text) {
-            const explanation = document.getElementById('dp2d-explanation');
-            if (explanation) explanation.textContent = text;
-        }
-
-        /**
-         * 2次元DPアニメーションリセット
-         */
-        function resetDP2DAnimation() {
-            if (dp2dAnimationInterval) {
-                clearInterval(dp2dAnimationInterval);
-                dp2dAnimationInterval = null;
+                currentDP2DStep = 0;
+                document.getElementById('dp2dStep').textContent = '0';
+                initializeDP2DVisualization();
             }
-            currentDP2DStep = 0;
-            document.getElementById('dp2dStep').textContent = '0';
-            initializeDP2DVisualization();
-        }
 
-        // ========== パフォーマンステスト ==========
-        
-        /**
-         * 各アルゴリズムの実装
-         */
-        const algorithms = {
-            mathematical: function(m, n) {
-                // JavaScript版 math.comb の近似実装
-                const totalMoves = m + n - 2;
-                const k = Math.min(m - 1, n - 1);
-                let result = 1;
-                for (let i = 0; i < k; i++) {
-                    result = Math.round(result * (totalMoves - i) / (i + 1));
-                }
-                return result;
-            },
-            
-            dp1d: function(m, n) {
-                const cols = Math.min(m, n);
-                const rows = Math.max(m, n);
-                const dp = new Array(cols).fill(1);
-                
-                for (let i = 1; i < rows; i++) {
-                    for (let j = 1; j < cols; j++) {
-                        dp[j] += dp[j - 1];
+            // ========== パフォーマンステスト ==========
+
+            /**
+             * 各アルゴリズムの実装
+             */
+            const algorithms = {
+                mathematical: function (m, n) {
+                    // JavaScript版 math.comb の近似実装
+                    const totalMoves = m + n - 2;
+                    const k = Math.min(m - 1, n - 1);
+                    let result = 1;
+                    for (let i = 0; i < k; i++) {
+                        result = Math.round((result * (totalMoves - i)) / (i + 1));
                     }
-                }
-                return dp[cols - 1];
-            },
-            
-            dp2d: function(m, n) {
-                const dp = Array.from({ length: m }, () => new Array(n).fill(0));
-                
-                for (let i = 0; i < m; i++) dp[i][0] = 1;
-                for (let j = 0; j < n; j++) dp[0][j] = 1;
-                
-                for (let i = 1; i < m; i++) {
-                    for (let j = 1; j < n; j++) {
-                        dp[i][j] = dp[i-1][j] + dp[i][j-1];
+                    return result;
+                },
+
+                dp1d: function (m, n) {
+                    const cols = Math.min(m, n);
+                    const rows = Math.max(m, n);
+                    const dp = new Array(cols).fill(1);
+
+                    for (let i = 1; i < rows; i++) {
+                        for (let j = 1; j < cols; j++) {
+                            dp[j] += dp[j - 1];
+                        }
                     }
-                }
-                return dp[m-1][n-1];
-            }
-        };
+                    return dp[cols - 1];
+                },
 
-        // /**
-        //  * パフォーマンステスト実行
-        //  */
-        // function runPerformanceTest() {
-        //     const resultsContainer = document.getElementById('performanceResults');
-        //     resultsContainer.innerHTML = '<div class="text-blue-600">テスト実行中...</div>';
-            
-        //     setTimeout(() => {
-        //         const testCases = [
-        //             { m: 3, n: 7, expected: 28, name: 'Small (3×7)' },
-        //             { m: 10, n: 10, expected: 48620, name: 'Medium (10×10)' },
-        //             { m: 23, n: 12, expected: 1352078, name: 'Large (23×12)' }
-        //         ];
-                
-        //         let resultsHTML = '<h4 class="font-semibold mb-4">パフォーマンステスト結果</h4>';
-                
-        //         testCases.forEach(testCase => {
-        //             resultsHTML += `<div class="mb-6"><h5 class="font-medium mb-2">${testCase.name}</h5>`;
-        //             resultsHTML += '<div class="overflow-x-auto"><table class="w-full text-sm border border-gray-300">';
-        //             resultsHTML += '<tr class="bg-gray-100"><th class="border px-2 py-1">アルゴリズム</th><th class="border px-2 py-1">結果</th><th class="border px-2 py-1">実行時間</th><th class="border px-2 py-1">正確性</th></tr>';
-                    
-        //             Object.entries(algorithms).forEach(([name, algorithm]) => {
-        //                 const startTime = performance.now();
-        //                 const result = algorithm(testCase.m, testCase.n);
-        //                 const endTime = performance.now();
-        //                 const executionTime = (endTime - startTime).toFixed(4);
-        //                 const isCorrect = result === testCase.expected;
-                        
-        //                 const algorithmNames = {
-        //                     mathematical: '数学的解法',
-        //                     dp1d: '1次元DP',
-        //                     dp2d: '2次元DP'
-        //                 };
-                        
-        //                 resultsHTML += `<tr>
-        //                     <td class="border px-2 py-1">${algorithmNames[name]}</td>
-        //                     <td class="border px-2 py-1">${result.toLocaleString()}</td>
-        //                     <td class="border px-2 py-1">${executionTime}ms</td>
-        //                     <td class="border px-2 py-1">${isCorrect ? '✓' : '✗'}</td>
-        //                 </tr>`;
-        //             });
-                    
-        //             resultsHTML += '</table></div></div>';
-        //         });
-                
-        //         resultsContainer.innerHTML = resultsHTML;
-        //     }, 500);
-        // }
+                dp2d: function (m, n) {
+                    const dp = Array.from({ length: m }, () => new Array(n).fill(0));
 
-        /**
+                    for (let i = 0; i < m; i++) dp[i][0] = 1;
+                    for (let j = 0; j < n; j++) dp[0][j] = 1;
+
+                    for (let i = 1; i < m; i++) {
+                        for (let j = 1; j < n; j++) {
+                            dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+                        }
+                    }
+                    return dp[m - 1][n - 1];
+                },
+            };
+
+            // /**
+            //  * パフォーマンステスト実行
+            //  */
+            // function runPerformanceTest() {
+            //     const resultsContainer = document.getElementById('performanceResults');
+            //     resultsContainer.innerHTML = '<div class="text-blue-600">テスト実行中...</div>';
+
+            //     setTimeout(() => {
+            //         const testCases = [
+            //             { m: 3, n: 7, expected: 28, name: 'Small (3×7)' },
+            //             { m: 10, n: 10, expected: 48620, name: 'Medium (10×10)' },
+            //             { m: 23, n: 12, expected: 1352078, name: 'Large (23×12)' }
+            //         ];
+
+            //         let resultsHTML = '<h4 class="font-semibold mb-4">パフォーマンステスト結果</h4>';
+
+            //         testCases.forEach(testCase => {
+            //             resultsHTML += `<div class="mb-6"><h5 class="font-medium mb-2">${testCase.name}</h5>`;
+            //             resultsHTML += '<div class="overflow-x-auto"><table class="w-full text-sm border border-gray-300">';
+            //             resultsHTML += '<tr class="bg-gray-100"><th class="border px-2 py-1">アルゴリズム</th><th class="border px-2 py-1">結果</th><th class="border px-2 py-1">実行時間</th><th class="border px-2 py-1">正確性</th></tr>';
+
+            //             Object.entries(algorithms).forEach(([name, algorithm]) => {
+            //                 const startTime = performance.now();
+            //                 const result = algorithm(testCase.m, testCase.n);
+            //                 const endTime = performance.now();
+            //                 const executionTime = (endTime - startTime).toFixed(4);
+            //                 const isCorrect = result === testCase.expected;
+
+            //                 const algorithmNames = {
+            //                     mathematical: '数学的解法',
+            //                     dp1d: '1次元DP',
+            //                     dp2d: '2次元DP'
+            //                 };
+
+            //                 resultsHTML += `<tr>
+            //                     <td class="border px-2 py-1">${algorithmNames[name]}</td>
+            //                     <td class="border px-2 py-1">${result.toLocaleString()}</td>
+            //                     <td class="border px-2 py-1">${executionTime}ms</td>
+            //                     <td class="border px-2 py-1">${isCorrect ? '✓' : '✗'}</td>
+            //                 </tr>`;
+            //             });
+
+            //             resultsHTML += '</table></div></div>';
+            //         });
+
+            //         resultsContainer.innerHTML = resultsHTML;
+            //     }, 500);
+            // }
+
+            /**
              * パフォーマンステスト実行
              */
             function runPerformanceTest() {
@@ -1293,15 +1413,18 @@ class Solution:
                     const testCases = [
                         { m: 3, n: 7, expected: 28, name: 'Small (3×7)' },
                         { m: 10, n: 10, expected: 48620, name: 'Medium (10×10)' },
-                        { m: 15, n: 15, expected: 40116600, name: 'Large (15×15)' }
+                        { m: 15, n: 15, expected: 40116600, name: 'Large (15×15)' },
                     ];
 
-                    let resultsHTML = '<h4 class="font-semibold mb-4">パフォーマンステスト結果</h4>';
+                    let resultsHTML =
+                        '<h4 class="font-semibold mb-4">パフォーマンステスト結果</h4>';
 
-                    testCases.forEach(testCase => {
+                    testCases.forEach((testCase) => {
                         resultsHTML += `<div class="mb-6"><h5 class="font-medium mb-2">${testCase.name} - 期待値: ${testCase.expected.toLocaleString()}</h5>`;
-                        resultsHTML += '<div class="overflow-x-auto"><table class="w-full text-sm border border-gray-300">';
-                        resultsHTML += '<tr class="bg-gray-100"><th class="border px-3 py-2">アルゴリズム</th><th class="border px-3 py-2">結果</th><th class="border px-3 py-2">実行時間</th><th class="border px-3 py-2">正確性</th></tr>';
+                        resultsHTML +=
+                            '<div class="overflow-x-auto"><table class="w-full text-sm border border-gray-300">';
+                        resultsHTML +=
+                            '<tr class="bg-gray-100"><th class="border px-3 py-2">アルゴリズム</th><th class="border px-3 py-2">結果</th><th class="border px-3 py-2">実行時間</th><th class="border px-3 py-2">正確性</th></tr>';
 
                         Object.entries(algorithms).forEach(([name, algorithm]) => {
                             const startTime = performance.now();
@@ -1315,7 +1438,9 @@ class Solution:
                                     result = algorithm(testCase.m, testCase.n);
                                 }
                                 const measureEnd = performance.now();
-                                executionTime = ((measureEnd - measureStart) / iterations).toFixed(6);
+                                executionTime = ((measureEnd - measureStart) / iterations).toFixed(
+                                    6,
+                                );
                                 isCorrect = result === testCase.expected;
                             } catch (error) {
                                 result = 'エラー';
@@ -1326,7 +1451,7 @@ class Solution:
                             const algorithmNames = {
                                 mathematical: '数学的解法',
                                 dp1d: '1次元DP',
-                                dp2d: '2次元DP'
+                                dp2d: '2次元DP',
                             };
 
                             const correctnessColor = isCorrect ? 'text-green-600' : 'text-red-600';
@@ -1356,59 +1481,63 @@ class Solution:
                     resultsContainer.innerHTML = resultsHTML;
                 }, 500);
             }
-        /**
-         * パフォーマンス結果クリア
-         */
-        function clearResults() {
-            const resultsContainer = document.getElementById('performanceResults');
-            resultsContainer.innerHTML = '<p class="text-gray-500">パフォーマンステストを実行してください</p>';
-        }
-
-        // ========== コードコピー機能 ==========
-        
-        /**
-         * コードコピー機能
-         */
-        function copyCode(button) {
-            const codeBlock = button.parentElement.querySelector('code');
-            const text = codeBlock.textContent;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                button.textContent = 'Copied!';
-                button.style.background = '#48bb78';
-                
-                setTimeout(() => {
-                    button.textContent = 'Copy';
-                    button.style.background = '#44475a';
-                }, 2000);
-            }).catch(err => {
-                console.error('コピーに失敗しました:', err);
-            });
-        }
-
-        // ========== 初期化実行 ==========
-        
-        /**
-         * ページ読み込み時の初期化
-         */
-        document.addEventListener('DOMContentLoaded', function() {
-            // フェードインアニメーションの遅延実行
-            const elements = document.querySelectorAll('.fade-in-up');
-            elements.forEach((element, index) => {
-                element.style.animationDelay = `${index * 0.1}s`;
-            });
-            
-            // 初期表示の設定
-            initializeProblemGrid();
-            initializeMathVisualization();
-            
-            // Prism.jsの再初期化
-            if (typeof Prism !== 'undefined') {
-                Prism.highlightAll();
+            /**
+             * パフォーマンス結果クリア
+             */
+            function clearResults() {
+                const resultsContainer = document.getElementById('performanceResults');
+                resultsContainer.innerHTML =
+                    '<p class="text-gray-500">パフォーマンステストを実行してください</p>';
             }
-            
-            console.log('Robot Unique Paths Technical Guide initialized successfully!');
-        });
-    </script>
-</body>
+
+            // ========== コードコピー機能 ==========
+
+            /**
+             * コードコピー機能
+             */
+            function copyCode(button) {
+                const codeBlock = button.parentElement.querySelector('code');
+                const text = codeBlock.textContent;
+
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => {
+                        button.textContent = 'Copied!';
+                        button.style.background = '#48bb78';
+
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                            button.style.background = '#44475a';
+                        }, 2000);
+                    })
+                    .catch((err) => {
+                        console.error('コピーに失敗しました:', err);
+                    });
+            }
+
+            // ========== 初期化実行 ==========
+
+            /**
+             * ページ読み込み時の初期化
+             */
+            document.addEventListener('DOMContentLoaded', function () {
+                // フェードインアニメーションの遅延実行
+                const elements = document.querySelectorAll('.fade-in-up');
+                elements.forEach((element, index) => {
+                    element.style.animationDelay = `${index * 0.1}s`;
+                });
+
+                // 初期表示の設定
+                initializeProblemGrid();
+                initializeMathVisualization();
+
+                // Prism.jsの再初期化
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightAll();
+                }
+
+                console.log('Robot Unique Paths Technical Guide initialized successfully!');
+            });
+        </script>
+    </body>
 </html>

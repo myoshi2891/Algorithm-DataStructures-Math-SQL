@@ -2,12 +2,12 @@
 /**
  * Function: lengthOfLastWord
  * --------------------------------
- * Given a string s consisting of words and spaces, 
+ * Given a string s consisting of words and spaces,
  * return the length of the last word in the string.
- * 
+ *
  * @param {string} s - Input string (1 <= s.length <= 10^4)
  * @returns {number} - Length of the last word
- * 
+ *
  * Time Complexity: O(n)  (n = length of string s, single backward scan)
  * Memory Usage: O(1)    (only integer counters used, no extra structures)
  */

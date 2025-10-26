@@ -2,9 +2,9 @@
 // Node.jsの`fs`モジュールを使って標準入力を読み取ります。
 
 // ## ✅ TypeScript版コード（`fs`使用）
-import * as fs from "fs";
+import * as fs from 'fs';
 
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const T = Number(input[0]);
 const N = Number(input[1]);
 
@@ -13,17 +13,17 @@ const cnt: number[] = new Array(T + 1).fill(0);
 
 // 出勤・退勤を反映
 for (let i = 0; i < N; i++) {
-  const [L, R] = input[2 + i].split(" ").map(Number);
-  cnt[L] += 1;
-  cnt[R] -= 1;
+    const [L, R] = input[2 + i].split(' ').map(Number);
+    cnt[L] += 1;
+    cnt[R] -= 1;
 }
 
 // 累積和で時刻 t+0.5 にいる人数を求める
 let current = 0;
-let result = "";
+let result = '';
 for (let t = 0; t < T; t++) {
-  current += cnt[t];
-  result += current + "\n";
+    current += cnt[t];
+    result += current + '\n';
 }
 
 // 出力（まとめて一括で）

@@ -1,0 +1,1624 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gray Code - n-bit巡回Gray符号列生成 | LeetCode 89</title>
+        <meta
+            name="description"
+            content="LeetCode 89 Gray Code問題の視覚的解説。標準Gray code公式（i XOR (i >> 1)）を用いたO(2^n)の最適解をステップバイステップで学習。"
+        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Prism.js -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --code-lh: 1.6;
+                --emerald-50: #ecfdf5;
+                --emerald-100: #d1fae5;
+                --emerald-500: #10b981;
+                --emerald-600: #059669;
+                --sky-50: #f0f9ff;
+                --sky-500: #0ea5e9;
+                --slate-700: #334155;
+                --slate-800: #1e293b;
+            }
+
+            body {
+                font-family:
+                    'Inter',
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                color: var(--slate-800);
+            }
+
+            /* Code styling */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    monospace;
+            }
+
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            /* Prism toolbar */
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 6px 10px;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* Smooth scrolling */
+            html {
+                scroll-behavior: smooth;
+            }
+
+            /* Section card */
+            .section-card {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            /* Step card */
+            .step-card {
+                background: white;
+                border: 2px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 1rem 1.25rem;
+                margin-bottom: 0.75rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .step-card:hover {
+                border-color: var(--emerald-500);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+                transform: translateY(-1px);
+            }
+
+            .step-card.active {
+                background: linear-gradient(135deg, var(--emerald-50), var(--sky-50));
+                border-color: var(--emerald-600);
+                box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+            }
+
+            .step-card:focus {
+                outline: 2px solid var(--emerald-500);
+                outline-offset: 2px;
+            }
+
+            /* Control buttons */
+            .control-btn {
+                background: white;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 0.625rem 1.25rem;
+                font-weight: 600;
+                color: var(--slate-700);
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .control-btn:hover:not(:disabled) {
+                border-color: var(--emerald-500);
+                background: var(--emerald-50);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            }
+
+            .control-btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            .control-btn.play {
+                background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+                color: white;
+                border-color: var(--emerald-600);
+            }
+
+            .control-btn.play:hover:not(:disabled) {
+                background: linear-gradient(135deg, var(--emerald-600), #047857);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+            }
+
+            /* Navigation */
+            .nav-link {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 0.5rem 1rem;
+                font-weight: 600;
+                color: var(--slate-700);
+                text-decoration: none;
+                transition: all 0.2s ease;
+                display: inline-block;
+            }
+
+            .nav-link:hover {
+                border-color: var(--emerald-500);
+                background: var(--emerald-50);
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+            }
+
+            /* Responsive grid */
+            @media (min-width: 768px) {
+                .steps-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1.2fr;
+                    gap: 2rem;
+                }
+            }
+
+            /* Reduced motion */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+
+            /* SVG stage */
+            .svg-stage {
+                opacity: 0;
+                transition: opacity 0.4s ease;
+                display: none;
+            }
+
+            .svg-stage.active {
+                opacity: 1;
+                display: block;
+            }
+
+            .svg-container {
+                background: white;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 24px;
+                min-height: 400px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .description {
+                margin-top: 24px;
+                padding: 16px;
+                background: #ecfdf5;
+                border-left: 4px solid #10b981;
+                border-radius: 4px;
+            }
+
+            .description p {
+                margin: 0;
+                font-size: 14px;
+                color: #374151;
+            }
+        </style>
+    </head>
+    <body class="bg-gradient-to-br from-emerald-50 via-sky-50 to-slate-50 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 py-6">
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+                    Gray Code - n-bit巡回Gray符号列生成
+                </h1>
+                <p class="text-slate-600 text-base md:text-lg mb-4">
+                    標準Gray code公式
+                    <code class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded"
+                        >G(i) = i ^ (i >> 1)</code
+                    >
+                    による最適化実装
+                </p>
+
+                <!-- Navigation -->
+                <nav class="flex flex-wrap gap-2" aria-label="ページ内ナビゲーション">
+                    <a href="#overview" class="nav-link" aria-label="概要セクションへ">概要</a>
+                    <a href="#steps" class="nav-link" aria-label="ステップ解説セクションへ"
+                        >ステップ</a
+                    >
+                    <a href="#code" class="nav-link" aria-label="コード例セクションへ">コード</a>
+                    <a href="#diagram" class="nav-link" aria-label="図解セクションへ">図解</a>
+                    <a href="#complexity" class="nav-link" aria-label="計算量セクションへ"
+                        >計算量</a
+                    >
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Overview -->
+            <section id="overview" class="section-card">
+                <h2 class="text-2xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="w-2 h-8 bg-emerald-500 rounded mr-3"></span>
+                    概要
+                </h2>
+                <div class="space-y-4 text-slate-700">
+                    <p>
+                        <strong>問題</strong>：n-bitのGray
+                        code列（長さ2<sup>n</sup>）を生成。隣接する整数のバイナリ表現が1
+                        bitだけ異なり、先頭（0）と末尾も1 bit差（巡回性）を満たす。
+                    </p>
+
+                    <div class="bg-sky-50 border-l-4 border-sky-500 p-4 rounded">
+                        <p class="font-semibold text-sky-800 mb-2">要件</p>
+                        <ul class="list-disc list-inside space-y-1 text-sky-700">
+                            <li>すべての整数は [0, 2<sup>n</sup> - 1] の範囲</li>
+                            <li>先頭は 0</li>
+                            <li>重複なし</li>
+                            <li>隣接する整数が1 bitだけ異なる（巡回含む）</li>
+                        </ul>
+                    </div>
+
+                    <p>
+                        <strong>解法</strong>：標準Gray code公式
+                        <code class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-mono"
+                            >G(i) = i ^ (i >> 1)</code
+                        >
+                        を i=0..2<sup>n</sup>-1
+                        に適用。Pythonのリスト内包表記で一括構築し、O(2<sup>n</sup>)時間・O(1)追加メモリを実現。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Steps -->
+            <section id="steps" class="section-card">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                    <span class="w-2 h-8 bg-emerald-500 rounded mr-3"></span>
+                    ステップバイステップ解説
+                </h2>
+
+                <div class="steps-grid">
+                    <!-- Step List -->
+                    <div>
+                        <div
+                            class="step-card active"
+                            role="button"
+                            tabindex="0"
+                            data-step="1"
+                            aria-pressed="true"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">Step 1: 初期化</div>
+                            <p class="text-sm text-slate-600">
+                                入力 n から列長 M = 2<sup>n</sup> を計算
+                            </p>
+                        </div>
+
+                        <div
+                            class="step-card"
+                            role="button"
+                            tabindex="0"
+                            data-step="2"
+                            aria-pressed="false"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">
+                                Step 2: インデックス走査
+                            </div>
+                            <p class="text-sm text-slate-600">
+                                range(0, M) の各 i に対してループ開始
+                            </p>
+                        </div>
+
+                        <div
+                            class="step-card"
+                            role="button"
+                            tabindex="0"
+                            data-step="3"
+                            aria-pressed="false"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">Step 3: 右シフト</div>
+                            <p class="text-sm text-slate-600">i を1ビット右シフト（i >> 1）</p>
+                        </div>
+
+                        <div
+                            class="step-card"
+                            role="button"
+                            tabindex="0"
+                            data-step="4"
+                            aria-pressed="false"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">Step 4: XOR演算</div>
+                            <p class="text-sm text-slate-600">
+                                i と (i >> 1) のXORを計算：G(i) = i ^ (i >> 1)
+                            </p>
+                        </div>
+
+                        <div
+                            class="step-card"
+                            role="button"
+                            tabindex="0"
+                            data-step="5"
+                            aria-pressed="false"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">Step 5: リスト追加</div>
+                            <p class="text-sm text-slate-600">G(i) を結果リストに追加</p>
+                        </div>
+
+                        <div
+                            class="step-card"
+                            role="button"
+                            tabindex="0"
+                            data-step="6"
+                            aria-pressed="false"
+                        >
+                            <div class="font-bold text-emerald-700 mb-1">Step 6: 完了</div>
+                            <p class="text-sm text-slate-600">
+                                全インデックス処理後、Gray code列を返却
+                            </p>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <button
+                                class="control-btn play"
+                                data-action="play"
+                                aria-label="自動再生"
+                            >
+                                ▶ Play
+                            </button>
+                            <button
+                                class="control-btn"
+                                data-action="prev"
+                                aria-label="前のステップへ"
+                            >
+                                ← Prev
+                            </button>
+                            <button
+                                class="control-btn"
+                                data-action="next"
+                                aria-label="次のステップへ"
+                            >
+                                Next →
+                            </button>
+                            <button
+                                class="control-btn"
+                                data-action="reset"
+                                aria-label="ステップ1にリセット"
+                            >
+                                ⟲ Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SVG Visualization -->
+                    <div class="svg-container">
+                        <!-- Stage 1 -->
+                        <svg
+                            class="svg-stage active"
+                            data-step="1"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <rect
+                                x="50"
+                                y="80"
+                                width="300"
+                                height="60"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                rx="8"
+                            />
+                            <text
+                                x="200"
+                                y="110"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#047857"
+                            >
+                                n = 3
+                            </text>
+                            <text
+                                x="200"
+                                y="130"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#059669"
+                            >
+                                M = 2^3 = 8
+                            </text>
+                            <text
+                                x="200"
+                                y="180"
+                                text-anchor="middle"
+                                font-size="14"
+                                fill="#475569"
+                            >
+                                初期化: シーケンス長を計算
+                            </text>
+                        </svg>
+
+                        <!-- Stage 2 -->
+                        <svg
+                            class="svg-stage"
+                            data-step="2"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <text
+                                x="200"
+                                y="40"
+                                text-anchor="middle"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#0f172a"
+                            >
+                                ループ: i = 0 から 7
+                            </text>
+                            <rect
+                                x="50"
+                                y="80"
+                                width="60"
+                                height="40"
+                                fill="#f0f9ff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="80"
+                                y="105"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#0369a1"
+                            >
+                                i = 0
+                            </text>
+                            <rect
+                                x="120"
+                                y="80"
+                                width="60"
+                                height="40"
+                                fill="#f0f9ff"
+                                stroke="#e2e8f0"
+                                stroke-width="1"
+                                rx="4"
+                            />
+                            <text
+                                x="150"
+                                y="105"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#64748b"
+                            >
+                                i = 1
+                            </text>
+                            <rect
+                                x="190"
+                                y="80"
+                                width="60"
+                                height="40"
+                                fill="#f0f9ff"
+                                stroke="#e2e8f0"
+                                stroke-width="1"
+                                rx="4"
+                            />
+                            <text
+                                x="220"
+                                y="105"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#64748b"
+                            >
+                                i = 2
+                            </text>
+                            <text
+                                x="280"
+                                y="105"
+                                text-anchor="middle"
+                                font-size="18"
+                                fill="#94a3b8"
+                            >
+                                ...
+                            </text>
+                            <rect
+                                x="310"
+                                y="80"
+                                width="60"
+                                height="40"
+                                fill="#f0f9ff"
+                                stroke="#e2e8f0"
+                                stroke-width="1"
+                                rx="4"
+                            />
+                            <text
+                                x="340"
+                                y="105"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#64748b"
+                            >
+                                i = 7
+                            </text>
+                            <text
+                                x="200"
+                                y="180"
+                                text-anchor="middle"
+                                font-size="14"
+                                fill="#475569"
+                            >
+                                全てのインデックスで反復
+                            </text>
+                        </svg>
+
+                        <!-- Stage 3 -->
+                        <svg
+                            class="svg-stage"
+                            data-step="3"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <text
+                                x="200"
+                                y="40"
+                                text-anchor="middle"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#0f172a"
+                            >
+                                右シフト (i >> 1)
+                            </text>
+                            <rect
+                                x="150"
+                                y="80"
+                                width="100"
+                                height="40"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="200"
+                                y="105"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#047857"
+                            >
+                                i = 5 (101)
+                            </text>
+                            <path
+                                d="M 200 130 L 200 160"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                marker-end="url(#arrowblue)"
+                            />
+                            <rect
+                                x="130"
+                                y="170"
+                                width="140"
+                                height="40"
+                                fill="#f0f9ff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="200"
+                                y="195"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#0369a1"
+                            >
+                                i >> 1 = 2 (010)
+                            </text>
+                            <text
+                                x="200"
+                                y="250"
+                                text-anchor="middle"
+                                font-size="14"
+                                fill="#475569"
+                            >
+                                ビットを右に1つシフト
+                            </text>
+                            <defs>
+                                <marker
+                                    id="arrowblue"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="5"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#0ea5e9" />
+                                </marker>
+                            </defs>
+                        </svg>
+
+                        <!-- Stage 4 -->
+                        <svg
+                            class="svg-stage"
+                            data-step="4"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <text
+                                x="200"
+                                y="35"
+                                text-anchor="middle"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#0f172a"
+                            >
+                                XOR演算
+                            </text>
+                            <rect
+                                x="70"
+                                y="70"
+                                width="100"
+                                height="35"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="120"
+                                y="92"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="13"
+                                fill="#047857"
+                            >
+                                i = 5 (101)
+                            </text>
+                            <text x="200" y="92" text-anchor="middle" font-size="20" fill="#64748b">
+                                ⊕
+                            </text>
+                            <rect
+                                x="230"
+                                y="70"
+                                width="100"
+                                height="35"
+                                fill="#f0f9ff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="280"
+                                y="92"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="13"
+                                fill="#0369a1"
+                            >
+                                2 (010)
+                            </text>
+                            <path
+                                d="M 200 115 L 200 145"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                marker-end="url(#arrowgreen)"
+                            />
+                            <rect
+                                x="140"
+                                y="155"
+                                width="120"
+                                height="40"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="200"
+                                y="180"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                font-weight="bold"
+                                fill="#b45309"
+                            >
+                                G(5) = 7 (111)
+                            </text>
+                            <text
+                                x="200"
+                                y="230"
+                                text-anchor="middle"
+                                font-size="14"
+                                fill="#475569"
+                            >
+                                XOR: i ^ (i >> 1)
+                            </text>
+                            <defs>
+                                <marker
+                                    id="arrowgreen"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="5"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+                        </svg>
+
+                        <!-- Stage 5 -->
+                        <svg
+                            class="svg-stage"
+                            data-step="5"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <text
+                                x="200"
+                                y="35"
+                                text-anchor="middle"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#0f172a"
+                            >
+                                結果に追加
+                            </text>
+                            <rect
+                                x="60"
+                                y="70"
+                                width="280"
+                                height="50"
+                                fill="#f0f9ff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                rx="6"
+                            />
+                            <text
+                                x="80"
+                                y="100"
+                                text-anchor="start"
+                                font-family="monospace"
+                                font-size="13"
+                                fill="#0369a1"
+                            >
+                                result = [0, 1, 3, 2, 6, ...]
+                            </text>
+                            <rect
+                                x="150"
+                                y="140"
+                                width="100"
+                                height="40"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                stroke-width="2"
+                                rx="4"
+                            />
+                            <text
+                                x="200"
+                                y="165"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                font-weight="bold"
+                                fill="#b45309"
+                            >
+                                G(5) = 7
+                            </text>
+                            <path
+                                d="M 200 185 L 240 205"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                marker-end="url(#arrowgreen2)"
+                            />
+                            <rect
+                                x="60"
+                                y="215"
+                                width="280"
+                                height="50"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                rx="6"
+                            />
+                            <text
+                                x="80"
+                                y="245"
+                                text-anchor="start"
+                                font-family="monospace"
+                                font-size="13"
+                                fill="#047857"
+                            >
+                                result = [0, 1, 3, 2, 6, 7, ...]
+                            </text>
+                            <defs>
+                                <marker
+                                    id="arrowgreen2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="5"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+                        </svg>
+
+                        <!-- Stage 6 -->
+                        <svg
+                            class="svg-stage"
+                            data-step="6"
+                            viewBox="0 0 400 300"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <text
+                                x="200"
+                                y="35"
+                                text-anchor="middle"
+                                font-size="16"
+                                font-weight="bold"
+                                fill="#0f172a"
+                            >
+                                完成したGray Codeシーケンス
+                            </text>
+                            <rect
+                                x="40"
+                                y="70"
+                                width="320"
+                                height="120"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                stroke-width="3"
+                                rx="8"
+                            />
+                            <text
+                                x="200"
+                                y="100"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="14"
+                                fill="#047857"
+                            >
+                                n = 3:
+                            </text>
+                            <text
+                                x="200"
+                                y="125"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="13"
+                                fill="#059669"
+                            >
+                                [0, 1, 3, 2, 6, 7, 5, 4]
+                            </text>
+                            <text
+                                x="200"
+                                y="150"
+                                text-anchor="middle"
+                                font-family="monospace"
+                                font-size="12"
+                                fill="#10b981"
+                            >
+                                (000, 001, 011, 010, 110, 111, 101, 100)
+                            </text>
+                            <text
+                                x="200"
+                                y="175"
+                                text-anchor="middle"
+                                font-size="11"
+                                fill="#047857"
+                            >
+                                ✓ 隣接要素は1ビットだけ異なる
+                            </text>
+                            <text
+                                x="200"
+                                y="230"
+                                text-anchor="middle"
+                                font-size="14"
+                                fill="#475569"
+                            >
+                                完成したシーケンスを返す
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code -->
+            <section id="code" class="section-card">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                    <span class="w-2 h-8 bg-emerald-500 rounded mr-3"></span>
+                    Python実装（LeetCode形式）
+                </h2>
+
+                <div class="code-toolbar">
+                    <pre
+                        class="line-numbers"
+                    ><code class="language-python">from __future__ import annotations
+
+from typing import List
+
+
+class Solution:
+    """
+    Gray Code generator (n-bit).
+
+    Generates a valid n-bit Gray code sequence using the standard formula:
+    G(i) = i XOR (i >> 1)
+    """
+
+    def grayCode(self, n: int) -> List[int]:
+        """
+        Return any valid n-bit Gray code sequence.
+
+        Args:
+            n: Number of bits (1 <= n <= 16)
+
+        Returns:
+            List of 2^n integers forming a valid Gray code sequence
+
+        Time Complexity: O(2^n)
+        Space Complexity: O(2^n) for output, O(1) additional
+
+        Example:
+            >>> Solution().grayCode(2)
+            [0, 1, 3, 2]  # Binary: [00, 01, 11, 10]
+        """
+        # Step 1: Compute sequence length (2^n)
+        m: int = 1 << n
+
+        # Step 2-5: Apply Gray code formula to all indices
+        # List comprehension is fastest in CPython (C-level range + bulk allocation)
+        # G(i) = i XOR (i >> 1) guarantees adjacent 1-bit difference
+        result: List[int] = [i ^ (i >> 1) for i in range(m)]
+
+        # Step 6: Return completed sequence
+        return result
+
+
+# Example usage and verification
+if __name__ == "__main__":
+    sol = Solution()
+
+    # Example 1: n=2
+    print(sol.grayCode(2))  # [0, 1, 3, 2]
+
+    # Example 2: n=3
+    print(sol.grayCode(3))  # [0, 1, 3, 2, 6, 7, 5, 4]
+
+    # Verify adjacent 1-bit difference
+    def verify_gray_code(code: List[int]) -> bool:
+        n = len(code)
+        for i in range(n):
+            diff = code[i] ^ code[(i + 1) % n]
+            if bin(diff).count('1') != 1:
+                return False
+        return True
+
+    print(verify_gray_code(sol.grayCode(3)))  # True</code></pre>
+                </div>
+            </section>
+
+            <!-- Diagram -->
+            <section id="diagram" class="section-card">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                    <span class="w-2 h-8 bg-emerald-500 rounded mr-3"></span>
+                    視覚的図解
+                </h2>
+
+                <div>
+                    <h3>アルゴリズムフロー</h3>
+                    <svg
+                        viewBox="0 0 500 400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-full max-w-2xl mx-auto"
+                    >
+                        <defs>
+                            <!-- 矢印マーカーを正しく定義 -->
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="8"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <rect
+                            x="180"
+                            y="20"
+                            width="140"
+                            height="50"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                            rx="8"
+                        />
+                        <text
+                            x="250"
+                            y="50"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#047857"
+                        >
+                            開始: 入力 n
+                        </text>
+
+                        <!-- 矢印: 開始→M計算 -->
+                        <path
+                            d="M 250 70 L 250 100"
+                            stroke="#334155"
+                            stroke-width="2"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- M計算 -->
+                        <rect
+                            x="180"
+                            y="100"
+                            width="140"
+                            height="50"
+                            fill="#f0f9ff"
+                            stroke="#0ea5e9"
+                            stroke-width="2"
+                            rx="8"
+                        />
+                        <text x="250" y="125" text-anchor="middle" font-size="13" fill="#0369a1">
+                            M = 2^n を計算
+                        </text>
+                        <text x="250" y="142" text-anchor="middle" font-size="11" fill="#0369a1">
+                            (1 << n)
+                        </text>
+
+                        <!-- 矢印: M計算→ループ -->
+                        <path
+                            d="M 250 150 L 250 180"
+                            stroke="#334155"
+                            stroke-width="2"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ループ -->
+                        <rect
+                            x="150"
+                            y="180"
+                            width="200"
+                            height="50"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                            rx="8"
+                        />
+                        <text
+                            x="250"
+                            y="205"
+                            text-anchor="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#b45309"
+                        >
+                            i を 0 から M-1 まで
+                        </text>
+                        <text x="250" y="222" text-anchor="middle" font-size="11" fill="#b45309">
+                            各インデックスでループ
+                        </text>
+
+                        <!-- 矢印: ループ→Gray公式 -->
+                        <path
+                            d="M 250 230 L 250 260"
+                            stroke="#334155"
+                            stroke-width="2"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- Gray公式 -->
+                        <rect
+                            x="150"
+                            y="260"
+                            width="200"
+                            height="50"
+                            fill="#e0e7ff"
+                            stroke="#6366f1"
+                            stroke-width="2"
+                            rx="8"
+                        />
+                        <text x="250" y="280" text-anchor="middle" font-size="13" fill="#4338ca">
+                            G(i) = i ^ (i >> 1)
+                        </text>
+                        <text x="250" y="297" text-anchor="middle" font-size="11" fill="#4338ca">
+                            XOR演算で右シフト
+                        </text>
+
+                        <!-- 矢印: Gray公式→追加 -->
+                        <path
+                            d="M 250 310 L 250 340"
+                            stroke="#334155"
+                            stroke-width="2"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 追加 -->
+                        <rect
+                            x="160"
+                            y="340"
+                            width="180"
+                            height="40"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                            rx="8"
+                        />
+                        <text x="250" y="365" text-anchor="middle" font-size="13" fill="#047857">
+                            G(i) を結果に追加
+                        </text>
+
+                        <!-- ループバック矢印（破線、正しい矢印表示） -->
+                        <path
+                            d="M 350 365 L 380 365 L 380 205 L 350 205"
+                            stroke="#334155"
+                            stroke-width="2"
+                            marker-end="url(#arrow)"
+                            stroke-dasharray="5,5"
+                            fill="none"
+                        />
+                        <text x="390" y="290" font-size="11" fill="#64748b">ループ</text>
+                    </svg>
+
+                    <div class="description">
+                        <p>
+                            <strong>説明</strong>：入力 n から M=2<sup>n</sup>
+                            を計算し、0からM-1まで各インデックス i に対して Gray code 公式
+                            <code>i ^ (i >> 1)</code> を適用。結果をリストに追加して返却。
+                        </p>
+                    </div>
+                    <!-- Example visualization -->
+                    <div class="mt-6 bg-white border-2 border-slate-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-slate-700 mb-4">
+                            例：n=3 のGray Code生成過程
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100">
+                                        <th
+                                            class="px-4 py-2 text-left font-semibold text-slate-700"
+                                        >
+                                            i (dec)
+                                        </th>
+                                        <th
+                                            class="px-4 py-2 text-left font-semibold text-slate-700"
+                                        >
+                                            i (bin)
+                                        </th>
+                                        <th
+                                            class="px-4 py-2 text-left font-semibold text-slate-700"
+                                        >
+                                            i >> 1 (bin)
+                                        </th>
+                                        <th
+                                            class="px-4 py-2 text-left font-semibold text-slate-700"
+                                        >
+                                            G(i) = i ^ (i >> 1)
+                                        </th>
+                                        <th
+                                            class="px-4 py-2 text-left font-semibold text-slate-700"
+                                        >
+                                            G(i) (dec)
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">0</td>
+                                        <td class="px-4 py-2 font-mono">000</td>
+                                        <td class="px-4 py-2 font-mono">000</td>
+                                        <td class="px-4 py-2 font-mono">000</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            0
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">1</td>
+                                        <td class="px-4 py-2 font-mono">001</td>
+                                        <td class="px-4 py-2 font-mono">000</td>
+                                        <td class="px-4 py-2 font-mono">001</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            1
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">2</td>
+                                        <td class="px-4 py-2 font-mono">010</td>
+                                        <td class="px-4 py-2 font-mono">001</td>
+                                        <td class="px-4 py-2 font-mono">011</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            3
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">3</td>
+                                        <td class="px-4 py-2 font-mono">011</td>
+                                        <td class="px-4 py-2 font-mono">001</td>
+                                        <td class="px-4 py-2 font-mono">010</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            2
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">4</td>
+                                        <td class="px-4 py-2 font-mono">100</td>
+                                        <td class="px-4 py-2 font-mono">010</td>
+                                        <td class="px-4 py-2 font-mono">110</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            6
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">5</td>
+                                        <td class="px-4 py-2 font-mono">101</td>
+                                        <td class="px-4 py-2 font-mono">010</td>
+                                        <td class="px-4 py-2 font-mono">111</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            7
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">6</td>
+                                        <td class="px-4 py-2 font-mono">110</td>
+                                        <td class="px-4 py-2 font-mono">011</td>
+                                        <td class="px-4 py-2 font-mono">101</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            5
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-emerald-50">
+                                        <td class="px-4 py-2 font-mono">7</td>
+                                        <td class="px-4 py-2 font-mono">111</td>
+                                        <td class="px-4 py-2 font-mono">011</td>
+                                        <td class="px-4 py-2 font-mono">100</td>
+                                        <td class="px-4 py-2 font-mono font-bold text-emerald-600">
+                                            4
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 p-3 bg-sky-50 rounded">
+                            <p class="text-sm text-slate-700">
+                                <strong>結果</strong>：<code
+                                    class="px-2 py-1 bg-white rounded font-mono text-emerald-600"
+                                    >[0, 1, 3, 2, 6, 7, 5, 4]</code
+                                ><br />
+                                各隣接ペア（0→1, 1→3, ..., 4→0）は1 bitだけ異なる。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complexity -->
+            <section id="complexity" class="section-card">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                    <span class="w-2 h-8 bg-emerald-500 rounded mr-3"></span>
+                    計算量
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Time Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-emerald-50 to-sky-50 border-2 border-emerald-200 rounded-lg p-6"
+                    >
+                        <h3 class="text-lg font-semibold text-emerald-700 mb-3">時間計算量</h3>
+                        <div class="text-3xl font-bold text-emerald-600 mb-2">O(2<sup>n</sup>)</div>
+                        <p class="text-sm text-slate-700">
+                            M = 2<sup>n</sup>
+                            個の要素を1回走査。各インデックスで定数時間のビット演算（右シフト＋XOR）のみ。
+                        </p>
+                    </div>
+
+                    <!-- Space Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-sky-50 to-slate-50 border-2 border-sky-200 rounded-lg p-6"
+                    >
+                        <h3 class="text-lg font-semibold text-sky-700 mb-3">空間計算量</h3>
+                        <div class="text-3xl font-bold text-sky-600 mb-2">O(2<sup>n</sup>)</div>
+                        <p class="text-sm text-slate-700">
+                            出力リスト（長さ2<sup>n</sup>）が必要。追加メモリは<strong>O(1)</strong>（インデックス変数のみ）。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Comparison table -->
+                <div class="mt-6 overflow-x-auto">
+                    <h3 class="text-lg font-semibold text-slate-700 mb-3">アルゴリズム比較</h3>
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="border border-slate-300 px-4 py-2 text-left">
+                                    アプローチ
+                                </th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">時間</th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">
+                                    空間（追加）
+                                </th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">
+                                    実装難易度
+                                </th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50 font-semibold">
+                                <td class="border border-slate-300 px-4 py-2">公式法（本実装）</td>
+                                <td class="border border-slate-300 px-4 py-2">O(2<sup>n</sup>)</td>
+                                <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                                <td class="border border-slate-300 px-4 py-2">低</td>
+                                <td class="border border-slate-300 px-4 py-2">最速・最小メモリ</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 px-4 py-2">反射法（鏡映）</td>
+                                <td class="border border-slate-300 px-4 py-2">O(2<sup>n</sup>)</td>
+                                <td class="border border-slate-300 px-4 py-2">O(2<sup>n</sup>)</td>
+                                <td class="border border-slate-300 px-4 py-2">中</td>
+                                <td class="border border-slate-300 px-4 py-2">
+                                    段階的構築、教育的
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 px-4 py-2">DFSバックトラック</td>
+                                <td class="border border-slate-300 px-4 py-2">
+                                    O(2<sup>n</sup>·n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-2">O(2<sup>n</sup>)</td>
+                                <td class="border border-slate-300 px-4 py-2">高</td>
+                                <td class="border border-slate-300 px-4 py-2">実用性低（遅い）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded">
+                    <p class="text-sm text-slate-700">
+                        <strong>最適化ポイント</strong>：Pythonのリスト内包表記は CPython の C
+                        実装を直接利用するため、明示的 for
+                        ループより高速。ビット演算（左シフト、右シフト、XOR）は CPU
+                        命令に直接マップされる最速演算。
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-slate-200 mt-12 py-6">
+            <div class="max-w-6xl mx-auto px-4 text-center text-slate-600 text-sm">
+                <p>LeetCode 89: Gray Code - 視覚的解説 | Algorithm Visualization</p>
+                <p class="mt-2">Standard Gray code formula: G(i) = i ⊕ (i >> 1)</p>
+            </div>
+        </footer>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- Interactive Script -->
+        <script>
+            // State management
+            let currentStep = 1;
+            let isPlaying = false;
+            const totalSteps = 6;
+
+            // DOM elements
+            const stepCards = document.querySelectorAll('.step-card');
+            const svgStages = document.querySelectorAll('.svg-stage');
+            const playBtn = document.querySelector('[data-action="play"]');
+            const prevBtn = document.querySelector('[data-action="prev"]');
+            const nextBtn = document.querySelector('[data-action="next"]');
+            const resetBtn = document.querySelector('[data-action="reset"]');
+
+            // Update display based on current step
+            function updateDisplay() {
+                // Update step cards
+                stepCards.forEach((card, index) => {
+                    const step = index + 1;
+                    if (step === currentStep) {
+                        card.classList.add('active');
+                        card.setAttribute('aria-pressed', 'true');
+                    } else {
+                        card.classList.remove('active');
+                        card.setAttribute('aria-pressed', 'false');
+                    }
+                });
+
+                // Update SVG stages
+                svgStages.forEach((stage) => {
+                    const stageStep = parseInt(stage.getAttribute('data-step'));
+                    if (stageStep === currentStep) {
+                        stage.classList.add('active');
+                        stage.setAttribute('aria-hidden', 'false');
+                    } else {
+                        stage.classList.remove('active');
+                        stage.setAttribute('aria-hidden', 'true');
+                    }
+                });
+
+                // Update button states
+                prevBtn.disabled = currentStep === 1;
+                nextBtn.disabled = currentStep === totalSteps;
+            }
+
+            // Navigate to specific step
+            function goToStep(step) {
+                if (step >= 1 && step <= totalSteps) {
+                    currentStep = step;
+                    updateDisplay();
+                }
+            }
+
+            // Play animation (one cycle, then reset)
+            async function playAnimation() {
+                if (isPlaying) return; // Prevent multiple plays
+
+                isPlaying = true;
+                playBtn.disabled = true;
+                playBtn.textContent = '▶ Playing...';
+
+                // Start from step 1
+                goToStep(1);
+                await sleep(800);
+
+                // Play through all steps
+                for (let step = 2; step <= totalSteps; step++) {
+                    goToStep(step);
+                    await sleep(1200);
+                }
+
+                // Auto reset to step 1
+                await sleep(500);
+                goToStep(1);
+
+                // Reset play button
+                isPlaying = false;
+                playBtn.disabled = false;
+                playBtn.textContent = '▶ Play';
+            }
+
+            // Utility: sleep function
+            function sleep(ms) {
+                return new Promise((resolve) => setTimeout(resolve, ms));
+            }
+
+            // Event listeners for step cards
+            stepCards.forEach((card, index) => {
+                const step = index + 1;
+
+                // Click handler
+                card.addEventListener('click', () => {
+                    if (!isPlaying) goToStep(step);
+                });
+
+                // Keyboard handler (Enter/Space)
+                card.addEventListener('keydown', (e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isPlaying) {
+                        e.preventDefault();
+                        goToStep(step);
+                    }
+                });
+            });
+
+            // Control button handlers
+            playBtn.addEventListener('click', playAnimation);
+
+            prevBtn.addEventListener('click', () => {
+                if (!isPlaying && currentStep > 1) {
+                    goToStep(currentStep - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (!isPlaying && currentStep < totalSteps) {
+                    goToStep(currentStep + 1);
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                if (!isPlaying) {
+                    goToStep(1);
+                }
+            });
+
+            // Initialize display
+            updateDisplay();
+
+            // Smooth scroll for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                        });
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

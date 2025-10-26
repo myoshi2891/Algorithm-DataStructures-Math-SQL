@@ -33,7 +33,7 @@
 function removeNthFromEndJs(head, n) {
     // ダミーノードを作成（head削除時も対応可能にする）
     const dummy = new ListNode(0, head);
-    
+
     let fast = dummy;
     let slow = dummy;
 
@@ -89,4 +89,3 @@ function removeNthFromEndJs(head, n) {
 
 // * `ListNode` クラスは LeetCode 環境で自動的に定義されています。
 // * この実装は、`head` が削除対象の場合も安全に動作します（ダミーノード利用）。
-

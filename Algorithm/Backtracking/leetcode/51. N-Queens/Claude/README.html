@@ -1,329 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N-Queens問題の詳細解析</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #e0e0e0;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #64ffda;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
-        }
-        
-        h2 {
-            color: #ff6b9d;
-            margin: 30px 0 15px 0;
-            font-size: 1.8em;
-            border-left: 4px solid #ff6b9d;
-            padding-left: 15px;
-        }
-        
-        h3 {
-            color: #ffd93d;
-            margin: 20px 0 10px 0;
-            font-size: 1.3em;
-        }
-        
-        .section {
-            margin-bottom: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .chessboard {
-            display: inline-grid;
-            gap: 2px;
-            background: #333;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .chessboard.size-4 {
-            grid-template-columns: repeat(4, 40px);
-        }
-        
-        .chessboard.size-8 {
-            grid-template-columns: repeat(8, 30px);
-        }
-        
-        .cell {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-        
-        .cell.white {
-            background: #f0d9b5;
-            color: #b58863;
-        }
-        
-        .cell.black {
-            background: #b58863;
-            color: #f0d9b5;
-        }
-        
-        .cell.queen {
-            background: #ff6b9d !important;
-            color: white;
-            box-shadow: 0 0 15px rgba(255, 107, 157, 0.5);
-            animation: pulse 2s infinite;
-        }
-        
-        .cell.attacked {
-            background: rgba(255, 107, 157, 0.3) !important;
-            border: 2px solid #ff6b9d;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .boards-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        
-        .board-wrapper {
-            text-align: center;
-        }
-        
-        .board-title {
-            color: #64ffda;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        
-        .algorithm-step {
-            background: rgba(100, 255, 218, 0.1);
-            border: 1px solid #64ffda;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-        }
-        
-        .algorithm-step:hover {
-            background: rgba(100, 255, 218, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(100, 255, 218, 0.2);
-        }
-        
-        .step-number {
-            background: #64ffda;
-            color: #1a1a2e;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        
-        pre[class*="language-"] {
-            background: #0d1117 !important;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            margin: 20px 0;
-            transition: all 0.3s ease;
-        }
-        
-        pre[class*="language-"]:hover {
-            box-shadow: 0 8px 30px rgba(100, 255, 218, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        code[class*="language-"] {
-            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .line-numbers .line-numbers-rows {
-            border-right: 1px solid #64ffda !important;
-            background: rgba(100, 255, 218, 0.1) !important;
-        }
-        
-        .complexity-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-        }
-        
-        .complexity-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .interactive-demo {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid rgba(100, 255, 218, 0.3);
-        }
-        
-        .demo-button {
-            background: linear-gradient(135deg, #64ffda 0%, #4ecdc4 100%);
-            color: #1a1a2e;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-        }
-        
-        .demo-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(100, 255, 218, 0.3);
-        }
-        
-        .explanation {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffd93d;
-            margin: 15px 0;
-        }
-        
-        @media (max-width: 768px) {
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>N-Queens問題の詳細解析</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #e0e0e0;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                min-height: 100vh;
+            }
+
             .container {
-                padding: 10px;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
             }
-            
+
             h1 {
-                font-size: 2em;
+                text-align: center;
+                color: #64ffda;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
             }
-            
+
+            h2 {
+                color: #ff6b9d;
+                margin: 30px 0 15px 0;
+                font-size: 1.8em;
+                border-left: 4px solid #ff6b9d;
+                padding-left: 15px;
+            }
+
+            h3 {
+                color: #ffd93d;
+                margin: 20px 0 10px 0;
+                font-size: 1.3em;
+            }
+
+            .section {
+                margin-bottom: 40px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 15px;
+                padding: 25px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .chessboard {
+                display: inline-grid;
+                gap: 2px;
+                background: #333;
+                padding: 10px;
+                border-radius: 8px;
+                margin: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .chessboard.size-4 {
+                grid-template-columns: repeat(4, 40px);
+            }
+
+            .chessboard.size-8 {
+                grid-template-columns: repeat(8, 30px);
+            }
+
             .cell {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                font-weight: bold;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+            }
+
+            .cell.white {
+                background: #f0d9b5;
+                color: #b58863;
+            }
+
+            .cell.black {
+                background: #b58863;
+                color: #f0d9b5;
+            }
+
+            .cell.queen {
+                background: #ff6b9d !important;
+                color: white;
+                box-shadow: 0 0 15px rgba(255, 107, 157, 0.5);
+                animation: pulse 2s infinite;
+            }
+
+            .cell.attacked {
+                background: rgba(255, 107, 157, 0.3) !important;
+                border: 2px solid #ff6b9d;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .boards-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: center;
+                margin: 20px 0;
+            }
+
+            .board-wrapper {
+                text-align: center;
+            }
+
+            .board-title {
+                color: #64ffda;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+
+            .algorithm-step {
+                background: rgba(100, 255, 218, 0.1);
+                border: 1px solid #64ffda;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 15px 0;
+                transition: all 0.3s ease;
+            }
+
+            .algorithm-step:hover {
+                background: rgba(100, 255, 218, 0.2);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(100, 255, 218, 0.2);
+            }
+
+            .step-number {
+                background: #64ffda;
+                color: #1a1a2e;
+                border-radius: 50%;
                 width: 30px;
                 height: 30px;
-                font-size: 16px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 10px;
             }
-            
-            .chessboard.size-8 .cell {
-                width: 25px;
-                height: 25px;
-                font-size: 12px;
+
+            pre[class*='language-'] {
+                background: #0d1117 !important;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                margin: 20px 0;
+                transition: all 0.3s ease;
             }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>N-Queens問題の詳細解析</h1>
-        
-        <div class="section">
-            <h2>🔍 問題の概要</h2>
-            <p>N-Queens問題は、n×nのチェスボード上にn個のクイーンを配置する問題です。クイーンは縦・横・斜めの全方向に移動できるため、互いに攻撃し合わない位置に配置する必要があります。</p>
-            
-            <div class="boards-container">
-                <div class="board-wrapper">
-                    <div class="board-title">4-Queens 解1</div>
-                    <div class="chessboard size-4" id="board1">
-                        <div class="cell white">.</div>
-                        <div class="cell black queen">♕</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white queen">♕</div>
-                        
-                        <div class="cell white queen">♕</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black queen">♕</div>
-                        <div class="cell white">.</div>
+
+            pre[class*='language-']:hover {
+                box-shadow: 0 8px 30px rgba(100, 255, 218, 0.2);
+                transform: translateY(-2px);
+            }
+
+            code[class*='language-'] {
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid #64ffda !important;
+                background: rgba(100, 255, 218, 0.1) !important;
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 15px 0;
+                text-align: center;
+            }
+
+            .complexity-title {
+                font-size: 1.2em;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .interactive-demo {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                border: 1px solid rgba(100, 255, 218, 0.3);
+            }
+
+            .demo-button {
+                background: linear-gradient(135deg, #64ffda 0%, #4ecdc4 100%);
+                color: #1a1a2e;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin: 5px;
+            }
+
+            .demo-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(100, 255, 218, 0.3);
+            }
+
+            .explanation {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 15px;
+                border-radius: 8px;
+                border-left: 4px solid #ffd93d;
+                margin: 15px 0;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+
+                h1 {
+                    font-size: 2em;
+                }
+
+                .cell {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 16px;
+                }
+
+                .chessboard.size-8 .cell {
+                    width: 25px;
+                    height: 25px;
+                    font-size: 12px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>N-Queens問題の詳細解析</h1>
+
+            <div class="section">
+                <h2>🔍 問題の概要</h2>
+                <p>
+                    N-Queens問題は、n×nのチェスボード上にn個のクイーンを配置する問題です。クイーンは縦・横・斜めの全方向に移動できるため、互いに攻撃し合わない位置に配置する必要があります。
+                </p>
+
+                <div class="boards-container">
+                    <div class="board-wrapper">
+                        <div class="board-title">4-Queens 解1</div>
+                        <div class="chessboard size-4" id="board1">
+                            <div class="cell white">.</div>
+                            <div class="cell black queen">♕</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white queen">♕</div>
+
+                            <div class="cell white queen">♕</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black queen">♕</div>
+                            <div class="cell white">.</div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="board-wrapper">
-                    <div class="board-title">4-Queens 解2</div>
-                    <div class="chessboard size-4" id="board2">
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white queen">♕</div>
-                        <div class="cell black">.</div>
-                        
-                        <div class="cell black queen">♕</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black queen">♕</div>
-                        
-                        <div class="cell black">.</div>
-                        <div class="cell white queen">♕</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
+
+                    <div class="board-wrapper">
+                        <div class="board-title">4-Queens 解2</div>
+                        <div class="chessboard size-4" id="board2">
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white queen">♕</div>
+                            <div class="cell black">.</div>
+
+                            <div class="cell black queen">♕</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black queen">♕</div>
+
+                            <div class="cell black">.</div>
+                            <div class="cell white queen">♕</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="section">
-            <h2>💻 TypeScript実装とコード解析</h2>
-            
-            <pre class="line-numbers"><code class="language-typescript">/**
+            <div class="section">
+                <h2>💻 TypeScript実装とコード解析</h2>
+
+                <pre class="line-numbers"><code class="language-typescript">/**
  * N-Queens問題を解く関数
  * @param n - チェスボードのサイズ (n x n)
  * @returns 全ての解の配列。各解は文字列の配列で、'Q'はクイーン、'.'は空きマスを表す
@@ -385,118 +399,127 @@ function solveNQueens(n: number): string[][] {
     backtrack(0);
     return result;
 }</code></pre>
-        </div>
-
-        <div class="section">
-            <h2>🧠 アルゴリズムの詳細解析</h2>
-            
-            <h3>1. メイン関数の構造</h3>
-            <div class="algorithm-step">
-                <span class="step-number">1</span>
-                <strong>初期化フェーズ</strong><br>
-                結果配列 <code>result</code> とボード配列 <code>board</code> を初期化します。ボードは二次元配列で、全てのセルを '.' で初期化します。
             </div>
 
-            <h3>2. 安全性チェック関数 (isSafe)</h3>
-            <div class="algorithm-step">
-                <span class="step-number">2</span>
-                <strong>縦方向チェック</strong><br>
-                現在の列 <code>col</code> の上方向（row=0からrow-1まで）にクイーンが存在するかチェック
-            </div>
-            
-            <div class="algorithm-step">
-                <span class="step-number">3</span>
-                <strong>左上対角線チェック</strong><br>
-                <code>(row-1, col-1)</code> から <code>(0, 0)</code> 方向へ対角線上にクイーンが存在するかチェック
-            </div>
-            
-            <div class="algorithm-step">
-                <span class="step-number">4</span>
-                <strong>右上対角線チェック</strong><br>
-                <code>(row-1, col+1)</code> から <code>(0, n-1)</code> 方向へ対角線上にクイーンが存在するかチェック
-            </div>
+            <div class="section">
+                <h2>🧠 アルゴリズムの詳細解析</h2>
 
-            <div class="explanation">
-                <strong>💡 重要な最適化ポイント：</strong><br>
-                下方向と下対角線のチェックが不要な理由は、バックトラッキングが上から下へ行を進むため、下の行はまだクイーンが配置されていないためです。
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>🔄 バックトラッキングの動作原理</h2>
-            
-            <div class="interactive-demo">
-                <h3>バックトラッキングの流れ（4×4の例）</h3>
-                <button class="demo-button" onclick="showStep(0)">ステップ1: 初期状態</button>
-                <button class="demo-button" onclick="showStep(1)">ステップ2: 1行目配置</button>
-                <button class="demo-button" onclick="showStep(2)">ステップ3: 2行目試行</button>
-                <button class="demo-button" onclick="showStep(3)">ステップ4: バックトラック</button>
-                <button class="demo-button" onclick="showStep(4)">ステップ5: 解発見</button>
-                
-                <div id="demo-board" class="boards-container">
-                    <div class="chessboard size-4" id="demo-chessboard">
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                        <div class="cell black">.</div>
-                        <div class="cell white">.</div>
-                    </div>
+                <h3>1. メイン関数の構造</h3>
+                <div class="algorithm-step">
+                    <span class="step-number">1</span>
+                    <strong>初期化フェーズ</strong><br />
+                    結果配列 <code>result</code> とボード配列
+                    <code>board</code> を初期化します。ボードは二次元配列で、全てのセルを '.'
+                    で初期化します。
                 </div>
-                <div id="step-explanation"></div>
+
+                <h3>2. 安全性チェック関数 (isSafe)</h3>
+                <div class="algorithm-step">
+                    <span class="step-number">2</span>
+                    <strong>縦方向チェック</strong><br />
+                    現在の列
+                    <code>col</code> の上方向（row=0からrow-1まで）にクイーンが存在するかチェック
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">3</span>
+                    <strong>左上対角線チェック</strong><br />
+                    <code>(row-1, col-1)</code> から
+                    <code>(0, 0)</code> 方向へ対角線上にクイーンが存在するかチェック
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">4</span>
+                    <strong>右上対角線チェック</strong><br />
+                    <code>(row-1, col+1)</code> から
+                    <code>(0, n-1)</code> 方向へ対角線上にクイーンが存在するかチェック
+                </div>
+
+                <div class="explanation">
+                    <strong>💡 重要な最適化ポイント：</strong><br />
+                    下方向と下対角線のチェックが不要な理由は、バックトラッキングが上から下へ行を進むため、下の行はまだクイーンが配置されていないためです。
+                </div>
             </div>
 
-            <div class="algorithm-step">
-                <span class="step-number">1</span>
-                <strong>再帰的探索</strong><br>
-                各行で全ての列を試行し、安全な位置にクイーンを配置
-            </div>
-            
-            <div class="algorithm-step">
-                <span class="step-number">2</span>
-                <strong>制約満足</strong><br>
-                配置後、次の行に進んで同じ処理を再帰的に実行
-            </div>
-            
-            <div class="algorithm-step">
-                <span class="step-number">3</span>
-                <strong>バックトラッキング</strong><br>
-                行き詰まった場合、前の状態に戻ってクイーンを除去し、次の可能性を探索
-            </div>
-            
-            <div class="algorithm-step">
-                <span class="step-number">4</span>
-                <strong>解の記録</strong><br>
-                全ての行にクイーンが配置できたら、現在のボード状態を解として記録
-            </div>
-        </div>
+            <div class="section">
+                <h2>🔄 バックトラッキングの動作原理</h2>
 
-        <div class="section">
-            <h2>📊 計算量解析</h2>
-            
-            <div class="complexity-box">
-                <div class="complexity-title">時間計算量</div>
-                <strong>O(N!)</strong><br>
-                最悪の場合、各行でN個の選択肢があり、制約により選択肢が減少していく
-            </div>
-            
-            <div class="complexity-box">
-                <div class="complexity-title">空間計算量</div>
-                <strong>O(N²)</strong><br>
-                ボード配列 + 再帰呼び出しスタック（最大N階層）
+                <div class="interactive-demo">
+                    <h3>バックトラッキングの流れ（4×4の例）</h3>
+                    <button class="demo-button" onclick="showStep(0)">ステップ1: 初期状態</button>
+                    <button class="demo-button" onclick="showStep(1)">ステップ2: 1行目配置</button>
+                    <button class="demo-button" onclick="showStep(2)">ステップ3: 2行目試行</button>
+                    <button class="demo-button" onclick="showStep(3)">
+                        ステップ4: バックトラック
+                    </button>
+                    <button class="demo-button" onclick="showStep(4)">ステップ5: 解発見</button>
+
+                    <div id="demo-board" class="boards-container">
+                        <div class="chessboard size-4" id="demo-chessboard">
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                            <div class="cell black">.</div>
+                            <div class="cell white">.</div>
+                        </div>
+                    </div>
+                    <div id="step-explanation"></div>
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">1</span>
+                    <strong>再帰的探索</strong><br />
+                    各行で全ての列を試行し、安全な位置にクイーンを配置
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">2</span>
+                    <strong>制約満足</strong><br />
+                    配置後、次の行に進んで同じ処理を再帰的に実行
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">3</span>
+                    <strong>バックトラッキング</strong><br />
+                    行き詰まった場合、前の状態に戻ってクイーンを除去し、次の可能性を探索
+                </div>
+
+                <div class="algorithm-step">
+                    <span class="step-number">4</span>
+                    <strong>解の記録</strong><br />
+                    全ての行にクイーンが配置できたら、現在のボード状態を解として記録
+                </div>
             </div>
 
-            <pre class="line-numbers"><code class="language-typescript">// 実際のパフォーマンス測定例
+            <div class="section">
+                <h2>📊 計算量解析</h2>
+
+                <div class="complexity-box">
+                    <div class="complexity-title">時間計算量</div>
+                    <strong>O(N!)</strong><br />
+                    最悪の場合、各行でN個の選択肢があり、制約により選択肢が減少していく
+                </div>
+
+                <div class="complexity-box">
+                    <div class="complexity-title">空間計算量</div>
+                    <strong>O(N²)</strong><br />
+                    ボード配列 + 再帰呼び出しスタック（最大N階層）
+                </div>
+
+                <pre
+                    class="line-numbers"
+                ><code class="language-typescript">// 実際のパフォーマンス測定例
 function measurePerformance() {
     const testCases = [4, 5, 6, 7, 8];
     
@@ -515,13 +538,15 @@ function measurePerformance() {
 // N=6: 4 solutions
 // N=7: 40 solutions
 // N=8: 92 solutions</code></pre>
-        </div>
+            </div>
 
-        <div class="section">
-            <h2>🎯 TypeScript特有の最適化</h2>
-            
-            <h3>型安全性の確保</h3>
-            <pre class="line-numbers"><code class="language-typescript">// 型注釈による安全性向上
+            <div class="section">
+                <h2>🎯 TypeScript特有の最適化</h2>
+
+                <h3>型安全性の確保</h3>
+                <pre
+                    class="line-numbers"
+                ><code class="language-typescript">// 型注釈による安全性向上
 function solveNQueens(n: number): string[][] {
     // 戻り値の型が明確
     const result: string[][] = [];
@@ -537,27 +562,28 @@ function solveNQueens(n: number): string[][] {
     }
 }</code></pre>
 
-            <h3>パフォーマンス最適化のポイント</h3>
-            <div class="explanation">
-                <strong>1. メモリ効率的な配列操作</strong><br>
-                <code>Array(n).fill(null).map()</code> を使用してTypeScriptの型チェッカーを満足させつつ、効率的な初期化を実現
-            </div>
-            
-            <div class="explanation">
-                <strong>2. 不要なコピーの回避</strong><br>
-                <code>board.map(row => row.join(''))</code> で文字列変換時のみ新しい配列を作成
-            </div>
-            
-            <div class="explanation">
-                <strong>3. 早期リターン</strong><br>
-                <code>isSafe</code> 関数で攻撃される位置が見つかったら即座にfalseを返す
-            </div>
-        </div>
+                <h3>パフォーマンス最適化のポイント</h3>
+                <div class="explanation">
+                    <strong>1. メモリ効率的な配列操作</strong><br />
+                    <code>Array(n).fill(null).map()</code>
+                    を使用してTypeScriptの型チェッカーを満足させつつ、効率的な初期化を実現
+                </div>
 
-        <div class="section">
-            <h2>🚀 実行例とテストケース</h2>
-            
-            <pre class="line-numbers"><code class="language-typescript">// テスト実行例
+                <div class="explanation">
+                    <strong>2. 不要なコピーの回避</strong><br />
+                    <code>board.map(row => row.join(''))</code> で文字列変換時のみ新しい配列を作成
+                </div>
+
+                <div class="explanation">
+                    <strong>3. 早期リターン</strong><br />
+                    <code>isSafe</code> 関数で攻撃される位置が見つかったら即座にfalseを返す
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🚀 実行例とテストケース</h2>
+
+                <pre class="line-numbers"><code class="language-typescript">// テスト実行例
 console.log("N=1の場合:");
 console.log(solveNQueens(1));
 // 出力: [["Q"]]
@@ -584,67 +610,152 @@ result4.forEach((solution, index) => {
 // Q...
 // ...Q
 // .Q..</code></pre>
+            </div>
         </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    
-    <script>
-        const demoSteps = [
-            {
-                board: ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
-                explanation: "初期状態: 4×4の空のチェスボード"
-            },
-            {
-                board: ['.', 'Q', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
-                explanation: "1行目の2列目にクイーンを配置（仮）"
-            },
-            {
-                board: ['.', 'Q', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
-                explanation: "2行目で配置可能な位置を探索中... 制約により配置不可能"
-            },
-            {
-                board: ['Q', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
-                explanation: "バックトラック: 1行目を1列目に変更"
-            },
-            {
-                board: ['Q', '.', '.', '.', '.', '.', 'Q', '.', '.', '.', '.', '.', '.', 'Q', '.', '.'],
-                explanation: "解発見! すべての行にクイーンが安全に配置完了"
-            }
-        ];
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
-        function showStep(stepIndex) {
-            const step = demoSteps[stepIndex];
-            const cells = document.querySelectorAll('#demo-chessboard .cell');
-            
-            cells.forEach((cell, index) => {
-                cell.innerHTML = step.board[index] === 'Q' ? '♕' : '.';
-                cell.classList.remove('queen');
-                if (step.board[index] === 'Q') {
-                    cell.classList.add('queen');
-                }
-            });
-            
-            document.getElementById('step-explanation').innerHTML = `
+        <script>
+            const demoSteps = [
+                {
+                    board: [
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                    ],
+                    explanation: '初期状態: 4×4の空のチェスボード',
+                },
+                {
+                    board: [
+                        '.',
+                        'Q',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                    ],
+                    explanation: '1行目の2列目にクイーンを配置（仮）',
+                },
+                {
+                    board: [
+                        '.',
+                        'Q',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                    ],
+                    explanation: '2行目で配置可能な位置を探索中... 制約により配置不可能',
+                },
+                {
+                    board: [
+                        'Q',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                    ],
+                    explanation: 'バックトラック: 1行目を1列目に変更',
+                },
+                {
+                    board: [
+                        'Q',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        'Q',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        '.',
+                        'Q',
+                        '.',
+                        '.',
+                    ],
+                    explanation: '解発見! すべての行にクイーンが安全に配置完了',
+                },
+            ];
+
+            function showStep(stepIndex) {
+                const step = demoSteps[stepIndex];
+                const cells = document.querySelectorAll('#demo-chessboard .cell');
+
+                cells.forEach((cell, index) => {
+                    cell.innerHTML = step.board[index] === 'Q' ? '♕' : '.';
+                    cell.classList.remove('queen');
+                    if (step.board[index] === 'Q') {
+                        cell.classList.add('queen');
+                    }
+                });
+
+                document.getElementById('step-explanation').innerHTML = `
                 <div class="explanation">
                     <strong>ステップ ${stepIndex + 1}:</strong> ${step.explanation}
                 </div>
             `;
-        }
+            }
 
-        // 初期状態を表示
-        showStep(0);
+            // 初期状態を表示
+            showStep(0);
 
-        // ホバーエフェクトでクイーンの攻撃範囲を表示
-        function showAttackPattern(queenPos) {
-            const cells = document.querySelectorAll('#board1 .cell, #board2 .cell');
-            cells.forEach(cell => cell.classList.remove('attacked'));
-            
-            // 攻撃範囲をハイライト（デモ用の簡単な実装）
-            // 実際の実装では座標計算が必要
-        }
-    </script>
-</body>
+            // ホバーエフェクトでクイーンの攻撃範囲を表示
+            function showAttackPattern(queenPos) {
+                const cells = document.querySelectorAll('#board1 .cell, #board2 .cell');
+                cells.forEach((cell) => cell.classList.remove('attacked'));
+
+                // 攻撃範囲をハイライト（デモ用の簡単な実装）
+                // 実際の実装では座標計算が必要
+            }
+        </script>
+    </body>
 </html>

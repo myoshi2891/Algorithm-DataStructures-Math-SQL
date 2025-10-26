@@ -17,16 +17,16 @@
  * 空間計算量: O(1) - 追加メモリは使わない
  */
 function removeElement(nums: number[], val: number): number {
-  let k: number = 0;
+    let k: number = 0;
 
-  for (let i = 0; i < nums.length; i++) {
-    if (nums[i] !== val) {
-      nums[k] = nums[i];
-      k++;
+    for (let i = 0; i < nums.length; i++) {
+        if (nums[i] !== val) {
+            nums[k] = nums[i];
+            k++;
+        }
     }
-  }
 
-  return k;
+    return k;
 }
 // ```
 
@@ -41,7 +41,7 @@ function removeElement(nums: number[], val: number): number {
 // const k: number = removeElement(nums, val);
 
 // console.log("k:", k); // 出力: 5
-// console.log("modified nums (first k elements):", nums.slice(0, k)); 
+// console.log("modified nums (first k elements):", nums.slice(0, k));
 // // 例: [0, 1, 3, 0, 4] のように val を除いた5要素
 // ```
 

@@ -95,9 +95,9 @@
 
 // ```typescript
 // // 条件型による型安全性
-// type SafeGridDimension<T> = T extends number 
-//   ? T extends 1 | 2 | 3 ? T 
-//   : T extends infer U ? U 
+// type SafeGridDimension<T> = T extends number
+//   ? T extends 1 | 2 | 3 ? T
+//   : T extends infer U ? U
 //   : never : never;
 
 // // マップ型による読み取り専用化
@@ -134,7 +134,7 @@
 
 // ### 3. TypeScript型システムの改善点
 
-// **問題の原因**: 
+// **問題の原因**:
 // - Union型 `Result<T>` に対して直接 `result.error` にアクセスしようとしていた
 // - TypeScriptは `success: true` の場合に `error` プロパティが存在しないことを検出
 
@@ -146,7 +146,7 @@
 // ### 4. 追加の利点
 
 // 1. **コンパイル時安全性**: 型エラーの完全な排除
-// 2. **実行時安全性**: null/undefined アクセスの防止  
+// 2. **実行時安全性**: null/undefined アクセスの防止
 // 3. **可読性向上**: `isSuccess()`, `isError()` による意図の明確化
 // 4. **保守性向上**: 型ガードの再利用による一貫性
 
@@ -160,7 +160,7 @@
 //   console.log(result.error); // 型エラーの可能性
 // }
 
-// // ✅ 推奨: 型ガードによる安全なアクセス  
+// // ✅ 推奨: 型ガードによる安全なアクセス
 // if (isSuccess(result)) {
 //   console.log(result.value); // 完全に型安全
 // } else if (isError(result)) {
@@ -194,22 +194,22 @@
 // ```typescript
 // function uniquePaths(m: number, n: number): number {
 //     // 入力検証
-//     if (typeof m !== 'number' || typeof n !== 'number' || 
+//     if (typeof m !== 'number' || typeof n !== 'number' ||
 //         !Number.isInteger(m) || !Number.isInteger(n) ||
 //         m < 1 || n < 1 || m > 100 || n > 100) {
 //         throw new Error('Invalid input: m and n must be integers in [1, 100]');
 //     }
-    
+
 //     // 数学的解法: C(m+n-2, min(m-1, n-1))
 //     const totalMoves: number = m + n - 2;
 //     const k: number = Math.min(m - 1, n - 1);
-    
+
 //     let result: number = 1;
-    
+
 //     for (let i = 0; i < k; i++) {
 //         result = Math.round(result * (totalMoves - i) / (i + 1));
 //     }
-    
+
 //     return result;
 // }
 // ```
@@ -244,16 +244,13 @@ type GridSize = number;
  * @returns 有効性の判定
  */
 function isValidGridSize(value: unknown): value is GridSize {
-    return typeof value === 'number' && 
-           Number.isInteger(value) && 
-           value >= 1 && 
-           value <= 100;
+    return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 100;
 }
 
 /**
  * 数学的解法によるユニーク経路数計算（LeetCode最適化版）
  * 組み合わせ数学 C(m+n-2, min(m-1, n-1)) を使用
- * 
+ *
  * @param m - グリッドの行数
  * @param n - グリッドの列数
  * @returns 一意な経路の総数
@@ -265,26 +262,26 @@ function uniquePathsMathematical(m: GridSize, n: GridSize): number {
     if (!isValidGridSize(m) || !isValidGridSize(n)) {
         throw new Error(`Invalid grid dimensions: m=${m}, n=${n}. Must be integers in [1, 100]`);
     }
-    
+
     // 数学的計算: C(totalMoves, k) where k = min(m-1, n-1)
     const totalMoves: number = m + n - 2;
     const k: number = Math.min(m - 1, n - 1);
-    
+
     // 組み合わせ数の効率的計算
     let result: number = 1;
-    
+
     for (let i = 0; i < k; i++) {
         // 整数演算の順序を最適化してオーバーフローを防止
-        result = Math.round(result * (totalMoves - i) / (i + 1));
+        result = Math.round((result * (totalMoves - i)) / (i + 1));
     }
-    
+
     return result;
 }
 
 /**
  * 動的プログラミング解法（1次元配列使用）
  * メモリ効率を重視したTypeScript最適化版
- * 
+ *
  * @param m - グリッドの行数
  * @param n - グリッドの列数
  * @returns 一意な経路の総数
@@ -296,33 +293,33 @@ function uniquePathsDP(m: GridSize, n: GridSize): number {
     if (!isValidGridSize(m) || !isValidGridSize(n)) {
         throw new Error(`Invalid grid dimensions: m=${m}, n=${n}. Must be integers in [1, 100]`);
     }
-    
+
     // メモリ効率最適化: 小さい方の次元で配列作成
     const cols: number = Math.min(m, n);
     const rows: number = Math.max(m, n);
-    
+
     // TypeScript型付き配列（V8最適化）
     const dp: number[] = new Array<number>(cols);
-    
+
     // 初期化: 最初の行は全て1
     for (let j = 0; j < cols; j++) {
         dp[j] = 1;
     }
-    
+
     // DPテーブル更新
     for (let i = 1; i < rows; i++) {
         for (let j = 1; j < cols; j++) {
             dp[j] += dp[j - 1];
         }
     }
-    
+
     return dp[cols - 1];
 }
 
 /**
  * LeetCode提出用のメイン関数
  * ロボットがグリッドの左上から右下へ移動する一意な経路数を計算
- * 
+ *
  * @param m - グリッドの行数 (1 <= m <= 100)
  * @param n - グリッドの列数 (1 <= n <= 100)
  * @returns 一意な経路の総数
@@ -330,12 +327,19 @@ function uniquePathsDP(m: GridSize, n: GridSize): number {
  */
 function uniquePaths(m: number, n: number): number {
     // LeetCode環境での基本的なエラーハンドリング
-    if (typeof m !== 'number' || typeof n !== 'number' || 
-        !Number.isInteger(m) || !Number.isInteger(n) ||
-        m < 1 || n < 1 || m > 100 || n > 100) {
+    if (
+        typeof m !== 'number' ||
+        typeof n !== 'number' ||
+        !Number.isInteger(m) ||
+        !Number.isInteger(n) ||
+        m < 1 ||
+        n < 1 ||
+        m > 100 ||
+        n > 100
+    ) {
         throw new Error('Invalid input: m and n must be integers in [1, 100]');
     }
-    
+
     // 小さなグリッドでは数学的解法を使用（最適解）
     // 大きなグリッドでも数学的解法が効率的だが、安全のためDP併用可能
     return uniquePathsMathematical(m, n);
@@ -348,17 +352,24 @@ function uniquePaths(m: number, n: number): number {
 /**
  * 動的プログラミングベースの代替実装（LeetCode提出用）
  * @param m - グリッドの行数
- * @param n - グリッドの列数  
+ * @param n - グリッドの列数
  * @returns 一意な経路の総数
  * @complexity Time: O(m*n), Space: O(min(m,n))
  */
 function uniquePathsAlternative(m: number, n: number): number {
-    if (typeof m !== 'number' || typeof n !== 'number' || 
-        !Number.isInteger(m) || !Number.isInteger(n) ||
-        m < 1 || n < 1 || m > 100 || n > 100) {
+    if (
+        typeof m !== 'number' ||
+        typeof n !== 'number' ||
+        !Number.isInteger(m) ||
+        !Number.isInteger(n) ||
+        m < 1 ||
+        n < 1 ||
+        m > 100 ||
+        n > 100
+    ) {
         throw new Error('Invalid input: m and n must be integers in [1, 100]');
     }
-    
+
     return uniquePathsDP(m, n);
 }
 
@@ -374,15 +385,24 @@ function uniquePathsAlternative(m: number, n: number): number {
  * @complexity Time: O(m*n), Space: O(m*n)
  */
 function uniquePaths2D(m: number, n: number): number {
-    if (typeof m !== 'number' || typeof n !== 'number' || 
-        !Number.isInteger(m) || !Number.isInteger(n) ||
-        m < 1 || n < 1 || m > 100 || n > 100) {
+    if (
+        typeof m !== 'number' ||
+        typeof n !== 'number' ||
+        !Number.isInteger(m) ||
+        !Number.isInteger(n) ||
+        m < 1 ||
+        n < 1 ||
+        m > 100 ||
+        n > 100
+    ) {
         throw new Error('Invalid input: m and n must be integers in [1, 100]');
     }
-    
+
     // 2次元DPテーブル作成
-    const dp: number[][] = Array(m).fill(null).map(() => Array(n).fill(0));
-    
+    const dp: number[][] = Array(m)
+        .fill(null)
+        .map(() => Array(n).fill(0));
+
     // 初期化: 最初の行と列は全て1
     for (let i = 0; i < m; i++) {
         dp[i][0] = 1;
@@ -390,15 +410,15 @@ function uniquePaths2D(m: number, n: number): number {
     for (let j = 0; j < n; j++) {
         dp[0][j] = 1;
     }
-    
+
     // DPテーブル更新
     for (let i = 1; i < m; i++) {
         for (let j = 1; j < n; j++) {
-            dp[i][j] = dp[i-1][j] + dp[i][j-1];
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
         }
     }
-    
-    return dp[m-1][n-1];
+
+    return dp[m - 1][n - 1];
 }
 
 // =============================================================================
@@ -410,7 +430,7 @@ function uniquePaths2D(m: number, n: number): number {
  */
 function verifyTestCases(): void {
     console.log('=== LeetCode Test Case Verification ===');
-    
+
     // Example 1: m = 3, n = 7, Expected: 28
     try {
         const result1 = uniquePaths(3, 7);
@@ -418,15 +438,15 @@ function verifyTestCases(): void {
     } catch (error) {
         console.log(`Error in test case 1: ${error}`);
     }
-    
-    // Example 2: m = 3, n = 2, Expected: 3  
+
+    // Example 2: m = 3, n = 2, Expected: 3
     try {
         const result2 = uniquePaths(3, 2);
         console.log(`uniquePaths(3, 2) = ${result2} ${result2 === 3 ? '✓' : '✗'}`);
     } catch (error) {
         console.log(`Error in test case 2: ${error}`);
     }
-    
+
     // Edge case: m = 1, n = 1, Expected: 1
     try {
         const result3 = uniquePaths(1, 1);
@@ -434,8 +454,8 @@ function verifyTestCases(): void {
     } catch (error) {
         console.log(`Error in edge case: ${error}`);
     }
-    
-    // Large case: m = 23, n = 12  
+
+    // Large case: m = 23, n = 12
     try {
         const result4 = uniquePaths(23, 12);
         console.log(`uniquePaths(23, 12) = ${result4}`);
@@ -449,26 +469,28 @@ function verifyTestCases(): void {
  */
 function compareAlgorithms(): void {
     console.log('\n=== Algorithm Comparison ===');
-    
+
     const testCases: Array<[number, number]> = [
         [3, 7],
-        [3, 2], 
+        [3, 2],
         [10, 10],
-        [23, 12]
+        [23, 12],
     ];
-    
+
     testCases.forEach(([m, n]) => {
         console.log(`\nTest case: m=${m}, n=${n}`);
-        
+
         try {
             const mathResult = uniquePathsMathematical(m, n);
             const dpResult = uniquePathsDP(m, n);
             const dp2dResult = uniquePaths2D(m, n);
-            
+
             console.log(`Mathematical: ${mathResult}`);
             console.log(`1D DP:        ${dpResult}`);
             console.log(`2D DP:        ${dp2dResult}`);
-            console.log(`All match:    ${mathResult === dpResult && dpResult === dp2dResult ? '✓' : '✗'}`);
+            console.log(
+                `All match:    ${mathResult === dpResult && dpResult === dp2dResult ? '✓' : '✗'}`,
+            );
         } catch (error) {
             console.log(`Error: ${error}`);
         }
@@ -480,16 +502,16 @@ function compareAlgorithms(): void {
  */
 function testErrorHandling(): void {
     console.log('\n=== Error Handling Test ===');
-    
+
     const errorCases: Array<[unknown, unknown, string]> = [
         [0, 5, 'Zero dimension'],
         [101, 5, 'Dimension > 100'],
         [3.5, 7, 'Non-integer dimension'],
         ['3', 7, 'String input'],
         [null, 7, 'Null input'],
-        [undefined, 7, 'Undefined input']
+        [undefined, 7, 'Undefined input'],
     ];
-    
+
     errorCases.forEach(([m, n, description]) => {
         try {
             const result = uniquePaths(m as number, n as number);
@@ -553,5 +575,5 @@ export {
     uniquePathsMathematical,
     uniquePathsDP,
     uniquePaths2D,
-    uniquePathsAlternative
+    uniquePathsAlternative,
 };

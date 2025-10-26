@@ -23,8 +23,10 @@
  */
 function solveNQueensClaude(n: number): string[][] {
     const result: string[][] = [];
-    const board: string[][] = Array(n).fill(null).map(() => Array(n).fill('.'));
-    
+    const board: string[][] = Array(n)
+        .fill(null)
+        .map(() => Array(n).fill('.'));
+
     /**
      * 指定された位置にクイーンを配置できるかチェック
      * @param row - 行のインデックス
@@ -36,20 +38,20 @@ function solveNQueensClaude(n: number): string[][] {
         for (let i = 0; i < row; i++) {
             if (board[i][col] === 'Q') return false;
         }
-        
+
         // 左上対角線をチェック
         for (let i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--) {
             if (board[i][j] === 'Q') return false;
         }
-        
+
         // 右上対角線をチェック
         for (let i = row - 1, j = col + 1; i >= 0 && j < n; i--, j++) {
             if (board[i][j] === 'Q') return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * バックトラッキングを使用してクイーンを配置
      * @param row - 現在の行
@@ -58,10 +60,10 @@ function solveNQueensClaude(n: number): string[][] {
         // ベースケース：全ての行にクイーンを配置完了
         if (row === n) {
             // 現在のボード状態を文字列配列として結果に追加
-            result.push(board.map(row => row.join('')));
+            result.push(board.map((row) => row.join('')));
             return;
         }
-        
+
         // 現在の行の各列でクイーンの配置を試行
         for (let col = 0; col < n; col++) {
             if (isSafe(row, col)) {
@@ -74,7 +76,7 @@ function solveNQueensClaude(n: number): string[][] {
             }
         }
     }
-    
+
     backtrack(0);
     return result;
 }

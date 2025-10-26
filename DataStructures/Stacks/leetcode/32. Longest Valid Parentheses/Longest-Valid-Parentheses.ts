@@ -9,10 +9,10 @@
 // ```typescript
 /**
  * 与えられた括弧文字列に対して、最長の有効な括弧部分文字列の長さを返します
- * 
+ *
  * @param s - '(' と ')' のみからなる文字列
  * @returns number - 最長有効括弧部分文字列の長さ
- * 
+ *
  * 時間計算量: O(n) - 文字列を1回走査し、スタック操作はO(1)
  * 空間計算量: O(n) - スタックに最大n個のインデックスを保持
  */
@@ -39,7 +39,7 @@ function longestValidParentheses(s: string): number {
 }
 
 // 動作確認
-const testCases: string[] = ["(()", ")()())", "", "()(())", "())((())"];
+const testCases: string[] = ['(()', ')()())', '', '()(())', '())((())'];
 for (const s of testCases) {
     console.log(`Input: '${s}', Output: ${longestValidParentheses(s)}`);
 }

@@ -1,9 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>桁和減算操作の詳細解析</title>
         <style>
             * {
@@ -80,7 +79,9 @@
                 text-align: center;
                 font-weight: bold;
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
             }
 
             .step-box:hover {
@@ -274,10 +275,10 @@
                 <div class="visualization">
                     <h3>具体例: 108 → 99 → 81 → 72</h3>
                     <div class="step-container">
-                        <div class="step-box">108<br><small>桁和: 1+0+8=9</small></div>
-                        <div class="step-box">108-9=99<br><small>桁和: 9+9=18</small></div>
-                        <div class="step-box">99-18=81<br><small>桁和: 8+1=9</small></div>
-                        <div class="step-box">81-9=72<br><small>最終結果</small></div>
+                        <div class="step-box">108<br /><small>桁和: 1+0+8=9</small></div>
+                        <div class="step-box">108-9=99<br /><small>桁和: 9+9=18</small></div>
+                        <div class="step-box">99-18=81<br /><small>桁和: 8+1=9</small></div>
+                        <div class="step-box">81-9=72<br /><small>最終結果</small></div>
                     </div>
                 </div>
             </div>
@@ -286,359 +287,373 @@
             <div class="section">
                 <h2>⚠️ ナイーブ解法の問題点</h2>
                 <div class="complexity-box">
-                    時間計算量: O(N × K)<br>
-                    N=300,000, K=10⁹の場合: 3×10¹⁴ 回の演算 → <span class="highlight">時間切れ!</span>
+                    時間計算量: O(N × K)<br />
+                    N=300,000, K=10⁹の場合: 3×10¹⁴ 回の演算 →
+                    <span class="highlight">時間切れ!</span>
                 </div>
                 <div class="code-block">
-                    // ナイーブ解法（遅すぎる）
-                    for (let i = 1; i <= N; i++) { let current=i; for (let step=0; step < K; step++) { current=current - digitSum(current); } result[i-1]=current; } </div>
+                    // ナイーブ解法（遅すぎる） for (let i = 1; i <= N; i++) { let current=i; for
+                    (let step=0; step < K; step++) { current=current - digitSum(current); }
+                    result[i-1]=current; }
                 </div>
+            </div>
 
-                <!-- 3. ダブリング手法の概念 -->
-                <div class="section">
-                    <h2>🚀 ダブリング手法の概念</h2>
-                    <p><strong>アイデア:</strong> 2^0, 2^1, 2^2, ... ステップのジャンプ表を事前計算</p>
+            <!-- 3. ダブリング手法の概念 -->
+            <div class="section">
+                <h2>🚀 ダブリング手法の概念</h2>
+                <p><strong>アイデア:</strong> 2^0, 2^1, 2^2, ... ステップのジャンプ表を事前計算</p>
 
-                    <div class="visualization">
-                        <h3>ジャンプ表の構築例 (K=13の場合)</h3>
-                        <div class="binary-display">
-                            K = 13 = <span class="highlight">1101₂</span> = 2³ + 2² + 2⁰ = 8 + 4 + 1
-                        </div>
-
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ビット位置</th>
-                                        <th>ステップ数</th>
-                                        <th>使用するか</th>
-                                        <th>説明</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>0</td>
-                                        <td>2⁰ = 1</td>
-                                        <td class="highlight">使用 (1)</td>
-                                        <td>1ステップジャンプ</td>
-                                    </tr>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>2¹ = 2</td>
-                                        <td>未使用 (0)</td>
-                                        <td>2ステップジャンプ</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>2² = 4</td>
-                                        <td class="highlight">使用 (1)</td>
-                                        <td>4ステップジャンプ</td>
-                                    </tr>
-                                    <tr>
-                                        <td>3</td>
-                                        <td>2³ = 8</td>
-                                        <td class="highlight">使用 (1)</td>
-                                        <td>8ステップジャンプ</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="visualization">
+                    <h3>ジャンプ表の構築例 (K=13の場合)</h3>
+                    <div class="binary-display">
+                        K = 13 = <span class="highlight">1101₂</span> = 2³ + 2² + 2⁰ = 8 + 4 + 1
                     </div>
-                </div>
-
-                <!-- 4. アルゴリズムの詳細ステップ -->
-                <div class="section">
-                    <h2>⚙️ アルゴリズムの詳細ステップ</h2>
-
-                    <div class="controls">
-                        <button class="btn" onclick="startAnimation()">🎬 アニメーション開始</button>
-                        <button class="btn" onclick="resetAnimation()">🔄 リセット</button>
-                    </div>
-
-                    <div class="animation-container">
-                        <h3 id="current-step">ステップ 1: 初期化</h3>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progress"></div>
-                        </div>
-                        <div id="step-description">1ステップジャンプ表を初期化中...</div>
-                    </div>
-
-                    <div class="visualization" id="algorithm-steps">
-                        <h3>N=10, K=5 の具体例</h3>
-                        <div id="jump-table-display">
-                            <h4>現在のジャンプ表 (1ステップ)</h4>
-                            <div class="jump-table" id="current-jump-table">
-                                <!-- JavaScript で動的生成 -->
-                            </div>
-                        </div>
-
-                        <div id="current-positions">
-                            <h4>現在の位置</h4>
-                            <div class="jump-table" id="position-table">
-                                <!-- JavaScript で動的生成 -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. 計算量解析 -->
-                <div class="section">
-                    <h2>📊 計算量解析</h2>
 
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>項目</th>
-                                    <th>ナイーブ解法</th>
-                                    <th>ダブリング解法</th>
-                                    <th>改善率</th>
+                                    <th>ビット位置</th>
+                                    <th>ステップ数</th>
+                                    <th>使用するか</th>
+                                    <th>説明</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>時間計算量</td>
-                                    <td>O(N × K)</td>
-                                    <td>O(N × log K)</td>
-                                    <td>K/log K 倍</td>
+                                    <td>0</td>
+                                    <td>2⁰ = 1</td>
+                                    <td class="highlight">使用 (1)</td>
+                                    <td>1ステップジャンプ</td>
                                 </tr>
                                 <tr>
-                                    <td>空間計算量</td>
-                                    <td>O(N)</td>
-                                    <td>O(N)</td>
-                                    <td>同じ</td>
+                                    <td>1</td>
+                                    <td>2¹ = 2</td>
+                                    <td>未使用 (0)</td>
+                                    <td>2ステップジャンプ</td>
                                 </tr>
                                 <tr>
-                                    <td>実行時間<br>(N=300K, K=10⁹)</td>
-                                    <td>約3×10⁸ 秒</td>
-                                    <td>約1-2秒</td>
-                                    <td>1.5×10⁸ 倍高速</td>
+                                    <td>2</td>
+                                    <td>2² = 4</td>
+                                    <td class="highlight">使用 (1)</td>
+                                    <td>4ステップジャンプ</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>2³ = 8</td>
+                                    <td class="highlight">使用 (1)</td>
+                                    <td>8ステップジャンプ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. アルゴリズムの詳細ステップ -->
+            <div class="section">
+                <h2>⚙️ アルゴリズムの詳細ステップ</h2>
+
+                <div class="controls">
+                    <button class="btn" onclick="startAnimation()">🎬 アニメーション開始</button>
+                    <button class="btn" onclick="resetAnimation()">🔄 リセット</button>
+                </div>
+
+                <div class="animation-container">
+                    <h3 id="current-step">ステップ 1: 初期化</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress"></div>
+                    </div>
+                    <div id="step-description">1ステップジャンプ表を初期化中...</div>
+                </div>
+
+                <div class="visualization" id="algorithm-steps">
+                    <h3>N=10, K=5 の具体例</h3>
+                    <div id="jump-table-display">
+                        <h4>現在のジャンプ表 (1ステップ)</h4>
+                        <div class="jump-table" id="current-jump-table">
+                            <!-- JavaScript で動的生成 -->
+                        </div>
+                    </div>
+
+                    <div id="current-positions">
+                        <h4>現在の位置</h4>
+                        <div class="jump-table" id="position-table">
+                            <!-- JavaScript で動的生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 計算量解析 -->
+            <div class="section">
+                <h2>📊 計算量解析</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>項目</th>
+                                <th>ナイーブ解法</th>
+                                <th>ダブリング解法</th>
+                                <th>改善率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>時間計算量</td>
+                                <td>O(N × K)</td>
+                                <td>O(N × log K)</td>
+                                <td>K/log K 倍</td>
+                            </tr>
+                            <tr>
+                                <td>空間計算量</td>
+                                <td>O(N)</td>
+                                <td>O(N)</td>
+                                <td>同じ</td>
+                            </tr>
+                            <tr>
+                                <td>実行時間<br />(N=300K, K=10⁹)</td>
+                                <td>約3×10⁸ 秒</td>
+                                <td>約1-2秒</td>
+                                <td>1.5×10⁸ 倍高速</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="complexity-box">
+                    <strong>改善の鍵:</strong><br />
+                    log₂(10⁹) ≈ 30 回の反復で完了!<br />
+                    (ナイーブ解法の10⁹回 → 30回)
+                </div>
+            </div>
+
+            <!-- 6. メモリ最適化 -->
+            <div class="section">
+                <h2>💾 メモリ最適化技術</h2>
+
+                <div class="visualization">
+                    <h3>データ型による メモリ使用量比較</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>データ型</th>
+                                    <th>要素サイズ</th>
+                                    <th>N=300K時の使用量</th>
+                                    <th>適用可能範囲</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>number[] (JavaScript)</td>
+                                    <td>8バイト</td>
+                                    <td>2.4MB × 3 = 7.2MB</td>
+                                    <td>汎用</td>
+                                </tr>
+                                <tr class="highlight" style="background: #e8f5e8">
+                                    <td>Uint32Array</td>
+                                    <td>4バイト</td>
+                                    <td>1.2MB × 3 = 3.6MB</td>
+                                    <td>0 ≤ 値 ≤ 2³²-1</td>
+                                </tr>
+                                <tr>
+                                    <td>Uint16Array</td>
+                                    <td>2バイト</td>
+                                    <td>0.6MB × 3 = 1.8MB</td>
+                                    <td>0 ≤ 値 ≤ 65535</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="complexity-box">
-                        <strong>改善の鍵:</strong><br>
-                        log₂(10⁹) ≈ 30 回の反復で完了!<br>
-                        (ナイーブ解法の10⁹回 → 30回)
-                    </div>
-                </div>
-
-                <!-- 6. メモリ最適化 -->
-                <div class="section">
-                    <h2>💾 メモリ最適化技術</h2>
-
-                    <div class="visualization">
-                        <h3>データ型による メモリ使用量比較</h3>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>データ型</th>
-                                        <th>要素サイズ</th>
-                                        <th>N=300K時の使用量</th>
-                                        <th>適用可能範囲</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>number[] (JavaScript)</td>
-                                        <td>8バイト</td>
-                                        <td>2.4MB × 3 = 7.2MB</td>
-                                        <td>汎用</td>
-                                    </tr>
-                                    <tr class="highlight" style="background: #e8f5e8;">
-                                        <td>Uint32Array</td>
-                                        <td>4バイト</td>
-                                        <td>1.2MB × 3 = 3.6MB</td>
-                                        <td>0 ≤ 値 ≤ 2³²-1</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Uint16Array</td>
-                                        <td>2バイト</td>
-                                        <td>0.6MB × 3 = 1.8MB</td>
-                                        <td>0 ≤ 値 ≤ 65535</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="code-block">
-                            // メモリ効率的な実装
-                            let jumpTable: Uint32Array = new Uint32Array(n + 1); // 4バイト×要素数
-                            const currentPositions: Uint32Array = new Uint32Array(n + 1);
-
-                            // 従来の配列との比較
-                            // let jumpTable: number[] = new Array(n + 1); // 8バイト×要素数 (50%多い)
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7. 実装のポイント -->
-                <div class="section">
-                    <h2>💡 実装のポイント</h2>
-
-                    <div class="visualization">
-                        <h3>重要な注意点</h3>
-
-                        <div class="step-container">
-                            <div class="step-box" style="background: linear-gradient(135deg, #e17055, #d63031);">
-                                <strong>BigInt使用</strong><br>
-                                K ≤ 10⁹ のため<br>
-                                ビット演算で必要
-                            </div>
-                            <div class="step-box" style="background: linear-gradient(135deg, #00b894, #00a085);">
-                                <strong>負の値対策</strong><br>
-                                Math.max(0, i - digitSum)<br>
-                                で0以下を防ぐ
-                            </div>
-                            <div class="step-box" style="background: linear-gradient(135deg, #6c5ce7, #5f3dc4);">
-                                <strong>ガベージ削減</strong><br>
-                                配列の参照を<br>
-                                明示的に更新
-                            </div>
-                            <div class="step-box" style="background: linear-gradient(135deg, #fd79a8, #e84393);">
-                                <strong>高速I/O</strong><br>
-                                fs.readFileSync(0)<br>
-                                Buffer操作
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="code-block">
-                        // 正しいダブリング実装パターン
-                        while (remainingSteps > 0n) {
-                        // 1. ビットチェック
-                        if ((remainingSteps & 1n) === 1n) {
-                        // 現在のジャンプ表を適用
-                        for (let i = 1; i <= n; i++) { currentPositions[i]=jumpTable[currentPositions[i]]; } } // 2. ジャンプ表を2倍化 (必ず実行!) const nextJumpTable=new Uint32Array(n + 1); for (let i=1; i <=n; i++) { nextJumpTable[i]=jumpTable[jumpTable[i]]; } jumpTable=nextJumpTable; // 3. 右シフト remainingSteps>>= 1n;
-                            }
+                        // メモリ効率的な実装 let jumpTable: Uint32Array = new Uint32Array(n + 1);
+                        // 4バイト×要素数 const currentPositions: Uint32Array = new Uint32Array(n +
+                        1); // 従来の配列との比較 // let jumpTable: number[] = new Array(n + 1); //
+                        8バイト×要素数 (50%多い)
                     </div>
                 </div>
             </div>
 
-            <script>
-                // アニメーション用の変数
-                let animationStep = 0;
-                let animationInterval;
-                const N = 10;
-                const K = 5; // 101₂
+            <!-- 7. 実装のポイント -->
+            <div class="section">
+                <h2>💡 実装のポイント</h2>
 
-                // 桁和計算関数
-                function digitSum(x) {
-                    let sum = 0;
-                    while (x > 0) {
-                        sum += x % 10;
-                        x = Math.floor(x / 10);
-                    }
-                    return sum;
+                <div class="visualization">
+                    <h3>重要な注意点</h3>
+
+                    <div class="step-container">
+                        <div
+                            class="step-box"
+                            style="background: linear-gradient(135deg, #e17055, #d63031)"
+                        >
+                            <strong>BigInt使用</strong><br />
+                            K ≤ 10⁹ のため<br />
+                            ビット演算で必要
+                        </div>
+                        <div
+                            class="step-box"
+                            style="background: linear-gradient(135deg, #00b894, #00a085)"
+                        >
+                            <strong>負の値対策</strong><br />
+                            Math.max(0, i - digitSum)<br />
+                            で0以下を防ぐ
+                        </div>
+                        <div
+                            class="step-box"
+                            style="background: linear-gradient(135deg, #6c5ce7, #5f3dc4)"
+                        >
+                            <strong>ガベージ削減</strong><br />
+                            配列の参照を<br />
+                            明示的に更新
+                        </div>
+                        <div
+                            class="step-box"
+                            style="background: linear-gradient(135deg, #fd79a8, #e84393)"
+                        >
+                            <strong>高速I/O</strong><br />
+                            fs.readFileSync(0)<br />
+                            Buffer操作
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    // 正しいダブリング実装パターン while (remainingSteps > 0n) { // 1.
+                    ビットチェック if ((remainingSteps & 1n) === 1n) { // 現在のジャンプ表を適用 for
+                    (let i = 1; i <= n; i++) { currentPositions[i]=jumpTable[currentPositions[i]]; }
+                    } // 2. ジャンプ表を2倍化 (必ず実行!) const nextJumpTable=new Uint32Array(n +
+                    1); for (let i=1; i <=n; i++) { nextJumpTable[i]=jumpTable[jumpTable[i]]; }
+                    jumpTable=nextJumpTable; // 3. 右シフト remainingSteps>>= 1n; }
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // アニメーション用の変数
+            let animationStep = 0;
+            let animationInterval;
+            const N = 10;
+            const K = 5; // 101₂
+
+            // 桁和計算関数
+            function digitSum(x) {
+                let sum = 0;
+                while (x > 0) {
+                    sum += x % 10;
+                    x = Math.floor(x / 10);
                 }
+                return sum;
+            }
 
-                // 初期化
-                function initializeVisualization() {
-                    // 初期ジャンプ表を表示
-                    const jumpTableDiv = document.getElementById('current-jump-table');
-                    const positionTableDiv = document.getElementById('position-table');
+            // 初期化
+            function initializeVisualization() {
+                // 初期ジャンプ表を表示
+                const jumpTableDiv = document.getElementById('current-jump-table');
+                const positionTableDiv = document.getElementById('position-table');
 
-                    jumpTableDiv.innerHTML = '';
-                    positionTableDiv.innerHTML = '';
+                jumpTableDiv.innerHTML = '';
+                positionTableDiv.innerHTML = '';
 
-                    for (let i = 1; i <= N; i++) {
-                        const jumpCell = document.createElement('div');
-                        jumpCell.className = 'jump-cell';
-                        jumpCell.textContent = `${i} → ${Math.max(0, i - digitSum(i))}`;
-                        jumpTableDiv.appendChild(jumpCell);
+                for (let i = 1; i <= N; i++) {
+                    const jumpCell = document.createElement('div');
+                    jumpCell.className = 'jump-cell';
+                    jumpCell.textContent = `${i} → ${Math.max(0, i - digitSum(i))}`;
+                    jumpTableDiv.appendChild(jumpCell);
 
-                        const posCell = document.createElement('div');
-                        posCell.className = 'jump-cell';
-                        posCell.style.background = 'linear-gradient(135deg, #74b9ff, #0984e3)';
-                        posCell.textContent = `pos[${i}] = ${i}`;
-                        positionTableDiv.appendChild(posCell);
-                    }
+                    const posCell = document.createElement('div');
+                    posCell.className = 'jump-cell';
+                    posCell.style.background = 'linear-gradient(135deg, #74b9ff, #0984e3)';
+                    posCell.textContent = `pos[${i}] = ${i}`;
+                    positionTableDiv.appendChild(posCell);
                 }
+            }
 
-                // アニメーション開始
-                function startAnimation() {
-                    resetAnimation();
-                    animationStep = 0;
+            // アニメーション開始
+            function startAnimation() {
+                resetAnimation();
+                animationStep = 0;
 
-                    const steps = [
-                        "ステップ 1: 初期ジャンプ表作成 (1ステップ)",
-                        "ステップ 2: K=5=101₂ のビット0をチェック → 適用",
-                        "ステップ 3: ジャンプ表を2倍化 (2ステップ表作成)",
-                        "ステップ 4: K=5→2, ビット1をチェック → スキップ",
-                        "ステップ 5: ジャンプ表を4倍化 (4ステップ表作成)",
-                        "ステップ 6: K=2→1, ビット2をチェック → 適用",
-                        "ステップ 7: 完了! 1+4=5ステップ実行"
-                    ];
+                const steps = [
+                    'ステップ 1: 初期ジャンプ表作成 (1ステップ)',
+                    'ステップ 2: K=5=101₂ のビット0をチェック → 適用',
+                    'ステップ 3: ジャンプ表を2倍化 (2ステップ表作成)',
+                    'ステップ 4: K=5→2, ビット1をチェック → スキップ',
+                    'ステップ 5: ジャンプ表を4倍化 (4ステップ表作成)',
+                    'ステップ 6: K=2→1, ビット2をチェック → 適用',
+                    'ステップ 7: 完了! 1+4=5ステップ実行',
+                ];
 
-                    const descriptions = [
-                        "各数値から1ステップ先への遷移を計算",
-                        "K=101₂の最下位ビットが1なので、1ステップジャンプを適用",
-                        "jump[jump[i]]で2ステップ先のジャンプ表を作成",
-                        "K=10₂の最下位ビットが0なので、この段階はスキップ",
-                        "jump[jump[i]]で4ステップ先のジャンプ表を作成",
-                        "K=1₂の最下位ビットが1なので、4ステップジャンプを適用",
-                        "合計1+4=5ステップの操作が完了。O(log K)時間で実現!"
-                    ];
+                const descriptions = [
+                    '各数値から1ステップ先への遷移を計算',
+                    'K=101₂の最下位ビットが1なので、1ステップジャンプを適用',
+                    'jump[jump[i]]で2ステップ先のジャンプ表を作成',
+                    'K=10₂の最下位ビットが0なので、この段階はスキップ',
+                    'jump[jump[i]]で4ステップ先のジャンプ表を作成',
+                    'K=1₂の最下位ビットが1なので、4ステップジャンプを適用',
+                    '合計1+4=5ステップの操作が完了。O(log K)時間で実現!',
+                ];
 
-                    animationInterval = setInterval(() => {
-                        if (animationStep < steps.length) {
-                            document.getElementById('current-step').textContent = steps[animationStep];
-                            document.getElementById('step-description').textContent = descriptions[animationStep];
-                            document.getElementById('progress').style.width = `${(animationStep + 1) / steps.length * 100}%`;
+                animationInterval = setInterval(() => {
+                    if (animationStep < steps.length) {
+                        document.getElementById('current-step').textContent = steps[animationStep];
+                        document.getElementById('step-description').textContent =
+                            descriptions[animationStep];
+                        document.getElementById('progress').style.width =
+                            `${((animationStep + 1) / steps.length) * 100}%`;
 
-                            // 対応するセルをハイライト
-                            highlightStep(animationStep);
+                        // 対応するセルをハイライト
+                        highlightStep(animationStep);
 
-                            animationStep++;
-                        } else {
-                            clearInterval(animationInterval);
-                        }
-                    }, 2000);
-                }
-
-                // ステップのハイライト
-                function highlightStep(step) {
-                    // 全てのセルから既存のハイライトを削除
-                    document.querySelectorAll('.jump-cell').forEach(cell => {
-                        cell.classList.remove('animated');
-                    });
-
-                    // 現在のステップに応じてハイライト
-                    if (step === 1 || step === 5) {
-                        // ビット適用時は位置テーブルをハイライト
-                        document.querySelectorAll('#position-table .jump-cell').forEach(cell => {
-                            cell.classList.add('animated');
-                        });
-                    } else if (step === 2 || step === 4) {
-                        // ジャンプ表更新時はジャンプテーブルをハイライト
-                        document.querySelectorAll('#current-jump-table .jump-cell').forEach(cell => {
-                            cell.classList.add('animated');
-                        });
-                    }
-                }
-
-                // リセット
-                function resetAnimation() {
-                    if (animationInterval) {
+                        animationStep++;
+                    } else {
                         clearInterval(animationInterval);
                     }
-                    document.getElementById('current-step').textContent = 'ステップ 1: 初期化';
-                    document.getElementById('step-description').textContent = '1ステップジャンプ表を初期化中...';
-                    document.getElementById('progress').style.width = '0%';
+                }, 2000);
+            }
 
-                    document.querySelectorAll('.jump-cell').forEach(cell => {
-                        cell.classList.remove('animated');
+            // ステップのハイライト
+            function highlightStep(step) {
+                // 全てのセルから既存のハイライトを削除
+                document.querySelectorAll('.jump-cell').forEach((cell) => {
+                    cell.classList.remove('animated');
+                });
+
+                // 現在のステップに応じてハイライト
+                if (step === 1 || step === 5) {
+                    // ビット適用時は位置テーブルをハイライト
+                    document.querySelectorAll('#position-table .jump-cell').forEach((cell) => {
+                        cell.classList.add('animated');
+                    });
+                } else if (step === 2 || step === 4) {
+                    // ジャンプ表更新時はジャンプテーブルをハイライト
+                    document.querySelectorAll('#current-jump-table .jump-cell').forEach((cell) => {
+                        cell.classList.add('animated');
                     });
                 }
+            }
 
-                // ページ読み込み時の初期化
-                document.addEventListener('DOMContentLoaded', function () {
-                    initializeVisualization();
+            // リセット
+            function resetAnimation() {
+                if (animationInterval) {
+                    clearInterval(animationInterval);
+                }
+                document.getElementById('current-step').textContent = 'ステップ 1: 初期化';
+                document.getElementById('step-description').textContent =
+                    '1ステップジャンプ表を初期化中...';
+                document.getElementById('progress').style.width = '0%';
+
+                document.querySelectorAll('.jump-cell').forEach((cell) => {
+                    cell.classList.remove('animated');
                 });
-            </script>
-    </body>
+            }
 
+            // ページ読み込み時の初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeVisualization();
+            });
+        </script>
+    </body>
 </html>

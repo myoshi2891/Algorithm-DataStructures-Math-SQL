@@ -1,4 +1,3 @@
-
 // * 入力は `fs.readFileSync` を使用して一括で読み取り、
 // * アルゴリズムは **しゃくとり法（Two Pointers）** を用いて、計算量 `O(N)` で解を導きます。
 // * 実行時間・メモリともに制限内（1秒 / 1024MiB）に収まるように実装しています。
@@ -7,12 +6,12 @@
 
 // ### ✅ TypeScript 実装（`fs`使用・最適化済）
 
-import * as fs from "fs";
+import * as fs from 'fs';
 
 // 入力取得・分割
-const input: string[] = fs.readFileSync("/dev/stdin", "utf8").trim().split("\n");
-const [N, K]: number[] = input[0].split(" ").map(Number);
-const A: number[] = input[1].split(" ").map(Number);
+const input: string[] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
+const [N, K]: number[] = input[0].split(' ').map(Number);
+const A: number[] = input[1].split(' ').map(Number);
 
 // Two Pointers（しゃくとり法）で全連続部分列のうち合計 <= K の個数を数える
 let count: number = 0;

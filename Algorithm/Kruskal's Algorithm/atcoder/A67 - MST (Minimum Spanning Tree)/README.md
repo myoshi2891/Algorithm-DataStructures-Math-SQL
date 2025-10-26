@@ -35,17 +35,17 @@
 
 まず、すべての辺を「**重みの昇順**」に並べ替えます。
 
-| 重み  | 辺     |
-| --- | ----- |
-| 1   | 3 - 4 |
-| 3   | 4 - 5 |
-| 4   | 3 - 5 |
-| 10  | 1 - 3 |
-| 12  | 1 - 2 |
-| 14  | 6 - 7 |
-| 15  | 2 - 7 |
-| 120 | 4 - 6 |
-| 160 | 2 - 6 |
+| 重み | 辺    |
+| ---- | ----- |
+| 1    | 3 - 4 |
+| 3    | 4 - 5 |
+| 4    | 3 - 5 |
+| 10   | 1 - 3 |
+| 12   | 1 - 2 |
+| 14   | 6 - 7 |
+| 15   | 2 - 7 |
+| 120  | 4 - 6 |
+| 160  | 2 - 6 |
 
 ---
 
@@ -87,7 +87,7 @@
 
 ```
 (1)---10---(3)---1---(4)---3---(5)
- | 
+ |
 12
  |
 (2)
@@ -108,7 +108,7 @@
 ```
 全体図：
 (1)---10---(3)---1---(4)---3---(5)
- | 
+ |
 12
  |
 (2)       (6)---14---(7)
@@ -127,16 +127,16 @@
 
 ## 🧠 クラスカル法の本質
 
-* **貪欲法（Greedy）**：常にコストの小さい辺から採用。
-* **サイクル回避**のために **Union-Find（素集合データ構造）** を使って管理。
+- **貪欲法（Greedy）**：常にコストの小さい辺から採用。
+- **サイクル回避**のために **Union-Find（素集合データ構造）** を使って管理。
 
 ---
 
 ## ✅ クラスカル法の計算量
 
-| 処理項目         | 計算量          |
-| ------------ | ------------ |
-| 辺のソート        | O(M log M)   |
+| 処理項目       | 計算量         |
+| -------------- | -------------- |
+| 辺のソート     | O(M log M)     |
 | Union-Find操作 | O(α(N)) ≈ 定数 |
 
 > → 全体で `O(M log M)` と高速。**辺数が多く、密なグラフにも強い**。
@@ -145,10 +145,10 @@
 
 ## 🔄 他アルゴリズムとの比較
 
-| アルゴリズム     | 特徴                                            |
-| ---------- | --------------------------------------------- |
-| **クラスカル法** | 辺を重み順に見ていく。**辺が少ない**時に有利。                     |
-| プリム法       | 頂点を増やしていく。**隣接リスト＋優先度付きキュー**で実装。**密なグラフ**に有利。 |
+| アルゴリズム     | 特徴                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| **クラスカル法** | 辺を重み順に見ていく。**辺が少ない**時に有利。                                     |
+| プリム法         | 頂点を増やしていく。**隣接リスト＋優先度付きキュー**で実装。**密なグラフ**に有利。 |
 
 ---
 
@@ -295,8 +295,8 @@ parent = [0, 1, 1, 1, 1, 5]
 rank = [0, 1, 0, 1, 0]
 ```
 
-* 小さいランクの集合を大きいランクの方に合併
-* ランクが同じ場合はどちらかを親にし、ランク+1する
+- 小さいランクの集合を大きいランクの方に合併
+- ランクが同じ場合はどちらかを親にし、ランク+1する
 
 ---
 
@@ -338,10 +338,10 @@ class UnionFind {
 
 ## ✅ 計算量
 
-| 操作      | 時間                           |
-| ------- | ---------------------------- |
+| 操作    | 時間                                  |
+| ------- | ------------------------------------- |
 | `find`  | **O(α(N))** ← 実質定数時間（ほぼO(1)) |
-| `union` | 同上                           |
+| `union` | 同上                                  |
 
 > `α(N)` はアッカーマン関数の逆関数。100万を超えても 5 以下。
 
@@ -349,12 +349,12 @@ class UnionFind {
 
 ## ✍️ まとめ
 
-| 特徴  | 内容                        |
-| --- | ------------------------- |
-| 処理  | 集合の合併と代表元の検索              |
-| 用途  | MST（クラスカル法）、連結成分、グループ判定など |
-| 最適化 | 経路圧縮 + ランクによる併合           |
-| 計算量 | ほぼO(1)                    |
+| 特徴   | 内容                                            |
+| ------ | ----------------------------------------------- |
+| 処理   | 集合の合併と代表元の検索                        |
+| 用途   | MST（クラスカル法）、連結成分、グループ判定など |
+| 最適化 | 経路圧縮 + ランクによる併合                     |
+| 計算量 | ほぼO(1)                                        |
 
 ---
 
@@ -375,8 +375,8 @@ class UnionFind {
 6 7 14
 ```
 
-* 頂点数 N = 7、辺数 M = 9
-* **最小全域木（Minimum Spanning Tree, MST）** を作る
+- 頂点数 N = 7、辺数 M = 9
+- **最小全域木（Minimum Spanning Tree, MST）** を作る
 
 ---
 
@@ -541,7 +541,7 @@ parent = [0, 0, 0, 3, 4, 5, 6]
 
 ### 経路圧縮
 
-* `find(4)` を呼び出すときに、途中の親（3など）をまとめて根に張り替えることで高速化
+- `find(4)` を呼び出すときに、途中の親（3など）をまとめて根に張り替えることで高速化
 
 ---
 
@@ -559,24 +559,24 @@ parent = [0, 0, 0, 3, 4, 5, 6]
 
 # ✅ 処理まとめ表
 
-| 処理  | 操作       | 結果          |
-| --- | -------- | ----------- |
-| 辺追加 | 3-4(1)   | 採用          |
-| 辺追加 | 4-5(3)   | 採用          |
+| 処理   | 操作     | 結果                |
+| ------ | -------- | ------------------- |
+| 辺追加 | 3-4(1)   | 採用                |
+| 辺追加 | 4-5(3)   | 採用                |
 | 辺追加 | 3-5(4)   | サイクル → スキップ |
-| 辺追加 | 1-3(10)  | 採用          |
-| 辺追加 | 1-2(12)  | 採用          |
-| 辺追加 | 6-7(14)  | 採用          |
-| 辺追加 | 2-7(15)  | 採用          |
-| 辺追加 | 4-6(120) | スキップ        |
-| 辺追加 | 2-6(160) | スキップ        |
+| 辺追加 | 1-3(10)  | 採用                |
+| 辺追加 | 1-2(12)  | 採用                |
+| 辺追加 | 6-7(14)  | 採用                |
+| 辺追加 | 2-7(15)  | 採用                |
+| 辺追加 | 4-6(120) | スキップ            |
+| 辺追加 | 2-6(160) | スキップ            |
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-21 12:43:56 | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1451 Byte | **AC** | 249 ms | 51244 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910938) |
-| 2025-06-21 12:40:54 | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1507 Byte | **AC** | 35 ms | 5788 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910911) |
-| 2025-06-21 12:39:38 | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1363 Byte | **AC** | 336 ms | 51208 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910893) |
-| 2025-06-21 12:31:42 | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1739 Byte | **AC** | 255 ms | 102952 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910799) |
-| 2025-06-21 12:20:43 | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1530 Byte | **AC** | 286 ms | 102756 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910667) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                                | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-21 12:43:56                                                                           | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1451 Byte                                                                                 | **AC** | 249 ms                                                                                       | 51244 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910938) |
+| 2025-06-21 12:40:54                                                                           | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1507 Byte                                                                                 | **AC** | 35 ms                                                                                        | 5788 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910911) |
+| 2025-06-21 12:39:38                                                                           | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1363 Byte                                                                                 | **AC** | 336 ms                                                                                       | 51208 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910893) |
+| 2025-06-21 12:31:42                                                                           | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1739 Byte                                                                                 | **AC** | 255 ms                                                                                       | 102952 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910799) |
+| 2025-06-21 12:20:43                                                                           | [A67 - MST (Minimum Spanning Tree)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bo) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1530 Byte                                                                                 | **AC** | 286 ms                                                                                       | 102756 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66910667) |

@@ -38,25 +38,25 @@
 
 // memoization
 function coinChange(denominations, amount, memo) {
-	let numCoins = denominations.length;
+    let numCoins = denominations.length;
 
-	if (!memo) {
-		memo = {};
-		for (let i = 1; i <= numCoins; i++) {
-			memo[i] = { 0: 1 };
-		}
-	}
-	
-	if (amount < 0 || (numCoins === 0 && amount >= 0)) return 0;
-	
-	if (!memo[numCoins][amount]) {
-		let lastCoin = denominations[numCoins - 1];
-		memo[numCoins][amount] =
-		coinChange(denominations, amount - lastCoin, memo) +
-		coinChange(denominations.slice(0, numCoins - 1), amount, memo);
-	}
+    if (!memo) {
+        memo = {};
+        for (let i = 1; i <= numCoins; i++) {
+            memo[i] = { 0: 1 };
+        }
+    }
 
-	return memo[numCoins][amount];
+    if (amount < 0 || (numCoins === 0 && amount >= 0)) return 0;
+
+    if (!memo[numCoins][amount]) {
+        let lastCoin = denominations[numCoins - 1];
+        memo[numCoins][amount] =
+            coinChange(denominations, amount - lastCoin, memo) +
+            coinChange(denominations.slice(0, numCoins - 1), amount, memo);
+    }
+
+    return memo[numCoins][amount];
 }
 
 const denominations = [1, 5, 10, 25];

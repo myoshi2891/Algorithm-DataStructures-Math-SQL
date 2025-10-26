@@ -3,30 +3,35 @@ K番目順列アルゴリズムの技術解説用HTMLページが完成しまし
 ## 主な特徴
 
 **📊 4つのタブ構成**
+
 - **アルゴリズム**: TypeScriptコード + 概要解説
 - **視覚化**: ステップバイステップのアニメーション
 - **解析**: 時間・空間計算量の詳細分析
 - **デモ**: インタラクティブな実行環境
 
 **🎨 プレゼンテーション品質のデザイン**
+
 - グラデーション背景とモダンなUI
 - カスタムCSSによる統合スタイリング
 - スムーズなアニメーションとホバー効果
 - レスポンシブ対応
 
 **💻 高機能コードブロック**
+
 - 行番号付きシンタックスハイライト
 - ワンクリックコピー機能
 - monospaceフォントによる正確な表示
 - 演算子の適切なレンダリング
 
 **🔄 インタラクティブ機能**
+
 - リアルタイム視覚化（n=3-5, k可変）
 - ステップ実行トレース
 - 配列状態のアニメーション表示
 - パフォーマンス比較表
 
 **📈 詳細な解析内容**
+
 - O(n²) vs O(n!×n) の比較
 - メモリ使用量の最適化説明
 - 数学的計算過程の可視化
@@ -52,6 +57,7 @@ background: linear-gradient(135deg, #0f172a, #1e293b);
 ```
 
 ### 変換された要素
+
 1. **`.card-container`** - グラデーション背景、影、ボーダー
 2. **`.tab-button`** - パディング、ボーダー半径、トランジション
 3. **`.tab-active/.tab-inactive`** - 背景色、テキスト色、ホバー効果
@@ -61,7 +67,6 @@ background: linear-gradient(135deg, #0f172a, #1e293b);
 7. **`.math-formula`** - 数式表示の背景とフォント
 
 これで`@apply`エラーが解消され、全ての視覚効果が正常に動作します。Tailwind CDN版との完全な互換性を保ちながら、洗練されたデザインを維持しています。
-
 
 HTMLで行番号が表示されない理由を分析します。コードを確認すると、いくつかの問題が考えられます。
 
@@ -484,53 +489,62 @@ pre {
 
 ```html
 <!-- File: /Users/mitsuruyoshizumi/workspace/ProgrammingStudy/Algorithm/Mathematics/Permutation Sequence/leetcode/Claude/README.html -->
-                        <div class="card-container fade-in-up">
-                            <h2 class="text-2xl font-bold mb-4 text-blue-400">TypeScript実装</h2>
-                            <div class="code-block-container">
-                                <button class="copy-button" onclick="copyCode('main-code')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="m5 15-4-4 4-4"></path>
-                                    </svg>
-                                    Copy
-                                </button>
-                                <div class="code-wrapper">
-                                    <div class="line-numbers-container">
-                                        <div class="line-number">1</div>
-                                        <div class="line-number">2</div>
-                                        <div class="line-number">3</div>
-                                        <div class="line-number">4</div>
-                                        <div class="line-number">5</div>
-                                        <div class="line-number">6</div>
-                                        <div class="line-number">7</div>
-                                        <div class="line-number">8</div>
-                                        <div class="line-number">9</div>
-                                        <div class="line-number">10</div>
-                                        <div class="line-number">11</div>
-                                        <div class="line-number">12</div>
-                                        <div class="line-number">13</div>
-                                        <div class="line-number">14</div>
-                                        <div class="line-number">15</div>
-                                        <div class="line-number">16</div>
-                                        <div class="line-number">17</div>
-                                        <div class="line-number">18</div>
-                                        <div class="line-number">19</div>
-                                        <div class="line-number">20</div>
-                                        <div class="line-number">21</div>
-                                        <div class="line-number">22</div>
-                                        <div class="line-number">23</div>
-                                        <div class="line-number">24</div>
-                                        <div class="line-number">25</div>
-                                        <div class="line-number">26</div>
-                                        <div class="line-number">27</div>
-                                        <div class="line-number">28</div>
-                                        <div class="line-number">29</div>
-                                        <div class="line-number">30</div>
-                                        <div class="line-number">31</div>
-                                        <div class="line-number">32</div>
-                                        <div class="line-number">33</div>
-                                    </div>
-                                    <pre class="code-pre"><code id="main-code" class="language-typescript">function getPermutation(n: number, k: number): string {
+<div class="card-container fade-in-up">
+    <h2 class="text-2xl font-bold mb-4 text-blue-400">TypeScript実装</h2>
+    <div class="code-block-container">
+        <button class="copy-button" onclick="copyCode('main-code')">
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="m5 15-4-4 4-4"></path>
+            </svg>
+            Copy
+        </button>
+        <div class="code-wrapper">
+            <div class="line-numbers-container">
+                <div class="line-number">1</div>
+                <div class="line-number">2</div>
+                <div class="line-number">3</div>
+                <div class="line-number">4</div>
+                <div class="line-number">5</div>
+                <div class="line-number">6</div>
+                <div class="line-number">7</div>
+                <div class="line-number">8</div>
+                <div class="line-number">9</div>
+                <div class="line-number">10</div>
+                <div class="line-number">11</div>
+                <div class="line-number">12</div>
+                <div class="line-number">13</div>
+                <div class="line-number">14</div>
+                <div class="line-number">15</div>
+                <div class="line-number">16</div>
+                <div class="line-number">17</div>
+                <div class="line-number">18</div>
+                <div class="line-number">19</div>
+                <div class="line-number">20</div>
+                <div class="line-number">21</div>
+                <div class="line-number">22</div>
+                <div class="line-number">23</div>
+                <div class="line-number">24</div>
+                <div class="line-number">25</div>
+                <div class="line-number">26</div>
+                <div class="line-number">27</div>
+                <div class="line-number">28</div>
+                <div class="line-number">29</div>
+                <div class="line-number">30</div>
+                <div class="line-number">31</div>
+                <div class="line-number">32</div>
+                <div class="line-number">33</div>
+            </div>
+            <pre
+                class="code-pre"
+            ><code id="main-code" class="language-typescript">function getPermutation(n: number, k: number): string {
     // 階乗を事前計算
     const factorial: number[] = [1];
     for (let i = 1; i < n; i++) {
@@ -565,9 +579,9 @@ pre {
     
     return result;
 }</code></pre>
-                                </div>
-                            </div>
-                        </div>
+        </div>
+    </div>
+</div>
 ```
 
 そして、対応するCSSスタイルを追加してください：
@@ -673,16 +687,16 @@ pre {
     .line-numbers-container {
         min-width: 50px;
     }
-    
+
     .line-number {
         padding-right: 12px;
         font-size: 0.75rem;
     }
-    
+
     .code-pre {
         padding: 16px;
     }
-    
+
     .language-typescript {
         font-size: 0.75rem !important;
     }
@@ -700,53 +714,62 @@ pre {
 
 ```html
 <!-- File: /Users/mitsuruyoshizumi/workspace/ProgrammingStudy/Algorithm/Mathematics/Permutation Sequence/leetcode/Claude/README.html -->
-                        <div class="card-container fade-in-up">
-                            <h2 class="text-2xl font-bold mb-4 text-blue-400">TypeScript実装</h2>
-                            <div class="code-block-container">
-                                <button class="copy-button" onclick="copyCode('main-code')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="m5 15-4-4 4-4"></path>
-                                    </svg>
-                                    Copy
-                                </button>
-                                <div class="code-wrapper">
-                                    <div class="line-numbers-container">
-                                        <div class="line-number">1</div>
-                                        <div class="line-number">2</div>
-                                        <div class="line-number">3</div>
-                                        <div class="line-number">4</div>
-                                        <div class="line-number">5</div>
-                                        <div class="line-number">6</div>
-                                        <div class="line-number">7</div>
-                                        <div class="line-number">8</div>
-                                        <div class="line-number">9</div>
-                                        <div class="line-number">10</div>
-                                        <div class="line-number">11</div>
-                                        <div class="line-number">12</div>
-                                        <div class="line-number">13</div>
-                                        <div class="line-number">14</div>
-                                        <div class="line-number">15</div>
-                                        <div class="line-number">16</div>
-                                        <div class="line-number">17</div>
-                                        <div class="line-number">18</div>
-                                        <div class="line-number">19</div>
-                                        <div class="line-number">20</div>
-                                        <div class="line-number">21</div>
-                                        <div class="line-number">22</div>
-                                        <div class="line-number">23</div>
-                                        <div class="line-number">24</div>
-                                        <div class="line-number">25</div>
-                                        <div class="line-number">26</div>
-                                        <div class="line-number">27</div>
-                                        <div class="line-number">28</div>
-                                        <div class="line-number">29</div>
-                                        <div class="line-number">30</div>
-                                        <div class="line-number">31</div>
-                                        <div class="line-number">32</div>
-                                        <div class="line-number">33</div>
-                                    </div>
-                                    <pre class="code-pre"><code id="main-code" class="language-typescript">function getPermutation(n: number, k: number): string {
+<div class="card-container fade-in-up">
+    <h2 class="text-2xl font-bold mb-4 text-blue-400">TypeScript実装</h2>
+    <div class="code-block-container">
+        <button class="copy-button" onclick="copyCode('main-code')">
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="m5 15-4-4 4-4"></path>
+            </svg>
+            Copy
+        </button>
+        <div class="code-wrapper">
+            <div class="line-numbers-container">
+                <div class="line-number">1</div>
+                <div class="line-number">2</div>
+                <div class="line-number">3</div>
+                <div class="line-number">4</div>
+                <div class="line-number">5</div>
+                <div class="line-number">6</div>
+                <div class="line-number">7</div>
+                <div class="line-number">8</div>
+                <div class="line-number">9</div>
+                <div class="line-number">10</div>
+                <div class="line-number">11</div>
+                <div class="line-number">12</div>
+                <div class="line-number">13</div>
+                <div class="line-number">14</div>
+                <div class="line-number">15</div>
+                <div class="line-number">16</div>
+                <div class="line-number">17</div>
+                <div class="line-number">18</div>
+                <div class="line-number">19</div>
+                <div class="line-number">20</div>
+                <div class="line-number">21</div>
+                <div class="line-number">22</div>
+                <div class="line-number">23</div>
+                <div class="line-number">24</div>
+                <div class="line-number">25</div>
+                <div class="line-number">26</div>
+                <div class="line-number">27</div>
+                <div class="line-number">28</div>
+                <div class="line-number">29</div>
+                <div class="line-number">30</div>
+                <div class="line-number">31</div>
+                <div class="line-number">32</div>
+                <div class="line-number">33</div>
+            </div>
+            <pre
+                class="code-pre"
+            ><code id="main-code" class="language-typescript">function getPermutation(n: number, k: number): string {
     // 階乗を事前計算
     const factorial: number[] = [1];
     for (let i = 1; i < n; i++) {
@@ -781,9 +804,9 @@ pre {
     
     return result;
 }</code></pre>
-                                </div>
-                            </div>
-                        </div>
+        </div>
+    </div>
+</div>
 ```
 
 また、CSSの重複部分を削除する必要があります。以下のCSSセクションを削除してください：

@@ -21,8 +21,8 @@ X = 5, Y = 2
 
 例：
 
-* 初期状態 `(x, y) = (1, 1)`
-* 操作例：`y ← x + y` → `(1, 2)`、`x ← x + y` → `(3, 2)`
+- 初期状態 `(x, y) = (1, 1)`
+- 操作例：`y ← x + y` → `(1, 2)`、`x ← x + y` → `(3, 2)`
 
 ---
 
@@ -35,8 +35,8 @@ X = 5, Y = 2
 
 ## 🔁 逆操作のルール
 
-* `x > y` のとき → 直前は `x ← x + y` だった ⇒ `x ← x - y`
-* `y > x` のとき → 直前は `y ← x + y` だった ⇒ `y ← y - x`
+- `x > y` のとき → 直前は `x ← x + y` だった ⇒ `x ← x - y`
+- `y > x` のとき → 直前は `y ← x + y` だった ⇒ `y ← y - x`
 
 ※ `x === y` になることは gcd(X, Y) = 1 より **起きない**
 
@@ -80,9 +80,9 @@ X = 5, Y = 2
 
 ```ts
 path = [
-  [5, 2],
-  [3, 2],
-  [1, 2]
+    [5, 2],
+    [3, 2],
+    [1, 2],
 ];
 ```
 
@@ -116,11 +116,11 @@ K = path.length = 3
 
 ## ⏱ 計算量解析
 
-| 内容            | 計算量                 | 備考                           |
-| ------------- | ------------------- | ---------------------------- |
-| 経路復元 (ユークリッド) | `O(log(max(X, Y)))` | 毎回 x, y のどちらかが減少             |
-| 配列反転・出力構築     | `O(K)`              | ステップ数 K は多くても約40程度（X,Y≦10^6） |
-| 合計空間          | `O(K)`              | 履歴 path の長さぶん                |
+| 内容                    | 計算量              | 備考                                        |
+| ----------------------- | ------------------- | ------------------------------------------- |
+| 経路復元 (ユークリッド) | `O(log(max(X, Y)))` | 毎回 x, y のどちらかが減少                  |
+| 配列反転・出力構築      | `O(K)`              | ステップ数 K は多くても約40程度（X,Y≦10^6） |
+| 合計空間                | `O(K)`              | 履歴 path の長さぶん                        |
 
 ---
 
@@ -128,9 +128,9 @@ K = path.length = 3
 
 この手法（逆操作で経路を戻す）は、以下のような問題でもよく使われます：
 
-* 一意の経路を復元する場合
-* 最短または最少手数が保証されている構造において経路列を求めるとき
-* ユークリッド互除法系の再構築パターン（例えば拡張Euclid）
+- 一意の経路を復元する場合
+- 最短または最少手数が保証されている構造において経路列を求めるとき
+- ユークリッド互除法系の再構築パターン（例えば拡張Euclid）
 
 ---
 
@@ -147,10 +147,10 @@ K = path.length = 3
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-08-01 15:37:59 | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1360 Byte |  | 1209 ms | 45332 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68079103) |
-| 2025-08-01 15:33:29 | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1316 Byte |  | 1180 ms | 268376 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68079034) |
-| 2025-08-01 15:30:05 | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1407 Byte |  | 627 ms | 116112 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078986) |
-| 2025-08-01 15:23:08 | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1198 Byte |  | 556 ms | 267456 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078872) |
-| 2025-08-01 15:17:32 | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1003 Byte |  | 607 ms | 238144 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078791) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                      | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-08-01 15:37:59                                                                           | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1360 Byte                                                                                 |      | 1209 ms                                                                                      | 45332 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68079103) |
+| 2025-08-01 15:33:29                                                                           | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1316 Byte                                                                                 |      | 1180 ms                                                                                      | 268376 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68079034) |
+| 2025-08-01 15:30:05                                                                           | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1407 Byte                                                                                 |      | 627 ms                                                                                       | 116112 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078986) |
+| 2025-08-01 15:23:08                                                                           | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1198 Byte                                                                                 |      | 556 ms                                                                                       | 267456 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078872) |
+| 2025-08-01 15:17:32                                                                           | [B41 - Reverse of Euclid](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dn) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1003 Byte                                                                                 |      | 607 ms                                                                                       | 238144 KiB                                                                                   | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/68078791) |

@@ -26,36 +26,36 @@ import * as fs from 'fs';
  * @returns 最小操作回数（number）
  */
 function minEditDistance(s: string, t: string): number {
-  const n: number = s.length;
-  const m: number = t.length;
+    const n: number = s.length;
+    const m: number = t.length;
 
-  // メモリ節約のために2行のローリング配列使用（O(m)空間）
-  const dp: number[][] = Array.from({ length: 2 }, () => new Array(m + 1).fill(0));
+    // メモリ節約のために2行のローリング配列使用（O(m)空間）
+    const dp: number[][] = Array.from({ length: 2 }, () => new Array(m + 1).fill(0));
 
-  // 初期化：sが空のとき、tにするには挿入操作のみ
-  for (let j = 0; j <= m; j++) {
-    dp[0][j] = j;
-  }
-
-  for (let i = 1; i <= n; i++) {
-    const curr = i % 2;
-    const prev = 1 - curr;
-    dp[curr][0] = i; // tが空のとき、削除操作のみ
-
-    for (let j = 1; j <= m; j++) {
-      if (s[i - 1] === t[j - 1]) {
-        dp[curr][j] = dp[prev][j - 1]; // 変更不要
-      } else {
-        dp[curr][j] = Math.min(
-          dp[prev][j] + 1,     // 削除
-          dp[curr][j - 1] + 1, // 挿入
-          dp[prev][j - 1] + 1  // 変更
-        );
-      }
+    // 初期化：sが空のとき、tにするには挿入操作のみ
+    for (let j = 0; j <= m; j++) {
+        dp[0][j] = j;
     }
-  }
 
-  return dp[n % 2][m];
+    for (let i = 1; i <= n; i++) {
+        const curr = i % 2;
+        const prev = 1 - curr;
+        dp[curr][0] = i; // tが空のとき、削除操作のみ
+
+        for (let j = 1; j <= m; j++) {
+            if (s[i - 1] === t[j - 1]) {
+                dp[curr][j] = dp[prev][j - 1]; // 変更不要
+            } else {
+                dp[curr][j] = Math.min(
+                    dp[prev][j] + 1, // 削除
+                    dp[curr][j - 1] + 1, // 挿入
+                    dp[prev][j - 1] + 1, // 変更
+                );
+            }
+        }
+    }
+
+    return dp[n % 2][m];
 }
 
 // 標準入力から読み取り（Node.js環境向け）

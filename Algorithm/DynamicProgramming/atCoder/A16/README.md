@@ -1,21 +1,23 @@
 ダイクストラ法またはDP（動的計画法）を用いることで、この問題を効率的に解くことができます。  
-ここでは、DPを用いて解く方法を示します。  
+ここでは、DPを用いて解く方法を示します。
 
 ### **アプローチ**
+
 1. `dp[i]` を部屋 `i` に到達するまでの最短時間とする。
 2. `dp[1] = 0` （スタート地点）
 3. 遷移式：
-   - `dp[i] = min(dp[i-1] + A[i], dp[i-2] + B[i])`（ `i ≥ 3` の場合）
-   - `dp[i] = dp[i-1] + A[i]`（ `i = 2` の場合）
+    - `dp[i] = min(dp[i-1] + A[i], dp[i-2] + B[i])`（ `i ≥ 3` の場合）
+    - `dp[i] = dp[i-1] + A[i]`（ `i = 2` の場合）
 4. `dp[N]` が求める答え。
 
 この方法では、`O(N)` の計算量で解を求められ、 `N` が最大 `100000` の場合でも高速に動作します。
 
 ### **コード（JavaScript）**
+
 ```javascript
 function minTimeToReachRoomN(N, A, B) {
     let dp = new Array(N + 1).fill(Infinity);
-    dp[1] = 0;  // スタート地点
+    dp[1] = 0; // スタート地点
 
     for (let i = 2; i <= N; i++) {
         dp[i] = Math.min(dp[i], dp[i - 1] + A[i - 2]); // i-1 からの移動
@@ -28,71 +30,83 @@ function minTimeToReachRoomN(N, A, B) {
 
 // 入力処理
 function main(input) {
-    let lines = input.trim().split("\n");
+    let lines = input.trim().split('\n');
     let N = parseInt(lines[0]);
-    let A = lines[1].split(" ").map(Number);
-    let B = lines.length > 2 ? lines[2].split(" ").map(Number) : [];
+    let A = lines[1].split(' ').map(Number);
+    let B = lines.length > 2 ? lines[2].split(' ').map(Number) : [];
 
     console.log(minTimeToReachRoomN(N, A, B));
 }
 
 // 標準入力からの読み込み
 process.stdin.resume();
-process.stdin.setEncoding("utf-8");
-let inputData = "";
-process.stdin.on("data", function (chunk) {
+process.stdin.setEncoding('utf-8');
+let inputData = '';
+process.stdin.on('data', function (chunk) {
     inputData += chunk;
 });
-process.stdin.on("end", function () {
+process.stdin.on('end', function () {
     main(inputData);
 });
 ```
 
 ### **コードの説明**
+
 1. **`minTimeToReachRoomN(N, A, B)`**
-   - `dp` 配列を用意して、部屋 `1` から `N` までの最短時間を求める。
-   - `dp[1] = 0` とし、`dp[2]` 以降を `A` や `B` を用いて更新していく。
-   - `dp[N]` を返す。
+    - `dp` 配列を用意して、部屋 `1` から `N` までの最短時間を求める。
+    - `dp[1] = 0` とし、`dp[2]` 以降を `A` や `B` を用いて更新していく。
+    - `dp[N]` を返す。
 
 2. **`main(input)`**
-   - 入力を処理し、`N, A, B` の配列を抽出。
-   - `minTimeToReachRoomN` を呼び出して結果を出力。
+    - 入力を処理し、`N, A, B` の配列を抽出。
+    - `minTimeToReachRoomN` を呼び出して結果を出力。
 
 3. **標準入力の処理**
-   - `process.stdin` を使って、競技プログラミング向けの入力処理を実装。
+    - `process.stdin` を使って、競技プログラミング向けの入力処理を実装。
 
 ### **計算量**
+
 - 各 `dp[i]` は `O(1)` で更新されるので、全体の計算量は **`O(N)`**。
 - `N` が `100000` でも高速に動作可能。
 
 ### **テスト**
+
 #### **入力**
+
 ```
 5
 2 4 1 3
 5 3 7
 ```
+
 #### **出力**
+
 ```
 8
 ```
+
 #### **入力**
+
 ```
 10
 1 19 75 37 17 16 33 18 22
 41 28 89 74 98 43 42 31
 ```
+
 #### **出力**
+
 ```
 157
 ```
 
 ### **入力例 1**
+
 ```
 5
 2 4 1 3
 5 3 7
 ```
+
 この入力を図で表すと、以下のようになります。
 
 ```
@@ -107,71 +121,85 @@ process.stdin.on("end", function () {
 ---
 
 ### **ステップごとの計算**
+
 `dp[i]` を部屋 `i` に到達するまでの最短時間とする。
 
 1. **初期状態**
-   ```
-   dp[1] = 0  (スタート地点)
-   dp[2] = dp[1] + A2 = 0 + 2 = 2
-   ```
+
+    ```
+    dp[1] = 0  (スタート地点)
+    dp[2] = dp[1] + A2 = 0 + 2 = 2
+    ```
 
 2. **部屋3への遷移**
-   ```
-   dp[3] = min(dp[2] + A3, dp[1] + B3)
-         = min(2 + 4, 0 + 5)
-         = min(6, 5)
-         = 5
-   ```
+
+    ```
+    dp[3] = min(dp[2] + A3, dp[1] + B3)
+          = min(2 + 4, 0 + 5)
+          = min(6, 5)
+          = 5
+    ```
 
 3. **部屋4への遷移**
-   ```
-   dp[4] = min(dp[3] + A4, dp[2] + B4)
-         = min(5 + 1, 2 + 3)
-         = min(6, 5)
-         = 5
-   ```
+
+    ```
+    dp[4] = min(dp[3] + A4, dp[2] + B4)
+          = min(5 + 1, 2 + 3)
+          = min(6, 5)
+          = 5
+    ```
 
 4. **部屋5への遷移**
-   ```
-   dp[5] = min(dp[4] + A5, dp[3] + B5)
-         = min(5 + 3, 5 + 7)
-         = min(8, 12)
-         = 8
-   ```
+    ```
+    dp[5] = min(dp[4] + A5, dp[3] + B5)
+          = min(5 + 3, 5 + 7)
+          = min(8, 12)
+          = 8
+    ```
 
 **答え： `dp[5] = 8`**
 
 ---
 
 ### **図による遷移の確認**
+
 #### **ステップ1**
+
 ```
 (部屋1) --[2]--> (部屋2)
 ```
+
 - `dp[2] = 2`
 
 #### **ステップ2**
+
 ```
 (部屋1) --[5]--> (部屋3)
 (部屋2) --[4]--> (部屋3)
 ```
+
 - `dp[3] = 5`
 
 #### **ステップ3**
+
 ```
 (部屋2) --[3]--> (部屋4)
 (部屋3) --[1]--> (部屋4)
 ```
+
 - `dp[4] = 5`
 
 #### **ステップ4**
+
 ```
 (部屋3) --[7]--> (部屋5)
 (部屋4) --[3]--> (部屋5)
 ```
+
 - `dp[5] = 8`
 
 ---
 
 ### **まとめ**
+
 このように、**動的計画法（DP）を用いることで最短時間 `8` を求めることができます。**

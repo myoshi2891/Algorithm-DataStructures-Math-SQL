@@ -27,26 +27,28 @@
 function isMatch(s, p) {
     const sLen = s.length;
     const pLen = p.length;
-    
+
     // DPテーブル: dp[i][j] = s[0...i-1]とp[0...j-1]がマッチするかどうか
-    const dp = Array(sLen + 1).fill().map(() => Array(pLen + 1).fill(false));
-    
+    const dp = Array(sLen + 1)
+        .fill()
+        .map(() => Array(pLen + 1).fill(false));
+
     // ベースケース: 空文字列と空パターンはマッチ
     dp[0][0] = true;
-    
+
     // パターンの先頭が'*'の連続の場合、空文字列ともマッチする可能性がある
     for (let j = 1; j <= pLen; j++) {
         if (p[j - 1] === '*') {
             dp[0][j] = dp[0][j - 1];
         }
     }
-    
+
     // DPテーブルを埋める
     for (let i = 1; i <= sLen; i++) {
         for (let j = 1; j <= pLen; j++) {
             const sChar = s[i - 1];
             const pChar = p[j - 1];
-            
+
             if (pChar === '*') {
                 // '*'は以下のケースでマッチ:
                 // 1. '*'を空文字列として扱う: dp[i][j-1]
@@ -59,6 +61,6 @@ function isMatch(s, p) {
             // それ以外の場合はfalse（既に初期化済み）
         }
     }
-    
+
     return dp[sLen][pLen];
 }

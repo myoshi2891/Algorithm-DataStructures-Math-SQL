@@ -18,7 +18,7 @@
 
 // 例として `(())()` の場合：
 // - 1文字目 `(` → スタックに1を追加
-// - 2文字目 `(` → スタックに2を追加  
+// - 2文字目 `(` → スタックに2を追加
 // - 3文字目 `)` → スタックから2を取得、ペア[2,3]を作成
 // - 4文字目 `)` → スタックから1を取得、ペア[1,4]を作成
 // - 5文字目 `(` → スタックに5を追加
@@ -36,7 +36,7 @@ import * as fs from 'fs';
 function findBracketPairs(s: string): number[][] {
     const stack: number[] = []; // 開きカッコの位置を保存するスタック
     const pairs: number[][] = []; // 対応するカッコのペア
-    
+
     // 各文字を順番に処理
     for (let i = 0; i < s.length; i++) {
         if (s[i] === '(') {
@@ -49,7 +49,7 @@ function findBracketPairs(s: string): number[][] {
             pairs.push([openPos, closePos]);
         }
     }
-    
+
     return pairs;
 }
 
@@ -74,30 +74,30 @@ function sortPairs(pairs: number[][]): number[][] {
  */
 function solve(input: string): string {
     const s = input.trim();
-    
+
     // カッコの対応を見つける
     const pairs = findBracketPairs(s);
-    
+
     // 指定された順序でソート
     const sortedPairs = sortPairs(pairs);
-    
+
     // 結果を文字列形式で出力
-    return sortedPairs.map(pair => `${pair[0]} ${pair[1]}`).join('\n');
+    return sortedPairs.map((pair) => `${pair[0]} ${pair[1]}`).join('\n');
 }
 
 // メモリと時間の使用量を監視するための関数
-function measurePerformance<T>(fn: () => T): { result: T, time: number, memory: number } {
+function measurePerformance<T>(fn: () => T): { result: T; time: number; memory: number } {
     const startTime = process.hrtime.bigint();
     const startMemory = process.memoryUsage().heapUsed;
-    
+
     const result = fn();
-    
+
     const endTime = process.hrtime.bigint();
     const endMemory = process.memoryUsage().heapUsed;
-    
+
     const time = Number(endTime - startTime) / 1000000; // ミリ秒に変換
     const memory = Math.max(0, endMemory - startMemory); // バイト
-    
+
     return { result, time, memory };
 }
 

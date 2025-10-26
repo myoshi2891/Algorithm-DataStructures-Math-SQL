@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Maximal Rectangle Algorithm - 技術解説</title>
+
+        <!-- Prism / Icons / Fonts (CDN) -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --primary-color: #4f46e5;
+                --secondary-color: #06b6d4;
+                --accent-color: #f59e0b;
+                --success-color: #10b981;
+                --warning-color: #f59e0b;
+                --danger-color: #ef4444;
+                --bg-primary: #ffffff;
+                --bg-secondary: #f8fafc;
+                --bg-tertiary: #f1f5f9;
+                --text-primary: #1e293b;
+                --text-secondary: #64748b;
+                --text-muted: #94a3b8;
+                --border-color: #e2e8f0;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+                /* ★ 行番号とコード行の高さを同期するための基準 */
+                --code-lh: 1.6; /* Fira Code の見やすい行高。必要なら 1.50 に変更可 */
+                --gutter-w: 3.2em; /* 行番号ガターの幅 */
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                line-height: 1.6;
+                color: var(--text-primary);
+                background: var(--bg-primary);
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+
+            /* Header */
+            .hero {
+                background: var(--gradient-primary);
+                color: #fff;
+                padding: 4rem 0;
+                position: relative;
+                overflow: hidden;
+            }
+            .hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>')
+                    repeat;
+                animation: float 20s infinite linear;
+            }
+            @keyframes float {
+                0% {
+                    transform: translate(0, 0);
+                }
+                33% {
+                    transform: translate(5px, -10px);
+                }
+                66% {
+                    transform: translate(-5px, 5px);
+                }
+                100% {
+                    transform: translate(0, 0);
+                }
+            }
+            .hero-content {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+            }
+            .hero h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                font-weight: 700;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .hero-subtitle {
+                font-size: 1.2rem;
+                opacity: 0.9;
+                margin-bottom: 2rem;
+            }
+            .badge {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50px;
+                font-size: 0.9rem;
+                margin: 0 0.5rem;
+                backdrop-filter: blur(10px);
+            }
+
+            /* Nav */
+            .nav {
+                background: var(--bg-primary);
+                padding: 1rem 0;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: var(--shadow-sm);
+                border-bottom: 1px solid var(--border-color);
+            }
+            .nav-links {
+                display: flex;
+                justify-content: center;
+                gap: 2rem;
+                flex-wrap: wrap;
+            }
+            .nav-link {
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-weight: 500;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                transition: 0.3s;
+            }
+            .nav-link:hover {
+                color: var(--primary-color);
+                background: var(--bg-tertiary);
+            }
+
+            .section {
+                padding: 3rem 0;
+            }
+            .section-title {
+                font-size: 2.5rem;
+                margin-bottom: 2rem;
+                text-align: center;
+                color: var(--text-primary);
+                position: relative;
+            }
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: -0.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 4px;
+                background: var(--gradient-secondary);
+                border-radius: 2px;
+            }
+
+            .card {
+                background: var(--bg-primary);
+                border-radius: 16px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                box-shadow: var(--shadow-md);
+                border: 1px solid var(--border-color);
+                transition: 0.3s;
+            }
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-lg);
+            }
+            .card-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+            .card-icon {
+                width: 48px;
+                height: 48px;
+                background: var(--gradient-secondary);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                margin-right: 1rem;
+                font-size: 1.2rem;
+            }
+            .card-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+
+            /* ---------------------- */
+            /* Code Block (同期ポイント) */
+            /* ---------------------- */
+            .code-container {
+                position: relative;
+                margin: 1.5rem 0;
+            }
+            .code-header {
+                display: flex;
+                justify-content: space-between; /* ← 修正: between は無効 */
+                align-items: center;
+                background: #2d3748;
+                color: #fff;
+                padding: 0.75rem 1rem;
+                border-radius: 8px 8px 0 0;
+                font-family: 'Fira Code', monospace;
+                font-size: 0.875rem;
+            }
+            .copy-btn {
+                background: var(--primary-color);
+                color: #fff;
+                border: none;
+                padding: 0.25rem 0.75rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                transition: 0.3s;
+            }
+            .copy-btn:hover {
+                background: var(--secondary-color);
+            }
+
+            /* 行番号とコード行の完全同期 */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important; /* ★ 同期 */
+                white-space: pre !important; /* 折り返し禁止（ズレ防止） */
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            }
+            /* 行番号の1行の高さをコード行に合わせる */
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em); /* ★ 同期 */
+            }
+            /* 行番号ガター幅と pre の左パディングを一致させる */
+            pre.line-numbers {
+                padding-left: var(--gutter-w) !important; /* ★ 同期 */
+                overflow-x: auto; /* 横スクロール許可 */
+                border-radius: 0 0 8px 8px;
+                margin: 0; /* 上のヘッダと密着 */
+            }
+            .line-numbers .line-numbers-rows {
+                width: var(--gutter-w); /* ★ 同期 */
+            }
+            /* 追加で行間に差が出るテーマ対策（Prism Tomorrow の微差吸収） */
+            code[class*='language-'] {
+                line-height: var(--code-lh) !important;
+            }
+            pre[class*='language-'] {
+                line-height: var(--code-lh) !important;
+            }
+
+            /* その他 UI */
+            .step-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+                margin: 2rem 0;
+            }
+            .step-visual {
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                padding: 1.5rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .matrix-grid {
+                display: grid;
+                gap: 2px;
+                margin: 1rem 0;
+                padding: 1rem;
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+            .cell {
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                font-weight: 500;
+                font-family: 'Fira Code', monospace;
+                transition: 0.3s;
+            }
+            .cell-0 {
+                background: #fee2e2;
+                color: #dc2626;
+            }
+            .cell-1 {
+                background: #dcfce7;
+                color: #16a34a;
+            }
+            .cell-highlight {
+                background: var(--accent-color) !important;
+                color: #fff;
+                transform: scale(1.1);
+                box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+            }
+            .histogram-bar {
+                background: var(--secondary-color);
+                margin: 2px;
+                border-radius: 2px;
+                display: flex;
+                align-items: end;
+                justify-content: center;
+                color: #fff;
+                font-size: 0.8rem;
+                font-weight: 500;
+                transition: 0.3s;
+            }
+            .histogram-bar:hover {
+                background: var(--primary-color);
+                transform: scale(1.05);
+            }
+
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+            .complexity-card {
+                background: var(--bg-secondary);
+                padding: 1.5rem;
+                border-radius: 12px;
+                text-align: center;
+                border-left: 4px solid var(--primary-color);
+            }
+            .complexity-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--primary-color);
+                font-family: 'Fira Code', monospace;
+            }
+            .complexity-label {
+                color: var(--text-secondary);
+                margin-top: 0.5rem;
+            }
+
+            .controls {
+                display: flex;
+                gap: 1rem;
+                margin: 1.5rem 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .btn {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .btn-primary {
+                background: var(--gradient-primary);
+                color: #fff;
+            }
+            .btn-secondary {
+                background: var(--gradient-secondary);
+                color: #fff;
+            }
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            @media (max-width: 768px) {
+                .hero h1 {
+                    font-size: 2rem;
+                }
+                .step-container {
+                    grid-template-columns: 1fr;
+                }
+                .nav-links {
+                    gap: 1rem;
+                }
+                .container {
+                    padding: 0 15px;
+                }
+                .complexity-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+            .animate-slide-up {
+                animation: slideInUp 0.6s ease-out;
+            }
+            .animate-pulse {
+                animation: pulse 1s ease-in-out infinite;
+            }
+
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            ::-webkit-scrollbar-track {
+                background: var(--bg-tertiary);
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--primary-color);
+                border-radius: 4px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--secondary-color);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Maximal Rectangle Algorithm</h1>
+                    <p class="hero-subtitle">
+                        最大長方形アルゴリズム - ヒストグラム + 単調増加スタック手法の詳細解説
+                    </p>
+                    <div>
+                        <span class="badge"><i class="fas fa-clock"></i> O(R×C) 時間計算量</span>
+                        <span class="badge"><i class="fas fa-memory"></i> O(C) 空間計算量</span>
+                        <span class="badge"><i class="fas fa-star"></i> LeetCode 85</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nav -->
+        <nav class="nav">
+            <div class="container">
+                <div class="nav-links">
+                    <a href="#overview" class="nav-link">概要</a>
+                    <a href="#algorithm" class="nav-link">アルゴリズム</a>
+                    <a href="#implementation" class="nav-link">実装</a>
+                    <a href="#visualization" class="nav-link">視覚化</a>
+                    <a href="#complexity" class="nav-link">計算量</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Overview -->
+        <section id="overview" class="section">
+            <div class="container">
+                <h2 class="section-title">アルゴリズム概要</h2>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h3 class="card-title">核心思想</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>
+                            Maximal
+                            Rectangle問題は、0と1からなる2次元配列において、1のみで構成される最大長方形の面積を求める問題です。
+                            本実装では<strong>行ごとヒストグラム + 単調増加スタック</strong
+                            >のアプローチを採用しています。
+                        </p>
+                        <h4 style="margin: 1.5rem 0 1rem">基本アイデア</h4>
+                        <ul style="margin-left: 2rem; color: var(--text-secondary)">
+                            <li><strong>各行を底辺とするヒストグラム</strong>として問題を変換</li>
+                            <li>各行において「連続する1の本数」を高さとして計算</li>
+                            <li>
+                                <strong>単調増加スタック</strong
+                                >を使用してヒストグラムの最大長方形を求める
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                        <h3 class="card-title">アルゴリズムの変換プロセス</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="step-container">
+                            <div>
+                                <h4>元の行列</h4>
+                                <div
+                                    class="matrix-grid"
+                                    style="grid-template-columns: repeat(5, 1fr)"
+                                    id="original-matrix"
+                                ></div>
+                            </div>
+                            <div>
+                                <h4>ヒストグラム（第3行）</h4>
+                                <div class="step-visual">
+                                    <div
+                                        id="histogram-display"
+                                        style="
+                                            display: flex;
+                                            align-items: end;
+                                            height: 120px;
+                                            gap: 4px;
+                                        "
+                                    ></div>
+                                    <p style="margin-top: 1rem; color: var(--text-secondary)">
+                                        heights = [3, 1, 3, 2, 2]
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Algorithm -->
+        <section id="algorithm" class="section" style="background: var(--bg-secondary)">
+            <div class="container">
+                <h2 class="section-title">ステップバイステップ解説</h2>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-cogs"></i></div>
+                        <h3 class="card-title">処理フロー</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="controls">
+                            <button class="btn btn-primary" onclick="startAnimation()">
+                                <i class="fas fa-play"></i> アニメーション開始
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetAnimation()">
+                                <i class="fas fa-redo"></i> リセット
+                            </button>
+                        </div>
+
+                        <div id="algorithm-steps">
+                            <div class="step-container">
+                                <div>
+                                    <h4>
+                                        Step <span id="current-step">1</span>:
+                                        <span id="step-title">初期化</span>
+                                    </h4>
+                                    <div id="step-description">
+                                        <p>
+                                            heights配列を0で初期化し、各行を順次処理していきます。
+                                        </p>
+                                    </div>
+                                    <div
+                                        id="step-details"
+                                        style="
+                                            margin-top: 1rem;
+                                            padding: 1rem;
+                                            background: var(--bg-tertiary);
+                                            border-radius: 8px;
+                                        "
+                                    >
+                                        <div
+                                            id="step-matrix"
+                                            style="
+                                                display: grid;
+                                                grid-template-columns: repeat(5, 1fr);
+                                                gap: 2px;
+                                                margin: 1rem 0;
+                                            "
+                                        ></div>
+                                        <div
+                                            id="step-heights"
+                                            style="
+                                                text-align: center;
+                                                font-family: 'Fira Code', monospace;
+                                                color: var(--primary-color);
+                                            "
+                                        >
+                                            heights = [0, 0, 0, 0, 0]
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="step-visual">
+                                    <div
+                                        id="step-visualization"
+                                        style="
+                                            display: flex;
+                                            align-items: end;
+                                            height: 120px;
+                                            gap: 4px;
+                                            justify-content: center;
+                                        "
+                                    ></div>
+                                    <div
+                                        id="step-info"
+                                        style="
+                                            margin-top: 1rem;
+                                            text-align: center;
+                                            color: var(--text-secondary);
+                                        "
+                                    >
+                                        現在の最大面積:
+                                        <span
+                                            id="current-area"
+                                            style="color: var(--primary-color); font-weight: 600"
+                                            >0</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Implementation -->
+        <section id="implementation" class="section">
+            <div class="container">
+                <h2 class="section-title">Python実装</h2>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-code"></i></div>
+                        <h3 class="card-title">競技プログラミング最適化版</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title">
+                                    <i class="fab fa-python"></i><span>maximal_rectangle.py</span>
+                                </div>
+                                <button class="copy-btn" onclick="copyCode('code-1')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <pre
+                                class="line-numbers"
+                            ><code id="code-1" class="language-python">from typing import List
+
+class Solution:
+    """
+    LeetCode 85. Maximal Rectangle
+    競技プログラミング最適化版: O(R*C)時間、O(C)空間
+    """
+
+    def maximalRectangle(self, matrix: List[List[str]]) -> int:
+        """
+        与えられた '0'/'1' 行列で、1のみから成る最大長方形の面積を返す。
+
+        Args:
+            matrix: R x C の2次元配列（各要素は '0' または '1'）
+
+        Returns:
+            最大長方形の面積（int）
+        """
+        if not matrix:
+            return 0
+        rows: int = len(matrix)
+        cols: int = len(matrix[0])
+        if cols == 0:
+            return 0
+
+        # heights[j]: 現在行を底とする列jの連続'1'の本数
+        heights: List[int] = [0] * cols
+        # 単調増加スタック（インデックスを格納）
+        stack: List[int] = [0] * (cols + 1)
+        max_area: int = 0
+
+        def largest_rectangle_in_histogram(h: List[int]) -> int:
+            """ヒストグラムの最大長方形を単調増加スタックで計算"""
+            best: int = 0
+            top: int = -1  # スタックトップインデックス
+
+            # j == cols でセンチネル（高さ0）として処理
+            for j in range(cols + 1):
+                cur: int = 0 if j == cols else h[j]
+
+                # 単調性が崩れる場合、確定計算
+                while top >= 0 and cur &lt; h[stack[top]]:
+                    height: int = h[stack[top]]
+                    top -= 1
+                    left_boundary: int = stack[top] if top >= 0 else -1
+                    width: int = j - left_boundary - 1
+                    area: int = height * width
+                    if area &gt; best:
+                        best = area
+
+                # 現在位置をスタックにプッシュ
+                top += 1
+                stack[top] = j
+
+            return best
+
+        # 各行を処理
+        for i in range(rows):
+            row = matrix[i]
+            # 高さ配列を更新
+            for j in range(cols):
+                heights[j] = heights[j] + 1 if row[j] == "1" else 0
+
+            # 現在行を底とする最大長方形を計算
+            area = largest_rectangle_in_histogram(heights)
+            if area &gt; max_area:
+                max_area = area
+
+        return max_area</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3 class="card-title">業務開発向け堅牢版</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="code-container">
+                            <div class="code-header">
+                                <div class="code-title">
+                                    <i class="fab fa-python"></i><span>production_version.py</span>
+                                </div>
+                                <button class="copy-btn" onclick="copyCode('code-2')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                            <pre
+                                class="line-numbers"
+                            ><code id="code-2" class="language-python">def maximalRectangle_production(self, matrix: List[List[str]]) -> int:
+    """
+    業務開発向け: 包括的な入力検証を実施
+
+    Raises:
+        TypeError: 要素型が '0'/'1' 以外
+        ValueError: 行長不揃い、サイズ範囲外など
+    """
+    # 入力検証
+    if not isinstance(matrix, list):
+        raise TypeError("matrix must be a list of lists")
+    if not matrix:
+        return 0
+
+    cols: int = len(matrix[0])
+    if cols == 0:
+        return 0
+    rows: int = len(matrix)
+
+    # 範囲検証
+    if not (1 &lt;= rows &lt;= 200):
+        raise ValueError("rows must be within [1, 200]")
+    if not (1 &lt;= cols &lt;= 200):
+        raise ValueError("cols must be within [1, 200]")
+
+    # 行列整合性・値検証
+    for r, row in enumerate(matrix):
+        if not isinstance(row, list) or len(row) != cols:
+            raise ValueError(f"Row {r} must have {cols} elements")
+        for c, val in enumerate(row):
+            if not isinstance(val, str) or val not in ("0", "1"):
+                raise TypeError(f"matrix[{r}][{c}] must be '0' or '1'")
+
+    # 検証通過後、高速版に委譲
+    return self.maximalRectangle(matrix)</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualization -->
+        <section id="visualization" class="section" style="background: var(--bg-secondary)">
+            <div class="container">
+                <h2 class="section-title">視覚化デモ</h2>
+
+                <div class="card animate-slide-up">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-eye"></i></div>
+                        <h3 class="card-title">インタラクティブ可視化</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="controls">
+                            <button class="btn btn-primary" onclick="visualizeStep(0)">
+                                <i class="fas fa-fast-backward"></i> 初期状態
+                            </button>
+                            <button class="btn btn-secondary" onclick="visualizeStep(1)">
+                                <i class="fas fa-step-forward"></i> 行 1
+                            </button>
+                            <button class="btn btn-secondary" onclick="visualizeStep(2)">
+                                <i class="fas fa-step-forward"></i> 行 2
+                            </button>
+                            <button class="btn btn-secondary" onclick="visualizeStep(3)">
+                                <i class="fas fa-step-forward"></i> 行 3
+                            </button>
+                        </div>
+
+                        <div class="step-container">
+                            <div>
+                                <h4>現在の行列状態</h4>
+                                <div
+                                    class="matrix-grid"
+                                    style="grid-template-columns: repeat(5, 1fr)"
+                                    id="demo-matrix"
+                                ></div>
+                                <p
+                                    id="current-info"
+                                    style="
+                                        text-align: center;
+                                        margin-top: 1rem;
+                                        color: var(--text-secondary);
+                                    "
+                                >
+                                    行を選択してください
+                                </p>
+                            </div>
+                            <div>
+                                <h4>ヒストグラム表示</h4>
+                                <div class="step-visual">
+                                    <div
+                                        id="demo-histogram"
+                                        style="
+                                            display: flex;
+                                            align-items: end;
+                                            height: 120px;
+                                            gap: 4px;
+                                            justify-content: center;
+                                        "
+                                    ></div>
+                                    <p
+                                        id="heights-info"
+                                        style="margin-top: 1rem; color: var(--text-secondary)"
+                                    >
+                                        heights = [0, 0, 0, 0, 0]
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complexity -->
+        <section id="complexity" class="section">
+            <div class="container">
+                <h2 class="section-title">計算量分析</h2>
+                <div class="complexity-grid">
+                    <div class="complexity-card animate-slide-up">
+                        <div class="complexity-value">O(R × C)</div>
+                        <div class="complexity-label">時間計算量</div>
+                        <p style="margin-top: 1rem; color: var(--text-secondary)">
+                            各要素は最大1回push/popされるため線形時間
+                        </p>
+                    </div>
+                    <div class="complexity-card animate-slide-up">
+                        <div class="complexity-value">O(C)</div>
+                        <div class="complexity-label">空間計算量</div>
+                        <p style="margin-top: 1rem; color: var(--text-secondary)">
+                            heights配列とスタックで列数に比例
+                        </p>
+                    </div>
+                    <div class="complexity-card animate-slide-up">
+                        <div class="complexity-value">200 × 200</div>
+                        <div class="complexity-label">制約上限</div>
+                        <p style="margin-top: 1rem; color: var(--text-secondary)">
+                            最大サイズでも高速処理が可能
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer
+            style="
+                background: var(--bg-tertiary);
+                padding: 2rem 0;
+                text-align: center;
+                color: var(--text-secondary);
+            "
+        >
+            <div class="container">
+                <p>
+                    &copy; 2024 Maximal Rectangle Algorithm Guide. Created with modern web
+                    technologies.
+                </p>
+                <div style="margin-top: 1rem">
+                    <span
+                        class="badge"
+                        style="background: var(--primary-color); color: #fff; margin: 0 0.25rem"
+                        >Python</span
+                    >
+                    <span
+                        class="badge"
+                        style="background: var(--secondary-color); color: #fff; margin: 0 0.25rem"
+                        >Algorithms</span
+                    >
+                    <span
+                        class="badge"
+                        style="background: var(--success-color); color: #fff; margin: 0 0.25rem"
+                        >LeetCode</span
+                    >
+                </div>
+            </div>
+        </footer>
+
+        <!-- Prism Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+        <!-- App Logic -->
+        <script>
+            // Sample matrix
+            const sampleMatrix = [
+                ['1', '0', '1', '0', '0'],
+                ['1', '0', '1', '1', '1'],
+                ['1', '1', '1', '1', '1'],
+                ['1', '0', '0', '1', '0'],
+            ];
+
+            let currentAnimationStep = 0;
+            let animationInterval;
+
+            document.addEventListener('DOMContentLoaded', () => {
+                renderOriginalMatrix();
+                renderInitialHistogram();
+                initializeDemoMatrix();
+                resetAnimation();
+
+                // Prism highlight after DOM ready
+                if (window.Prism) requestAnimationFrame(() => Prism.highlightAll());
+            });
+
+            function renderOriginalMatrix() {
+                const container = document.getElementById('original-matrix');
+                container.innerHTML = '';
+                sampleMatrix.forEach((row, i) =>
+                    row.forEach((cell, j) => {
+                        const d = document.createElement('div');
+                        d.className = `cell cell-${cell}`;
+                        d.textContent = cell;
+                        d.style.gridColumn = j + 1;
+                        d.style.gridRow = i + 1;
+                        container.appendChild(d);
+                    }),
+                );
+            }
+
+            function renderInitialHistogram() {
+                const container = document.getElementById('histogram-display');
+                const heights = [3, 1, 3, 2, 2];
+                container.innerHTML = '';
+                heights.forEach((h) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'histogram-bar';
+                    bar.style.height = h * 30 + 'px';
+                    bar.style.width = '32px';
+                    bar.textContent = h;
+                    container.appendChild(bar);
+                });
+            }
+
+            function initializeDemoMatrix() {
+                const container = document.getElementById('demo-matrix');
+                container.innerHTML = '';
+                sampleMatrix.forEach((row, i) =>
+                    row.forEach((cell, j) => {
+                        const d = document.createElement('div');
+                        d.className = `cell cell-${cell}`;
+                        d.textContent = cell;
+                        d.id = `demo-cell-${i}-${j}`;
+                        container.appendChild(d);
+                    }),
+                );
+            }
+
+            function copyCode(codeId) {
+                const code = document.getElementById(codeId)?.textContent || '';
+                navigator.clipboard
+                    .writeText(code)
+                    .then(() => {
+                        const btn = document.querySelector(`[onclick="copyCode('${codeId}')"]`);
+                        if (!btn) return;
+                        const before = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        btn.style.background = 'var(--success-color)';
+                        setTimeout(() => {
+                            btn.innerHTML = before;
+                            btn.style.background = 'var(--primary-color)';
+                        }, 1500);
+                    })
+                    .catch(console.error);
+            }
+
+            function startAnimation() {
+                resetAnimation();
+                currentAnimationStep = 0;
+                animationInterval = setInterval(() => {
+                    if (currentAnimationStep < 4) {
+                        animateStep(currentAnimationStep++);
+                    } else {
+                        clearInterval(animationInterval);
+                    }
+                }, 2000);
+            }
+
+            function resetAnimation() {
+                if (animationInterval) clearInterval(animationInterval);
+                currentAnimationStep = 0;
+                document.getElementById('current-step').textContent = '1';
+                document.getElementById('step-title').textContent = '初期化';
+                document.getElementById('step-description').innerHTML =
+                    '<p>heights配列を0で初期化し、各行を順次処理していきます。</p>';
+                document.getElementById('step-heights').textContent = 'heights = [0, 0, 0, 0, 0]';
+                document.getElementById('current-area').textContent = '0';
+
+                const matrix = document.getElementById('step-matrix');
+                matrix.innerHTML = '';
+                sampleMatrix.forEach((row) =>
+                    row.forEach((cell) => {
+                        const d = document.createElement('div');
+                        d.className = `cell cell-${cell}`;
+                        d.textContent = cell;
+                        d.style.opacity = '1';
+                        matrix.appendChild(d);
+                    }),
+                );
+
+                const hist = document.getElementById('step-visualization');
+                hist.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'histogram-bar';
+                    bar.style.height = '20px';
+                    bar.style.width = '24px';
+                    bar.style.background = '#e2e8f0';
+                    bar.style.color = '#64748b';
+                    bar.textContent = '';
+                    hist.appendChild(bar);
+                }
+            }
+
+            function animateStep(step) {
+                const titles = ['初期化', '行1を処理', '行2を処理', '行3を処理', '完了'];
+                const descs = [
+                    '<p>heights配列を0で初期化し、各行を順次処理していきます。</p>',
+                    '<p>行1: ["1","0","1","0","0"] を処理</p>',
+                    '<p>行2: ["1","0","1","1","1"] を処理</p>',
+                    '<p>行3: ["1","1","1","1","1"] を処理</p>',
+                    '<p>処理完了！最終的な最大長方形の面積は6です。</p>',
+                ];
+                const heightsStates = [
+                    [0, 0, 0, 0, 0],
+                    [1, 0, 1, 0, 0],
+                    [2, 0, 2, 1, 1],
+                    [3, 1, 3, 2, 2],
+                    [4, 0, 0, 3, 0],
+                ];
+                const maxAreas = [0, 1, 3, 6, 6];
+
+                document.getElementById('current-step').textContent = step + 1;
+                document.getElementById('step-title').textContent = titles[step];
+                document.getElementById('step-description').innerHTML = descs[step];
+
+                const matrix = document.getElementById('step-matrix');
+                matrix.innerHTML = '';
+                for (let i = 0; i < sampleMatrix.length; i++) {
+                    for (let j = 0; j < sampleMatrix[i].length; j++) {
+                        const d = document.createElement('div');
+                        d.className = `cell cell-${sampleMatrix[i][j]}`;
+                        d.textContent = sampleMatrix[i][j];
+                        if (step > 0 && i === step - 1) d.classList.add('cell-highlight');
+                        else if (step > 0 && i < step - 1) d.style.opacity = '.7';
+                        matrix.appendChild(d);
+                    }
+                }
+
+                if (step < heightsStates.length) {
+                    const heights = heightsStates[step];
+                    document.getElementById('step-heights').textContent =
+                        `heights = [${heights.join(', ')}]`;
+                    const hist = document.getElementById('step-visualization');
+                    hist.innerHTML = '';
+                    heights.forEach((h) => {
+                        const bar = document.createElement('div');
+                        bar.className = 'histogram-bar';
+                        bar.style.height = h * 20 + 'px';
+                        bar.style.width = '24px';
+                        bar.textContent = h > 0 ? h : '';
+                        if (h > 0) bar.classList.add('animate-pulse');
+                        else {
+                            bar.style.background = '#e2e8f0';
+                            bar.style.color = '#64748b';
+                        }
+                        hist.appendChild(bar);
+                    });
+                    document.getElementById('current-area').textContent = maxAreas[step];
+                }
+
+                const el = document.getElementById('algorithm-steps');
+                el.classList.remove('animate-slide-up');
+                void el.offsetWidth;
+                el.classList.add('animate-slide-up');
+            }
+
+            function visualizeStep(rowIndex) {
+                document
+                    .querySelectorAll('.cell')
+                    .forEach((c) => c.classList.remove('cell-highlight'));
+                let heights = [0, 0, 0, 0, 0];
+                for (let i = 0; i <= rowIndex; i++) {
+                    for (let j = 0; j < 5; j++)
+                        heights[j] = sampleMatrix[i][j] === '1' ? heights[j] + 1 : 0;
+                    if (i === rowIndex)
+                        for (let j = 0; j < 5; j++)
+                            document
+                                .getElementById(`demo-cell-${i}-${j}`)
+                                ?.classList.add('cell-highlight');
+                }
+                const hist = document.getElementById('demo-histogram');
+                hist.innerHTML = '';
+                heights.forEach((h) => {
+                    const b = document.createElement('div');
+                    b.className = 'histogram-bar';
+                    b.style.height = h * 20 + 'px';
+                    b.style.width = '24px';
+                    b.textContent = h;
+                    if (h > 0) b.classList.add('animate-pulse');
+                    hist.appendChild(b);
+                });
+                document.getElementById('current-info').textContent = `行 ${rowIndex + 1} まで処理`;
+                document.getElementById('heights-info').textContent =
+                    `heights = [${heights.join(', ')}]`;
+            }
+
+            // Render visuals in overview
+            function calculateMaxArea(heights) {
+                let maxArea = 0;
+                for (let i = 0; i < heights.length; i++) {
+                    for (let j = i; j < heights.length; j++) {
+                        const minH = Math.min(...heights.slice(i, j + 1));
+                        maxArea = Math.max(maxArea, minH * (j - i + 1));
+                    }
+                }
+                return maxArea;
+            }
+
+            // Smooth scroll
+            document.querySelectorAll('.nav-link').forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const id = link.getAttribute('href');
+                    document
+                        .querySelector(id)
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+
+            // Populate overview visuals on load
+            function renderOriginalOnce() {
+                const demo = document.getElementById('demo-matrix');
+                if (!demo) return;
+                demo.innerHTML = '';
+                sampleMatrix.forEach((row, i) =>
+                    row.forEach((cell, j) => {
+                        const d = document.createElement('div');
+                        d.className = `cell cell-${cell}`;
+                        d.textContent = cell;
+                        d.id = `demo-cell-${i}-${j}`;
+                        demo.appendChild(d);
+                    }),
+                );
+            }
+            renderOriginalOnce();
+
+            // Re-render overview graphics on resize (軽めの処理)
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    renderOriginalMatrix();
+                    renderInitialHistogram();
+                }, 200);
+            });
+        </script>
+    </body>
+</html>

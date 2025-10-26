@@ -51,7 +51,7 @@
 // === 基本テスト ===
 // ✅ 基本テスト通過
 
-// === 境界値テスト ===  
+// === 境界値テスト ===
 // ✅ 境界値テスト通過
 
 // === エラーケーステスト ===
@@ -76,7 +76,7 @@
 
 // ベンチマーク結果(50回平均):
 // 平均実行時間: 0.XXXms
-// 最小実行時間: 0.XXXms  
+// 最小実行時間: 0.XXXms
 // 最大実行時間: 0.XXXms
 
 // V8最適化効果: ポインタ操作のみでメモリ効率最大化
@@ -126,16 +126,16 @@ function rotateRight(head, k) {
     if (k < 0) {
         throw new RangeError('k must be non-negative');
     }
-    
-    if (k > 2 * 10**9) {
+
+    if (k > 2 * 10 ** 9) {
         throw new RangeError('k exceeds maximum limit');
     }
-    
+
     // エッジケース: 空リストまたは単一ノード
     if (!head || !head.next || k === 0) {
         return head;
     }
-    
+
     // Step 1: リストの長さを計算し、末尾ノードを特定
     let length = 1;
     let tail = head;
@@ -143,26 +143,26 @@ function rotateRight(head, k) {
         tail = tail.next;
         length++;
     }
-    
+
     // Step 2: 実際の回転数を計算（k % lengthで最適化）
     k = k % length;
     if (k === 0) {
         return head; // 回転不要
     }
-    
+
     // Step 3: 新しい末尾ノード（分割点）を見つける
     let newTail = head;
     for (let i = 0; i < length - k - 1; i++) {
         newTail = newTail.next;
     }
-    
+
     // Step 4: 新しい先頭ノードを設定
     const newHead = newTail.next;
-    
+
     // Step 5: ポインタを付け替えて回転を完了
-    newTail.next = null;  // 新しい末尾
-    tail.next = head;     // 元の末尾を元の先頭に接続
-    
+    newTail.next = null; // 新しい末尾
+    tail.next = head; // 元の末尾を元の先頭に接続
+
     return newHead;
 }
 
@@ -192,113 +192,113 @@ function benchmark(fn, args, iterations = 100) {
         const end = performance.now();
         times.push(end - start);
     }
-    
+
     const avg = times.reduce((a, b) => a + b) / times.length;
     const min = Math.min(...times);
     const max = Math.max(...times);
-    
+
     return { avg: avg.toFixed(3), min: min.toFixed(3), max: max.toFixed(3) };
 }
 
 // テスト用ヘルパー関数
 function createLinkedList(values) {
     if (!values.length) return null;
-    
+
     const head = new ListNode(values[0]);
     let current = head;
-    
+
     for (let i = 1; i < values.length; i++) {
         current.next = new ListNode(values[i]);
         current = current.next;
     }
-    
+
     return head;
 }
 
 function linkedListToArray(head) {
     const result = [];
     let current = head;
-    
+
     while (current) {
         result.push(current.val);
         current = current.next;
     }
-    
+
     return result;
 }
 
 // テストケース実行
 function runBasicTests() {
     console.log('=== 基本テスト ===');
-    
+
     // Example 1: [1,2,3,4,5], k = 2 -> [4,5,1,2,3]
     const list1 = createLinkedList([1, 2, 3, 4, 5]);
     const result1 = rotateRight(list1, 2);
     assert.deepStrictEqual(linkedListToArray(result1), [4, 5, 1, 2, 3]);
-    
+
     // Example 2: [0,1,2], k = 4 -> [2,0,1]
     const list2 = createLinkedList([0, 1, 2]);
     const result2 = rotateRight(list2, 4);
     assert.deepStrictEqual(linkedListToArray(result2), [2, 0, 1]);
-    
+
     console.log('✅ 基本テスト通過');
 }
 
 function runBoundaryTests() {
     console.log('=== 境界値テスト ===');
-    
+
     // 空リスト
     const emptyResult = rotateRight(null, 1);
     assert.strictEqual(emptyResult, null);
-    
+
     // 単一ノード
     const singleList = createLinkedList([1]);
     const singleResult = rotateRight(singleList, 1);
     assert.deepStrictEqual(linkedListToArray(singleResult), [1]);
-    
+
     // k = 0
     const list3 = createLinkedList([1, 2, 3]);
     const result3 = rotateRight(list3, 0);
     assert.deepStrictEqual(linkedListToArray(result3), [1, 2, 3]);
-    
+
     // k がリスト長の倍数
     const list4 = createLinkedList([1, 2, 3]);
     const result4 = rotateRight(list4, 6); // 6 % 3 = 0
     assert.deepStrictEqual(linkedListToArray(result4), [1, 2, 3]);
-    
+
     console.log('✅ 境界値テスト通過');
 }
 
 function runErrorTests() {
     console.log('=== エラーケーステスト ===');
-    
+
     // 負のk
     assert.throws(() => rotateRight(createLinkedList([1, 2, 3]), -1), RangeError);
-    
+
     // k上限超過
-    assert.throws(() => rotateRight(createLinkedList([1, 2, 3]), 2 * 10**9 + 1), RangeError);
-    
+    assert.throws(() => rotateRight(createLinkedList([1, 2, 3]), 2 * 10 ** 9 + 1), RangeError);
+
     console.log('✅ エラーケーステスト通過');
 }
 
 function runPerformanceTests() {
     console.log('=== 大規模データテスト ===');
-    
+
     const sizes = [100, 500]; // 制約に合わせたサイズ
-    
-    sizes.forEach(size => {
-        const values = Array.from({length: size}, (_, i) => i);
+
+    sizes.forEach((size) => {
+        const values = Array.from({ length: size }, (_, i) => i);
         const largeList = createLinkedList(values);
         const k = Math.floor(size / 2);
-        
+
         const start = performance.now();
         const result = rotateRight(largeList, k);
         const end = performance.now();
-        
+
         const executionTime = end - start;
         assert(executionTime < 1000, `タイムアウト制約違反 (${size}要素: ${executionTime}ms)`);
         assert(result !== null, `結果がnullです`);
-        
+
         console.log(`✅ サイズ${size}: ${executionTime.toFixed(3)}ms`);
     });
 }
@@ -310,28 +310,31 @@ function runAllTests() {
         runErrorTests();
         runPerformanceTests();
         console.log('\n🎉 全テストケース成功');
-        
+
         // 性能測定デモ
         console.log('\n=== 性能測定デモ ===');
-        const demoList = createLinkedList(Array.from({length: 500}, (_, i) => i));
-        
+        const demoList = createLinkedList(Array.from({ length: 500 }, (_, i) => i));
+
         console.log('単発実行測定:');
         measureTime(rotateRight, demoList, 250);
-        
+
         console.log('メモリ使用量測定:');
-        const demoList2 = createLinkedList(Array.from({length: 500}, (_, i) => i));
+        const demoList2 = createLinkedList(Array.from({ length: 500 }, (_, i) => i));
         measureMemory(rotateRight, demoList2, 250);
-        
+
         console.log('ベンチマーク測定:');
-        const benchmarkResult = benchmark(() => {
-            const list = createLinkedList(Array.from({length: 100}, (_, i) => i));
-            rotateRight(list, 50);
-        }, [], 50);
-        
+        const benchmarkResult = benchmark(
+            () => {
+                const list = createLinkedList(Array.from({ length: 100 }, (_, i) => i));
+                rotateRight(list, 50);
+            },
+            [],
+            50,
+        );
+
         console.log(`平均実行時間: ${benchmarkResult.avg}ms`);
         console.log(`最小実行時間: ${benchmarkResult.min}ms`);
         console.log(`最大実行時間: ${benchmarkResult.max}ms`);
-        
     } catch (error) {
         console.error('❌ テスト失敗:', error.message);
         process.exit(1);

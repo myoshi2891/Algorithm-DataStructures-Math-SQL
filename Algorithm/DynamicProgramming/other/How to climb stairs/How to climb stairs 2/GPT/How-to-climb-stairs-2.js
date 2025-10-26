@@ -3,7 +3,7 @@
 
 // ```javascript
 // Node.js v16.17.1
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * 階段の上り方の総数を求める関数
@@ -25,7 +25,7 @@ function countWays(n, a, b) {
 }
 
 // 入力処理
-const input = fs.readFileSync("/dev/stdin", "utf8").trim().split(" ").map(Number);
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split(' ').map(Number);
 const [n, a, b] = input;
 
 // 計測開始
@@ -42,9 +42,9 @@ console.log(result);
 
 // 処理時間・メモリ使用量の計測結果（標準出力には含めない）
 fs.writeFileSync(
-    "/dev/stderr",
+    '/dev/stderr',
     `処理時間: ${(endTime - startTime) / 1000000n} ms\n` +
-    `メモリ使用量: ${(endMemory - startMemory) / 1024} KB\n`
+        `メモリ使用量: ${(endMemory - startMemory) / 1024} KB\n`,
 );
 // ```
 

@@ -19,11 +19,11 @@ const fs = require('fs');
 
 /**
  * 四つ組みの和を求める関数 (4Sum)
- * 
+ *
  * @param {number[]} nums - 整数配列 (長さ1~200)
  * @param {number} target - 目標の合計値
  * @returns {number[][]} - targetと等しい4つ組のリスト
- * 
+ *
  * 出力結果、処理時間、メモリ消費量は output.txt に保存されます。
  */
 function fourSum(nums, target) {
@@ -65,13 +65,13 @@ function fourSum(nums, target) {
     const endMem = process.memoryUsage().heapUsed;
 
     const timeMs = Number(endTime - startTime) / 1e6; // ミリ秒
-    const memUsageKB = (endMem - startMem) / 1024;    // KB
+    const memUsageKB = (endMem - startMem) / 1024; // KB
 
     // ファイル出力
     const output = {
         result: result,
         executionTimeMs: timeMs.toFixed(3),
-        memoryUsageKB: memUsageKB.toFixed(3)
+        memoryUsageKB: memUsageKB.toFixed(3),
     };
 
     fs.writeFileSync('output.txt', JSON.stringify(output, null, 2));

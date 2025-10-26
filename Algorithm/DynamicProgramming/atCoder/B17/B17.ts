@@ -20,27 +20,27 @@ const prev: number[] = new Array(N).fill(-1);
 dp[0] = 0;
 
 for (let i = 1; i < N; i++) {
-  const cost1 = dp[i - 1] + Math.abs(h[i] - h[i - 1]);
-  if (cost1 < dp[i]) {
-    dp[i] = cost1;
-    prev[i] = i - 1;
-  }
-
-  if (i > 1) {
-    const cost2 = dp[i - 2] + Math.abs(h[i] - h[i - 2]);
-    if (cost2 < dp[i]) {
-      dp[i] = cost2;
-      prev[i] = i - 2;
+    const cost1 = dp[i - 1] + Math.abs(h[i] - h[i - 1]);
+    if (cost1 < dp[i]) {
+        dp[i] = cost1;
+        prev[i] = i - 1;
     }
-  }
+
+    if (i > 1) {
+        const cost2 = dp[i - 2] + Math.abs(h[i] - h[i - 2]);
+        if (cost2 < dp[i]) {
+            dp[i] = cost2;
+            prev[i] = i - 2;
+        }
+    }
 }
 
 // 経路復元
 const path: number[] = [];
 let current: number = N - 1;
 while (current !== -1) {
-  path.push(current + 1); // 足場番号を1-indexedに変換
-  current = prev[current];
+    path.push(current + 1); // 足場番号を1-indexedに変換
+    current = prev[current];
 }
 path.reverse();
 
@@ -91,4 +91,3 @@ console.log(path.join(' '));
 // * `number[]` を適切に使用
 // * `Math.abs()` によるジャンプコスト計算
 // * `fs.readFileSync('/dev/stdin')` で高速読み込み
-

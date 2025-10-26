@@ -12,56 +12,56 @@
  * @returns 該当する連結部分文字列の開始インデックス配列（順不同）
  */
 function findSubstring(s: string, words: string[]): number[] {
-  const result: number[] = [];
-  if (words.length === 0 || s.length === 0) return result;
+    const result: number[] = [];
+    if (words.length === 0 || s.length === 0) return result;
 
-  const wordLen = words[0].length;
-  const wordCount = words.length;
-  const totalLen = wordLen * wordCount;
-  const sLen = s.length;
+    const wordLen = words[0].length;
+    const wordCount = words.length;
+    const totalLen = wordLen * wordCount;
+    const sLen = s.length;
 
-  if (sLen < totalLen) return result;
+    if (sLen < totalLen) return result;
 
-  // 単語の頻度マップを作成
-  const wordMap: Map<string, number> = new Map();
-  for (const word of words) {
-    wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
-  }
-
-  // 各開始オフセットに対してスライディングウィンドウ
-  for (let i = 0; i < wordLen; i++) {
-    let left = i;
-    let right = i;
-    let count = 0;
-    const windowMap: Map<string, number> = new Map();
-
-    while (right + wordLen <= sLen) {
-      const word = s.substring(right, right + wordLen);
-      right += wordLen;
-
-      if (wordMap.has(word)) {
-        windowMap.set(word, (windowMap.get(word) ?? 0) + 1);
-        count++;
-
-        while ((windowMap.get(word) ?? 0) > (wordMap.get(word) ?? 0)) {
-          const leftWord = s.substring(left, left + wordLen);
-          windowMap.set(leftWord, (windowMap.get(leftWord) ?? 1) - 1);
-          left += wordLen;
-          count--;
-        }
-
-        if (count === wordCount) {
-          result.push(left);
-        }
-      } else {
-        windowMap.clear();
-        count = 0;
-        left = right;
-      }
+    // 単語の頻度マップを作成
+    const wordMap: Map<string, number> = new Map();
+    for (const word of words) {
+        wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
     }
-  }
 
-  return result;
+    // 各開始オフセットに対してスライディングウィンドウ
+    for (let i = 0; i < wordLen; i++) {
+        let left = i;
+        let right = i;
+        let count = 0;
+        const windowMap: Map<string, number> = new Map();
+
+        while (right + wordLen <= sLen) {
+            const word = s.substring(right, right + wordLen);
+            right += wordLen;
+
+            if (wordMap.has(word)) {
+                windowMap.set(word, (windowMap.get(word) ?? 0) + 1);
+                count++;
+
+                while ((windowMap.get(word) ?? 0) > (wordMap.get(word) ?? 0)) {
+                    const leftWord = s.substring(left, left + wordLen);
+                    windowMap.set(leftWord, (windowMap.get(leftWord) ?? 1) - 1);
+                    left += wordLen;
+                    count--;
+                }
+
+                if (count === wordCount) {
+                    result.push(left);
+                }
+            } else {
+                windowMap.clear();
+                count = 0;
+                left = right;
+            }
+        }
+    }
+
+    return result;
 }
 // ```
 

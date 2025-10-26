@@ -22,32 +22,32 @@ import * as fs from 'fs';
  * @param {bigint[]} A - 各山の石の個数（BigIntで受け取る）
  * @returns {"First" | "Second"} - 勝者の名前
  */
-function determineWinner(A: bigint[]): "First" | "Second" {
-  // Grundy数の周期（X=2, Y=3 のとき mod 5）
-  const grundyMod: number[] = [0, 0, 1, 1, 2]; // n % 5 → Grundy数
+function determineWinner(A: bigint[]): 'First' | 'Second' {
+    // Grundy数の周期（X=2, Y=3 のとき mod 5）
+    const grundyMod: number[] = [0, 0, 1, 1, 2]; // n % 5 → Grundy数
 
-  let xorSum: number = 0;
-  for (const stones of A) {
-    const g: number = grundyMod[Number(stones % 5n)];
-    xorSum ^= g;
-  }
+    let xorSum: number = 0;
+    for (const stones of A) {
+        const g: number = grundyMod[Number(stones % 5n)];
+        xorSum ^= g;
+    }
 
-  return xorSum === 0 ? "Second" : "First";
+    return xorSum === 0 ? 'Second' : 'First';
 }
 
 /**
  * 標準入力から値を読み取り、勝者を出力するメイン関数
  */
 function main(): void {
-  const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
-  const tokens: string[] = input.split(/\s+/);
+    const input: string = fs.readFileSync('/dev/stdin', 'utf8').trim();
+    const tokens: string[] = input.split(/\s+/);
 
-  const N: number = parseInt(tokens[0], 10);
-  // tokens[1], tokens[2] は X, Y だが今回は固定（X=2, Y=3）なので無視
-  const A: bigint[] = tokens.slice(3).map(x => BigInt(x));
+    const N: number = parseInt(tokens[0], 10);
+    // tokens[1], tokens[2] は X, Y だが今回は固定（X=2, Y=3）なので無視
+    const A: bigint[] = tokens.slice(3).map((x) => BigInt(x));
 
-  const result: "First" | "Second" = determineWinner(A);
-  console.log(result);
+    const result: 'First' | 'Second' = determineWinner(A);
+    console.log(result);
 }
 
 main();

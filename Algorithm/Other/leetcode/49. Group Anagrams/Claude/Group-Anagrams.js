@@ -26,25 +26,25 @@
  * @param {string[]} strs - 文字列の配列
  * @return {string[][]} - グループ化されたアナグラムの2次元配列
  */
-var groupAnagrams = function(strs) {
+var groupAnagrams = function (strs) {
     // Mapオブジェクトを使用してアナグラムをグループ化
     // キー: ソートされた文字列、値: アナグラムの配列
     const anagramMap = new Map();
-    
+
     for (const str of strs) {
         // 文字列をソートしてキーとして使用
         // split('')で文字配列に変換 → sort()でソート → join('')で文字列に戻す
         const sortedStr = str.split('').sort().join('');
-        
+
         // Mapにキーが存在しない場合は新しい配列を作成
         if (!anagramMap.has(sortedStr)) {
             anagramMap.set(sortedStr, []);
         }
-        
+
         // 現在の文字列をグループに追加
         anagramMap.get(sortedStr).push(str);
     }
-    
+
     // Mapの値（アナグラムのグループ）を配列として返却
     return Array.from(anagramMap.values());
 };

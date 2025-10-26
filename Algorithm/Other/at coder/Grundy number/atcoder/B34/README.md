@@ -7,11 +7,11 @@
 
 ## ゲームルール（Nim型）
 
-* 山が N 個、それぞれに Ai 個の石。
-* 一手で **1つの山から**「2個」または「3個」の石を取れる。
-* 石が2個未満の山は操作できない。
-* **最後に操作できなくなった方が負け**。
-* 両者最善を尽くす。
+- 山が N 個、それぞれに Ai 個の石。
+- 一手で **1つの山から**「2個」または「3個」の石を取れる。
+- 石が2個未満の山は操作できない。
+- **最後に操作できなくなった方が負け**。
+- 両者最善を尽くす。
 
 ---
 
@@ -26,9 +26,9 @@ Nimゲームでは、各山のGrundy数の **XOR和が0なら後手必勝**、**
 
 ## Grundy数の定義（X=2, Y=3）
 
-* Grundy(0) = 0（終端：手がない）
-* Grundy(n) = mex({Grundy(n - 2), Grundy(n - 3)})
-* **mex** = Minimum Excluded Value（最小の取り得ない非負整数）
+- Grundy(0) = 0（終端：手がない）
+- Grundy(n) = mex({Grundy(n - 2), Grundy(n - 3)})
+- **mex** = Minimum Excluded Value（最小の取り得ない非負整数）
 
 ### 🎨 Grundy数遷移図（X=2, Y=3）
 
@@ -52,7 +52,7 @@ Grundy: 0  0  1  1  2  0  0  1  1  2  0 ...
 ## `determineWinner` 関数の解説
 
 ```ts
-function determineWinner(A: bigint[]): "First" | "Second"
+function determineWinner(A: bigint[]): 'First' | 'Second';
 ```
 
 ### 🎯 処理目的：
@@ -82,8 +82,8 @@ G(n)    | 0 | 0 | 1 | 1 | 2
 ```ts
 let xorSum: number = 0;
 for (const stones of A) {
-  const g: number = grundyMod[Number(stones % 5n)];
-  xorSum ^= g;
+    const g: number = grundyMod[Number(stones % 5n)];
+    xorSum ^= g;
 }
 ```
 
@@ -111,13 +111,13 @@ xor = 0 ^ 1 = 1 ⇒ First wins
 ### 🔹 勝者判定
 
 ```ts
-return xorSum === 0 ? "Second" : "First";
+return xorSum === 0 ? 'Second' : 'First';
 ```
 
 📌 解釈：
 
-* XOR和が 0 → 負けポジション → **後手必勝**
-* XOR和が ≠0 → 勝ちポジション → **先手必勝**
+- XOR和が 0 → 負けポジション → **後手必勝**
+- XOR和が ≠0 → 勝ちポジション → **先手必勝**
 
 ---
 
@@ -141,18 +141,18 @@ tokens = ["2", "2", "3", "5", "8"]
 ```
 
 ```ts
-  const N: number = parseInt(tokens[0], 10);
-  const A: bigint[] = tokens.slice(3).map(x => BigInt(x));
+const N: number = parseInt(tokens[0], 10);
+const A: bigint[] = tokens.slice(3).map((x) => BigInt(x));
 ```
 
 🧩 必要なデータを整形：
 
-* N = 2
-* A = \[5n, 8n]
+- N = 2
+- A = \[5n, 8n]
 
 ```ts
-  const result: "First" | "Second" = determineWinner(A);
-  console.log(result);
+const result: 'First' | 'Second' = determineWinner(A);
+console.log(result);
 ```
 
 📤 結果出力：
@@ -200,31 +200,31 @@ First
 
 # ✅ 補足：なぜ周期5？
 
-* Grundy数は `Grundy(n) = mex({G(n−2), G(n−3)})`
-* 実際に0から求めると 0,0,1,1,2,0,0,1,... と **周期5** に繰り返す。
-* これは `X=2, Y=3` 固有の性質。
-* よって **mod 5 のGrundy数だけで全体を判定可能**。
+- Grundy数は `Grundy(n) = mex({G(n−2), G(n−3)})`
+- 実際に0から求めると 0,0,1,1,2,0,0,1,... と **周期5** に繰り返す。
+- これは `X=2, Y=3` 固有の性質。
+- よって **mod 5 のGrundy数だけで全体を判定可能**。
 
 ---
 
 # ✅ 総まとめ
 
-| 項目    | 内容                               |
-| ----- | -------------------------------- |
+| 項目       | 内容                             |
+| ---------- | -------------------------------- |
 | 時間計算量 | O(N)                             |
 | 空間計算量 | O(1)                             |
-| メモリ使用 | Grundy配列5要素、入力配列のみ               |
-| 安全性   | `BigInt` 対応で 10^18 でも正確          |
-| 実行環境  | TypeScript 5.1 + Node.js 18.16.1 |
+| メモリ使用 | Grundy配列5要素、入力配列のみ    |
+| 安全性     | `BigInt` 対応で 10^18 でも正確   |
+| 実行環境   | TypeScript 5.1 + Node.js 18.16.1 |
 
 ---
 
 ご希望があれば、この処理をベースに `X, Y` が任意の整数に対応する汎用版も作成できます！
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-07-26 17:32:14 | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1344 Byte |  | 13 ms | 2424 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905581) |
-| 2025-07-26 17:31:28 | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1232 Byte |  | 83 ms | 32088 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905565) |
-| 2025-07-26 17:24:53 | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1148 Byte |  | 42 ms | 23672 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905440) |
-| 2025-07-26 17:18:22 | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1149 Byte |  | 85 ms | 65268 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905314) |
-| 2025-07-26 17:13:18 | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 871 Byte |  | 85 ms | 67968 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905221) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                           | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-07-26 17:32:14                                                                           | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1344 Byte                                                                                 |      | 13 ms                                                                                        | 2424 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905581) |
+| 2025-07-26 17:31:28                                                                           | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1232 Byte                                                                                 |      | 83 ms                                                                                        | 32088 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905565) |
+| 2025-07-26 17:24:53                                                                           | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1148 Byte                                                                                 |      | 42 ms                                                                                        | 23672 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905440) |
+| 2025-07-26 17:18:22                                                                           | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1149 Byte                                                                                 |      | 85 ms                                                                                        | 65268 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905314) |
+| 2025-07-26 17:13:18                                                                           | [B34 - Game 7](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_dg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 871 Byte                                                                                  |      | 85 ms                                                                                        | 67968 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67905221) |

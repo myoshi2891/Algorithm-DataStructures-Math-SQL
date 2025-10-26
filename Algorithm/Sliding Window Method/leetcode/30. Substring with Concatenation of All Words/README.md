@@ -5,14 +5,14 @@
 ## 🔧 前提条件と入力の例
 
 ```ts
-s = "barfoofoobarthefoobarman"
-words = ["bar", "foo", "the"]
+s = 'barfoofoobarthefoobarman';
+words = ['bar', 'foo', 'the'];
 ```
 
-* 単語長 = `3`
-* 単語数 = `3`
-* 探索すべき長さ = `3 * 3 = 9`
-* 検出したいのは、**長さ9の部分文字列が `["bar", "foo", "the"]` の並べ替えと一致するか**。
+- 単語長 = `3`
+- 単語数 = `3`
+- 探索すべき長さ = `3 * 3 = 9`
+- 検出したいのは、**長さ9の部分文字列が `["bar", "foo", "the"]` の並べ替えと一致するか**。
 
 ---
 
@@ -21,7 +21,7 @@ words = ["bar", "foo", "the"]
 ```ts
 const wordMap: Map<string, number> = new Map();
 for (const word of words) {
-  wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
+    wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
 }
 ```
 
@@ -48,7 +48,7 @@ wordMap:
 
 ### 📌 初期状態
 
-* `left = 0`, `right = 0`, `windowMap = {}`, `count = 0`
+- `left = 0`, `right = 0`, `windowMap = {}`, `count = 0`
 
 ### 🔄 ウィンドウスライド（3文字ずつ進む）
 
@@ -60,9 +60,9 @@ s = [bar][foo][foo]...
     left  | right
 ```
 
-* `"bar"` は `wordMap` に存在 → `windowMap["bar"]++`
-* `count++`
-* `count = 1`
+- `"bar"` は `wordMap` に存在 → `windowMap["bar"]++`
+- `count++`
+- `count = 1`
 
 #### 🧩 Step B: `"foo"` を抽出（right: 3→6）
 
@@ -72,8 +72,8 @@ s = [bar][foo][foo]...
         left  | right
 ```
 
-* `"foo"` も OK → `windowMap["foo"]++`
-* `count = 2`
+- `"foo"` も OK → `windowMap["foo"]++`
+- `count = 2`
 
 #### 🧩 Step C: `"foo"` を抽出（right: 6→9）
 
@@ -83,12 +83,12 @@ s = [bar][foo][foo]...
             left  | right
 ```
 
-* `"foo"` → すでに1回カウント済なので **オーバーカウント** 発生！
+- `"foo"` → すでに1回カウント済なので **オーバーカウント** 発生！
 
 #### 🛠️ 修正処理（while）
 
-* `windowMap["foo"] > wordMap["foo"]` → 左端 `"bar"` を削除（left: 0→3）
-* `"bar"` のカウント減 → `count--`
+- `windowMap["foo"] > wordMap["foo"]` → 左端 `"bar"` を削除（left: 0→3）
+- `"bar"` のカウント減 → `count--`
 
 → 結果:
 
@@ -109,16 +109,16 @@ right = 9
 
 例えば：
 
-* `"foobar the"` → OK → 開始位置 `6`
-* `"barthe foo"` → OK → 開始位置 `9`
-* `"thefoobar"` → OK → 開始位置 `12`
+- `"foobar the"` → OK → 開始位置 `6`
+- `"barthe foo"` → OK → 開始位置 `9`
+- `"thefoobar"` → OK → 開始位置 `12`
 
 ---
 
 ## ✅ 結果
 
 ```ts
-出力: [6, 9, 12]
+出力: [6, 9, 12];
 ```
 
 ---
@@ -144,20 +144,20 @@ idx: 0 1 2 3 4 5 6 7 8 9 10...
 
 ## 🧠 スライディングウィンドウの本質
 
-* `windowMap` が `wordMap` と一致する部分を動的に見つける
-* オーバーカウントが出たら `left` をずらして修正
-* 無駄な再計算を避ける効率的アルゴリズム
+- `windowMap` が `wordMap` と一致する部分を動的に見つける
+- オーバーカウントが出たら `left` をずらして修正
+- 無駄な再計算を避ける効率的アルゴリズム
 
 ---
 
 ## 📈 計算量
 
-| 項目     | 計算量                  | 補足                            |
-| ------ | -------------------- | ----------------------------- |
-| 時間     | `O(N * W)`           | `N = s.length`, `W = wordLen` |
-| 空間     | `O(U)`               | `U = ユニークな単語数`                |
-| 実行時間例  | 約 80–100ms（LeetCode） | 十分高速                          |
-| メモリ使用量 | 約 45–55MB（LeetCode）  | 標準的                           |
+| 項目         | 計算量                  | 補足                          |
+| ------------ | ----------------------- | ----------------------------- |
+| 時間         | `O(N * W)`              | `N = s.length`, `W = wordLen` |
+| 空間         | `O(U)`                  | `U = ユニークな単語数`        |
+| 実行時間例   | 約 80–100ms（LeetCode） | 十分高速                      |
+| メモリ使用量 | 約 45–55MB（LeetCode）  | 標準的                        |
 
 ---
 

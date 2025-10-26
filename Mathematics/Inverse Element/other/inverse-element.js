@@ -46,7 +46,7 @@ function main() {
     const [P, Q] = input[0].split(' ').map(BigInt);
     const nums = input[1].split(' ').map(BigInt);
 
-    const inverses = nums.map(q => modPow(q, P - 2n, P));
+    const inverses = nums.map((q) => modPow(q, P - 2n, P));
     console.log(inverses.join(' '));
 
     // ---------- 計測終了 ----------

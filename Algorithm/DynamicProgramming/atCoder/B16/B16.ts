@@ -9,27 +9,27 @@
 import * as fs from 'fs';
 
 function main(input: string): void {
-  const lines: string[] = input.trim().split('\n');
-  const N: number = parseInt(lines[0]);
-  const h: number[] = lines[1].split(' ').map(Number);
+    const lines: string[] = input.trim().split('\n');
+    const N: number = parseInt(lines[0]);
+    const h: number[] = lines[1].split(' ').map(Number);
 
-  if (N === 2) {
-    console.log(Math.abs(h[1] - h[0]));
-    return;
-  }
+    if (N === 2) {
+        console.log(Math.abs(h[1] - h[0]));
+        return;
+    }
 
-  let prev2: number = 0;  // dp[i-2]
-  let prev1: number = Math.abs(h[1] - h[0]);  // dp[i-1]
+    let prev2: number = 0; // dp[i-2]
+    let prev1: number = Math.abs(h[1] - h[0]); // dp[i-1]
 
-  for (let i = 2; i < N; i++) {
-    const cost1: number = prev1 + Math.abs(h[i] - h[i - 1]);
-    const cost2: number = prev2 + Math.abs(h[i] - h[i - 2]);
-    const curr: number = Math.min(cost1, cost2);
-    prev2 = prev1;
-    prev1 = curr;
-  }
+    for (let i = 2; i < N; i++) {
+        const cost1: number = prev1 + Math.abs(h[i] - h[i - 1]);
+        const cost2: number = prev2 + Math.abs(h[i] - h[i - 2]);
+        const curr: number = Math.min(cost1, cost2);
+        prev2 = prev1;
+        prev1 = curr;
+    }
 
-  console.log(prev1);
+    console.log(prev1);
 }
 
 main(fs.readFileSync('/dev/stdin', 'utf8'));

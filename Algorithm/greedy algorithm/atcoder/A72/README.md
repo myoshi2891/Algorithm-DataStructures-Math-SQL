@@ -1,4 +1,3 @@
-
 ---
 
 ## 💡 問題の要点
@@ -75,8 +74,8 @@
 
 ### 🧠 ステップ3：残り操作数で「列」を貪欲に選んで塗る
 
-* 今回は **K = 3**、既に **行を2回塗ってる**ので、残り1回の操作で**どの列を塗るか？**
-* 列ごとに「塗れば何マス増えるか（= H - 黒マス数）」を計算
+- 今回は **K = 3**、既に **行を2回塗ってる**ので、残り1回の操作で**どの列を塗るか？**
+- 列ごとに「塗れば何マス増えるか（= H - 黒マス数）」を計算
 
 ```
 gain[j] = H - 黒マス数
@@ -118,8 +117,8 @@ gain[j] = H - 黒マス数
 
 ## 🔁 この手順を全行選択パターン（2^H）について繰り返す
 
-* 毎回、残りの K から「列の塗り方」を**貪欲法**で選ぶ。
-* 各パターンの黒マス数を比べ、**最大値を記録**。
+- 毎回、残りの K から「列の塗り方」を**貪欲法**で選ぶ。
+- 各パターンの黒マス数を比べ、**最大値を記録**。
 
 ---
 
@@ -133,26 +132,26 @@ gain[j] = H - 黒マス数
 
 ## ✏️ 補足：なぜ行だけ全探索で良いの？
 
-* H ≤ 10 → 全ての行の選び方は **2^10 = 1024通り**
-* W は最大100なので列の全探索は厳しい → **列は貪欲に最適な列だけ選ぶ**
+- H ≤ 10 → 全ての行の選び方は **2^10 = 1024通り**
+- W は最大100なので列の全探索は厳しい → **列は貪欲に最適な列だけ選ぶ**
 
 ---
 
 ## 📌 図と処理の対応まとめ
 
-| ステップ  | 処理            | 図の説明位置 |
-| ----- | ------------- | ------ |
-| ステップ1 | 行選択の全探索       | 🧭     |
-| ステップ2 | 黒マス数カウント      | 📊     |
-| ステップ3 | 残りの列を貪欲で塗る    | 🧠     |
-| ステップ4 | 最終的な黒マス数をカウント | 🔢     |
+| ステップ  | 処理                       | 図の説明位置 |
+| --------- | -------------------------- | ------------ |
+| ステップ1 | 行選択の全探索             | 🧭           |
+| ステップ2 | 黒マス数カウント           | 📊           |
+| ステップ3 | 残りの列を貪欲で塗る       | 🧠           |
+| ステップ4 | 最終的な黒マス数をカウント | 🔢           |
 
 ---
 
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-26 23:04:55 | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1813 Byte | **AC** | 104 ms | 21632 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085480) |
-| 2025-06-26 23:03:03 | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 2034 Byte | **AC** | 17 ms | 6564 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085444) |
-| 2025-06-26 23:01:26 | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1815 Byte | **AC** | 133 ms | 9144 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085411) |
-| 2025-06-26 22:49:19 | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1890 Byte | **AC** | 95 ms | 49472 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085207) |
-| 2025-06-26 22:43:39 | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1817 Byte | **AC** | 103 ms | 49120 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085118) |
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                  | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-26 23:04:55                                                                           | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1813 Byte                                                                                 | **AC** | 104 ms                                                                                       | 21632 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085480) |
+| 2025-06-26 23:03:03                                                                           | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 2034 Byte                                                                                 | **AC** | 17 ms                                                                                        | 6564 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085444) |
+| 2025-06-26 23:01:26                                                                           | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1815 Byte                                                                                 | **AC** | 133 ms                                                                                       | 9144 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085411) |
+| 2025-06-26 22:49:19                                                                           | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1890 Byte                                                                                 | **AC** | 95 ms                                                                                        | 49472 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085207) |
+| 2025-06-26 22:43:39                                                                           | [A72 - Tile Painting](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bt) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1817 Byte                                                                                 | **AC** | 103 ms                                                                                       | 49120 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/67085118) |

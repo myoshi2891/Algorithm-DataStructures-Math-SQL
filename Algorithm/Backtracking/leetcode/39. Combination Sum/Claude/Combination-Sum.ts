@@ -30,42 +30,46 @@
  */
 function combinationSumClaude(candidates: number[], target: number): number[][] {
     const result: number[][] = [];
-    
+
     // 配列をソートして早期終了を可能にする
     candidates.sort((a, b) => a - b);
-    
+
     /**
      * バックトラッキングで組み合わせを探索
      * @param startIndex - 探索開始インデックス
      * @param currentCombination - 現在の組み合わせ
      * @param remainingTarget - 残りの目標値
      */
-    function backtrack(startIndex: number, currentCombination: number[], remainingTarget: number): void {
+    function backtrack(
+        startIndex: number,
+        currentCombination: number[],
+        remainingTarget: number,
+    ): void {
         // 目標値に達した場合、結果に追加
         if (remainingTarget === 0) {
             result.push([...currentCombination]);
             return;
         }
-        
+
         for (let i: number = startIndex; i < candidates.length; i++) {
             const candidate: number = candidates[i];
-            
+
             // 候補値が残り目標値より大きい場合、以降の候補も大きいので終了
             if (candidate > remainingTarget) {
                 break;
             }
-            
+
             // 現在の候補を組み合わせに追加
             currentCombination.push(candidate);
-            
+
             // 同じ候補を再度使用可能なので、startIndexは変更しない
             backtrack(i, currentCombination, remainingTarget - candidate);
-            
+
             // バックトラック：候補を削除
             currentCombination.pop();
         }
     }
-    
+
     backtrack(0, [], target);
     return result;
-};
+}

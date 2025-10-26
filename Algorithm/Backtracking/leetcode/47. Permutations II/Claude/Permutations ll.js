@@ -26,10 +26,10 @@ function permuteUnique(nums) {
     const current = [];
     // 使用済み要素を追跡するフラグ配列
     const used = new Array(nums.length).fill(false);
-    
+
     // ソートして同じ要素を隣接させる（重複スキップのため）
     nums.sort((a, b) => a - b);
-    
+
     /**
      * バックトラッキングで順列を生成するヘルパー関数
      */
@@ -39,32 +39,32 @@ function permuteUnique(nums) {
             result.push([...current]); // 配列のコピーを作成
             return;
         }
-        
+
         // 各要素を試行
         for (let i = 0; i < nums.length; i++) {
             // 既に使用済みの要素はスキップ
             if (used[i]) continue;
-            
+
             // 重複要素のスキップ条件:
             // 同じ値の要素で、前の同じ値がまだ使われていない場合はスキップ
             // これにより重複順列を防ぐ
             if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) {
                 continue;
             }
-            
+
             // 現在の要素を選択
             current.push(nums[i]);
             used[i] = true;
-            
+
             // 再帰的に次の位置を探索
             backtrack();
-            
+
             // バックトラック（選択を取り消し）
             current.pop();
             used[i] = false;
         }
     }
-    
+
     // バックトラッキング開始
     backtrack();
     return result;

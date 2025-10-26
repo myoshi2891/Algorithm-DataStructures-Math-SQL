@@ -25,7 +25,7 @@ function permuteClaude(nums: number[]): number[][] {
     const result: number[][] = [];
     const currentPermutation: number[] = [];
     const used: boolean[] = new Array(nums.length).fill(false);
-    
+
     /**
      * バックトラッキングを用いて順列を生成するヘルパー関数
      * @param nums - 元の配列
@@ -34,35 +34,35 @@ function permuteClaude(nums: number[]): number[][] {
      * @param result - 結果を格納する配列
      */
     function backtrack(
-        nums: number[], 
-        currentPermutation: number[], 
-        used: boolean[], 
-        result: number[][]
+        nums: number[],
+        currentPermutation: number[],
+        used: boolean[],
+        result: number[][],
     ): void {
         // ベースケース: 現在の順列の長さが元の配列と同じになったら完成
         if (currentPermutation.length === nums.length) {
             result.push([...currentPermutation]); // スプレッド演算子でコピーを作成
             return;
         }
-        
+
         // 各要素を試行
         for (let i = 0; i < nums.length; i++) {
             // 既に使用されている要素はスキップ
             if (used[i]) continue;
-            
+
             // 要素を追加してマークする
             currentPermutation.push(nums[i]);
             used[i] = true;
-            
+
             // 再帰的に次の位置を埋める
             backtrack(nums, currentPermutation, used, result);
-            
+
             // バックトラック: 追加した要素を削除してマークを外す
             currentPermutation.pop();
             used[i] = false;
         }
     }
-    
+
     backtrack(nums, currentPermutation, used, result);
     return result;
 }

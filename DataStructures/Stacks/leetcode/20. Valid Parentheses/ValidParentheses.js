@@ -17,22 +17,22 @@
 // ```javascript
 /**
  * 与えられた文字列sが有効な括弧列か判定する関数
- * 
+ *
  * @param {string} s - 入力文字列（括弧のみ： '()[]{}'）
  * @returns {boolean} - 有効な括弧列ならtrue、不正ならfalse
- * 
+ *
  * 制約: 1 <= s.length <= 10^4
- * 
+ *
  * 時間計算量: O(n) （nは文字列の長さ）
  * 空間計算量: O(n) （スタックを使用するため）
  */
 function isValidJs(s) {
     const stack = [];
-    
+
     const bracketMap = {
         ')': '(',
         '}': '{',
-        ']': '['
+        ']': '[',
     };
 
     for (let char of s) {

@@ -29,35 +29,35 @@ const T = input[1];
  * @returns {number} - 最小操作回数
  */
 function minEditDistance(S, T) {
-  const n = S.length;
-  const m = T.length;
+    const n = S.length;
+    const m = T.length;
 
-  // 2行だけ使ってメモリ節約（ローリング配列）
-  const dp = Array.from({ length: 2 }, () => new Array(m + 1).fill(0));
+    // 2行だけ使ってメモリ節約（ローリング配列）
+    const dp = Array.from({ length: 2 }, () => new Array(m + 1).fill(0));
 
-  for (let j = 0; j <= m; j++) {
-    dp[0][j] = j; // Sが空のとき、挿入のみ
-  }
-
-  for (let i = 1; i <= n; i++) {
-    const curr = i % 2;
-    const prev = 1 - curr;
-    dp[curr][0] = i; // Tが空のとき、削除のみ
-
-    for (let j = 1; j <= m; j++) {
-      if (S[i - 1] === T[j - 1]) {
-        dp[curr][j] = dp[prev][j - 1]; // 変更不要
-      } else {
-        dp[curr][j] = Math.min(
-          dp[prev][j] + 1,     // 削除
-          dp[curr][j - 1] + 1, // 挿入
-          dp[prev][j - 1] + 1  // 変更
-        );
-      }
+    for (let j = 0; j <= m; j++) {
+        dp[0][j] = j; // Sが空のとき、挿入のみ
     }
-  }
 
-  return dp[n % 2][m];
+    for (let i = 1; i <= n; i++) {
+        const curr = i % 2;
+        const prev = 1 - curr;
+        dp[curr][0] = i; // Tが空のとき、削除のみ
+
+        for (let j = 1; j <= m; j++) {
+            if (S[i - 1] === T[j - 1]) {
+                dp[curr][j] = dp[prev][j - 1]; // 変更不要
+            } else {
+                dp[curr][j] = Math.min(
+                    dp[prev][j] + 1, // 削除
+                    dp[curr][j - 1] + 1, // 挿入
+                    dp[prev][j - 1] + 1, // 変更
+                );
+            }
+        }
+    }
+
+    return dp[n % 2][m];
 }
 
 console.log(minEditDistance(S, T));
@@ -76,4 +76,3 @@ console.log(minEditDistance(S, T));
 // * メモリ節約のため、`dp` を2行に圧縮（`O(M)`空間）。
 // * 問題の制約に十分対応可能です。
 // * `/dev/stdin` を使ってオンラインジャッジ環境にも対応。
-

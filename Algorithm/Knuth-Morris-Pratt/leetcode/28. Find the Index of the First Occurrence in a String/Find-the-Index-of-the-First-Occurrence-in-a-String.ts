@@ -19,52 +19,52 @@
  * 空間計算量: O(m)
  */
 function strStr(haystack: string, needle: string): number {
-  if (needle.length === 0) return 0;
+    if (needle.length === 0) return 0;
 
-  // KMP: LPS（Longest Prefix Suffix）配列の構築
-  function buildLPS(pattern: string): number[] {
-    const lps: number[] = new Array(pattern.length).fill(0);
-    let length = 0;
-    let i = 1;
+    // KMP: LPS（Longest Prefix Suffix）配列の構築
+    function buildLPS(pattern: string): number[] {
+        const lps: number[] = new Array(pattern.length).fill(0);
+        let length = 0;
+        let i = 1;
 
-    while (i < pattern.length) {
-      if (pattern[i] === pattern[length]) {
-        length++;
-        lps[i] = length;
-        i++;
-      } else {
-        if (length !== 0) {
-          length = lps[length - 1]; // 戻って再試行
-        } else {
-          lps[i] = 0;
-          i++;
+        while (i < pattern.length) {
+            if (pattern[i] === pattern[length]) {
+                length++;
+                lps[i] = length;
+                i++;
+            } else {
+                if (length !== 0) {
+                    length = lps[length - 1]; // 戻って再試行
+                } else {
+                    lps[i] = 0;
+                    i++;
+                }
+            }
         }
-      }
+        return lps;
     }
-    return lps;
-  }
 
-  const lps = buildLPS(needle);
-  let i = 0; // haystack index
-  let j = 0; // needle index
+    const lps = buildLPS(needle);
+    let i = 0; // haystack index
+    let j = 0; // needle index
 
-  while (i < haystack.length) {
-    if (haystack[i] === needle[j]) {
-      i++;
-      j++;
-      if (j === needle.length) {
-        return i - j; // 完全一致発見
-      }
-    } else {
-      if (j !== 0) {
-        j = lps[j - 1]; // needle をスライド
-      } else {
-        i++;
-      }
+    while (i < haystack.length) {
+        if (haystack[i] === needle[j]) {
+            i++;
+            j++;
+            if (j === needle.length) {
+                return i - j; // 完全一致発見
+            }
+        } else {
+            if (j !== 0) {
+                j = lps[j - 1]; // needle をスライド
+            } else {
+                i++;
+            }
+        }
     }
-  }
 
-  return -1; // 一致せず
+    return -1; // 一致せず
 }
 // ```
 

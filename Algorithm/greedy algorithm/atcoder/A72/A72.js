@@ -2,11 +2,11 @@ const fs = require('fs');
 
 const input = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const [H, W, K] = input[0].split(' ').map(Number);
-const grid = input.slice(1).map(line => line.split(''));
+const grid = input.slice(1).map((line) => line.split(''));
 
 let maxBlack = 0;
 
-for (let bit = 0; bit < (1 << H); bit++) {
+for (let bit = 0; bit < 1 << H; bit++) {
     const paintedRows = [];
     for (let i = 0; i < H; i++) {
         if ((bit >> i) & 1) paintedRows.push(i);
@@ -14,9 +14,7 @@ for (let bit = 0; bit < (1 << H); bit++) {
     const rowPaintCount = paintedRows.length;
     if (rowPaintCount > K) continue;
 
-    const painted = Array.from({ length: H }, (_, i) =>
-        grid[i].slice()
-    );
+    const painted = Array.from({ length: H }, (_, i) => grid[i].slice());
 
     // 行を黒く塗る
     for (const row of paintedRows) {

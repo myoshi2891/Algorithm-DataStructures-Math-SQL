@@ -8,17 +8,18 @@
 
 // ### ✅ JavaScript 実装（`fs`使用）
 
-const fs = require("fs");
+const fs = require('fs');
 
-const input = fs.readFileSync("/dev/stdin", "utf8").trim();
+const input = fs.readFileSync('/dev/stdin', 'utf8').trim();
 const N = parseFloat(input);
 
 // x^3 + x = N を満たす x を求める（絶対/相対誤差 0.001 以下）
 let low = 0.0;
-let high = Math.max(1, N);  // N=1のときに0〜1の範囲に解があることを保証
+let high = Math.max(1, N); // N=1のときに0〜1の範囲に解があることを保証
 let mid;
 
-for (let i = 0; i < 100; i++) {  // 高速に収束するため100回で十分
+for (let i = 0; i < 100; i++) {
+    // 高速に収束するため100回で十分
     mid = (low + high) / 2;
     const f = mid ** 3 + mid;
     if (f > N) {
@@ -51,4 +52,3 @@ console.log(mid.toFixed(6));
 // ```
 // 1.000000
 // ```
-

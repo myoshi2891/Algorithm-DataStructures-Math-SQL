@@ -70,7 +70,7 @@ function isSubsetSumDP(a, k) {
         }
     }
 
-    return dp[n][k] ? "Yes" : "No";
+    return dp[n][k] ? 'Yes' : 'No';
 }
 
 // 実行と出力
@@ -123,5 +123,5 @@ function isSubsetSumDP1D(a, k) {
         dp = next;
     }
 
-    return dp[k] ? "Yes" : "No";
+    return dp[k] ? 'Yes' : 'No';
 }

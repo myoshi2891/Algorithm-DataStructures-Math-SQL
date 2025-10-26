@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>双方向連結リスト - 技術解説</title>
+
+        <!-- CDN Libraries -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                text-align: center;
+                margin-bottom: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            .header h1 {
+                font-size: 3rem;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 20px;
+            }
+
+            .header p {
+                font-size: 1.2rem;
+                color: #666;
+            }
+
+            .section {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+            }
+
+            .section h2 {
+                color: #333;
+                font-size: 2rem;
+                margin-bottom: 20px;
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 10px;
+            }
+
+            .section h3 {
+                color: #555;
+                font-size: 1.5rem;
+                margin: 25px 0 15px 0;
+            }
+
+            /* Code Block Styling */
+            pre,
+            code {
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.5;
+            }
+
+            pre {
+                background: #1a1b26 !important;
+                border-radius: 12px;
+                margin: 20px 0;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                position: relative;
+            }
+
+            pre[class*='language-'] {
+                padding: 20px;
+                position: relative;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 2px solid #444;
+                padding-right: 10px;
+                margin-right: 15px;
+            }
+
+            /* Copy Button */
+            .code-container {
+                position: relative;
+            }
+
+            .copy-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                transition: all 0.3s ease;
+                z-index: 10;
+            }
+
+            .copy-btn:hover {
+                background: #5a67d8;
+                transform: scale(1.05);
+            }
+
+            /* Visualization */
+            .visualization {
+                background: #f8f9ff;
+                border-radius: 12px;
+                padding: 30px;
+                margin: 25px 0;
+                border: 2px solid #e2e8f0;
+            }
+
+            .node-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 30px 0;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .node {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 1.1rem;
+                position: relative;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                min-width: 80px;
+                text-align: center;
+            }
+
+            .node:hover {
+                transform: scale(1.1);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            }
+
+            .node::before,
+            .node::after {
+                content: '';
+                position: absolute;
+                width: 20px;
+                height: 2px;
+                background: #333;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .node::before {
+                left: -25px;
+            }
+
+            .node::after {
+                right: -25px;
+            }
+
+            .node:first-child::before {
+                display: none;
+            }
+
+            .node:last-child::after {
+                display: none;
+            }
+
+            /* Operation Steps */
+            .steps {
+                margin: 30px 0;
+            }
+
+            .step {
+                background: #f7fafc;
+                border-left: 4px solid #667eea;
+                padding: 20px;
+                margin: 15px 0;
+                border-radius: 0 10px 10px 0;
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                background: #edf2f7;
+                transform: translateX(5px);
+            }
+
+            .step-number {
+                background: #667eea;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+                font-weight: bold;
+            }
+
+            /* Complexity Table */
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 15px 20px;
+                text-align: left;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .complexity-table th {
+                background: #667eea;
+                color: white;
+                font-weight: bold;
+            }
+
+            .complexity-table tr:hover {
+                background: #f7fafc;
+            }
+
+            /* Interactive Controls */
+            .controls {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 25px 0;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+
+                .header h1 {
+                    font-size: 2rem;
+                }
+
+                .section {
+                    padding: 20px;
+                }
+
+                .node-container {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .node::before,
+                .node::after {
+                    display: none;
+                }
+            }
+
+            /* Animation Classes */
+            .fade-in {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .highlight {
+                animation: pulse 1s ease-in-out;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header animate__animated animate__fadeInDown">
+                <h1>双方向連結リスト</h1>
+                <p>効率的なデータ構造の実装と操作の技術解説</p>
+            </div>
+
+            <!-- Overview Section -->
+            <div class="section fade-in">
+                <h2>アーキテクチャ概要</h2>
+                <p>
+                    双方向連結リストは、各ノードが前後のノードへの参照を持つデータ構造です。この実装では効率的な挿入・削除操作を提供します。
+                </p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre class="line-numbers"><code class="language-python">class Node:
+    __slots__ = ("value", "prev", "next")
+    def __init__(self, value: int):
+        self.value: int = value
+        self.prev: Optional["Node"] = None
+        self.next: Optional["Node"] = None
+
+class DoublyLinkedList:
+    def __init__(self) -> None:
+        self.head: Optional[Node] = None
+        self.tail: Optional[Node] = None
+        self.length: int = 0</code></pre>
+                </div>
+
+                <div class="visualization">
+                    <h3>データ構造の可視化</h3>
+                    <div class="node-container" id="initial-structure">
+                        <div class="node">Head</div>
+                        <div class="node">Node 1</div>
+                        <div class="node">Node 2</div>
+                        <div class="node">Node 3</div>
+                        <div class="node">Tail</div>
+                    </div>
+                    <p style="text-align: center; color: #666; margin-top: 15px">
+                        各ノードは前後のノードへの双方向リンクを持ちます
+                    </p>
+                </div>
+            </div>
+
+            <!-- Append Operation -->
+            <div class="section fade-in">
+                <h2>append操作 - 末尾追加</h2>
+                <p>
+                    リストの末尾に新しい要素を追加する操作です。tailポインタを利用してO(1)の時間で実行できます。
+                </p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre
+                        class="line-numbers"
+                    ><code class="language-python">def append(self, value: int) -> None:
+    """末尾に追加"""
+    node = Node(value)
+    if self.head is None:
+        self.head = self.tail = node
+    else:
+        assert self.tail is not None
+        self.tail.next = node
+        node.prev = self.tail
+        self.tail = node
+    self.length += 1</code></pre>
+                </div>
+
+                <div class="steps">
+                    <h3>処理ステップ</h3>
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        新しいNodeオブジェクトを作成
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        リストが空の場合、headとtailを新ノードに設定
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        要素がある場合、現在のtailの次に新ノードを接続
+                    </div>
+                    <div class="step">
+                        <span class="step-number">4</span>
+                        双方向リンクを確立し、tailを更新
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="demonstrateAppend()">append操作をデモ</button>
+                </div>
+
+                <div class="visualization">
+                    <div class="node-container" id="append-demo">
+                        <div class="node">10</div>
+                        <div class="node">20</div>
+                        <div class="node">30</div>
+                    </div>
+                    <p
+                        id="append-status"
+                        style="
+                            text-align: center;
+                            color: #667eea;
+                            font-weight: bold;
+                            margin-top: 15px;
+                        "
+                    >
+                        append(40)を実行すると...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Insert Operation -->
+            <div class="section fade-in">
+                <h2>insert_at操作 - 指定位置挿入</h2>
+                <p>
+                    指定された位置に新しい要素を挿入する操作です。1-basedのインデックスを使用します。
+                </p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre
+                        class="line-numbers"
+                    ><code class="language-python">def insert_at(self, pos: int, value: int) -> None:
+    """1-based位置 pos に挿入"""
+    if pos < 1 or pos > self.length + 1:
+        raise ValueError("Invalid position for insert")
+    if pos == self.length + 1:
+        self.append(value)
+        return
+
+    node = Node(value)
+    if pos == 1:
+        assert self.head is not None
+        node.next = self.head
+        self.head.prev = node
+        self.head = node
+    else:
+        cur = self.head
+        for _ in range(pos - 1):
+            assert cur is not None
+            cur = cur.next
+
+        assert cur is not None
+        prev_node = cur.prev
+        if prev_node:
+            prev_node.next = node
+        node.prev = prev_node
+        node.next = cur
+        cur.prev = node
+        if pos == 1:
+            self.head = node
+
+    self.length += 1</code></pre>
+                </div>
+
+                <div class="steps">
+                    <h3>処理パターン</h3>
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <strong>先頭挿入 (pos=1):</strong> headポインタの更新のみ
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <strong>末尾挿入 (pos=length+1):</strong> append操作に委譲
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <strong>中間挿入:</strong> 指定位置まで移動後、前後リンクを再構成
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="demonstrateInsert()">insert_at操作をデモ</button>
+                </div>
+
+                <div class="visualization">
+                    <div class="node-container" id="insert-demo">
+                        <div class="node">10</div>
+                        <div class="node">20</div>
+                        <div class="node">30</div>
+                    </div>
+                    <p
+                        id="insert-status"
+                        style="
+                            text-align: center;
+                            color: #667eea;
+                            font-weight: bold;
+                            margin-top: 15px;
+                        "
+                    >
+                        insert_at(2, 15)を実行すると...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Erase Operation -->
+            <div class="section fade-in">
+                <h2>erase_at操作 - 指定位置削除</h2>
+                <p>指定された位置の要素を削除し、前後のノードを適切に接続する操作です。</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre
+                        class="line-numbers"
+                    ><code class="language-python">def erase_at(self, pos: int) -> None:
+    """1-based位置 pos を削除"""
+    if pos < 1 or pos > self.length:
+        raise ValueError("Invalid position for erase")
+
+    cur = self.head
+    for _ in range(pos - 1):
+        assert cur is not None
+        cur = cur.next
+
+    assert cur is not None
+
+    if cur.prev:
+        cur.prev.next = cur.next
+    else:
+        self.head = cur.next
+
+    if cur.next:
+        cur.next.prev = cur.prev
+    else:
+        self.tail = cur.prev
+
+    self.length -= 1</code></pre>
+                </div>
+
+                <div class="steps">
+                    <h3>削除パターン</h3>
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <strong>先頭削除:</strong> headポインタを次のノードに更新
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <strong>末尾削除:</strong> tailポインタを前のノードに更新
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <strong>中間削除:</strong> 前後のノードを直接接続
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="demonstrateErase()">erase_at操作をデモ</button>
+                </div>
+
+                <div class="visualization">
+                    <div class="node-container" id="erase-demo">
+                        <div class="node">10</div>
+                        <div class="node">15</div>
+                        <div class="node">20</div>
+                        <div class="node">30</div>
+                    </div>
+                    <p
+                        id="erase-status"
+                        style="
+                            text-align: center;
+                            color: #667eea;
+                            font-weight: bold;
+                            margin-top: 15px;
+                        "
+                    >
+                        erase_at(2)を実行すると...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Complexity Analysis -->
+            <div class="section fade-in">
+                <h2>計算量解析</h2>
+                <p>各操作の時間計算量と空間計算量を比較分析します。</p>
+
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>時間計算量</th>
+                            <th>空間計算量</th>
+                            <th>備考</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>append</strong></td>
+                            <td>O(1)</td>
+                            <td>O(1)</td>
+                            <td>tailポインタにより高速実行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>insert_at</strong></td>
+                            <td>O(n)</td>
+                            <td>O(1)</td>
+                            <td>位置まで線形探索が必要</td>
+                        </tr>
+                        <tr>
+                            <td><strong>erase_at</strong></td>
+                            <td>O(n)</td>
+                            <td>O(1)</td>
+                            <td>削除位置まで線形探索が必要</td>
+                        </tr>
+                        <tr>
+                            <td><strong>to_list</strong></td>
+                            <td>O(n)</td>
+                            <td>O(n)</td>
+                            <td>全要素を配列にコピー</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="visualization">
+                    <h3>パフォーマンス特性</h3>
+                    <div class="step">
+                        <span class="step-number">✓</span>
+                        <strong>メリット:</strong> 末尾追加はO(1)で高速、双方向アクセス可能
+                    </div>
+                    <div class="step">
+                        <span class="step-number">⚠</span>
+                        <strong>注意点:</strong>
+                        ランダムアクセスはO(n)、配列よりメモリ使用量が多い
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Process Flow -->
+            <div class="section fade-in">
+                <h2>完全な処理フロー</h2>
+                <p>入力から出力まで全体的な処理の流れを解説します。</p>
+
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre
+                        class="line-numbers"
+                    ><code class="language-python">def process_list(N: int, Q: int, A: List[int], queries: List[List[int]]) -> List[int]:
+    dll = DoublyLinkedList()
+
+    # 初期配列でリストを構築
+    for v in A:
+        dll.append(v)
+
+    # クエリを順次処理
+    for q in queries:
+        if q[0] == 1:  # 挿入操作
+            _, P, X = q
+            dll.insert_at(P, X)
+        elif q[0] == 2:  # 削除操作
+            _, P = q
+            dll.erase_at(P)
+        else:
+            raise ValueError("Invalid query type")
+
+    return dll.to_list()</code></pre>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="demonstrateFullProcess()">
+                        完全プロセスをデモ
+                    </button>
+                </div>
+
+                <div class="visualization">
+                    <div id="process-demo">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            初期配列: [10, 20, 30]
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            Query 1: insert_at(2, 15) → [10, 15, 20, 30]
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            Query 2: erase_at(1) → [15, 20, 30]
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            最終結果: [15, 20, 30]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Utility Functions
+            function copyCode(button) {
+                const codeBlock = button.nextElementSibling.querySelector('code');
+                const text = codeBlock.textContent;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const original = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#10b981';
+
+                    setTimeout(() => {
+                        button.textContent = original;
+                        button.style.background = '#667eea';
+                    }, 2000);
+                });
+            }
+
+            // Animation Controllers
+            class AnimationController {
+                constructor() {
+                    this.isAnimating = false;
+                }
+
+                async animate(element, className, duration = 1000) {
+                    if (this.isAnimating) return;
+                    this.isAnimating = true;
+
+                    element.classList.add(className);
+                    await this.sleep(duration);
+                    element.classList.remove(className);
+
+                    this.isAnimating = false;
+                }
+
+                sleep(ms) {
+                    return new Promise((resolve) => setTimeout(resolve, ms));
+                }
+
+                createNode(value, isNew = false) {
+                    const node = document.createElement('div');
+                    node.className = 'node' + (isNew ? ' animate__animated animate__bounceIn' : '');
+                    node.textContent = value;
+                    return node;
+                }
+            }
+
+            const animationController = new AnimationController();
+
+            // Demonstration Functions
+            async function demonstrateAppend() {
+                const container = document.getElementById('append-demo');
+                const status = document.getElementById('append-status');
+
+                status.textContent = '新しいノード(40)を作成中...';
+                await animationController.sleep(1000);
+
+                const newNode = animationController.createNode('40', true);
+                container.appendChild(newNode);
+
+                status.textContent = 'append操作完了！ [10, 20, 30, 40]';
+
+                setTimeout(() => {
+                    container.removeChild(newNode);
+                    status.textContent = 'append(40)を実行すると...';
+                }, 3000);
+            }
+
+            async function demonstrateInsert() {
+                const container = document.getElementById('insert-demo');
+                const status = document.getElementById('insert-status');
+                const nodes = container.children;
+
+                status.textContent = 'position 2 に 15 を挿入中...';
+                await animationController.sleep(1000);
+
+                // Highlight position
+                await animationController.animate(nodes[1], 'highlight');
+
+                const newNode = animationController.createNode('15', true);
+                container.insertBefore(newNode, nodes[1]);
+
+                status.textContent = 'insert_at操作完了！ [10, 15, 20, 30]';
+
+                setTimeout(() => {
+                    container.removeChild(newNode);
+                    status.textContent = 'insert_at(2, 15)を実行すると...';
+                }, 3000);
+            }
+
+            async function demonstrateErase() {
+                const container = document.getElementById('erase-demo');
+                const status = document.getElementById('erase-status');
+                const nodes = Array.from(container.children);
+
+                status.textContent = 'position 2 の要素を削除中...';
+                await animationController.sleep(1000);
+
+                // Highlight target node
+                await animationController.animate(nodes[1], 'highlight');
+
+                nodes[1].classList.add('animate__animated', 'animate__fadeOutUp');
+
+                setTimeout(() => {
+                    container.removeChild(nodes[1]);
+                    status.textContent = 'erase_at操作完了！ [10, 20, 30]';
+                }, 600);
+
+                setTimeout(() => {
+                    const newNode = animationController.createNode('15');
+                    container.insertBefore(newNode, nodes[1]);
+                    status.textContent = 'erase_at(2)を実行すると...';
+                }, 4000);
+            }
+
+            async function demonstrateFullProcess() {
+                const processDemo = document.getElementById('process-demo');
+                const steps = processDemo.querySelectorAll('.step');
+
+                for (let i = 0; i < steps.length; i++) {
+                    await animationController.animate(steps[i], 'highlight');
+                    await animationController.sleep(1500);
+                }
+            }
+
+            // Initialize page animations
+            document.addEventListener('DOMContentLoaded', () => {
+                // Add fade-in animation to sections with delay
+                const sections = document.querySelectorAll('.section');
+                sections.forEach((section, index) => {
+                    setTimeout(() => {
+                        section.style.opacity = '0';
+                        section.style.transform = 'translateY(30px)';
+                        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+
+                        setTimeout(() => {
+                            section.style.opacity = '1';
+                            section.style.transform = 'translateY(0)';
+                        }, 100);
+                    }, index * 200);
+                });
+
+                // Smooth scroll for better UX
+                document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                            });
+                        }
+                    });
+                });
+
+                // Interactive node hover effects
+                document.querySelectorAll('.node').forEach((node) => {
+                    node.addEventListener('mouseenter', function () {
+                        this.style.transform = 'scale(1.1) rotate(2deg)';
+                        this.style.transition = 'transform 0.3s ease';
+                    });
+
+                    node.addEventListener('mouseleave', function () {
+                        this.style.transform = 'scale(1) rotate(0deg)';
+                    });
+                });
+
+                // Code block hover effects
+                document.querySelectorAll('pre').forEach((pre) => {
+                    pre.addEventListener('mouseenter', function () {
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.4)';
+                        this.style.transition = 'all 0.3s ease';
+                    });
+
+                    pre.addEventListener('mouseleave', function () {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+                    });
+                });
+
+                // Advanced visualization controller
+                initializeAdvancedVisualizations();
+            });
+
+            // Advanced Visualization System
+            function initializeAdvancedVisualizations() {
+                createInteractiveComplexityChart();
+                setupDynamicCodeHighlighting();
+                initializeStepByStepTracing();
+            }
+
+            function createInteractiveComplexityChart() {
+                const tableRows = document.querySelectorAll('.complexity-table tr');
+
+                tableRows.forEach((row, index) => {
+                    if (index === 0) return; // Skip header
+
+                    row.addEventListener('click', function () {
+                        // Remove previous highlights
+                        tableRows.forEach((r) => r.classList.remove('highlight'));
+
+                        // Add highlight to clicked row
+                        this.classList.add('highlight');
+
+                        // Show detailed explanation
+                        showComplexityExplanation(index);
+                    });
+                });
+            }
+
+            function showComplexityExplanation(operationIndex) {
+                const explanations = [
+                    {
+                        title: 'append操作の詳細',
+                        content:
+                            'tailポインタを直接使用するため、リストの長さに関係なく一定時間で実行できます。',
+                        complexity: 'O(1)',
+                    },
+                    {
+                        title: 'insert_at操作の詳細',
+                        content:
+                            '指定位置まで先頭から順次移動する必要があるため、最悪の場合O(n)時間が必要です。',
+                        complexity: 'O(n)',
+                    },
+                    {
+                        title: 'erase_at操作の詳細',
+                        content:
+                            '削除対象のノードまで移動が必要ですが、削除自体は前後のリンクを変更するだけです。',
+                        complexity: 'O(n)',
+                    },
+                    {
+                        title: 'to_list操作の詳細',
+                        content:
+                            '全ノードを順次訪問して配列に変換するため、要素数に比例した時間とメモリが必要です。',
+                        complexity: 'O(n)',
+                    },
+                ];
+
+                const explanation = explanations[operationIndex - 1];
+                if (explanation) {
+                    showTooltip(explanation);
+                }
+            }
+
+            function showTooltip(explanation) {
+                // Remove existing tooltip
+                const existingTooltip = document.querySelector('.complexity-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'complexity-tooltip animate__animated animate__fadeIn';
+                tooltip.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                max-width: 400px;
+                text-align: center;
+                border: 2px solid #667eea;
+            `;
+
+                tooltip.innerHTML = `
+                <h3 style="color: #667eea; margin-bottom: 15px;">${explanation.title}</h3>
+                <p style="color: #666; line-height: 1.6; margin-bottom: 15px;">${explanation.content}</p>
+                <div style="background: #667eea; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold;">
+                    計算量: ${explanation.complexity}
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    position: absolute;
+                    top: 10px;
+                    right: 15px;
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: #999;
+                ">×</button>
+            `;
+
+                document.body.appendChild(tooltip);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (tooltip.parentElement) {
+                        tooltip.remove();
+                    }
+                }, 5000);
+            }
+
+            function setupDynamicCodeHighlighting() {
+                const codeBlocks = document.querySelectorAll('pre code');
+
+                codeBlocks.forEach((block) => {
+                    const lines = block.innerHTML.split('\n');
+                    block.innerHTML = lines
+                        .map(
+                            (line, index) =>
+                                `<span class="code-line" data-line="${index + 1}">${line}</span>`,
+                        )
+                        .join('\n');
+
+                    // Add click handlers for line highlighting
+                    block.querySelectorAll('.code-line').forEach((line) => {
+                        line.addEventListener('click', function () {
+                            // Remove previous highlights
+                            block
+                                .querySelectorAll('.code-line')
+                                .forEach((l) => l.classList.remove('highlighted-line'));
+
+                            // Highlight clicked line
+                            this.classList.add('highlighted-line');
+
+                            // Show line explanation
+                            showLineExplanation(this.textContent, this.dataset.line);
+                        });
+                    });
+                });
+            }
+
+            function showLineExplanation(lineContent, lineNumber) {
+                const explanationDiv = document.createElement('div');
+                explanationDiv.className =
+                    'line-explanation animate__animated animate__slideInRight';
+                explanationDiv.style.cssText = `
+                position: fixed;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #1a1b26;
+                color: #a9b1d6;
+                padding: 20px;
+                border-radius: 10px;
+                max-width: 300px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                border-left: 4px solid #667eea;
+            `;
+
+                explanationDiv.innerHTML = `
+                <div style="color: #667eea; font-weight: bold; margin-bottom: 10px;">
+                    Line ${lineNumber}
+                </div>
+                <div style="font-family: monospace; font-size: 0.9em; margin-bottom: 10px; opacity: 0.8;">
+                    ${lineContent.trim()}
+                </div>
+                <div style="font-size: 0.9em; line-height: 1.4;">
+                    ${getLineExplanation(lineContent.trim())}
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    position: absolute;
+                    top: 5px;
+                    right: 10px;
+                    background: none;
+                    border: none;
+                    color: #667eea;
+                    font-size: 16px;
+                    cursor: pointer;
+                ">×</button>
+            `;
+
+                document.body.appendChild(explanationDiv);
+
+                setTimeout(() => {
+                    if (explanationDiv.parentElement) {
+                        explanationDiv.remove();
+                    }
+                }, 4000);
+            }
+
+            function getLineExplanation(lineContent) {
+                const explanations = {
+                    'node = Node(value)': '新しいNodeインスタンスを作成し、値を設定します',
+                    'if self.head is None:': 'リストが空かどうかをチェックします',
+                    'self.head = self.tail = node':
+                        'リストの最初の要素として、headとtailを同じノードに設定',
+                    'self.tail.next = node': '現在の末尾ノードの次ポインタを新ノードに設定',
+                    'node.prev = self.tail': '新ノードの前ポインタを現在の末尾に設定',
+                    'self.tail = node': 'tailポインタを新ノードに更新',
+                    'self.length += 1': 'リストの長さをインクリメント',
+                    'cur = self.head': '現在位置を先頭ノードに初期化',
+                    'cur = cur.next': '次のノードに移動',
+                    'cur.prev.next = cur.next': '削除ノードの前ノードを次ノードに接続',
+                    'cur.next.prev = cur.prev': '削除ノードの次ノードを前ノードに接続',
+                };
+
+                for (const [pattern, explanation] of Object.entries(explanations)) {
+                    if (lineContent.includes(pattern)) {
+                        return explanation;
+                    }
+                }
+
+                return 'この行の詳細な説明は利用できません';
+            }
+
+            function initializeStepByStepTracing() {
+                // Create step-by-step tracing functionality
+                const tracingButtons = document.querySelectorAll('.btn');
+
+                tracingButtons.forEach((button) => {
+                    button.addEventListener('click', function () {
+                        this.classList.add('animate__animated', 'animate__pulse');
+
+                        setTimeout(() => {
+                            this.classList.remove('animate__animated', 'animate__pulse');
+                        }, 1000);
+                    });
+                });
+            }
+
+            // Memory usage visualization (simplified)
+            function createMemoryVisualization() {
+                const memorySection = document.createElement('div');
+                memorySection.className = 'section fade-in';
+                memorySection.innerHTML = `
+                <h2>メモリ使用パターン</h2>
+                <div class="visualization">
+                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                        <div style="text-align: center;">
+                            <h4>配列 (Array)</h4>
+                            <div style="display: flex; gap: 2px;">
+                                <div class="memory-block" style="background: #10b981;">1</div>
+                                <div class="memory-block" style="background: #10b981;">2</div>
+                                <div class="memory-block" style="background: #10b981;">3</div>
+                                <div class="memory-block" style="background: #10b981;">4</div>
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">連続メモリ</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h4>連結リスト</h4>
+                            <div style="display: flex; gap: 20px; align-items: center;">
+                                <div class="memory-block" style="background: #667eea;">1</div>
+                                <span>→</span>
+                                <div class="memory-block" style="background: #667eea;">2</div>
+                                <span>→</span>
+                                <div class="memory-block" style="background: #667eea;">3</div>
+                            </div>
+                            <p style="margin-top: 10px; color: #666; font-size: 0.9em;">分散メモリ</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                // Add memory block styling
+                const style = document.createElement('style');
+                style.textContent = `
+                .memory-block {
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 5px;
+                }
+            `;
+                document.head.appendChild(style);
+
+                document.querySelector('.container').appendChild(memorySection);
+            }
+
+            // Add CSS for highlighted lines
+            const additionalStyle = document.createElement('style');
+            additionalStyle.textContent = `
+            .highlighted-line {
+                background-color: rgba(102, 126, 234, 0.2) !important;
+                border-radius: 3px;
+                padding: 2px 5px;
+                margin: 0 -5px;
+                cursor: pointer;
+            }
+
+            .code-line {
+                display: inline-block;
+                width: 100%;
+                padding: 1px 0;
+                transition: background-color 0.2s ease;
+            }
+
+            .code-line:hover {
+                background-color: rgba(102, 126, 234, 0.1);
+                border-radius: 3px;
+                cursor: pointer;
+            }
+        `;
+            document.head.appendChild(additionalStyle);
+
+            // Initialize memory visualization
+            setTimeout(() => {
+                createMemoryVisualization();
+            }, 2000);
+        </script>
+    </body>
+</html>

@@ -15,18 +15,18 @@ import * as fs from 'fs';
  * @returns "First" または "Second"
  */
 function determineWinner(N: number, moves: number[]): string {
-  const dp: boolean[] = new Array(N + 1).fill(false); // dp[i]: 石がi個の状態で先手が勝てるか
+    const dp: boolean[] = new Array(N + 1).fill(false); // dp[i]: 石がi個の状態で先手が勝てるか
 
-  for (let i = 1; i <= N; i++) {
-    for (const move of moves) {
-      if (i - move >= 0 && !dp[i - move]) {
-        dp[i] = true; // 相手が負ける状態に遷移できるなら先手勝ち
-        break;
-      }
+    for (let i = 1; i <= N; i++) {
+        for (const move of moves) {
+            if (i - move >= 0 && !dp[i - move]) {
+                dp[i] = true; // 相手が負ける状態に遷移できるなら先手勝ち
+                break;
+            }
+        }
     }
-  }
 
-  return dp[N] ? "First" : "Second";
+    return dp[N] ? 'First' : 'Second';
 }
 
 /**
@@ -34,24 +34,24 @@ function determineWinner(N: number, moves: number[]): string {
  * 処理時間とメモリ使用量も標準エラー出力に表示。
  */
 function main(): void {
-  const startTime = process.hrtime.bigint(); // ナノ秒で処理開始時間計測
+    const startTime = process.hrtime.bigint(); // ナノ秒で処理開始時間計測
 
-  const input: string = fs.readFileSync('/dev/stdin', 'utf-8');
-  const tokens: number[] = input.trim().split(/\s+/).map(Number);
+    const input: string = fs.readFileSync('/dev/stdin', 'utf-8');
+    const tokens: number[] = input.trim().split(/\s+/).map(Number);
 
-  const N: number = tokens[0];
-  const K: number = tokens[1];
-  const moves: number[] = tokens.slice(2, 2 + K);
+    const N: number = tokens[0];
+    const K: number = tokens[1];
+    const moves: number[] = tokens.slice(2, 2 + K);
 
-  const result = determineWinner(N, moves);
-  console.log(result);
+    const result = determineWinner(N, moves);
+    console.log(result);
 
-  const endTime = process.hrtime.bigint(); // ナノ秒で処理終了時間計測
-  const elapsedMs = Number(endTime - startTime) / 1e6; // ミリ秒に変換
-  const memoryMb = process.memoryUsage().heapUsed / 1024 / 1024; // 使用ヒープメモリ（MB）
+    const endTime = process.hrtime.bigint(); // ナノ秒で処理終了時間計測
+    const elapsedMs = Number(endTime - startTime) / 1e6; // ミリ秒に変換
+    const memoryMb = process.memoryUsage().heapUsed / 1024 / 1024; // 使用ヒープメモリ（MB）
 
-  console.error(`Time: ${elapsedMs.toFixed(3)} ms`);
-  console.error(`Memory: ${memoryMb.toFixed(3)} MB`);
+    console.error(`Time: ${elapsedMs.toFixed(3)} ms`);
+    console.error(`Memory: ${memoryMb.toFixed(3)} MB`);
 }
 
 main();

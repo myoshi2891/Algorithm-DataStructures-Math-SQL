@@ -1,4 +1,3 @@
-
 ---
 
 ## ✅ 問題の要点まとめ
@@ -26,15 +25,15 @@ FT 配列 tree:  t1 t2 t3 t4 t5 t6 t7 t8  （1-indexed）
 各 `tree[i]` には、特定の区間の合計が入っています。
 
 | index i | tree\[i]がカバーする範囲 | 範囲の長さ = i & -i |
-| ------- | ---------------- | -------------- |
-| 1       | A\[1]            | 1              |
-| 2       | A\[1..2]         | 2              |
-| 3       | A\[3]            | 1              |
-| 4       | A\[1..4]         | 4              |
-| 5       | A\[5]            | 1              |
-| 6       | A\[5..6]         | 2              |
-| 7       | A\[7]            | 1              |
-| 8       | A\[1..8]         | 8              |
+| ------- | ------------------------ | ------------------- |
+| 1       | A\[1]                    | 1                   |
+| 2       | A\[1..2]                 | 2                   |
+| 3       | A\[3]                    | 1                   |
+| 4       | A\[1..4]                 | 4                   |
+| 5       | A\[5]                    | 1                   |
+| 6       | A\[5..6]                 | 2                   |
+| 7       | A\[7]                    | 1                   |
+| 8       | A\[1..8]                 | 8                   |
 
 ---
 
@@ -117,15 +116,15 @@ tree = [ , 0, 0, 16, 16, 0, 24, 0, 40]
 
 #### `sum(7)` を計算（合計 A\[1..7]）
 
-* index = 7 → + tree\[7] = 0
-* index = 6 → + tree\[6] = 24
-* index = 4 → + tree\[4] = 16
+- index = 7 → + tree\[7] = 0
+- index = 6 → + tree\[6] = 24
+- index = 4 → + tree\[4] = 16
   → 合計：`0 + 24 + 16 = 40`
 
 #### `sum(3)` を計算（合計 A\[1..3]）
 
-* index = 3 → + tree\[3] = 16
-* index = 2 → + tree\[2] = 0
+- index = 3 → + tree\[3] = 16
+- index = 2 → + tree\[2] = 0
   → 合計：16
 
 ➡ `40 - 16 = 24`
@@ -136,8 +135,8 @@ tree = [ , 0, 0, 16, 16, 0, 24, 0, 40]
 
 これは `sum(6)`
 
-* index = 6 → +24
-* index = 4 → +16 → 合計：40
+- index = 6 → +24
+- index = 4 → +16 → 合計：40
 
 ---
 
@@ -170,16 +169,17 @@ tree = [ , 0, 0, 16, 16, 0, 24, 0, 40]
 
 例：
 
-* 6 (0110) → `6 & -6 = 2` → 2 だけ残る
-* 4 (0100) → `4 & -4 = 4`
+- 6 (0110) → `6 & -6 = 2` → 2 だけ残る
+- 4 (0100) → `4 & -4 = 4`
 
 この操作で「BITの親子関係」を高速にたどれる。
 
 ---
-| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題 | ユーザ | 言語 | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果 | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2025-06-13 18:18:42 | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016) | 1000 | 1512 Byte | **AC** | 75 ms | 36992 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697910) |
-| 2025-06-13 18:11:23 | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002) | 1000 | 1473 Byte | **AC** | 28 ms | 6308 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697804) |
-| 2025-06-13 18:08:06 | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055) | 1000 | 1242 Byte | **AC** | 241 ms | 33556 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697752) |
-| 2025-06-13 17:53:16 | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000 | 1579 Byte | **AC** | 137 ms | 79008 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697551) |
-| 2025-06-13 17:48:36 | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009) | 1000 | 1573 Byte | **AC** | 214 ms | 93588 KiB | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697508) |
+
+| [提出日時](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=created) | 問題                                                                                            | ユーザ                                            | 言語                                                                                                        | [得点](https://atcoder.jp/contests/tessoku-book/submissions/me?desc=true&orderBy=score) | [コード長](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=source_length) | 結果   | [実行時間](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=time_consumption) | [メモリ](https://atcoder.jp/contests/tessoku-book/submissions/me?orderBy=memory_consumption) |                                                                       |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 2025-06-13 18:18:42                                                                           | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [PHP (php 8.2.8)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5016)                  | 1000                                                                                    | 1512 Byte                                                                                 | **AC** | 75 ms                                                                                        | 36992 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697910) |
+| 2025-06-13 18:11:23                                                                           | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Go (go 1.20.6)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5002)                   | 1000                                                                                    | 1473 Byte                                                                                 | **AC** | 28 ms                                                                                        | 6308 KiB                                                                                     | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697804) |
+| 2025-06-13 18:08:06                                                                           | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [Python (CPython 3.11.4)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5055)          | 1000                                                                                    | 1242 Byte                                                                                 | **AC** | 241 ms                                                                                       | 33556 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697752) |
+| 2025-06-13 17:53:16                                                                           | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [TypeScript 5.1 (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5058) | 1000                                                                                    | 1579 Byte                                                                                 | **AC** | 137 ms                                                                                       | 79008 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697551) |
+| 2025-06-13 17:48:36                                                                           | [A59 - RSQ (Range Sum Queries)](https://atcoder.jp/contests/tessoku-book/tasks/tessoku_book_bg) | [myoshizumi](https://atcoder.jp/users/myoshizumi) | [JavaScript (Node.js 18.16.1)](https://atcoder.jp/contests/tessoku-book/submissions/me?f.Language=5009)     | 1000                                                                                    | 1573 Byte                                                                                 | **AC** | 214 ms                                                                                       | 93588 KiB                                                                                    | [詳細](https://atcoder.jp/contests/tessoku-book/submissions/66697508) |

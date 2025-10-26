@@ -24,14 +24,14 @@ result:  [0,  0,  0,  0,  0]
 
 ### i = 2（digit1 = '3' → 3）
 
-* 内側ループ（num2 の各桁を右から左へ）
+- 内側ループ（num2 の各桁を右から左へ）
 
 #### j = 1（digit2 = '5' → 5）
 
-* `mul = 3 × 5 = 15`
-* `sum = 15 + result[4] (0) = 15`
-* `result[4] = 15 % 10 = 5`
-* `result[3] += Math.floor(15 / 10) = 1`
+- `mul = 3 × 5 = 15`
+- `sum = 15 + result[4] (0) = 15`
+- `result[4] = 15 % 10 = 5`
+- `result[3] += Math.floor(15 / 10) = 1`
 
 ```
 result: [0, 0, 0, 1, 5]
@@ -39,10 +39,10 @@ result: [0, 0, 0, 1, 5]
 
 #### j = 0（digit2 = '4' → 4）
 
-* `mul = 3 × 4 = 12`
-* `sum = 12 + result[3] (1) = 13`
-* `result[3] = 13 % 10 = 3`
-* `result[2] += Math.floor(13 / 10) = 1`
+- `mul = 3 × 4 = 12`
+- `sum = 12 + result[3] (1) = 13`
+- `result[3] = 13 % 10 = 3`
+- `result[2] += Math.floor(13 / 10) = 1`
 
 ```
 result: [0, 0, 1, 3, 5]
@@ -54,10 +54,10 @@ result: [0, 0, 1, 3, 5]
 
 #### j = 1（digit2 = '5' → 5）
 
-* `mul = 2 × 5 = 10`
-* `sum = 10 + result[3] (3) = 13`
-* `result[3] = 13 % 10 = 3`
-* `result[2] += Math.floor(13 / 10) = 2`
+- `mul = 2 × 5 = 10`
+- `sum = 10 + result[3] (3) = 13`
+- `result[3] = 13 % 10 = 3`
+- `result[2] += Math.floor(13 / 10) = 2`
 
 ```
 result: [0, 0, 2, 3, 5]
@@ -65,10 +65,10 @@ result: [0, 0, 2, 3, 5]
 
 #### j = 0（digit2 = '4' → 4）
 
-* `mul = 2 × 4 = 8`
-* `sum = 8 + result[2] (2) = 10`
-* `result[2] = 0`
-* `result[1] += 1`
+- `mul = 2 × 4 = 8`
+- `sum = 8 + result[2] (2) = 10`
+- `result[2] = 0`
+- `result[1] += 1`
 
 ```
 result: [0, 1, 0, 3, 5]
@@ -80,10 +80,10 @@ result: [0, 1, 0, 3, 5]
 
 #### j = 1（digit2 = '5' → 5）
 
-* `mul = 1 × 5 = 5`
-* `sum = 5 + result[2] (0) = 5`
-* `result[2] = 5`
-* `result[1] += 0`
+- `mul = 1 × 5 = 5`
+- `sum = 5 + result[2] (0) = 5`
+- `result[2] = 5`
+- `result[1] += 0`
 
 ```
 result: [0, 1, 5, 3, 5]
@@ -91,10 +91,10 @@ result: [0, 1, 5, 3, 5]
 
 #### j = 0（digit2 = '4' → 4）
 
-* `mul = 1 × 4 = 4`
-* `sum = 4 + result[1] (1) = 5`
-* `result[1] = 5`
-* `result[0] += 0`
+- `mul = 1 × 4 = 4`
+- `sum = 4 + result[1] (1) = 5`
+- `result[1] = 5`
+- `result[0] += 0`
 
 ```
 result: [0, 5, 5, 3, 5]

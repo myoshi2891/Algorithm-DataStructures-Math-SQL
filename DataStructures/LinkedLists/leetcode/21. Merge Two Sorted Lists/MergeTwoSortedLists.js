@@ -24,9 +24,9 @@ function ListNodeJs(val, next = null) {
 
 /**
  * 2つのソート済み連結リストをマージする関数
- * 
- * @param {ListNode|null} list1 
- * @param {ListNode|null} list2 
+ *
+ * @param {ListNode|null} list1
+ * @param {ListNode|null} list2
  * @returns {ListNode|null}
  */
 function mergeTwoListsJs(list1, list2) {
@@ -90,4 +90,3 @@ function mergeTwoListsJs(list1, list2) {
 // }
 // console.log(result); // => [1,1,2,3,4,4]
 // ```
-

@@ -17,7 +17,7 @@
 // ## Node.js (v16.17.1) 実装
 
 // ```javascript
-const fs = require("fs");
+const fs = require('fs');
 
 /**
  * @param {number} n - 必要なりんごの個数
@@ -46,7 +46,7 @@ function minAppleCost(n, a, b) {
 }
 
 // ---- 標準入力処理 ----
-const input = fs.readFileSync(0, "utf8").trim().split(" ").map(Number);
+const input = fs.readFileSync(0, 'utf8').trim().split(' ').map(Number);
 const [n, a, b] = input;
 const result = minAppleCost(n, a, b);
 console.log(result);

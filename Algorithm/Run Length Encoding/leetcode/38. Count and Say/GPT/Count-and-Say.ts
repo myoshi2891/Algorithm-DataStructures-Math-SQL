@@ -13,7 +13,6 @@
 // Beats
 // 66.30%
 
-
 // ### ✅ TypeScript 実装（関数のみ）
 
 // ```typescript
@@ -27,28 +26,28 @@
  * 空間計算量: O(m)      // 出力文字列の長さに比例
  */
 function countAndSayGpt(n: number): string {
-  if (n === 1) return "1";
+    if (n === 1) return '1';
 
-  let result: string = "1";
+    let result: string = '1';
 
-  for (let i = 2; i <= n; i++) {
-    let temp: string[] = [];
-    let count: number = 1;
+    for (let i = 2; i <= n; i++) {
+        let temp: string[] = [];
+        let count: number = 1;
 
-    for (let j = 1; j <= result.length; j++) {
-      if (result[j] === result[j - 1]) {
-        count++;
-      } else {
-        temp.push(count.toString());
-        temp.push(result[j - 1]);
-        count = 1;
-      }
+        for (let j = 1; j <= result.length; j++) {
+            if (result[j] === result[j - 1]) {
+                count++;
+            } else {
+                temp.push(count.toString());
+                temp.push(result[j - 1]);
+                count = 1;
+            }
+        }
+
+        result = temp.join('');
     }
 
-    result = temp.join("");
-  }
-
-  return result;
+    return result;
 }
 // ```
 
@@ -87,4 +86,3 @@ function countAndSayGpt(n: number): string {
 // * 再帰版（関数呼び出しで構成）
 // * ジェネレーターを使ってメモリ効率向上
 // * RLE部分をユーティリティ関数に分離
-

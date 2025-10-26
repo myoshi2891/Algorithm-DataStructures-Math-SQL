@@ -38,10 +38,10 @@
 // 以下は修正版です：
 
 // ```javascript
-const fs = require("fs");
-const input = fs.readFileSync("/dev/stdin", "utf-8").trim().split("\n");
-const [N, K] = input[0].split(" ").map(Number);
-const A = input[1].split(" ").map(Number);
+const fs = require('fs');
+const input = fs.readFileSync('/dev/stdin', 'utf-8').trim().split('\n');
+const [N, K] = input[0].split(' ').map(Number);
+const A = input[1].split(' ').map(Number);
 
 /**
  * subsetSumKで和Kを作る最小個数で辞書順最大な列を求める
@@ -50,38 +50,37 @@ const A = input[1].split(" ").map(Number);
  * @returns {[number, number[]] | [-1]} - 条件に合う列 or -1
  */
 function solve(A, K) {
-  const dp = Array(K + 1).fill(null);
-  dp[0] = {
-    count: 0,
-    list: [],
-  };
+    const dp = Array(K + 1).fill(null);
+    dp[0] = {
+        count: 0,
+        list: [],
+    };
 
-  for (const a of A.sort((a, b) => b - a)) {
-    // 降順に並べて大きい数から使えば辞書順最大化の効果あり
-    for (let sum = K; sum >= 0; sum--) {
-      if (dp[sum] === null) continue;
-      const nextSum = sum + a;
-      if (nextSum > K) continue;
+    for (const a of A.sort((a, b) => b - a)) {
+        // 降順に並べて大きい数から使えば辞書順最大化の効果あり
+        for (let sum = K; sum >= 0; sum--) {
+            if (dp[sum] === null) continue;
+            const nextSum = sum + a;
+            if (nextSum > K) continue;
 
-      const nextCount = dp[sum].count + 1;
-      const nextList = [...dp[sum].list, a];
+            const nextCount = dp[sum].count + 1;
+            const nextList = [...dp[sum].list, a];
 
-      if (
-        dp[nextSum] === null ||
-        nextCount < dp[nextSum].count ||
-        (nextCount === dp[nextSum].count &&
-          isLexGreater(nextList, dp[nextSum].list))
-      ) {
-        dp[nextSum] = {
-          count: nextCount,
-          list: nextList,
-        };
-      }
+            if (
+                dp[nextSum] === null ||
+                nextCount < dp[nextSum].count ||
+                (nextCount === dp[nextSum].count && isLexGreater(nextList, dp[nextSum].list))
+            ) {
+                dp[nextSum] = {
+                    count: nextCount,
+                    list: nextList,
+                };
+            }
+        }
     }
-  }
 
-  if (dp[K] === null) return [-1];
-  return [dp[K].count, dp[K].list.sort((a, b) => b - a)];
+    if (dp[K] === null) return [-1];
+    return [dp[K].count, dp[K].list.sort((a, b) => b - a)];
 }
 
 /**
@@ -91,18 +90,18 @@ function solve(A, K) {
  * @returns {boolean}
  */
 function isLexGreater(a, b) {
-  for (let i = 0; i < a.length && i < b.length; i++) {
-    if (a[i] !== b[i]) return a[i] > b[i];
-  }
-  return a.length > b.length;
+    for (let i = 0; i < a.length && i < b.length; i++) {
+        if (a[i] !== b[i]) return a[i] > b[i];
+    }
+    return a.length > b.length;
 }
 
 const ans = solve(A, K);
 if (ans[0] === -1) {
-  console.log(-1);
+    console.log(-1);
 } else {
-  console.log(ans[0]);
-  console.log(ans[1].join(" "));
+    console.log(ans[0]);
+    console.log(ans[1].join(' '));
 }
 // ```
 

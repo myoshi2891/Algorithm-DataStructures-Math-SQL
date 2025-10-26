@@ -1,4 +1,3 @@
-
 /**
  * getPermutation
  * 与えられた n と k に対して、[1, 2, ..., n] の順列を辞書順に並べたときの k 番目を返す。
@@ -26,7 +25,7 @@ function getPermutation(n, k) {
     // k を 0-indexed に変換
     k--;
 
-    let result = "";
+    let result = '';
 
     // 各桁を決定
     for (let i = n; i >= 1; i--) {

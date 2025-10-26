@@ -10,3 +10,4 @@ export default {
     arrowParens: 'always', // アロー関数の引数に括弧を常に付ける
     endOfLine: 'lf', // 改行コードをLFに統一（Gitなどで混乱を避けるため）
 };
+

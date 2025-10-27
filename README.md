@@ -1,495 +1,420 @@
-# Algorithm-DataStructures-Math-SQL リポジトリ完全ガイド
+# Repository Overview: Algorithm-DataStructures-Math-SQL
 
 [![GitHub Stars](https://img.shields.io/github/stars/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/network/members)
 ![Languages](https://img.shields.io/badge/Languages-Python%20|%20TypeScript%20|%20JavaScript-blue?style=flat-square)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/myoshi2891/Algorithm-DataStructures-Math-SQL)
 
-## 📋 リポジトリ概要
+## 目的と範囲
 
-このリポジトリは、アルゴリズム、データ構造、数学、SQLの実装を集約した**マルチ言語教育プラットフォーム**です。競技プログラミング（LeetCode、HackerRank、AtCoder）、技術面接対策、コンピュータサイエンス教育向けに最適化されています。
+本リポジトリは、アルゴリズム実装、インタラクティブな可視化、包括的なドキュメントを特徴とする多言語教育プラットフォームです。競技プログラミング（LeetCode、HackerRank、AtCoder）、技術面接、コンピュータサイエンス教育に最適化されたリファレンス実装集として機能します。
 
-### 主要な特徴
-
-- **4つのコア領域**: データ構造、アルゴリズム、数学、SQL
-- **マルチ言語対応**: Python、TypeScript、JavaScript
-- **双AI実装戦略**: Claude と GPT の2つの実装アプローチ
-- **3段階学習システム**: 静的ドキュメント → インタラクティブHTML → React可視化
+本リポジトリは、**データ構造**、**アルゴリズム**、**数学**、**SQL**の4つのコア問題領域にわたるソリューションを実装しています。各問題には、多言語実装（Python、TypeScript、JavaScript）、インタラクティブなHTMLデモンストレーション、詳細なMarkdownドキュメントが含まれています。
 
 ---
 
-## 🏗️ リポジトリアーキテクチャ
+## コア問題領域
+
+リポジトリは4つの主要領域にソリューションを整理しています。
+
+### 領域別分布
 
 ```mermaid
-flowchart TD
-  A[リポジトリ root]
-  B[DataStructures]
-  C[Algorithm]
-  D[Mathematics]
-  E[SQL]
-
-  B1[LinkedList]
-  B2[Trees]
-  B3[Arrays]
-
-  C1[BinarySearch]
-  C2[DynamicProgramming]
-  C3[Graph]
-
-  D1[FSM]
-  D2[Geometry]
-
-  E1[Leetcode]
-  E2[HackerRank]
-
-  A --> B
-  A --> C
-  A --> D
-  A --> E
-
-  B --> B1
-  B --> B2
-  B --> B3
-
-  C --> C1
-  C --> C2
-  C --> C3
-
-  D --> D1
-  D --> D2
-
-  E --> E1
-  E --> E2
+graph TB
+    Root[Algorithm-DataStructures-Math-SQL]
+    
+    DS[DataStructures<br/>データ構造]
+    Algo[Algorithm<br/>アルゴリズム]
+    Math[Mathematics<br/>数学]
+    SQL[SQL]
+    
+    Root --> DS
+    Root --> Algo
+    Root --> Math
+    Root --> SQL
+    
+    DS --> LinkedList[LinkedList<br/>連結リスト]
+    DS --> Trees[Trees<br/>木構造]
+    DS --> Arrays[Arrays<br/>配列]
+    
+    Algo --> BinarySearch[BinarySearch<br/>二分探索]
+    Algo --> DP[DynamicProgramming<br/>動的計画法]
+    Algo --> TwoPointer[TwoPointer<br/>二つのポインタ]
+    
+    Math --> FSM[FSM<br/>有限状態機械]
+    Math --> Geometry[Geometry<br/>幾何学]
+    Math --> GameTheory[GameTheory<br/>ゲーム理論]
+    
+    SQL --> LeetCodeSQL[Leetcode]
+    SQL --> HackerRankSQL[HackerRank]
 ```
 
----
-
-## 📊 コア問題領域の詳細
-
-| 領域               | 代表的な関数/クラス                                                   | 主要パターン                       | ファイル場所                                               |
-| ------------------ | --------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
-| **DataStructures** | `Solution.addTwoNumbers()`, `ListNode`, `DoublyLinkedList`            | インプレース操作、ポインタ演算     | `DataStructures/LinkedList/`, `DataStructures/Trees/`      |
-| **Algorithm**      | `Solution.findMedianSortedArrays()`, `numDecodings()`, `minPathSum()` | 二分探索、動的計画法、二ポインタ法 | `Algorithm/BinarySearch/`, `Algorithm/DynamicProgramming/` |
-| **Mathematics**    | `isNumber()`, `reflectPoint()`, `gameWithCells()`                     | 状態機械、幾何学的変換             | `Mathematics/FSM/`, `Mathematics/Geometry/`                |
-| **SQL**            | `CombineTwoTables.sql`, `RisingTemperature.sql`                       | JOINパターン、ウィンドウ関数       | `SQL/Leetcode/`, `SQL/HackerRank/`                         |
+| 領域 | 代表的な関数/クラス | 主要パターン | ファイルの場所 |
+|------|---------------------|--------------|----------------|
+| **DataStructures** | `Solution.addTwoNumbers()`, `ListNode`, `DoublyLinkedList` | インプレース操作、ポインタ演算 | `DataStructures/LinkedList/`, `DataStructures/Trees/` |
+| **Algorithm** | `Solution.findMedianSortedArrays()`, `numDecodings()`, `minPathSum()` | 二分探索、動的計画法、二つのポインタ | `Algorithm/BinarySearch/`, `Algorithm/DynamicProgramming/` |
+| **Mathematics** | `isNumber()`, `reflectPoint()`, `gameWithCells()` | 状態機械、幾何変換 | `Mathematics/FSM/`, `Mathematics/Geometry/` |
+| **SQL** | `CombineTwoTables.sql`, `RisingTemperature.sql` | JOINパターン、ウィンドウ関数 | `SQL/Leetcode/`, `SQL/HackerRank/` |
 
 ---
 
-## 🤖 双AI実装戦略
+## デュアルAI実装戦略
 
-各問題に対してClaudeとGPTの2つの実装アプローチを提供し、相互補完的なコーディングスタイルを示します。これにより **2×3実装マトリックス**（2つのAI × 3言語）が形成されます。
-
-### 実装比較表
-
-| 側面                     | Claude実装                                                                  | GPT実装                                                                                       |
-| ------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Pythonクラスメソッド** | `findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float` | `_median_binary_partition(self, nums1: List[int], nums2: List[int]) -> float`                 |
-| **センチネル値**         | 整数センチネル: `-10_000_007`, `+10_000_007`                                | 浮動小数点: `float("inf")`                                                                    |
-| **TypeScript署名**       | `function findMedianSortedArrays(nums1: number[], nums2: number[]): number` | `function findMedianSortedArrays(nums1: readonly number[], nums2: readonly number[]): number` |
-| **最適化焦点**           | 整数センチネルでfloatキャストを排除                                         | 包括的な入力検証（TypeError/RangeError）                                                      |
-| **ドキュメント形式**     | 計算量優先 + 最適化セクション                                               | アルゴリズム比較表 + ビジネスコンテキスト                                                     |
+各問題は、**Claude**と**GPT**の両方のAIモデルから並列実装を受け、補完的なソリューションアプローチとコーディングスタイルを提供します。これにより、問題ごとに2×3実装マトリックス（2つのAIバリアント × 3つの言語）が作成されます。
 
 ```mermaid
-flowchart LR
-  Problem["問題定義<br/>LeetCode 4"]
-
-  Claude_impl["Claude実装<br/>高速化フォーカス"]
-  GPT_impl["GPT実装<br/>安全性フォーカス"]
-
-  Claude_py["Python<br/>オプティマイズド"]
-  Claude_ts["TypeScript<br/>型安全"]
-  Claude_js["JavaScript<br/>軽量"]
-
-  GPT_py["Python<br/>検証付き"]
-  GPT_ts["TypeScript<br/>完全チェック"]
-  GPT_js["JavaScript<br/>ランタイム検証"]
-
-  Problem --> Claude_impl
-  Problem --> GPT_impl
-
-  Claude_impl --> Claude_py
-  Claude_impl --> Claude_ts
-  Claude_impl --> Claude_js
-
-  GPT_impl --> GPT_py
-  GPT_impl --> GPT_ts
-  GPT_impl --> GPT_js
+graph LR
+    Problem[Problem<br/>問題]
+    
+    Claude[Claude実装]
+    GPT[GPT実装]
+    
+    Problem --> Claude
+    Problem --> GPT
+    
+    Claude --> CPython[Python<br/>クラスベース]
+    Claude --> CTS[TypeScript<br/>関数型]
+    Claude --> CJS[JavaScript<br/>最適化版]
+    
+    GPT --> GPython[Python<br/>検証重視]
+    GPT --> GTS[TypeScript<br/>型安全性]
+    GPT --> GJS[JavaScript<br/>エラーハンドリング]
 ```
+
+### 実装比較
+
+| 側面 | Claude バリアント | GPT バリアント |
+|------|-------------------|----------------|
+| **Pythonクラスメソッド** | `findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float` | `_median_binary_partition(self, nums1: List[int], nums2: List[int]) -> float` |
+| **センチネル値** | `NEG: Final[int] = -10_000_007`<br/>`POS: Final[int] = +10_000_007` | `INF: Final[float] = float("inf")` |
+| **TypeScriptシグネチャ** | `function findMedianSortedArrays(nums1: number[], nums2: number[]): number` | `function findMedianSortedArrays(nums1: readonly number[], nums2: readonly number[]): number` |
+| **最適化の焦点** | 整数センチネルによるfloatキャストの排除 | TypeError/RangeErrorによる包括的な入力検証 |
+| **ドキュメントスタイル** | 計算量優先＋最適化セクション | アルゴリズム比較表＋ビジネスコンテキスト |
 
 ---
 
-## 🌐 マルチ言語実装フレームワーク
+## 多言語実装フレームワーク
 
-すべてのアルゴリズムはPython、TypeScript、JavaScriptで実装され、言語固有の最適化を維持しながら統一されたアルゴリズムロジックを保持します。
+すべてのアルゴリズムは、統一されたアルゴリズムロジックを維持しながら、言語固有の最適化を伴うPython、TypeScript、JavaScriptで実装されています。
+
+```mermaid
+graph TB
+    subgraph Python実装
+        PyClass[class Solution:]
+        PyTypes[typing.Final, List, Optional]
+        PyOpt[ord - 48, リスト内包表記<br/>__slots__, ビットシフト]
+    end
+    
+    subgraph TypeScript実装
+        TSFunc[function functionName]
+        TSTypes[readonly, strict types, Int32Array]
+        TSOpt[charCodeAt - 48, >>> 1<br/>コンパイル時チェック]
+    end
+    
+    subgraph JavaScript実装
+        JSFunc[function functionName]
+        JSTypes[動的型, ランタイム検証]
+        JSOpt[V8 Hidden Classes, >> 1<br/>Number.isFinite]
+    end
+```
 
 ### 言語別実装詳細
 
-| 言語           | クラス/関数パターン                                        | 型システム                                  | 主要な最適化                                                          |
-| -------------- | ---------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
-| **Python**     | `class Solution: def methodName(self, ...)`                | `typing.Final`, `List[int]`, `Optional[T]`  | `ord() - 48`, リスト内包表記、`__slots__`, ビット右シフト `>> 1`      |
-| **TypeScript** | `function functionName(...)` or `export function`          | `readonly number[]`, 厳密な型, `Int32Array` | `charCodeAt(0) - 48`, `>>> 1`（ゼロ埋めシフト）, コンパイル時チェック |
-| **JavaScript** | `function functionName(...)` or `var name = function(...)` | 動的型、ランタイム検証                      | V8隠し クラス, `>> 1`, `Number.isFinite()`, シンプルループ            |
+| 言語 | クラス/関数パターン | 型システム | 主要な最適化 |
+|------|---------------------|------------|--------------|
+| **Python** | `class Solution:` with `def methodName(self, ...)` | `typing.Final`, `List[int]`, `Optional[T]` | `ord() - 48`, リスト内包表記, `__slots__`, ビットシフト `>> 1` |
+| **TypeScript** | `function functionName(...)` or `export function` | `readonly number[]`, strict types, `Int32Array` | `charCodeAt(0) - 48`, `>>> 1` (ゼロフィルシフト), コンパイル時チェック |
+| **JavaScript** | `function functionName(...)` or `var name = function(...)` | 動的型、ランタイム検証 | V8 Hidden Classes, `>> 1`, `Number.isFinite()`, シンプルなループ |
 
-### ビット右シフト演算子の比較
+### 言語別ビットシフト演算子
 
-```mermaid
-flowchart TD
-  Input["整数値 n"]
-
-  Mid_calc["中央位置計算"]
-
-  Python_opt["Python<br/>n >> 1"]
-  TS_opt["TypeScript<br/>n >>> 1<br/>ゼロ埋めシフト"]
-  JS_opt["JavaScript<br/>n >> 1<br/>符号拡張"]
-
-  Performance["性能最適化"]
-
-  Input --> Mid_calc
-  Mid_calc --> Python_opt
-  Mid_calc --> TS_opt
-  Mid_calc --> JS_opt
-
-  Python_opt --> Performance
-  TS_opt --> Performance
-  JS_opt --> Performance
-```
+| 演算 | Python | TypeScript | JavaScript | 目的 |
+|------|--------|------------|------------|------|
+| **算術右シフト** | `x >> 1` | `x >> 1` | `x >> 1` | 2で除算（符号保持） |
+| **ゼロフィル右シフト** | 利用不可 | `x >>> 1` | `x >>> 1` | 2で除算（符号なし） |
 
 ---
 
-## 📁 ファイル組織パターン
+## 問題ソースプラットフォーム
 
-各問題は**統一的なデュアルフォルダ構造**に従い、標準化されたファイル命名とコンテンツ組織を実装します。
+問題は3つの競技プログラミングプラットフォームから取得され、それぞれ特定のフォーマットと制約の規約があります。
+
+```mermaid
+graph LR
+    Platforms[プラットフォーム]
+    
+    LC[LeetCode]
+    HR[HackerRank]
+    AC[AtCoder]
+    
+    Platforms --> LC
+    Platforms --> HR
+    Platforms --> AC
+    
+    LC --> LCAlgo[Algorithm/*/leetcode/]
+    LC --> LCSQL[SQL/Leetcode/]
+    
+    HR --> HRMath[Mathematics/*/HackerRank/]
+    HR --> HRSQL[SQL/HackerRank/]
+    
+    AC --> ACAlgo[Algorithm/*/AtCoder/]
+```
+
+### プラットフォーム別特性
+
+| プラットフォーム | 問題タイプ | 命名規則 | 制約フォーマット | ディレクトリ構造 |
+|------------------|------------|----------|------------------|------------------|
+| **LeetCode** | アルゴリズム、SQL、データ構造 | `{番号}. {タイトル}` | `0 <= m, n <= 1000`, `-10^6 <= nums[i] <= 10^6` | `Algorithm/*/leetcode/`, `SQL/Leetcode/` |
+| **HackerRank** | 数学、SQL、高度なアルゴリズム | `{カテゴリ}/{問題タイトル}` | ポイントベースの難易度、カスタム入力フォーマット | `Mathematics/*/HackerRank/`, `SQL/HackerRank/` |
+| **AtCoder** | 競技プログラミング | コンテストベースの命名 | 日本語＋英語ドキュメント | `Algorithm/*/AtCoder/` (存在する場合) |
+
+---
+
+## ファイル構成パターン
+
+各問題は、標準化されたファイル命名とコンテンツ構成を持つ一貫したデュアルフォルダ構造に従います。
+
+```mermaid
+graph TB
+    Problem[Problem Directory<br/>問題ディレクトリ]
+    
+    Claude[Claude/]
+    GPT[GPT/]
+    
+    Problem --> Claude
+    Problem --> GPT
+    
+    Claude --> CPy[*.py]
+    Claude --> CTS[*.ts]
+    Claude --> CJS[*.js]
+    Claude --> CMD[README.md]
+    Claude --> CHTML[README.html]
+    Claude --> CReact[README_react.html]
+    
+    GPT --> GPy[*.py]
+    GPT --> GTS[*.ts]
+    GPT --> GJS[*.js]
+    GPT --> GMD[README.md]
+    GPT --> GHTML[README.html]
+    GPT --> GReact[README_react.html]
+```
 
 ### ファイル命名規則
 
-| ファイル型           | 命名パターン                                  | 用途                                              | 例                               |
-| -------------------- | --------------------------------------------- | ------------------------------------------------- | -------------------------------- |
-| Python実装           | `{ProblemName}.py` または `{problem_name}.py` | クラスSolutionを含むコア実装                      | `Median_of_Two_Sorted_Arrays.py` |
-| TypeScript実装       | `{ProblemName}.ts`                            | 型安全な実装と厳密なチェック                      | `Median_of_Two_Sorted_Arrays.ts` |
-| JavaScript実装       | `{ProblemName}.js`                            | ランタイム検証を含む実装                          | `Median_of_Two_Sorted_Arrays.js` |
-| 静的ドキュメント     | `README.md`                                   | 5段階ドキュメント構造                             | セクションごとに100行以下        |
-| インタラクティブHTML | `README.html`                                 | Prism.js構文強調、Tailwind CSS                    | 1000～2000行                     |
-| React可視化          | `README_react.html`                           | React 18 + Babel Standalone, インタラクティブデモ | カスタマイズ可能な入力           |
+| ファイルタイプ | 命名パターン | 目的 | 例 |
+|----------------|--------------|------|-----|
+| **Python実装** | `{ProblemName}.py` または `{problem_name}.py` | `class Solution`を含むコアアルゴリズム実装 | `Median_of_Two_Sorted_Arrays.py` |
+| **TypeScript実装** | `{ProblemName}.ts` | 厳密なチェックを伴う型安全な実装 | `Median_of_Two_Sorted_Arrays.ts` |
+| **JavaScript実装** | `{ProblemName}.js` | ランタイム検証済み実装 | `Median_of_Two_Sorted_Arrays.js` |
+| **静的ドキュメント** | `README.md` | 5段階のドキュメント構造 | `README.md` (セクションごと最大100行) |
+| **インタラクティブHTML** | `README.html` | Prism.jsシンタックスハイライト、Tailwind CSS | `README.html` (1000-2000行) |
+| **React可視化** | `README_react.html` | React 18 + Babel standalone、インタラクティブデモ | `README_react.html` |
 
-### ディレクトリ構造の例
+### SQL問題構造
 
 ```
-Algorithm/BinarySearch/leetcode/4. Median of Two Sorted Arrays/
-├── Claude/
-│   ├── Median_of_Two_Sorted_Arrays.py
-│   ├── Median_of_Two_Sorted_Arrays.ts
-│   ├── Median_of_Two_Sorted_Arrays.js
-│   ├── README.md
-│   ├── README.html
-│   └── README_react.html
-└── GPT/
-    ├── Median_of_Two_Sorted_Arrays.py
-    ├── Median_of_Two_Sorted_Arrays.ts
-    ├── Median_of_Two_Sorted_Arrays.js
-    ├── README.md
-    ├── README.html
-    └── README_react.html
+SQL/
+├── Leetcode/
+│   ├── Basic join/
+│   │   └── 175. Combine Two Tables/
+│   │       ├── gpt/
+│   │       │   ├── CombineTwoTables_mysql.sql
+│   │       │   ├── CombineTwoTables_pandas.py
+│   │       │   └── CombineTwoTables_mysql.md
 ```
 
 ---
 
-## ⚙️ 実装戦略: 競技プログラミング vs 本番運用
+## 実装戦略: 競技プログラミング vs プロダクション
 
-リポジトリは異なるユースケースに向けて最適化された2つの実装バリアントを提供します。
-
-```mermaid
-flowchart TD
-  Strategy["実装戦略"]
-
-  Competitive["競技プログラミング型<br/>高速実行"]
-  Production["本番運用型<br/>安定性重視"]
-
-  CP1["制約を信頼<br/>検証スキップ"]
-  CP2["最大実行速度<br/>直接実装"]
-  CP3["ビット演算<br/>最適化"]
-
-  PR1["包括的入力検証<br/>型安全性向上"]
-  PR2["エラー処理<br/>エッジケース対応"]
-  PR3["詳細エラーメッセージ<br/>デバッグ容易"]
-
-  Strategy --> Competitive
-  Strategy --> Production
-
-  Competitive --> CP1
-  Competitive --> CP2
-  Competitive --> CP3
-
-  Production --> PR1
-  Production --> PR2
-  Production --> PR3
-```
-
-### 競技プログラミング型の特徴
-
-- **入力検証**: スキップ（制約を信頼）
-- **実行速度**: 最大化
-- **実装スタイル**: 直接的なアルゴリズム実装
-
-**例**: 整数センチネル（`NEG = -10_000_007`）を使用してhot pathでfloatキャストを排除
-
-### 本番運用型の特徴
-
-- **入力検証**: 包括的（TypeError、RangeError例外）
-- **型安全性**: 強化
-- **エラー処理**: 詳細なメッセージ付き
-
-**例**: `validateNumberArray()` および `isNonDecreasing()` チェック
-
-### 最適化比較表
-
-| 最適化項目       | 競技型                             | 本番型                                            |
-| ---------------- | ---------------------------------- | ------------------------------------------------- |
-| 入力検証         | スキップ（制約を信頼）             | TypeError、RangeError検出                         |
-| センチネル値     | 整数: `-10_000_007`, `+10_000_007` | `float('inf')` または `±Infinity`                 |
-| 型チェック       | 最小限（型ヒントのみ）             | ランタイム `Number.isFinite()`, `Array.isArray()` |
-| エラーメッセージ | なし or 汎用的                     | 詳細で説明的                                      |
-| エッジケース処理 | アルゴリズムで暗黙的に処理         | 明示的な検証と早期リターン                        |
+リポジトリは、異なるユースケースに最適化されたデュアル実装バリアントを提供します。
 
 ```mermaid
-flowchart LR
-  Input["入力データ"]
-
-  Competitive_path["競技型<br/>パス"]
-  Production_path["本番型<br/>パス"]
-
-  CP_algo["直接<br/>アルゴリズム実行"]
-  PR_val["検証層"]
-  PR_algo["アルゴリズム実行"]
-
-  Output["出力結果"]
-
-  Input --> Competitive_path
-  Input --> Production_path
-
-  Competitive_path --> CP_algo
-  Production_path --> PR_val
-  PR_val --> PR_algo
-
-  CP_algo --> Output
-  PR_algo --> Output
+graph TB
+    Strategy[実装戦略]
+    
+    Competitive[競技プログラミング版]
+    Production[プロダクション版]
+    
+    Strategy --> Competitive
+    Strategy --> Production
+    
+    Competitive --> CompFeatures[最小限の検証<br/>最大実行速度<br/>直接的なアルゴリズム実装]
+    Production --> ProdFeatures[包括的な入力検証<br/>強化された型安全性<br/>エラーハンドリング]
+    
+    CompFeatures --> CompOpt[整数センチネル<br/>ビットシフト >> 1<br/>事前計算されたパリティチェック]
+    ProdFeatures --> ProdOpt[validateNumberArray<br/>isNonDecreasing<br/>TypeError/RangeError]
 ```
+
+### 競技プログラミングバリアント
+
+**特徴:**
+- 最小限の検証（問題の制約を信頼）
+- 最大実行速度
+- 直接的なアルゴリズム実装
+
+**例:** 整数センチネル（`NEG = -10_000_007`）を使用し、ホットパスでfloatキャストを排除
+
+**最適化技術:**
+- ビットシフト `>> 1`
+- 事前計算されたパリティチェック `(total & 1) == 1`
+- ローカル変数バインディング
+
+### プロダクションバリアント
+
+**特徴:**
+- 包括的な入力検証
+- 強化された型安全性
+- エラーハンドリングとエッジケース
+
+**検証関数:**
+- **Python:** `_validate_non_decreasing(arr: List[int]) -> bool`
+- **TypeScript:** `validateNumberArray(arr: readonly number[]): void`
+- **JavaScript:** `function validateArray(arr)` および `function isNonDecreasing(arr)`
+
+### 最適化比較
+
+| 最適化 | 競技プログラミング版 | プロダクション版 |
+|--------|----------------------|------------------|
+| **入力検証** | スキップ（制約を信頼） | 違反時にTypeError、RangeError |
+| **センチネル値** | 整数センチネル: `-10_000_007`, `+10_000_007` | `float('inf')` または `±Infinity` |
+| **型チェック** | 最小限（型ヒントのみ） | ランタイム `Number.isFinite()`, `Array.isArray()` |
+| **エラーメッセージ** | なしまたは汎用的 | 説明的なメッセージを持つ特定のエラータイプ |
+| **エッジケース処理** | アルゴリズムを通じて暗黙的 | 早期リターンを伴う明示的な検証 |
 
 ---
 
-## 🔧 システム要件と依存関係
+## システム要件と依存関係
 
-リポジトリは最小限の外部依存を維持しながら、包括的なアルゴリズムカバレッジを提供します。
+リポジトリは、包括的なアルゴリズムカバレッジを提供しながら、外部依存関係を最小限に抑えています。
 
-### 開発環境設定
+### 開発環境構成
 
-| コンポーネント  | バージョン/設定                             | 用途                           |
-| --------------- | ------------------------------------------- | ------------------------------ |
-| **Python**      | CPython 3.11.10                             | 型ヒント付きアルゴリズム実装   |
-| **Node.js**     | v18.x（JavaScript）, v22.14.0（TypeScript） | TS/JS実装のランタイム          |
-| **Bun**         | ロックファイルバージョン1                   | パッケージ管理と決定論的ビルド |
-| **TypeScript**  | `@types/node ^22.18.10`                     | Node.js型定義                  |
-| **ESLint**      | `^9.37.0`                                   | コード品質検証                 |
-| **live-server** | `^1.2.2`                                    | ライブリロード開発サーバー     |
+```mermaid
+graph LR
+    DevEnv[開発環境]
+    
+    Python[Python 3.11.10]
+    Node[Node.js v18.x/v22.14.0]
+    Bun[Bun Lockfile v1]
+    TS[TypeScript]
+    ESLint[ESLint ^9.37.0]
+    LiveServer[live-server ^1.2.2]
+    
+    DevEnv --> Python
+    DevEnv --> Node
+    DevEnv --> Bun
+    DevEnv --> TS
+    DevEnv --> ESLint
+    DevEnv --> LiveServer
+```
 
-### 品質管理設定
+| コンポーネント | バージョン/構成 | 目的 |
+|----------------|-----------------|------|
+| **Python** | CPython 3.11.10 | 型ヒント付きアルゴリズム実装 |
+| **Node.js** | v18.x (JavaScript), v22.14.0 (TypeScript) | TS/JS実装のランタイム |
+| **Bun** | Lockfile version 1 | パッケージ管理と決定論的ビルド |
+| **TypeScript** | @types/node ^22.18.10 | Node.jsの型定義 |
+| **ESLint** | ^9.37.0 | コード品質検証 |
+| **live-server** | ^1.2.2 | ライブリロード付き開発サーバー |
 
-**Markdownlint設定の詳細:**
+### Markdownlint設定詳細
 
-- **MD013ルール**: `line_length: 100`（コードブロックとテーブルを除外）
-- **MD033ルール**: h1, h2, details, summary, p, i, footer, div HTMLタグを許可
-- **目的**: 全静的ドキュメントファイル間の一貫性確保
+- **MD013ルール:** `line_length: 100`（コードブロックとテーブルを除外）
+- **MD033ルール:** `h1, h2, details, summary, p, i, footer, div` HTMLタグを許可
+- **目的:** すべての静的ドキュメントファイル間の一貫性を保証
 
 ### 外部ライブラリポリシー
 
-```mermaid
-flowchart TD
-  Dependencies["依存関係方針"]
-
-  Algo["アルゴリズム/数学<br/>実装"]
-  SQL_impl["SQL実装"]
-  Visual["インタラクティブ<br/>可視化"]
-
-  Algo_rule["外部ライブラリなし<br/>自己完結"]
-  SQL_rule["ネイティブSQL方言<br/>MySQL, PostgreSQL"]
-  SQL_rule2["Python pandas対応"]
-  Visual_rule["CDNベースのみ<br/>Prism.js, Tailwind CSS"]
-  Visual_rule2["React 18, Babel"]
-
-  Dependencies --> Algo
-  Dependencies --> SQL_impl
-  Dependencies --> Visual
-
-  Algo --> Algo_rule
-  SQL_impl --> SQL_rule
-  SQL_impl --> SQL_rule2
-  Visual --> Visual_rule
-  Visual --> Visual_rule2
-```
+- **アルゴリズム/数学実装:** 外部ライブラリなし（自己完結型）
+- **SQL実装:** ネイティブSQL方言構文（MySQL、PostgreSQL）およびPython pandas
+- **インタラクティブ可視化:** CDNベースのライブラリのみ（Prism.js、Tailwind CSS、React 18、Babel Standalone）
 
 ---
 
-## 🎓 3段階学習システム
+## リポジトリの目的とユースケース
+
+リポジトリは、そのアーキテクチャを通じて複数の補完的な目的を果たします。
 
 ```mermaid
-flowchart TD
-  Start["学習開始"]
-
-  Tier1["Tier 1: 静的ドキュメント"]
-  Tier2["Tier 2: インタラクティブHTML"]
-  Tier3["Tier 3: React可視化"]
-
-  T1_content["問題説明<br/>アルゴリズム説明<br/>計算量分析"]
-
-  T2_content["ステップバイステップ実行<br/>Play/Pause/Next/Reset<br/>状態変化を観察"]
-
-  T3_content["リアルタイム入力修正<br/>エッジケーステスト<br/>AI実装の比較"]
-
-  Start --> Tier1
-  Tier1 --> T1_content
-  T1_content --> Tier2
-  Tier2 --> T2_content
-  T2_content --> Tier3
-  Tier3 --> T3_content
+graph TB
+    UseCases[ユースケース]
+    
+    Learning[アルゴリズム学習]
+    Competitive[競技プログラミング準備]
+    Interview[技術面接準備]
+    Optimization[パフォーマンス最適化]
+    Education[教育的価値]
+    MultiLang[多言語一貫性]
+    
+    UseCases --> Learning
+    UseCases --> Competitive
+    UseCases --> Interview
+    UseCases --> Optimization
+    UseCases --> Education
+    UseCases --> MultiLang
+    
+    Learning --> Comprehensive[包括的なリファレンス実装<br/>計算量解析<br/>ステップバイステップ可視化]
+    Competitive --> Optimized[最適化されたソリューション<br/>最小限の検証<br/>LeetCode/HackerRank/AtCoder対応]
+    Interview --> Patterns[実装パターン<br/>ベストプラクティス<br/>複数のソリューションアプローチ]
+    Optimization --> Techniques[言語固有の技術<br/>並列実装による実証]
+    Education --> Interactive[3層ドキュメントシステム<br/>インタラクティブ学習体験]
+    MultiLang --> Unified[統一されたAPI<br/>Python/TypeScript/JavaScript間の実装ロジック]
 ```
 
-### 各層の詳細
+### 主要ユースケース
 
-#### **Tier 1: 静的ドキュメント（README.md）**
+1. **アルゴリズム学習:** 計算量解析とステップバイステップ可視化を含む包括的なリファレンス実装
+2. **競技プログラミング準備:** LeetCode、HackerRank、AtCoder向けの最小限の検証を伴う最適化されたソリューション
+3. **技術面接準備:** 実装パターン、ベストプラクティス、複数のソリューションアプローチ
+4. **パフォーマンス最適化:** 並列実装を通じて実証される言語固有の技術
+5. **教育的価値:** 3層ドキュメントシステムによるインタラクティブな学習体験
+6. **多言語一貫性:** Python、TypeScript、JavaScript間の統一されたAPIと実装ロジック
 
-学習の基礎となる以下の5段階構造を提供します:
+### 対象オーディエンスレベル
 
-1. **問題概要**: LeetCodeの説明、制約条件、入出力例
-2. **アルゴリズム説明**: 解法アプローチの詳細
-3. **計算量分析**: 時間/空間計算量
-4. **実装解説**: コードの重要部分
-5. **最適化**: 言語別の最適化技法
+```mermaid
+graph LR
+    Audience[対象オーディエンス]
+    
+    Beginner[初心者]
+    Intermediate[中級者]
+    Advanced[上級者]
+    Expert[エキスパート]
+    
+    Audience --> Beginner
+    Audience --> Intermediate
+    Audience --> Advanced
+    Audience --> Expert
+    
+    Beginner --> BeginnerContent[静的ドキュメント<br/>基本的なアルゴリズム説明<br/>計算量入門]
+    Intermediate --> IntermediateContent[インタラクティブHTML<br/>ステップバイステップ実行<br/>状態変化の観察]
+    Advanced --> AdvancedContent[React可視化<br/>リアルタイム入力変更<br/>エッジケーステスト]
+    Expert --> ExpertContent[AI実装比較<br/>言語固有の最適化<br/>パフォーマンスチューニング]
+```
 
-#### **Tier 2: インタラクティブHTML（README.html）**
+### 学習パスウェイ
 
-- **Prism.js** による構文強調
-- **Tailwind CSS** for モダンなスタイリング
-- ステップバイステップ実行コントローラー
-- アルゴリズムの状態変化をリアルタイム表示
+**Tier 1（静的）:**
+- 問題説明を読む
+- アルゴリズム説明を理解する
+- 計算量解析を学ぶ
 
-#### **Tier 3: React可視化（README_react.html）**
+**Tier 2（インタラクティブ）:**
+- コントロール（Play/Pause/Next/Reset）でステップバイステップ実行
+- 状態変化を観察
 
-- **React 18** + **Babel Standalone** で動的インタラクション
-- 入力値をリアルタイム修正可能
-- エッジケースの即座テスト
-- Claude と GPT 実装の比較実行
+**Tier 3（React）:**
+- リアルタイムで入力を変更
+- エッジケースをテスト
+- AI実装を比較
 
 ---
 
-## 📌 リポジトリの目的とユースケース
+## まとめ
 
-### 主要なユースケース
+本リポジトリは、教育、競技プログラミング、技術面接準備のための包括的なプラットフォームを提供します。デュアルAI実装戦略、多言語サポート、3層ドキュメントシステムにより、初心者からエキスパートまで、あらゆるレベルの学習者に対応しています。
 
-```mermaid
-flowchart TD
-  Repository["Algorithm-DataStructures<br/>Math-SQL<br/>リポジトリ"]
-
-  UseCase1["アルゴリズム学習"]
-  UseCase2["競技プログラミング準備"]
-  UseCase3["技術面接対策"]
-  UseCase4["性能最適化"]
-  UseCase5["教育価値"]
-  UseCase6["マルチ言語一貫性"]
-
-  Features1["包括的リファレンス<br/>計算量分析<br/>ステップバイステップ可視化"]
-  Features2["最適化されたソリューション<br/>最小検証<br/>LeetCode/HackerRank/AtCoder対応"]
-  Features3["実装パターン<br/>ベストプラクティス<br/>複数解法アプローチ"]
-  Features4["言語固有技法<br/>並列実装比較"]
-  Features5["3段階学習システム"]
-  Features6["統一API<br/>Python/TypeScript/JavaScript"]
-
-  Repository --> UseCase1
-  Repository --> UseCase2
-  Repository --> UseCase3
-  Repository --> UseCase4
-  Repository --> UseCase5
-  Repository --> UseCase6
-
-  UseCase1 --> Features1
-  UseCase2 --> Features2
-  UseCase3 --> Features3
-  UseCase4 --> Features4
-  UseCase5 --> Features5
-  UseCase6 --> Features6
-```
-
-### ターゲットオーディエンスレベル
-
-| レベル   | 対象者                                   | 活用方法                                                 |
-| -------- | ---------------------------------------- | -------------------------------------------------------- |
-| **初級** | CS初学者、競技プログラミング未経験者     | Tier 1静的ドキュメントから開始、基本概念を理解           |
-| **中級** | 競技プログラミング経験者、面接対策中     | Tier 2インタラクティブHTMLで動作確認、複数言語実装を比較 |
-| **上級** | ソフトウェアエンジニア、言語最適化研究者 | Tier 3 React可視化で詳細解析、本番vs競技型実装を検証     |
-
----
-
-## 🔍 SQL実装の特別な構成
-
-SQLソリューションは以下の3つのバリアントで提供されます:
-
-```mermaid
-flowchart TD
-  SQL_Problem["SQL問題"]
-
-  MySQL["MySQL実装"]
-  PostgreSQL["PostgreSQL実装"]
-  Pandas["Pandas/Python実装"]
-
-  SQL_docs["ドキュメント<br/>.md"]
-  SQL_query["クエリ実装<br/>.sql"]
-  SQL_py["Pythonコード<br/>.py"]
-
-  SQL_Problem --> MySQL
-  SQL_Problem --> PostgreSQL
-  SQL_Problem --> Pandas
-
-  MySQL --> SQL_docs
-  MySQL --> SQL_query
-  PostgreSQL --> SQL_docs
-  PostgreSQL --> SQL_query
-  Pandas --> SQL_py
-```
-
-### SQL別の特徴
-
-| SQL方言           | 特徴                   | 最適なケース                 |
-| ----------------- | ---------------------- | ---------------------------- |
-| **MySQL**         | LeetCode標準、広く利用 | LeetCode問題、基本的なJOIN   |
-| **PostgreSQL**    | ウィンドウ関数が充実   | 複雑な分析クエリ             |
-| **Pandas/Python** | データ処理の柔軟性     | 教育目的、複雑な変換ロジック |
-
----
-
-## 💡 ベストプラクティスと推奨される学習フロー
-
-```mermaid
-flowchart TD
-  Start["学習開始"]
-
-  Step1["1. 領域を選択<br/>DataStructures/Algorithm<br/>Mathematics/SQL"]
-  Step2["2. 問題難易度で絞り込み<br/>LeetcodeなどのID"]
-  Step3["3. README.mdで基礎を理解<br/>計算量を把握"]
-  Step4["4. 複数言語の実装を比較<br/>Claude vs GPT"]
-  Step5["5. README.htmlで<br/>ステップ実行"]
-  Step6["6. README_react.htmlで<br/>エッジケーステスト"]
-  Step7["7. 本番環境への<br/>適用検討"]
-
-  Start --> Step1
-  Step1 --> Step2
-  Step2 --> Step3
-  Step3 --> Step4
-  Step4 --> Step5
-  Step5 --> Step6
-  Step6 --> Step7
-```
-
----
-
-このリポジトリは、単なるコード集ではなく、**体系的な学習プラットフォーム**として設計されています。各問題に対する多角的なアプローチにより、プログラマーは自身のレベルに応じた最適な学習パスを選択できます。
 
 <div align="center">
 

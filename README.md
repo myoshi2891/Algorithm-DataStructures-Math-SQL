@@ -25,30 +25,30 @@ graph TB
     A --> C[アルゴリズム]
     A --> D[数学]
     A --> E[SQL]
-    
+
     B --> B1[連結リスト]
     B --> B2[木構造]
     B --> B3[グラフ]
-    
+
     C --> C1[二分探索]
     C --> C2[動的計画法]
     C --> C3[ツーポインタ]
-    
+
     D --> D1[状態機械]
     D --> D2[幾何学]
     D --> D3[組み合わせ論]
-    
+
     E --> E1[JOIN パターン]
     E --> E2[ウィンドウ関数]
     E --> E3[集約クエリ]
 ```
 
-| ドメイン | 代表的な関数/クラス | 主要パターン | ファイル配置 |
-|---------|-------------------|------------|------------|
-| **データ構造** | `Solution.addTwoNumbers()`, `ListNode`, `DoublyLinkedList` | インプレース操作、ポインタ演算 | `DataStructures/LinkedList/`, `DataStructures/Trees/` |
-| **アルゴリズム** | `Solution.findMedianSortedArrays()`, `numDecodings()`, `minPathSum()` | 二分探索、DP、ツーポインタ | `Algorithm/BinarySearch/`, `Algorithm/DynamicProgramming/` |
-| **数学** | `isNumber()`, `reflectPoint()`, `gameWithCells()` | 状態機械、幾何変換 | `Mathematics/FSM/`, `Mathematics/Geometry/` |
-| **SQL** | `CombineTwoTables.sql`, `RisingTemperature.sql` | JOINパターン、ウィンドウ関数 | `SQL/Leetcode/`, `SQL/HackerRank/` |
+| ドメイン         | 代表的な関数/クラス                                                   | 主要パターン                   | ファイル配置                                               |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| **データ構造**   | `Solution.addTwoNumbers()`, `ListNode`, `DoublyLinkedList`            | インプレース操作、ポインタ演算 | `DataStructures/LinkedList/`, `DataStructures/Trees/`      |
+| **アルゴリズム** | `Solution.findMedianSortedArrays()`, `numDecodings()`, `minPathSum()` | 二分探索、DP、ツーポインタ     | `Algorithm/BinarySearch/`, `Algorithm/DynamicProgramming/` |
+| **数学**         | `isNumber()`, `reflectPoint()`, `gameWithCells()`                     | 状態機械、幾何変換             | `Mathematics/FSM/`, `Mathematics/Geometry/`                |
+| **SQL**          | `CombineTwoTables.sql`, `RisingTemperature.sql`                       | JOINパターン、ウィンドウ関数   | `SQL/Leetcode/`, `SQL/HackerRank/`                         |
 
 ---
 
@@ -60,28 +60,28 @@ graph TB
 graph LR
     A[問題] --> B[Claude実装]
     A --> C[GPT実装]
-    
+
     B --> B1[Python]
     B --> B2[TypeScript]
     B --> B3[JavaScript]
-    
+
     C --> C1[Python]
     C --> C2[TypeScript]
     C --> C3[JavaScript]
-    
+
     style B fill:#ff9999
     style C fill:#99ccff
 ```
 
 ### 実装比較
 
-| 側面 | Claude バリアント | GPT バリアント |
-|------|------------------|---------------|
-| **Pythonクラスメソッド** | `findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float` | `_median_binary_partition(self, nums1: List[int], nums2: List[int]) -> float` |
-| **センチネル値** | `NEG: Final[int] = -10_000_007`, `POS: Final[int] = +10_000_007` | `INF: Final[float] = float("inf")` |
+| 側面                     | Claude バリアント                                                           | GPT バリアント                                                                                |
+| ------------------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Pythonクラスメソッド** | `findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float` | `_median_binary_partition(self, nums1: List[int], nums2: List[int]) -> float`                 |
+| **センチネル値**         | `NEG: Final[int] = -10_000_007`, `POS: Final[int] = +10_000_007`            | `INF: Final[float] = float("inf")`                                                            |
 | **TypeScriptシグネチャ** | `function findMedianSortedArrays(nums1: number[], nums2: number[]): number` | `function findMedianSortedArrays(nums1: readonly number[], nums2: readonly number[]): number` |
-| **最適化フォーカス** | 整数センチネルによるfloatキャストの排除 | TypeError/RangeErrorによる包括的な入力検証 |
-| **ドキュメントスタイル** | 計算量優先 + 最適化セクション | アルゴリズム比較表 + ビジネスコンテキスト |
+| **最適化フォーカス**     | 整数センチネルによるfloatキャストの排除                                     | TypeError/RangeErrorによる包括的な入力検証                                                    |
+| **ドキュメントスタイル** | 計算量優先 + 最適化セクション                                               | アルゴリズム比較表 + ビジネスコンテキスト                                                     |
 
 ---
 
@@ -94,24 +94,24 @@ graph TD
     A[統一アルゴリズムロジック] --> B[Python実装]
     A --> C[TypeScript実装]
     A --> D[JavaScript実装]
-    
+
     B --> B1[型ヒント: List, Final, Optional]
     B --> B2[最適化: リスト内包表記, __slots__]
-    
+
     C --> C1[型システム: readonly, strict]
     C --> C2[最適化: >>> 演算子, コンパイル時チェック]
-    
+
     D --> D1[動的型付け]
     D --> D2[最適化: V8 Hidden Classes]
 ```
 
 ### 言語固有の実装詳細
 
-| 言語 | クラス/関数パターン | 型システム | 主要な最適化 | サンプルファイル |
-|------|-------------------|----------|------------|--------------|
-| **Python** | `class Solution:` with `def methodName(self, ...)` | `typing.Final`, `List[int]`, `Optional[T]` | `ord() - 48`, リスト内包表記, `__slots__`, ビットシフト `>> 1` | `Median_of_Two_Sorted_Arrays.py` |
-| **TypeScript** | `function functionName(...)` or `export function` | `readonly number[]`, strict types, `Int32Array` | `charCodeAt(0) - 48`, `>>> 1` (ゼロ埋め右シフト), コンパイル時チェック | `Median_of_Two_Sorted_Arrays.ts` |
-| **JavaScript** | `function functionName(...)` or `var name = function(...)` | 動的型付け, ランタイム検証 | V8 Hidden Classes, `>> 1`, `Number.isFinite()`, シンプルなループ | `Median_of_Two_Sorted_Arrays.js` |
+| 言語           | クラス/関数パターン                                        | 型システム                                      | 主要な最適化                                                           | サンプルファイル                 |
+| -------------- | ---------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------- |
+| **Python**     | `class Solution:` with `def methodName(self, ...)`         | `typing.Final`, `List[int]`, `Optional[T]`      | `ord() - 48`, リスト内包表記, `__slots__`, ビットシフト `>> 1`         | `Median_of_Two_Sorted_Arrays.py` |
+| **TypeScript** | `function functionName(...)` or `export function`          | `readonly number[]`, strict types, `Int32Array` | `charCodeAt(0) - 48`, `>>> 1` (ゼロ埋め右シフト), コンパイル時チェック | `Median_of_Two_Sorted_Arrays.ts` |
+| **JavaScript** | `function functionName(...)` or `var name = function(...)` | 動的型付け, ランタイム検証                      | V8 Hidden Classes, `>> 1`, `Number.isFinite()`, シンプルなループ       | `Median_of_Two_Sorted_Arrays.js` |
 
 ### 言語別ビットシフト演算子
 
@@ -137,26 +137,26 @@ graph LR
     A[問題ソース] --> B[LeetCode]
     A --> C[HackerRank]
     A --> D[AtCoder]
-    
+
     B --> B1[アルゴリズム]
     B --> B2[SQL]
     B --> B3[データ構造]
-    
+
     C --> C1[数学]
     C --> C2[SQL]
     C --> C3[高度なアルゴリズム]
-    
+
     D --> D1[競技プログラミング]
     D --> D2[コンテスト形式]
 ```
 
 ### プラットフォーム固有の特性
 
-| プラットフォーム | 問題タイプ | 命名規則 | 制約フォーマット | ディレクトリ構造 |
-|---------------|----------|---------|----------------|----------------|
-| **LeetCode** | アルゴリズム、SQL、データ構造 | `{番号}. {タイトル}` | `0 <= m, n <= 1000`, `-10^6 <= nums[i] <= 10^6` | `Algorithm/*/leetcode/`, `SQL/Leetcode/` |
-| **HackerRank** | 数学、SQL、高度なアルゴリズム | `{カテゴリ}/{問題タイトル}` | ポイントベースの難易度、カスタム入力フォーマット | `Mathematics/*/HackerRank/`, `SQL/HackerRank/` |
-| **AtCoder** | 競技プログラミング | コンテストベースの命名 | 日本語+英語ドキュメント | `Algorithm/*/AtCoder/` (存在する場合) |
+| プラットフォーム | 問題タイプ                    | 命名規則                    | 制約フォーマット                                 | ディレクトリ構造                               |
+| ---------------- | ----------------------------- | --------------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| **LeetCode**     | アルゴリズム、SQL、データ構造 | `{番号}. {タイトル}`        | `0 <= m, n <= 1000`, `-10^6 <= nums[i] <= 10^6`  | `Algorithm/*/leetcode/`, `SQL/Leetcode/`       |
+| **HackerRank**   | 数学、SQL、高度なアルゴリズム | `{カテゴリ}/{問題タイトル}` | ポイントベースの難易度、カスタム入力フォーマット | `Mathematics/*/HackerRank/`, `SQL/HackerRank/` |
+| **AtCoder**      | 競技プログラミング            | コンテストベースの命名      | 日本語+英語ドキュメント                          | `Algorithm/*/AtCoder/` (存在する場合)          |
 
 ---
 
@@ -168,14 +168,14 @@ graph LR
 graph TD
     A[問題ディレクトリ] --> B[Claude/]
     A --> C[GPT/]
-    
+
     B --> B1[*.py]
     B --> B2[*.ts]
     B --> B3[*.js]
     B --> B4[README.md]
     B --> B5[README.html]
     B --> B6[README_react.html]
-    
+
     C --> C1[*.py]
     C --> C2[*.ts]
     C --> C3[*.js]
@@ -186,14 +186,14 @@ graph TD
 
 ### ファイル命名規則
 
-| ファイルタイプ | 命名パターン | 目的 | 例 |
-|-------------|------------|------|-----|
-| **Python実装** | `{ProblemName}.py` or `{problem_name}.py` | `class Solution`を含むコアアルゴリズム実装 | `Median_of_Two_Sorted_Arrays.py` |
-| **TypeScript実装** | `{ProblemName}.ts` | 厳密なチェックを伴う型安全な実装 | `Median_of_Two_Sorted_Arrays.ts` |
-| **JavaScript実装** | `{ProblemName}.js` | ランタイム検証を伴う実装 | `Median_of_Two_Sorted_Arrays.js` |
-| **静的ドキュメント** | `README.md` | 5段階ドキュメント構造 | `README.md` (セクションごと最大100行) |
-| **インタラクティブHTML** | `README.html` | Prism.jsシンタックスハイライト、Tailwind CSS | `README.html` (1000-2000行) |
-| **React可視化** | `README_react.html` | React 18 + Babel standalone、インタラクティブデモ | `README_react.html` |
+| ファイルタイプ           | 命名パターン                              | 目的                                              | 例                                    |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------- | ------------------------------------- |
+| **Python実装**           | `{ProblemName}.py` or `{problem_name}.py` | `class Solution`を含むコアアルゴリズム実装        | `Median_of_Two_Sorted_Arrays.py`      |
+| **TypeScript実装**       | `{ProblemName}.ts`                        | 厳密なチェックを伴う型安全な実装                  | `Median_of_Two_Sorted_Arrays.ts`      |
+| **JavaScript実装**       | `{ProblemName}.js`                        | ランタイム検証を伴う実装                          | `Median_of_Two_Sorted_Arrays.js`      |
+| **静的ドキュメント**     | `README.md`                               | 5段階ドキュメント構造                             | `README.md` (セクションごと最大100行) |
+| **インタラクティブHTML** | `README.html`                             | Prism.jsシンタックスハイライト、Tailwind CSS      | `README.html` (1000-2000行)           |
+| **React可視化**          | `README_react.html`                       | React 18 + Babel standalone、インタラクティブデモ | `README_react.html`                   |
 
 ### SQL問題構造
 
@@ -220,11 +220,11 @@ SQL/
 graph TB
     A[実装戦略] --> B[競技プログラミング向け]
     A --> C[プロダクション向け]
-    
+
     B --> B1[最小限の検証]
     B --> B2[最大実行速度]
     B --> B3[直接的なアルゴリズム実装]
-    
+
     C --> C1[包括的な入力検証]
     C --> C2[強化された型安全性]
     C --> C3[エラーハンドリング]
@@ -233,11 +233,13 @@ graph TB
 ### 競技プログラミングバリアント
 
 **特性:**
+
 - 最小限の検証(問題制約を信頼)
 - 最大実行速度
 - 直接的なアルゴリズム実装
 
 **例:**
+
 ```python
 # 整数センチネルの使用 (float キャストを排除)
 NEG: Final[int] = -10_000_007
@@ -245,6 +247,7 @@ POS: Final[int] = +10_000_007
 ```
 
 **最適化テクニック:**
+
 - ビットシフト `>> 1`
 - 事前計算されたパリティチェック `(total & 1) == 1`
 - ローカル変数バインディング
@@ -252,11 +255,13 @@ POS: Final[int] = +10_000_007
 ### プロダクションバリアント
 
 **特性:**
+
 - 包括的な入力検証
 - 強化された型安全性
 - エラーハンドリングとエッジケース処理
 
 **検証関数:**
+
 ```python
 # Python
 def _validate_non_decreasing(arr: List[int]) -> bool:
@@ -274,13 +279,13 @@ function isNonDecreasing(arr) { ... }
 
 ### 最適化比較表
 
-| 最適化項目 | 競技バージョン | プロダクションバージョン |
-|----------|--------------|---------------------|
-| **入力検証** | スキップ(制約を信頼) | TypeError、RangeErrorで違反を検出 |
-| **センチネル値** | 整数センチネル: `-10_000_007`, `+10_000_007` | `float('inf')` または `±Infinity` |
-| **型チェック** | 最小限(型ヒントのみ) | ランタイム `Number.isFinite()`, `Array.isArray()` |
-| **エラーメッセージ** | なし、または一般的 | 具体的なエラータイプと説明的メッセージ |
-| **エッジケース処理** | アルゴリズムを通じて暗黙的 | 早期リターンを伴う明示的な検証 |
+| 最適化項目           | 競技バージョン                               | プロダクションバージョン                          |
+| -------------------- | -------------------------------------------- | ------------------------------------------------- |
+| **入力検証**         | スキップ(制約を信頼)                         | TypeError、RangeErrorで違反を検出                 |
+| **センチネル値**     | 整数センチネル: `-10_000_007`, `+10_000_007` | `float('inf')` または `±Infinity`                 |
+| **型チェック**       | 最小限(型ヒントのみ)                         | ランタイム `Number.isFinite()`, `Array.isArray()` |
+| **エラーメッセージ** | なし、または一般的                           | 具体的なエラータイプと説明的メッセージ            |
+| **エッジケース処理** | アルゴリズムを通じて暗黙的                   | 早期リターンを伴う明示的な検証                    |
 
 ---
 
@@ -290,24 +295,24 @@ function isNonDecreasing(arr) { ... }
 
 ### 開発環境構成
 
-| コンポーネント | バージョン/設定 | 目的 |
-|--------------|---------------|------|
-| **Python** | CPython 3.11.10 | 型ヒント付きアルゴリズム実装 |
-| **Node.js** | v18.x (JavaScript), v22.14.0 (TypeScript) | TS/JS実装のランタイム |
-| **Bun** | Lockfile version 1 | パッケージ管理と決定論的ビルド |
-| **TypeScript** | @types/node ^22.18.10 | Node.js型定義 |
-| **ESLint** | ^9.37.0 | コード品質検証 |
-| **live-server** | ^1.2.2 | ライブリロード付き開発サーバー |
+| コンポーネント  | バージョン/設定                           | 目的                           |
+| --------------- | ----------------------------------------- | ------------------------------ |
+| **Python**      | CPython 3.11.10                           | 型ヒント付きアルゴリズム実装   |
+| **Node.js**     | v18.x (JavaScript), v22.14.0 (TypeScript) | TS/JS実装のランタイム          |
+| **Bun**         | Lockfile version 1                        | パッケージ管理と決定論的ビルド |
+| **TypeScript**  | @types/node ^22.18.10                     | Node.js型定義                  |
+| **ESLint**      | ^9.37.0                                   | コード品質検証                 |
+| **live-server** | ^1.2.2                                    | ライブリロード付き開発サーバー |
 
 ### Markdownlint設定詳細
 
 ```yaml
 MD013: # 行長
-  line_length: 100
-  excludes: [code_blocks, tables]
+    line_length: 100
+    excludes: [code_blocks, tables]
 
 MD033: # HTML許可タグ
-  allowed_elements: [h1, h2, details, summary, p, i, footer, div]
+    allowed_elements: [h1, h2, details, summary, p, i, footer, div]
 ```
 
 ### 外部ライブラリポリシー
@@ -330,17 +335,17 @@ graph TB
     A --> E[パフォーマンス最適化]
     A --> F[教育的価値]
     A --> G[多言語一貫性]
-    
+
     B --> B1[計算量解析]
     B --> B2[ステップバイステップ可視化]
-    
+
     C --> C1[LeetCode]
     C --> C2[HackerRank]
     C --> C3[AtCoder]
-    
+
     D --> D1[実装パターン]
     D --> D2[ベストプラクティス]
-    
+
     F --> F1[3層ドキュメントシステム]
     F --> F2[インタラクティブ学習]
 ```
@@ -356,12 +361,12 @@ graph TB
 
 ### 対象オーディエンスレベル
 
-| レベル | 対象者 | 推奨リソース |
-|--------|--------|------------|
-| **初心者** | プログラミング基礎を学習中 | 静的README.md + インタラクティブHTML |
-| **中級者** | アルゴリズム概念を理解済み | React可視化 + 複数言語比較 |
-| **上級者** | 最適化テクニックを探求 | 競技バリアント + パフォーマンス分析 |
-| **面接準備** | FAANG準備中 | 全実装 + AI比較 |
+| レベル       | 対象者                     | 推奨リソース                         |
+| ------------ | -------------------------- | ------------------------------------ |
+| **初心者**   | プログラミング基礎を学習中 | 静的README.md + インタラクティブHTML |
+| **中級者**   | アルゴリズム概念を理解済み | React可視化 + 複数言語比較           |
+| **上級者**   | 最適化テクニックを探求     | 競技バリアント + パフォーマンス分析  |
+| **面接準備** | FAANG準備中                | 全実装 + AI比較                      |
 
 ### 学習パスウェイ
 
@@ -369,14 +374,14 @@ graph TB
 graph LR
     A[Tier 1: 静的] --> B[Tier 2: インタラクティブ]
     B --> C[Tier 3: React]
-    
+
     A --> A1[問題説明を読む]
     A --> A2[アルゴリズム説明]
     A --> A3[計算量解析]
-    
+
     B --> B1[Play/Pause/Next/Reset]
     B --> B2[状態変化を観察]
-    
+
     C --> C1[リアルタイム入力変更]
     C --> C2[エッジケーステスト]
     C --> C3[AI実装比較]

@@ -8,15 +8,15 @@ JavaScript で累積和を計算する方法を以下に示します。
 
 ```javascript
 function cumulativeSum(array) {
-  let result = [];
-  let sum = 0;
+    let result = [];
+    let sum = 0;
 
-  for (let i = 0; i < array.length; i++) {
-    sum += array[i];
-    result.push(sum);
-  }
+    for (let i = 0; i < array.length; i++) {
+        sum += array[i];
+        result.push(sum);
+    }
 
-  return result;
+    return result;
 }
 
 // 使用例
@@ -30,8 +30,8 @@ JavaScript の`map`メソッドを使うと、より簡潔に記述できます�
 
 ```javascript
 function cumulativeSum(array) {
-  let sum = 0;
-  return array.map((num) => (sum += num));
+    let sum = 0;
+    return array.map((num) => (sum += num));
 }
 
 // 使用例
@@ -53,9 +53,9 @@ console.log(cumulativeSum(arr)); // [1, 3, 6, 10]
 
 ```javascript
 function cumulativeSum(array) {
-  if (array.length === 0) return [];
-  let sum = 0;
-  return array.map((num) => (sum += num));
+    if (array.length === 0) return [];
+    let sum = 0;
+    return array.map((num) => (sum += num));
 }
 
 // 負の数を含む例

@@ -1,0 +1,1418 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Two Sum - ハッシュテーブル1パス探索</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <!-- Header -->
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Two Sum</h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">
+                ハッシュテーブル1パス探索による O(n) 実装
+            </p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    概要
+                </a>
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    ステップ解説
+                </a>
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    実装
+                </a>
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    フローチャート
+                </a>
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    計算量
+                </a>
+            </nav>
+        </header>
+
+        <!-- Overview Section -->
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <p class="mb-4 text-lg">
+                <strong>問題：</strong>整数配列
+                <code class="px-2 py-1 bg-slate-100 rounded">nums</code> と整数
+                <code class="px-2 py-1 bg-slate-100 rounded">target</code> が与えられたとき、和が
+                <code class="px-2 py-1 bg-slate-100 rounded">target</code>
+                になる2要素の添字ペアを返す。
+            </p>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-6">
+                <p class="font-semibold text-emerald-800 mb-2">要件：</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">
+                    <li>解は必ず1つ存在する（一意性保証）</li>
+                    <li>同じ要素を2回使用してはならない</li>
+                    <li>添字の順序は任意</li>
+                </ul>
+            </div>
+
+            <div class="bg-cyan-50 border-l-4 border-cyan-500 p-4 mb-6">
+                <p class="font-semibold text-cyan-800 mb-2">入出力例：</p>
+                <pre
+                    class="bg-white p-4 rounded-lg border border-slate-200"
+                ><code>Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+説明: nums[0] + nums[1] = 2 + 7 = 9
+
+Input: nums = [3,2,4], target = 6
+Output: [1,2]
+
+Input: nums = [3,3], target = 6
+Output: [0,1]</code></pre>
+            </div>
+
+            <div class="bg-sky-50 border-l-4 border-sky-500 p-4">
+                <p class="font-semibold text-sky-800 mb-2">戦略：</p>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong>ハッシュテーブル（dict）を用いた1パス探索</strong></li>
+                    <li>
+                        各要素 <code class="px-2 py-1 bg-white rounded">x</code> に対し、補数
+                        <code class="px-2 py-1 bg-white rounded">need = target - x</code>
+                        が既出かを確認
+                    </li>
+                    <li>見つかった時点で即座に返却 → <strong>O(n)</strong> 時間</li>
+                    <li>最悪ケースで n-1 個のエントリを保持 → <strong>O(n)</strong> 空間</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Steps Section -->
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+
+            <div id="step-root"></div>
+        </section>
+
+        <!-- Code Section -->
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+
+            <pre class="line-numbers"><code class="language-python">from typing import List
+
+
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        """
+        ハッシュテーブル1パスでTwo Sumを解く
+
+        Args:
+            nums: 整数配列（長さ >= 2）
+            target: 目標和
+
+        Returns:
+            和が target になる2要素の添字リスト [i, j]
+
+        Time Complexity: O(n)
+        Space Complexity: O(n)
+        """
+        seen: dict[int, int] = {}  # value -> first occurrence index
+
+        for i, x in enumerate(nums):
+            need = target - x
+
+            # 補数が既出か確認
+            if need in seen:
+                return [seen[need], i]
+
+            # 現在値を初出のみ登録（重複時は最左を保持）
+            if x not in seen:
+                seen[x] = i
+
+        # 問題前提（解が必ず存在）により到達しないが型整合のため
+        return [-1, -1]</code></pre>
+        </section>
+
+        <!-- Diagram Section -->
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 840 950"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="Two Sum flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                        <marker
+                            id="arrowPurple"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+
+                    <!-- Start twoSum -->
+                    <ellipse
+                        cx="420"
+                        cy="50"
+                        rx="120"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="50"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始 twoSum
+                    </text>
+
+                    <!-- Initialize empty dict seen -->
+                    <path
+                        d="M 420 85 L 420 120"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="280"
+                        y="120"
+                        width="280"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="150"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        seen = {} を初期化
+                    </text>
+
+                    <!-- Enumerate nums -->
+                    <path
+                        d="M 420 180 L 420 220"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 220 L 520 270 L 420 320 L 320 270 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="270"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">配列を走査</tspan>
+                        <tspan x="420" dy="18">各 i, x について</tspan>
+                    </text>
+
+                    <!-- For each i,x - Calculate need -->
+                    <path
+                        d="M 420 320 L 420 360"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="400"
+                        y="340"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        要素あり
+                    </text>
+                    <rect
+                        x="280"
+                        y="360"
+                        width="280"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="390"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        need = target - x を計算
+                    </text>
+
+                    <!-- Is need in seen? -->
+                    <path
+                        d="M 420 420 L 420 460"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 460 L 520 510 L 420 560 L 320 510 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="510"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">need が</tspan>
+                        <tspan x="420" dy="18">seen にあるか？</tspan>
+                    </text>
+
+                    <!-- Yes - Return [seen[need], i] -->
+                    <path
+                        d="M 520 510 L 580 510"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="540"
+                        y="500"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <rect
+                        x="580"
+                        y="480"
+                        width="120"
+                        height="60"
+                        rx="8"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="640"
+                        y="505"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="640" dy="-6">[seen[need], i]</tspan>
+                        <tspan x="640" dy="16">を返却</tspan>
+                    </text>
+                    <path
+                        d="M 640 540 L 640 855"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+
+                    <!-- No - Is x in seen? -->
+                    <path
+                        d="M 420 560 L 420 610"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="400"
+                        y="585"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+                    <path
+                        d="M 420 610 L 520 660 L 420 710 L 320 660 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="660"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">x が</tspan>
+                        <tspan x="420" dy="18">seen にあるか？</tspan>
+                    </text>
+
+                    <!-- No - seen[x] = i -->
+                    <path
+                        d="M 320 660 L 270 660"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="310"
+                        y="630"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <rect
+                        x="50"
+                        y="630"
+                        width="220"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="160"
+                        y="660"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        seen[x] = i を登録
+                    </text>
+
+                    <!-- Yes - Skip duplicate -->
+                    <path
+                        d="M 420 710 L 420 750"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="400"
+                        y="730"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <rect
+                        x="340"
+                        y="750"
+                        width="160"
+                        height="50"
+                        rx="8"
+                        fill="#f1f5f9"
+                        stroke="#64748b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="775"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="15"
+                        font-weight="600"
+                        fill="#64748b"
+                    >
+                        スキップ
+                    </text>
+
+                    <!-- Loop back to Enumerate -->
+                    <path
+                        d="M 160 630 L 160 270 L 250 270"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                    />
+                    <path
+                        d="M 420 800 L 420 830 L 30 830"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                    />
+                    <path
+                        d="M 30 830 L 30 270 L 320 270"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+                    <text
+                        x="100"
+                        y="550"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#a855f7"
+                    >
+                        次の要素へ
+                    </text>
+
+                    <!-- End of array - Return [-1, -1] -->
+                    <path
+                        d="M 520 270 L 650 270"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="580"
+                        y="260"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        配列終了
+                    </text>
+                    <rect
+                        x="650"
+                        y="240"
+                        width="180"
+                        height="60"
+                        rx="8"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="740"
+                        y="270"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        [-1, -1] を返却
+                    </text>
+                    <path
+                        d="M 740 300 L 740 890 L 720 890"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+
+                    <!-- End -->
+                    <ellipse
+                        cx="640"
+                        cy="890"
+                        rx="80"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="640"
+                        y="890"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        終了
+                    </text>
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. 空の辞書 <code class="px-2 py-1 bg-slate-100 rounded">seen</code> を初期化<br />
+                2. 配列を左から順に走査（各要素を
+                <code class="px-2 py-1 bg-slate-100 rounded">x</code>、添字を
+                <code class="px-2 py-1 bg-slate-100 rounded">i</code> とする）<br />
+                3. 補数
+                <code class="px-2 py-1 bg-slate-100 rounded">need = target - x</code> を計算<br />
+                4. <code class="px-2 py-1 bg-slate-100 rounded">need</code> が辞書に存在するか確認 →
+                存在すれば即座に
+                <code class="px-2 py-1 bg-slate-100 rounded">[seen[need], i]</code> を返却<br />
+                5. 存在しなければ、<code class="px-2 py-1 bg-slate-100 rounded">x</code>
+                が辞書に未登録なら
+                <code class="px-2 py-1 bg-slate-100 rounded">seen[x] = i</code> を登録<br />
+                6. 次の要素へ進む（ループバック）<br />
+                7. 全要素を処理しても解が見つからなければ終了（問題前提では到達しない）
+            </p>
+        </section>
+
+        <!-- Complexity Section -->
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                指標
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                本実装（ハッシュ1パス）
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                二重ループ
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                ソート+二ポインタ
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                時間計算量
+                            </td>
+                            <td
+                                class="border-2 border-slate-200 px-4 py-3 bg-emerald-50 font-bold text-emerald-700"
+                            >
+                                O(n)
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">O(n²)</td>
+                            <td class="border-2 border-slate-200 px-4 py-3">O(n log n)</td>
+                        </tr>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                空間計算量
+                            </td>
+                            <td
+                                class="border-2 border-slate-200 px-4 py-3 bg-emerald-50 font-bold text-emerald-700"
+                            >
+                                O(n)
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">O(1)</td>
+                            <td class="border-2 border-slate-200 px-4 py-3">O(n)</td>
+                        </tr>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                実装コスト
+                            </td>
+                            <td
+                                class="border-2 border-slate-200 px-4 py-3 bg-emerald-50 font-bold text-emerald-700"
+                            >
+                                低
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">低</td>
+                            <td class="border-2 border-slate-200 px-4 py-3">中</td>
+                        </tr>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                Follow-up対応
+                            </td>
+                            <td
+                                class="border-2 border-slate-200 px-4 py-3 bg-emerald-50 font-bold text-emerald-700"
+                            >
+                                ✅ O(n²)未満
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">❌ O(n²)</td>
+                            <td class="border-2 border-slate-200 px-4 py-3">✅ O(n log n)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 bg-sky-50 border-l-4 border-sky-500 p-4">
+                <p class="font-semibold text-sky-800 mb-2">詳細分析：</p>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li>
+                        <strong>時間 O(n)</strong>:
+                        配列を1回走査（n回）、各ステップでハッシュ操作（平均O(1)）
+                    </li>
+                    <li><strong>空間 O(n)</strong>: 最悪ケースで n-1 個の要素を辞書に保持</li>
+                    <li>
+                        <strong>最適性</strong>:
+                        問題の性質上、全要素を少なくとも1回は確認する必要があるため O(n)
+                        が理論的下限
+                    </li>
+                    <li>
+                        <strong>CPython特性</strong>: dict はC実装で高速、enumerate
+                        も効率的なイテレータ
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- React App -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期化',
+                    desc: '空の辞書 seen = {} を用意します。この辞書は「値 → 添字」のマッピングを保持します。例として nums = [2, 7, 11, 15], target = 9 を使います。',
+                    visual: {
+                        type: 'init',
+                        list: [2, 7, 11, 15],
+                        target: 9,
+                        seen: {},
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'i=0: x=2を処理',
+                    desc: 'i=0, x=2。補数 need = 9-2 = 7 を計算。7は seen に未登録なので、seen[2] = 0 を登録します。',
+                    visual: {
+                        type: 'process',
+                        list: [2, 7, 11, 15],
+                        target: 9,
+                        currentIdx: 0,
+                        currentVal: 2,
+                        need: 7,
+                        found: false,
+                        seen: { 2: 0 },
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'i=1: x=7を処理',
+                    desc: 'i=1, x=7。補数 need = 9-7 = 2 を計算。2は seen[2]=0 として登録済み！ペア発見：[0, 1] を返却します。',
+                    visual: {
+                        type: 'found',
+                        list: [2, 7, 11, 15],
+                        target: 9,
+                        currentIdx: 1,
+                        currentVal: 7,
+                        need: 2,
+                        found: true,
+                        foundIdx: 0,
+                        seen: { 2: 0 },
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                const { type, list, target, currentIdx, currentVal, need, found, foundIdx, seen } =
+                    visual;
+
+                const boxWidth = 75;
+                const boxHeight = 75;
+                const spacing = 90;
+                const totalWidth = list.length * spacing;
+                const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                if (type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="初期化"
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                初期状態: nums = [{list.join(', ')}], target = {target}
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="137"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="200"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fill="#64748b"
+                                    >
+                                        [{idx}]
+                                    </text>
+                                </g>
+                            ))}
+
+                            <text
+                                x="300"
+                                y="250"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                seen = {'{}'} （空の辞書）
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'process') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="処理中"
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                i = {currentIdx}, x = {currentVal}, need = {target} - {currentVal} ={' '}
+                                {need}
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={idx === currentIdx ? '#a7f3d0' : '#e0f2fe'}
+                                        stroke={idx === currentIdx ? '#10b981' : '#0284c7'}
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="137"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="200"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fill="#64748b"
+                                    >
+                                        [{idx}]
+                                    </text>
+                                </g>
+                            ))}
+
+                            <path
+                                d={`M ${startX + currentIdx * spacing} ${80} L ${startX + currentIdx * spacing} ${100}`}
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+                            <text
+                                x={startX + currentIdx * spacing}
+                                y={60}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                現在位置
+                            </text>
+
+                            <text
+                                x="300"
+                                y="260"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#dc2626"
+                                fontWeight="600"
+                            >
+                                need = {need} は seen に未登録
+                            </text>
+
+                            <text
+                                x="300"
+                                y="300"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                seen[{currentVal}] = {currentIdx} を登録
+                            </text>
+
+                            <text
+                                x="300"
+                                y="340"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                seen = {JSON.stringify(seen)}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'found') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="発見"
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowGreen"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                                </marker>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                ✓ 発見！ i = {currentIdx}, x = {currentVal}, need = {need}
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx === foundIdx || idx === currentIdx
+                                                ? '#d1fae5'
+                                                : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx === foundIdx || idx === currentIdx
+                                                ? '#10b981'
+                                                : '#0284c7'
+                                        }
+                                        strokeWidth={
+                                            idx === foundIdx || idx === currentIdx ? '3' : '2'
+                                        }
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="137"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="200"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fill="#64748b"
+                                    >
+                                        [{idx}]
+                                    </text>
+                                </g>
+                            ))}
+
+                            <path
+                                d={`M ${startX + foundIdx * spacing} ${80} L ${startX + foundIdx * spacing} ${100}`}
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowGreen)"
+                            />
+                            <text
+                                x={startX + foundIdx * spacing}
+                                y={60}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#10b981"
+                            >
+                                seen[{need}]
+                            </text>
+
+                            <path
+                                d={`M ${startX + currentIdx * spacing} ${220} L ${startX + currentIdx * spacing} ${200}`}
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+                            <text
+                                x={startX + currentIdx * spacing}
+                                y={240}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                現在位置
+                            </text>
+
+                            <text
+                                x="300"
+                                y="290"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fill="#059669"
+                                fontWeight="600"
+                            >
+                                {list[foundIdx]} + {list[currentIdx]} = {target}
+                            </text>
+
+                            <text
+                                x="300"
+                                y="330"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fill="#059669"
+                                fontWeight="600"
+                            >
+                                結果: [{foundIdx}, {currentIdx}]
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData = stepsData.find((s) => s.step === activeStep);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↻ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('step-root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>

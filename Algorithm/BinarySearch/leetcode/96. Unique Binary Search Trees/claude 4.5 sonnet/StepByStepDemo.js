@@ -388,6 +388,10 @@
     ))));
   }
   const container = document.getElementById("step-container");
-  const root = ReactDOM.createRoot(container);
-  root.render(/* @__PURE__ */ React.createElement(StepByStepDemo, null));
+  if (!container) {
+    console.error('Element with id "step-container" not found');
+  } else {
+    const root = ReactDOM.createRoot(container);
+    root.render(/* @__PURE__ */ React.createElement(StepByStepDemo, null));
+  }
 })();

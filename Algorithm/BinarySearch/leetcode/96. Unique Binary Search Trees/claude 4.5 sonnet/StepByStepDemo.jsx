@@ -436,5 +436,9 @@ const { useState, useEffect, useRef } = React;
 
             // レンダリング
             const container = document.getElementById('step-container');
-            const root = ReactDOM.createRoot(container);
-            root.render(<StepByStepDemo />);
+            if (!container) {
+                console.error('Element with id "step-container" not found');
+            } else {
+                const root = ReactDOM.createRoot(container);
+                root.render(<StepByStepDemo />);
+            }

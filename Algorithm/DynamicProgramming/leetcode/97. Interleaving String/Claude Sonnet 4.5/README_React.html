@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 97: Interleaving String - 1D DP解説</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+
+        <!-- React & ReactDOM -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+            /* SVG Flowchart Styles */
+            .flowchart-svg {
+                max-width: 100%;
+                height: auto;
+                color: #333;
+            }
+        </style>
+    </head>
+
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <!-- ヘッダー -->
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">97. Interleaving String</h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">1次元 DP による O(n₁×n₂) 実装</p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    aria-label="概要セクションへ"
+                >
+                    概要
+                </a>
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    aria-label="ステップ解説セクションへ"
+                >
+                    ステップ解説
+                </a>
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    aria-label="コード例セクションへ"
+                >
+                    コード例
+                </a>
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    aria-label="フローチャートセクションへ"
+                >
+                    フローチャート
+                </a>
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    aria-label="計算量分析セクションへ"
+                >
+                    計算量分析
+                </a>
+            </nav>
+        </header>
+
+        <!-- 概要 -->
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+            <p class="mb-4">
+                3つの文字列 <code class="px-2 py-1 bg-slate-100 rounded">s1</code>、<code
+                    class="px-2 py-1 bg-slate-100 rounded"
+                    >s2</code
+                >、<code class="px-2 py-1 bg-slate-100 rounded">s3</code> が与えられます。
+                <code class="px-2 py-1 bg-slate-100 rounded">s3</code> が
+                <code class="px-2 py-1 bg-slate-100 rounded">s1</code> と
+                <code class="px-2 py-1 bg-slate-100 rounded">s2</code> の
+                <strong>interleaving（交互配置）</strong> で構成できるか判定します。
+            </p>
+            <p class="mb-4">
+                Interleaving
+                とは、2つの文字列をそれぞれ部分文字列に分割し、<strong>元の順序を保ちながら</strong>交互に結合したものです。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="font-semibold mb-2">Example 1:</p>
+                <pre class="text-sm"><code>入力: s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"
+出力: true
+説明: s1 を "aa" + "bc" + "c" に分割し、s2 を "dbbc" + "a" に分割すると、
+     "aa" + "dbbc" + "bc" + "a" + "c" = "aadbbcbcac" が得られる</code></pre>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="font-semibold mb-2">Example 2:</p>
+                <pre class="text-sm"><code>入力: s1 = "aabcc", s2 = "dbbca", s3 = "aadbbbaccc"
+出力: false
+説明: どのように交互配置してもs3を構成できない</code></pre>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>
+                    <code class="px-2 py-1 bg-slate-100 rounded"
+                        >0 &le; s1.length, s2.length &le; 100</code
+                    >
+                </li>
+                <li>
+                    <code class="px-2 py-1 bg-slate-100 rounded">0 &le; s3.length &le; 200</code>
+                </li>
+                <li>すべて小文字英字のみ</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略の説明</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>1次元 DP（動的計画法）</strong>を使用して空間計算量を最適化</li>
+                <li>
+                    <code class="px-2 py-1 bg-slate-100 rounded">dp[j]</code>:
+                    s1の先頭i文字とs2の先頭j文字でs3の先頭i+j文字を構成できるか
+                </li>
+                <li>短い方の文字列を列方向に配置してメモリ効率を向上</li>
+                <li>各位置で「s1から遷移」または「s2から遷移」の論理和を取る</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>時間計算量</strong>: O(len(s1) × len(s2))</li>
+                <li>
+                    <strong>空間計算量</strong>: O(min(len(s1), len(s2))) - Follow-up要件を満たす
+                </li>
+                <li><strong>最適化手法</strong>: 2D DP を 1D に圧縮、短い文字列を列方向に配置</li>
+            </ul>
+        </section>
+
+        <!-- ステップバイステップ解説 -->
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="step-visualization-root"></div>
+        </section>
+
+        <!-- コード例 -->
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+            <pre
+                class="line-numbers"
+            ><code class="language-python">from __future__ import annotations
+from typing import List
+
+
+class Solution:
+    """
+    Interleaving String 判定クラス（LeetCode 用）
+
+    Time Complexity:
+        O(len(s1) * len(s2))
+
+    Space Complexity:
+        O(min(len(s1), len(s2)))  # 1次元DP
+    """
+
+    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
+        """
+        s3 が s1 と s2 の interleaving で構成できるかどうかを判定する。
+
+        Args:
+            s1: 1つ目の文字列
+            s2: 2つ目の文字列
+            s3: 判定対象の文字列
+
+        Returns:
+            s3 が s1 と s2 の interleaving なら True、それ以外は False
+        """
+        n1: int = len(s1)
+        n2: int = len(s2)
+        n3: int = len(s3)
+
+        # 長さが合わなければ不可能
+        if n1 + n2 != n3:
+            return False
+
+        # dp の列方向（長さ）を常に「短い方の文字列」にする
+        # → dp のサイズ縮小 + 内側ループ回数も減少
+        if n2 > n1:
+            # s1 を「長い方」、s2 を「短い方」に揃える
+            s1, s2 = s2, s1
+            n1, n2 = n2, n1
+
+        # dp[j]: s1 の先頭 i 文字と s2 の先頭 j 文字で s3 の先頭 i+j 文字を作れるか
+        dp: List[bool] = [False] * (n2 + 1)
+
+        # i = 0 行（s1 を 0 文字使用）の初期化
+        dp[0] = True
+        for j in range(1, n2 + 1):
+            dp[j] = dp[j - 1] and (s2[j - 1] == s3[j - 1])
+
+        # i >= 1 行の更新
+        for i in range(1, n1 + 1):
+            # j = 0 列（s2 を 0 文字使用）の更新
+            dp[0] = dp[0] and (s1[i - 1] == s3[i - 1])
+
+            for j in range(1, n2 + 1):
+                k: int = i + j - 1  # s3 のインデックス
+
+                # 上から来る: s1 の文字を使う
+                from_s1: bool = dp[j] and (s1[i - 1] == s3[k])
+                # 左から来る: s2 の文字を使う
+                from_s2: bool = dp[j - 1] and (s2[j - 1] == s3[k])
+
+                dp[j] = from_s1 or from_s2
+
+        return dp[n2]</code></pre>
+        </section>
+
+        <!-- フローチャート -->
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 840 1100"
+                    class="flowchart-svg"
+                    role="img"
+                    aria-label="Interleaving String flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                        <marker
+                            id="arrowPurple"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+
+                    <!-- 開始 -->
+                    <ellipse
+                        cx="420"
+                        cy="50"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="50"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始
+                    </text>
+
+                    <!-- 長さチェック -->
+                    <path
+                        d="M 420 85 L 420 150"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 150 L 520 200 L 420 250 L 320 200 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="200"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">n1 + n2 == n3?</tspan>
+                    </text>
+
+                    <!-- いいえ → False返却 -->
+                    <path
+                        d="M 520 200 L 640 200"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="580"
+                        y="190"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+                    <rect
+                        x="640"
+                        y="170"
+                        width="160"
+                        height="60"
+                        rx="8"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="200"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="720" dy="-8">False 返却</tspan>
+                    </text>
+
+                    <!-- はい → Swapチェック -->
+                    <path
+                        d="M 420 250 L 420 315"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="380"
+                        y="267"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <path
+                        d="M 420 315 L 520 365 L 420 415 L 320 365 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="365"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">n2 &gt; n1?</tspan>
+                    </text>
+
+                    <!-- はい → Swap -->
+                    <path
+                        d="M 320 365 L 280 365"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="300"
+                        y="350"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <rect
+                        x="80"
+                        y="335"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="180"
+                        y="365"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="180" dy="-8">s1, s2 を swap</tspan>
+                        <tspan x="180" dy="18">n1, n2 を swap</tspan>
+                    </text>
+
+                    <!-- Swap → DP初期化 -->
+                    <path
+                        d="M 180 395 L 180 510 L 350 510"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- いいえ → DP初期化 -->
+                    <path
+                        d="M 420 415 L 420 480"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="380"
+                        y="447"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <!-- DP初期化 -->
+                    <rect
+                        x="350"
+                        y="480"
+                        width="140"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="510"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">dp 配列初期化</tspan>
+                        <tspan x="420" dy="18">dp[0] = True</tspan>
+                    </text>
+
+                    <!-- i=0行の初期化 -->
+                    <path
+                        d="M 420 540 L 420 575"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="330"
+                        y="575"
+                        width="180"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="605"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">i=0 行の初期化</tspan>
+                        <tspan x="420" dy="18">j=1..n2 をループ</tspan>
+                    </text>
+
+                    <!-- i>=1行の更新ループ -->
+                    <path
+                        d="M 420 635 L 420 670"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="330"
+                        y="670"
+                        width="180"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="700"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">i=1..n1 をループ</tspan>
+                        <tspan x="420" dy="18">j=0 列を更新</tspan>
+                    </text>
+
+                    <!-- j>=1列の更新ループ -->
+                    <path
+                        d="M 420 730 L 420 765"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="330"
+                        y="765"
+                        width="180"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="795"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">j=1..n2 をループ</tspan>
+                        <tspan x="420" dy="18">k = i+j-1 計算</tspan>
+                    </text>
+
+                    <!-- DP遷移 -->
+                    <path
+                        d="M 420 825 L 420 860"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="300"
+                        y="860"
+                        width="240"
+                        height="100"
+                        rx="8"
+                        fill="#f1f5f9"
+                        stroke="#64748b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="900"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="15"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-18">from_s1 = dp[j] and</tspan>
+                        <tspan x="420" dy="18">s1[i-1]==s3[k]</tspan>
+                        <tspan x="420" dy="18">from_s2 = dp[j-1] and</tspan>
+                        <tspan x="420" dy="18">s2[j-1]==s3[k]</tspan>
+                    </text>
+
+                    <!-- DP更新 -->
+                    <path
+                        d="M 420 950 L 420 975"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="330"
+                        y="975"
+                        width="180"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="1005"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">dp[j] = from_s1</tspan>
+                        <tspan x="420" dy="18">or from_s2</tspan>
+                    </text>
+
+                    <!-- ループバック（j） -->
+                    <path
+                        d="M 330 1005 L 180 1005 L 180 810 L 330 810"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+                    <text
+                        x="200"
+                        y="900"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#a855f7"
+                    >
+                        次の j
+                    </text>
+
+                    <!-- ループバック（i） -->
+                    <path
+                        d="M 330 700 L 180 700 L 180 795 L 330 795"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+                    <text
+                        x="200"
+                        y="747"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#a855f7"
+                    >
+                        次の i
+                    </text>
+
+                    <!-- 結果返却 -->
+                    <path
+                        d="M 510 1005 L 640 1005"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="640"
+                        y="975"
+                        width="160"
+                        height="60"
+                        rx="8"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="1005"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="720" dy="-8">dp[n2] 返却</tspan>
+                    </text>
+                    <!-- 結果返却 → 終了 -->
+                    <path
+                        d="M 720 975 L 720 935"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+
+                    <!-- 終了 -->
+                    <ellipse
+                        cx="720"
+                        cy="900"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="900"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        終了
+                    </text>
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. まず n1 + n2 == n3 をチェック（不一致なら即 False）<br />
+                2. n2 &gt; n1 なら swap して、短い方を列方向に配置<br />
+                3. dp 配列を初期化し、i=0 行（s2 のみ使用）を設定<br />
+                4. i=1..n1 の各行で、j=0 列を更新後、j=1..n2 をループ<br />
+                5. 各 dp[j] は「s1 から遷移」または「s2 から遷移」の論理和<br />
+                6. すべてのループ完了後、dp[n2] を返却<br />
+            </p>
+        </section>
+
+        <!-- 計算量分析 -->
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">時間計算量</h3>
+            <p class="mb-4">
+                <strong>O(len(s1) × len(s2))</strong>
+            </p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>外側ループ: i = 1..n1（n1回）</li>
+                <li>内側ループ: j = 1..n2（n2回）</li>
+                <li>各ステップは定数時間の比較と代入のみ</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">空間計算量</h3>
+            <p class="mb-4">
+                <strong>O(min(len(s1), len(s2)))</strong>
+            </p>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>DP 配列のサイズ: min(n1, n2) + 1</li>
+                <li>Follow-up の要件「O(s2.length)」を満たす</li>
+                <li>短い方を列方向に配置する最適化により実質 O(min)</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">手法比較表</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-100">
+                            <th class="border border-emerald-300 px-4 py-2 text-left">手法</th>
+                            <th class="border border-emerald-300 px-4 py-2 text-left">
+                                時間計算量
+                            </th>
+                            <th class="border border-emerald-300 px-4 py-2 text-left">
+                                空間計算量
+                            </th>
+                            <th class="border border-emerald-300 px-4 py-2 text-left">実装難度</th>
+                            <th class="border border-emerald-300 px-4 py-2 text-left">備考</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2">再帰 DFS + メモ化</td>
+                            <td class="border border-slate-300 px-4 py-2">O(n1×n2)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(n1×n2)</td>
+                            <td class="border border-slate-300 px-4 py-2">中</td>
+                            <td class="border border-slate-300 px-4 py-2">スタック深度に注意</td>
+                        </tr>
+                        <tr class="bg-sky-50">
+                            <td class="border border-slate-300 px-4 py-2">2D DP</td>
+                            <td class="border border-slate-300 px-4 py-2">O(n1×n2)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(n1×n2)</td>
+                            <td class="border border-slate-300 px-4 py-2">低</td>
+                            <td class="border border-slate-300 px-4 py-2">最も分かりやすい</td>
+                        </tr>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <strong>1D DP（本実装）</strong>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(n1×n2)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(min(n1,n2))</td>
+                            <td class="border border-slate-300 px-4 py-2">中</td>
+                            <td class="border border-slate-300 px-4 py-2">
+                                空間効率最適、Follow-up対応
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const StepVisualization = () => {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '入力と長さチェック',
+                        desc: "s1='aabcc'(長さ5), s2='dbbca'(長さ5), s3='aadbbcbcac'(長さ10) を例とする。まず n1+n2==n3 (5+5==10) を確認し、True なので続行。",
+                        visual: {
+                            type: 'init',
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            n1: 5,
+                            n2: 5,
+                            n3: 10,
+                        },
+                    },
+                    {
+                        step: 2,
+                        title: 'Swap判定と配列初期化',
+                        desc: 'n2 > n1 ではないので swap なし。dp 配列を長さ n2+1=6 で初期化し、dp[0] = True とする。',
+                        visual: { type: 'swap', s1: 'aabcc', s2: 'dbbca', n1: 5, n2: 5, dpLen: 6 },
+                    },
+                    {
+                        step: 3,
+                        title: 'i=0 行の初期化',
+                        desc: 's1 を 0 文字使用する場合、s2 のみで s3 の先頭部分を構成できるか判定。j=1..5 をループして dp[j] を設定。',
+                        visual: {
+                            type: 'initRow',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, false, false, false, false, false],
+                        },
+                    },
+                    {
+                        step: 4,
+                        title: 'i=1, j=0 の更新',
+                        desc: "i=1 (s1 の先頭 1 文字 'a' を使用)。まず j=0 列を更新: dp[0] = dp[0] and s1[0]==s3[0]。'a'=='a' なので dp[0] は True。",
+                        visual: {
+                            type: 'updateCol0',
+                            i: 1,
+                            s1: 'aabcc',
+                            s3: 'aadbbcbcac',
+                            dp: [true, false, false, false, false, false],
+                        },
+                    },
+                    {
+                        step: 5,
+                        title: 'i=1, j=1 の更新',
+                        desc: "k=i+j-1=1。from_s1 = dp[1] and s1[0]==s3[1] → False and ('a'=='a') → False。from_s2 = dp[0] and s2[0]==s3[1] → True and ('d'=='a') → False。dp[1] = False。",
+                        visual: {
+                            type: 'dpUpdate',
+                            i: 1,
+                            j: 1,
+                            k: 1,
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, false, false, false, false, false],
+                            from_s1: false,
+                            from_s2: false,
+                        },
+                    },
+                    {
+                        step: 6,
+                        title: 'i=1, j=2 の更新',
+                        desc: 'k=2。from_s1 = dp[2] and s1[0]==s3[2] → False。from_s2 = dp[1] and s2[1]==s3[2] → False。dp[2] = False。',
+                        visual: {
+                            type: 'dpUpdate',
+                            i: 1,
+                            j: 2,
+                            k: 2,
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, false, false, false, false, false],
+                            from_s1: false,
+                            from_s2: false,
+                        },
+                    },
+                    {
+                        step: 7,
+                        title: 'i=2, j=1 の更新',
+                        desc: "i=2 (s1 の先頭 2 文字 'aa' を使用)。j=0 列更新後、j=1 へ。k=2。from_s1 = dp[1] and s1[1]==s3[2] → False。from_s2 = dp[0] and s2[0]==s3[2] → True and ('d'=='d') → True。dp[1] = True。",
+                        visual: {
+                            type: 'dpUpdate',
+                            i: 2,
+                            j: 1,
+                            k: 2,
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, true, false, false, false, false],
+                            from_s1: false,
+                            from_s2: true,
+                        },
+                    },
+                    {
+                        step: 8,
+                        title: 'i=2, j=2 の更新',
+                        desc: "k=3。from_s1 = dp[2] and s1[1]==s3[3] → False。from_s2 = dp[1] and s2[1]==s3[3] → True and ('b'=='b') → True。dp[2] = True。",
+                        visual: {
+                            type: 'dpUpdate',
+                            i: 2,
+                            j: 2,
+                            k: 3,
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, true, true, false, false, false],
+                            from_s1: false,
+                            from_s2: true,
+                        },
+                    },
+                    {
+                        step: 9,
+                        title: 'i=3〜5 の更新（省略）',
+                        desc: '同様に i=3,4,5 を処理。各 j で from_s1 と from_s2 の論理和を取り、dp[j] を更新していく。',
+                        visual: {
+                            type: 'loop',
+                            s1: 'aabcc',
+                            s2: 'dbbca',
+                            s3: 'aadbbcbcac',
+                            dp: [true, true, true, true, true, true],
+                        },
+                    },
+                    {
+                        step: 10,
+                        title: '最終結果',
+                        desc: 'すべてのループ完了後、dp[n2] = dp[5] を返却。dp[5] = True なので、s3 は s1 と s2 の interleaving として構成可能。',
+                        visual: {
+                            type: 'result',
+                            dp: [true, true, true, true, true, true],
+                            n2: 5,
+                            result: true,
+                        },
+                    },
+                ];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep, stepsData.length]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep === stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setIsPlaying(false);
+                        setActiveStep(activeStep - 1);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setIsPlaying(false);
+                        setActiveStep(activeStep + 1);
+                    }
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                const renderVisualization = (visual) => {
+                    const { type } = visual;
+
+                    if (type === 'init') {
+                        return (
+                            <svg
+                                viewBox="0 0 700 300"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="40"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    入力文字列
+                                </text>
+                                <text
+                                    x="50"
+                                    y="100"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s1:
+                                </text>
+                                <text
+                                    x="100"
+                                    y="100"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontFamily="JetBrains Mono"
+                                    fill="#059669"
+                                >
+                                    {visual.s1}
+                                </text>
+                                <text
+                                    x="250"
+                                    y="100"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    (長さ {visual.n1})
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="150"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s2:
+                                </text>
+                                <text
+                                    x="100"
+                                    y="150"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontFamily="JetBrains Mono"
+                                    fill="#0284c7"
+                                >
+                                    {visual.s2}
+                                </text>
+                                <text
+                                    x="250"
+                                    y="150"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    (長さ {visual.n2})
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="200"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s3:
+                                </text>
+                                <text
+                                    x="100"
+                                    y="200"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontFamily="JetBrains Mono"
+                                    fill="#a855f7"
+                                >
+                                    {visual.s3}
+                                </text>
+                                <text
+                                    x="350"
+                                    y="200"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    (長さ {visual.n3})
+                                </text>
+
+                                <text
+                                    x="350"
+                                    y="260"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                    fill="#059669"
+                                >
+                                    ✓ 長さチェック: {visual.n1} + {visual.n2} == {visual.n3}
+                                </text>
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'swap') {
+                        return (
+                            <svg
+                                viewBox="0 0 700 300"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="40"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    Swap判定と配列初期化
+                                </text>
+                                <text
+                                    x="50"
+                                    y="100"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    n1 = {visual.n1}, n2 = {visual.n2}
+                                </text>
+                                <text
+                                    x="50"
+                                    y="140"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    n2 &gt; n1? → いいえ（swap なし）
+                                </text>
+                                <text
+                                    x="50"
+                                    y="180"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    dp 配列長: {visual.dpLen}
+                                </text>
+                                <rect
+                                    x="50"
+                                    y="200"
+                                    width="600"
+                                    height="50"
+                                    rx="8"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="350"
+                                    y="225"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    dp = [True, False, False, False, False, False]
+                                </text>
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'initRow') {
+                        const s2Arr = visual.s2.split('');
+                        const s3Arr = visual.s3.split('');
+                        const boxWidth = 50;
+                        const spacing = 70;
+                        const startX = 80;
+
+                        return (
+                            <svg
+                                viewBox="0 0 700 350"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    i=0 行の初期化（s2 のみで s3 を構成）
+                                </text>
+
+                                <text
+                                    x="40"
+                                    y="100"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s2:
+                                </text>
+                                {s2Arr.map((char, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="75"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill="#e0f2fe"
+                                            stroke="#0284c7"
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="100"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="18"
+                                            fontWeight="600"
+                                        >
+                                            {char}
+                                        </text>
+                                    </g>
+                                ))}
+
+                                <text
+                                    x="40"
+                                    y="200"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s3:
+                                </text>
+                                {s3Arr.slice(0, s2Arr.length).map((char, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="175"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="200"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="18"
+                                            fontWeight="600"
+                                        >
+                                            {char}
+                                        </text>
+                                    </g>
+                                ))}
+
+                                <text
+                                    x="40"
+                                    y="300"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    dp:
+                                </text>
+                                {visual.dp.map((val, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="275"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill={val ? '#d1fae5' : '#fee2e2'}
+                                            stroke={val ? '#10b981' : '#dc2626'}
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="300"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                        >
+                                            {val ? 'T' : 'F'}
+                                        </text>
+                                    </g>
+                                ))}
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'updateCol0') {
+                        return (
+                            <svg
+                                viewBox="0 0 700 300"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="40"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    i={visual.i}, j=0 の更新
+                                </text>
+                                <text
+                                    x="50"
+                                    y="100"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s1[{visual.i - 1}] = '{visual.s1[visual.i - 1]}'
+                                </text>
+                                <text
+                                    x="50"
+                                    y="140"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    s3[{visual.i - 1}] = '{visual.s3[visual.i - 1]}'
+                                </text>
+                                <text
+                                    x="50"
+                                    y="180"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    dp[0] = dp[0] and (s1[{visual.i - 1}] == s3[{visual.i - 1}])
+                                </text>
+                                <text
+                                    x="50"
+                                    y="220"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                    fill="#059669"
+                                >
+                                    dp[0] = True and ('{visual.s1[visual.i - 1]}' == '
+                                    {visual.s3[visual.i - 1]}') → True
+                                </text>
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'dpUpdate') {
+                        const boxWidth = 50;
+                        const spacing = 70;
+                        const startX = 80;
+
+                        return (
+                            <svg
+                                viewBox="0 0 700 400"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    i={visual.i}, j={visual.j}, k={visual.k} の更新
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="80"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                >
+                                    s1[{visual.i - 1}]='{visual.s1[visual.i - 1]}', s2[
+                                    {visual.j - 1}]='{visual.s2[visual.j - 1]}', s3[{visual.k}]='
+                                    {visual.s3[visual.k]}'
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="120"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                >
+                                    from_s1 = dp[{visual.j}] and (s1[{visual.i - 1}] == s3[
+                                    {visual.k}]) → {visual.from_s1 ? 'True' : 'False'}
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="160"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                >
+                                    from_s2 = dp[{visual.j - 1}] and (s2[{visual.j - 1}] == s3[
+                                    {visual.k}]) → {visual.from_s2 ? 'True' : 'False'}
+                                </text>
+
+                                <text
+                                    x="50"
+                                    y="200"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                >
+                                    dp[{visual.j}] = from_s1 or from_s2 →{' '}
+                                    {visual.from_s1 || visual.from_s2 ? 'True' : 'False'}
+                                </text>
+
+                                <text
+                                    x="40"
+                                    y="280"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    dp:
+                                </text>
+                                {visual.dp.map((val, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="255"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill={
+                                                idx === visual.j
+                                                    ? '#fef3c7'
+                                                    : val
+                                                      ? '#d1fae5'
+                                                      : '#fee2e2'
+                                            }
+                                            stroke={
+                                                idx === visual.j
+                                                    ? '#f59e0b'
+                                                    : val
+                                                      ? '#10b981'
+                                                      : '#dc2626'
+                                            }
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="280"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                        >
+                                            {val ? 'T' : 'F'}
+                                        </text>
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="330"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill="#64748b"
+                                        >
+                                            j={idx}
+                                        </text>
+                                    </g>
+                                ))}
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'loop') {
+                        const boxWidth = 50;
+                        const spacing = 70;
+                        const startX = 80;
+
+                        return (
+                            <svg
+                                viewBox="0 0 700 350"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    i=3〜5 の更新（同様の処理を繰り返す）
+                                </text>
+
+                                <text
+                                    x="350"
+                                    y="80"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fill="#64748b"
+                                >
+                                    各 i で j=0 列を更新後、j=1..n2 をループして dp を更新
+                                </text>
+
+                                <text
+                                    x="70"
+                                    y="180"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    最終 dp:
+                                </text>
+                                {visual.dp.map((val, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="155"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill={val ? '#d1fae5' : '#fee2e2'}
+                                            stroke={val ? '#10b981' : '#dc2626'}
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="180"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                        >
+                                            {val ? 'T' : 'F'}
+                                        </text>
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="230"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill="#64748b"
+                                        >
+                                            j={idx}
+                                        </text>
+                                    </g>
+                                ))}
+
+                                <text
+                                    x="350"
+                                    y="300"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fill="#64748b"
+                                >
+                                    すべての更新が完了し、dp 配列が最終状態になる
+                                </text>
+                            </svg>
+                        );
+                    }
+
+                    if (type === 'result') {
+                        const boxWidth = 50;
+                        const spacing = 70;
+                        const startX = 80;
+
+                        return (
+                            <svg
+                                viewBox="0 0 700 350"
+                                style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            >
+                                <text
+                                    x="350"
+                                    y="40"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    最終結果
+                                </text>
+
+                                <text
+                                    x="40"
+                                    y="150"
+                                    textAnchor="end"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                >
+                                    dp:
+                                </text>
+                                {visual.dp.map((val, idx) => (
+                                    <g key={idx}>
+                                        <rect
+                                            x={startX + idx * spacing}
+                                            y="125"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            rx="6"
+                                            fill={
+                                                idx === visual.n2
+                                                    ? '#fef3c7'
+                                                    : val
+                                                      ? '#d1fae5'
+                                                      : '#fee2e2'
+                                            }
+                                            stroke={
+                                                idx === visual.n2
+                                                    ? '#f59e0b'
+                                                    : val
+                                                      ? '#10b981'
+                                                      : '#dc2626'
+                                            }
+                                            strokeWidth="3"
+                                        />
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2}
+                                            y="150"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                        >
+                                            {val ? 'T' : 'F'}
+                                        </text>
+                                        <text
+                                            x={startX + idx * spacing + boxWidth / 2 - 15}
+                                            y="200"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill="#64748b"
+                                        >
+                                            j={idx}
+                                        </text>
+                                    </g>
+                                ))}
+
+                                <defs>
+                                    <marker
+                                        id="arrowDown"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                        markerUnits="strokeWidth"
+                                    >
+                                        <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                                    </marker>
+                                </defs>
+
+                                <path
+                                    d={`M ${startX + visual.n2 * spacing + boxWidth / 2} 175 L ${startX + visual.n2 * spacing + boxWidth / 2} 240`}
+                                    stroke="#059669"
+                                    strokeWidth="3"
+                                    fill="none"
+                                    markerEnd="url(#arrowDown)"
+                                />
+
+                                <rect
+                                    x="200"
+                                    y="240"
+                                    width="300"
+                                    height="70"
+                                    rx="12"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    strokeWidth="3"
+                                />
+                                <text
+                                    x="350"
+                                    y="275"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="20"
+                                    fontWeight="700"
+                                    fill="#047857"
+                                >
+                                    返却値: dp[{visual.n2}] = {visual.result ? 'True' : 'False'}
+                                </text>
+                            </svg>
+                        );
+                    }
+
+                    return null;
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 60)}
+                                                {step.desc.length > 60 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            {renderVisualization(currentStepData.visual)}
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const container = document.getElementById('step-visualization-root');
+            const root = ReactDOM.createRoot(container);
+            root.render(<StepVisualization />);
+        </script>
+    </body>
+</html>

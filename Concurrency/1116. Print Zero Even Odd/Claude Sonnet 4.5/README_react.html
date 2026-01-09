@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1116: Print Zero Even Odd - マルチスレッド同期</title>
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <div class="max-w-[1400px] mx-auto">
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Print Zero Even Odd</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    Lock + Flag による O(n) 時間・O(1) 空間のマルチスレッド同期実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >実装コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の要約</h3>
+                <p class="mb-4">
+                    3つのスレッドを同期して
+                    <code class="px-2 py-1 bg-slate-100 rounded">010203040506...</code>
+                    の形式で数列を出力する問題です。
+                </p>
+
+                <ul class="list-disc list-inside space-y-2 ml-4 mb-6">
+                    <li><strong>Thread A</strong>: <code>zero()</code> - 0のみ出力</li>
+                    <li><strong>Thread B</strong>: <code>even()</code> - 偶数のみ出力</li>
+                    <li><strong>Thread C</strong>: <code>odd()</code> - 奇数のみ出力</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                    <p class="font-semibold mb-2">例1: n = 2</p>
+                    <pre class="bg-white p-3 rounded border border-slate-200"><code>入力: n = 2
+出力: "0102"</code></pre>
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-4 mb-6">
+                    <p class="font-semibold mb-2">例2: n = 5</p>
+                    <pre class="bg-white p-3 rounded border border-slate-200"><code>入力: n = 5
+出力: "0102030405"</code></pre>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4 mb-6">
+                    <li>各スレッド専用の同期プリミティブを用意</li>
+                    <li>直接シグナリング: 次に実行すべきスレッドだけを起床</li>
+                    <li>状態遷移の最小化: 0 → odd/even → 0 の2状態サイクル</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-emerald-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                        <p class="font-semibold text-emerald-900 mb-1">時間計算量</p>
+                        <p class="text-slate-700">O(n) - 各数字を1回ずつ処理</p>
+                    </div>
+                    <div class="bg-sky-50 rounded-lg p-4 border-l-4 border-sky-500">
+                        <p class="font-semibold text-sky-900 mb-1">空間計算量</p>
+                        <p class="text-slate-700">O(1) - 同期プリミティブのみ</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-visualization-root"></div>
+            </section>
+
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from __future__ import annotations
+from typing import Callable
+from threading import Lock
+
+
+class ZeroEvenOdd:
+    """
+    Lock + Flag による軽量スレッド同期
+
+    メモリ効率とパフォーマンスのバランスが最良
+    LeetCode環境で最も安定した結果を出す実装
+    """
+
+    def __init__(self, n: int) -> None:
+        """
+        初期化
+
+        Args:
+            n: 出力する数字の最大値（1 to n）
+        """
+        self.n = n
+        self.lock = Lock()
+        self.flag = 0  # 0=zero待ち, 1=odd待ち, 2=even待ち
+
+    def zero(self, printNumber: Callable[[int], None]) -> None:
+        """
+        0を出力するスレッド
+
+        各数字の前に0を出力し、次のスレッド（odd/even）を起床
+
+        Args:
+            printNumber: 数字を出力するコールバック関数
+        """
+        for i in range(1, self.n + 1):
+            # ロック取得してflag=0になるまで待機
+            with self.lock:
+                while self.flag != 0:
+                    # 自分の番でない場合は一旦解放して再取得
+                    self.lock.release()
+                    self.lock.acquire()
+
+                # 0を出力
+                printNumber(0)
+
+                # 次のスレッドを決定: i が奇数なら odd, 偶数なら even
+                self.flag = 1 if i % 2 == 1 else 2
+
+    def even(self, printNumber: Callable[[int], None]) -> None:
+        """
+        偶数を出力するスレッド
+
+        2, 4, 6, ... を出力し、制御を zero に戻す
+
+        Args:
+            printNumber: 数字を出力するコールバック関数
+        """
+        for i in range(2, self.n + 1, 2):
+            with self.lock:
+                while self.flag != 2:
+                    self.lock.release()
+                    self.lock.acquire()
+
+                printNumber(i)
+                self.flag = 0  # zero に制御を戻す
+
+    def odd(self, printNumber: Callable[[int], None]) -> None:
+        """
+        奇数を出力するスレッド
+
+        1, 3, 5, ... を出力し、制御を zero に戻す
+
+        Args:
+            printNumber: 数字を出力するコールバック関数
+        """
+        for i in range(1, self.n + 1, 2):
+            with self.lock:
+                while self.flag != 1:
+                    self.lock.release()
+                    self.lock.acquire()
+
+                printNumber(i)
+                self.flag = 0  # zero に制御を戻す</code></pre>
+            </section>
+
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-6 overflow-x-auto">
+                    <svg
+                        viewBox="0 0 900 1000"
+                        style="max-width: 100%; height: auto"
+                        role="img"
+                        aria-label="Print Zero Even Odd flowchart"
+                    >
+                        <defs>
+                            <!-- グラデーション定義 -->
+                            <linearGradient id="startEndGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color: #34d399; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #10b981; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="processGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color: #60a5fa; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #3b82f6; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="decisionGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color: #fbbf24; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #f59e0b; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="oddGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color: #a78bfa; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #8b5cf6; stop-opacity: 1" />
+                            </linearGradient>
+                            <linearGradient id="evenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color: #fb923c; stop-opacity: 1" />
+                                <stop offset="100%" style="stop-color: #f97316; stop-opacity: 1" />
+                            </linearGradient>
+
+                            <!-- ドロップシャドウ -->
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15" />
+                            </filter>
+
+                            <!-- 矢印マーカー -->
+                            <marker
+                                id="arrowMain"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#475569" />
+                            </marker>
+                            <marker
+                                id="arrowYes"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowNo"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowLoop"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#7c3aed" />
+                            </marker>
+                        </defs>
+
+                        <!-- 背景グリッド（薄い） -->
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path
+                                d="M 40 0 L 0 0 0 40"
+                                fill="none"
+                                stroke="#e2e8f0"
+                                stroke-width="0.5"
+                            />
+                        </pattern>
+                        <rect width="900" height="1000" fill="url(#grid)" opacity="0.5" />
+
+                        <!-- ===== 開始ノード ===== -->
+                        <ellipse
+                            cx="450"
+                            cy="50"
+                            rx="90"
+                            ry="35"
+                            fill="url(#startEndGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="52"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 開始 → 初期化 -->
+                        <path
+                            d="M 450 85 L 450 115"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- ===== 初期化 ===== -->
+                        <rect
+                            x="310"
+                            y="120"
+                            width="280"
+                            height="70"
+                            rx="12"
+                            fill="url(#processGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="145"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            初期化
+                        </text>
+                        <text
+                            x="450"
+                            y="170"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            flag = 0, n = 入力値
+                        </text>
+
+                        <!-- 初期化 → 3スレッド起動 -->
+                        <path
+                            d="M 450 190 L 450 220"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- ===== 3スレッド起動 ===== -->
+                        <rect
+                            x="310"
+                            y="225"
+                            width="280"
+                            height="70"
+                            rx="12"
+                            fill="url(#processGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="250"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            3スレッド起動
+                        </text>
+                        <text
+                            x="450"
+                            y="275"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            zero, odd, even
+                        </text>
+
+                        <!-- 3スレッド起動 → flag判定 -->
+                        <path
+                            d="M 450 295 L 450 330"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- ===== flag == 0? 判定（菱形） ===== -->
+                        <path
+                            d="M 450 340 L 560 400 L 450 460 L 340 400 Z"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="390"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#1e293b"
+                        >
+                            flag == 0?
+                        </text>
+                        <text
+                            x="450"
+                            y="412"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#374151"
+                        >
+                            (zero待ち)
+                        </text>
+
+                        <!-- 待機ループ（いいえ）- 右側に明確なループと説明 -->
+                        <!-- いいえラベル -->
+                        <text
+                            x="575"
+                            y="385"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- ループの矢印 -->
+                        <path
+                            d="M 560 400 L 680 400 L 680 340 L 560 340"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                            stroke-dasharray="8,4"
+                            fill="none"
+                            marker-end="url(#arrowNo)"
+                        />
+
+                        <!-- 待機説明ボックス -->
+                        <rect
+                            x="690"
+                            y="330"
+                            width="180"
+                            height="90"
+                            rx="10"
+                            fill="#fef2f2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="780"
+                            y="355"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            スピンロック待機
+                        </text>
+                        <text
+                            x="780"
+                            y="378"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#7f1d1d"
+                        >
+                            他スレッドが実行中
+                        </text>
+                        <text
+                            x="780"
+                            y="398"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#7f1d1d"
+                        >
+                            → ロック解放&amp;再取得
+                        </text>
+
+                        <!-- 接続線（説明ボックスへ） -->
+                        <path
+                            d="M 680 370 L 690 370"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                        />
+
+                        <!-- flag==0? はい → 0を出力 -->
+                        <path
+                            d="M 450 460 L 450 495"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowYes)"
+                        />
+                        <rect
+                            x="415"
+                            y="462"
+                            width="55"
+                            height="24"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="442"
+                            y="475"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- ===== 0を出力 ===== -->
+                        <rect
+                            x="310"
+                            y="500"
+                            width="280"
+                            height="70"
+                            rx="12"
+                            fill="url(#processGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="525"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            printNumber(0)
+                        </text>
+                        <text
+                            x="450"
+                            y="550"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            0を出力
+                        </text>
+
+                        <!-- 0を出力 → 奇数判定 -->
+                        <path
+                            d="M 450 570 L 450 605"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- ===== i % 2 == 1? 奇数判定（菱形） ===== -->
+                        <path
+                            d="M 450 615 L 560 675 L 450 735 L 340 675 Z"
+                            fill="url(#decisionGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="665"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#1e293b"
+                        >
+                            i % 2 == 1?
+                        </text>
+                        <text
+                            x="450"
+                            y="687"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#374151"
+                        >
+                            (奇数判定)
+                        </text>
+
+                        <!-- ===== 奇数: flag = 1 (odd起床) - 右側 ===== -->
+                        <path
+                            d="M 560 675 L 625 675"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowYes)"
+                        />
+                        <text
+                            x="590"
+                            y="660"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <rect
+                            x="630"
+                            y="645"
+                            width="170"
+                            height="60"
+                            rx="12"
+                            fill="url(#oddGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="715"
+                            y="665"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            flag = 1
+                        </text>
+                        <text
+                            x="715"
+                            y="688"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            (odd起床)
+                        </text>
+
+                        <!-- ===== 偶数: flag = 2 (even起床) - 左側 ===== -->
+                        <path
+                            d="M 340 675 L 275 675"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowNo)"
+                        />
+                        <text
+                            x="305"
+                            y="660"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <rect
+                            x="100"
+                            y="645"
+                            width="170"
+                            height="60"
+                            rx="12"
+                            fill="url(#evenGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="185"
+                            y="665"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            flag = 2
+                        </text>
+                        <text
+                            x="185"
+                            y="688"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            (even起床)
+                        </text>
+
+                        <!-- ===== odd/even待機と出力 ===== -->
+                        <!-- oddからの矢印 -->
+                        <path
+                            d="M 715 705 L 715 780 L 590 780"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- evenからの矢印 -->
+                        <path
+                            d="M 185 705 L 185 780 L 310 780"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <rect
+                            x="310"
+                            y="750"
+                            width="280"
+                            height="70"
+                            rx="12"
+                            fill="url(#processGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="775"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            odd/even スレッド実行
+                        </text>
+                        <text
+                            x="450"
+                            y="800"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="rgba(255,255,255,0.9)"
+                        >
+                            数字出力 → flag = 0
+                        </text>
+
+                        <!-- ===== ループバック（次のiへ） ===== -->
+                        <path
+                            d="M 310 785 L 80 785 L 80 370 L 340 370"
+                            stroke="#7c3aed"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowLoop)"
+                        />
+                        <rect
+                            x="55"
+                            y="555"
+                            width="75"
+                            height="30"
+                            rx="8"
+                            fill="#ede9fe"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="92"
+                            y="571"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#7c3aed"
+                        >
+                            次の i
+                        </text>
+
+                        <!-- ===== 終了判定と終了ノード ===== -->
+                        <path
+                            d="M 450 820 L 450 860"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowYes)"
+                        />
+                        <rect
+                            x="410"
+                            y="830"
+                            width="80"
+                            height="24"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="450"
+                            y="843"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            i &gt; n
+                        </text>
+
+                        <!-- 終了 -->
+                        <ellipse
+                            cx="450"
+                            cy="920"
+                            rx="90"
+                            ry="35"
+                            fill="url(#startEndGrad)"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="922"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            終了
+                        </text>
+                        <path
+                            d="M 450 870 L 450 883"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowMain)"
+                        />
+
+                        <!-- ===== 凡例 ===== -->
+                        <rect
+                            x="700"
+                            y="50"
+                            width="180"
+                            height="200"
+                            rx="12"
+                            fill="white"
+                            stroke="#e2e8f0"
+                            stroke-width="2"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="790"
+                            y="75"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="700"
+                            fill="#1e293b"
+                        >
+                            凡例
+                        </text>
+
+                        <!-- 開始/終了 -->
+                        <ellipse cx="735" cy="105" rx="25" ry="12" fill="url(#startEndGrad)" />
+                        <text
+                            x="780"
+                            y="107"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#475569"
+                        >
+                            開始/終了
+                        </text>
+
+                        <!-- 処理 -->
+                        <rect
+                            x="715"
+                            y="125"
+                            width="40"
+                            height="20"
+                            rx="4"
+                            fill="url(#processGrad)"
+                        />
+                        <text
+                            x="780"
+                            y="137"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#475569"
+                        >
+                            処理
+                        </text>
+
+                        <!-- 条件分岐 -->
+                        <path
+                            d="M 735 165 L 755 175 L 735 185 L 715 175 Z"
+                            fill="url(#decisionGrad)"
+                        />
+                        <text
+                            x="780"
+                            y="177"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#475569"
+                        >
+                            条件分岐
+                        </text>
+
+                        <!-- はい -->
+                        <line
+                            x1="715"
+                            y1="205"
+                            x2="755"
+                            y2="205"
+                            stroke="#059669"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="780"
+                            y="207"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#059669"
+                            font-weight="600"
+                        >
+                            はい (Yes)
+                        </text>
+
+                        <!-- いいえ -->
+                        <line
+                            x1="715"
+                            y1="230"
+                            x2="755"
+                            y2="230"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="780"
+                            y="232"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#dc2626"
+                            font-weight="600"
+                        >
+                            いいえ (No)
+                        </text>
+                    </svg>
+                </div>
+
+                <div
+                    class="mt-8 p-6 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200"
+                >
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">フローの説明</h3>
+                    <ol class="list-decimal list-inside space-y-3 text-slate-700">
+                        <li>
+                            <span class="font-semibold text-emerald-700">初期状態:</span> flag =
+                            0（zero スレッドが最初に実行）
+                        </li>
+                        <li>
+                            <span class="font-semibold text-blue-700">zero スレッド:</span> 0
+                            を出力後、i が奇数なら flag = 1（odd 起床）、偶数なら flag = 2（even
+                            起床）
+                        </li>
+                        <li>
+                            <span class="font-semibold text-purple-700">odd/even スレッド:</span>
+                            数字を出力後、flag = 0 に戻して zero に制御を渡す
+                        </li>
+                        <li>
+                            <span class="font-semibold text-violet-700">ループ:</span>
+                            このサイクルを i = 1 から n まで繰り返す
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">時間計算量: O(n)</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4 mb-6">
+                    <li>zero スレッド: n 回実行（i = 1 to n）</li>
+                    <li>odd スレッド: ⌈n/2⌉ 回実行（i = 1, 3, 5, ...）</li>
+                    <li>even スレッド: ⌊n/2⌋ 回実行（i = 2, 4, 6, ...）</li>
+                    <li>各反復での処理は O(1)</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">空間計算量: O(1)</h3>
+                <ul class="list-disc list-inside space-y-2 ml-4 mb-6">
+                    <li>同期プリミティブ（Lock + flag）: 定数個</li>
+                    <li>ループカウンタ: O(1)</li>
+                    <li>スタック深度: O(1)（再帰なし）</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">実装比較</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse border border-slate-300">
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th class="border border-slate-300 px-4 py-2 text-left">実装</th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">メモリ</th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">
+                                    実行速度
+                                </th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">
+                                    実装難易度
+                                </th>
+                                <th class="border border-slate-300 px-4 py-2 text-left">推奨度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-slate-300 px-4 py-2 font-semibold">
+                                    Lock + Flag
+                                </td>
+                                <td class="border border-slate-300 px-4 py-2">★★★★★</td>
+                                <td class="border border-slate-300 px-4 py-2">★★★☆☆</td>
+                                <td class="border border-slate-300 px-4 py-2">中</td>
+                                <td
+                                    class="border border-slate-300 px-4 py-2 text-emerald-700 font-semibold"
+                                >
+                                    最推奨
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 px-4 py-2 font-semibold">
+                                    Event
+                                </td>
+                                <td class="border border-slate-300 px-4 py-2">★★★★☆</td>
+                                <td class="border border-slate-300 px-4 py-2">★★★★☆</td>
+                                <td class="border border-slate-300 px-4 py-2">低</td>
+                                <td class="border border-slate-300 px-4 py-2 text-slate-700">
+                                    環境依存
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const StepVisualization = () => {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '初期化',
+                        desc: 'n = 5 として、flag = 0（zero スレッドが最初に実行）で初期化します。出力配列は空の状態からスタートします。',
+                        visual: {
+                            type: 'init',
+                            n: 5,
+                            flag: 0,
+                            output: [],
+                        },
+                    },
+                    {
+                        step: 2,
+                        title: 'i=1: zero出力',
+                        desc: 'zero スレッドが flag = 0 を検出して実行開始。0を出力し、i=1（奇数）なので flag = 1 に設定して odd スレッドを起床させます。',
+                        visual: {
+                            type: 'zero',
+                            n: 5,
+                            i: 1,
+                            flag: 1,
+                            output: [0],
+                        },
+                    },
+                    {
+                        step: 3,
+                        title: 'i=1: odd出力',
+                        desc: 'odd スレッドが flag = 1 を検出して実行。1を出力し、flag = 0 に戻して zero スレッドに制御を返します。',
+                        visual: {
+                            type: 'odd',
+                            n: 5,
+                            i: 1,
+                            flag: 0,
+                            output: [0, 1],
+                        },
+                    },
+                    {
+                        step: 4,
+                        title: 'i=2: zero出力',
+                        desc: 'zero スレッドが再び flag = 0 を検出して実行。0を出力し、i=2（偶数）なので flag = 2 に設定して even スレッドを起床させます。',
+                        visual: {
+                            type: 'zero',
+                            n: 5,
+                            i: 2,
+                            flag: 2,
+                            output: [0, 1, 0],
+                        },
+                    },
+                    {
+                        step: 5,
+                        title: 'i=2: even出力',
+                        desc: 'even スレッドが flag = 2 を検出して実行。2を出力し、flag = 0 に戻して zero スレッドに制御を返します。',
+                        visual: {
+                            type: 'even',
+                            n: 5,
+                            i: 2,
+                            flag: 0,
+                            output: [0, 1, 0, 2],
+                        },
+                    },
+                    {
+                        step: 6,
+                        title: 'i=3: zero出力',
+                        desc: 'zero スレッドが flag = 0 を検出。0を出力し、i=3（奇数）なので flag = 1 に設定して odd スレッドを起床させます。',
+                        visual: {
+                            type: 'zero',
+                            n: 5,
+                            i: 3,
+                            flag: 1,
+                            output: [0, 1, 0, 2, 0],
+                        },
+                    },
+                    {
+                        step: 7,
+                        title: 'i=3: odd出力',
+                        desc: 'odd スレッドが flag = 1 を検出。3を出力し、flag = 0 に戻します。',
+                        visual: {
+                            type: 'odd',
+                            n: 5,
+                            i: 3,
+                            flag: 0,
+                            output: [0, 1, 0, 2, 0, 3],
+                        },
+                    },
+                    {
+                        step: 8,
+                        title: 'i=4: zero出力',
+                        desc: 'zero スレッドが実行。0を出力し、i=4（偶数）なので flag = 2 に設定して even スレッドを起床させます。',
+                        visual: {
+                            type: 'zero',
+                            n: 5,
+                            i: 4,
+                            flag: 2,
+                            output: [0, 1, 0, 2, 0, 3, 0],
+                        },
+                    },
+                    {
+                        step: 9,
+                        title: 'i=4: even出力',
+                        desc: 'even スレッドが flag = 2 を検出。4を出力し、flag = 0 に戻します。',
+                        visual: {
+                            type: 'even',
+                            n: 5,
+                            i: 4,
+                            flag: 0,
+                            output: [0, 1, 0, 2, 0, 3, 0, 4],
+                        },
+                    },
+                    {
+                        step: 10,
+                        title: 'i=5: zero出力',
+                        desc: 'zero スレッドが実行。0を出力し、i=5（奇数）なので flag = 1 に設定して odd スレッドを起床させます。',
+                        visual: {
+                            type: 'zero',
+                            n: 5,
+                            i: 5,
+                            flag: 1,
+                            output: [0, 1, 0, 2, 0, 3, 0, 4, 0],
+                        },
+                    },
+                    {
+                        step: 11,
+                        title: 'i=5: odd出力',
+                        desc: 'odd スレッドが flag = 1 を検出。5を出力し、flag = 0 に戻します。',
+                        visual: {
+                            type: 'odd',
+                            n: 5,
+                            i: 5,
+                            flag: 0,
+                            output: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5],
+                        },
+                    },
+                    {
+                        step: 12,
+                        title: '完了',
+                        desc: 'すべての処理が完了しました。出力は "0102030405" となり、長さは 2n = 10 です。3つのスレッドが正確に同期して動作しました。',
+                        visual: {
+                            type: 'result',
+                            n: 5,
+                            flag: 0,
+                            output: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5],
+                        },
+                    },
+                ];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep >= stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                const renderVisualization = (visual) => {
+                    const { type, n, i, flag, output } = visual;
+
+                    const boxWidth = 60;
+                    const boxHeight = 60;
+                    const spacing = 70;
+
+                    const maxPerRow = 5;
+                    const rows = Math.ceil(output.length / maxPerRow);
+                    const viewBoxHeight = 150 + rows * 90;
+
+                    return (
+                        <svg
+                            viewBox={`0 0 600 ${viewBoxHeight}`}
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowDown"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            {/* タイトル */}
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                {type === 'init' && '初期状態'}
+                                {type === 'zero' && `ステップ ${i}: zero スレッド実行`}
+                                {type === 'odd' && `ステップ ${i}: odd スレッド実行`}
+                                {type === 'even' && `ステップ ${i}: even スレッド実行`}
+                                {type === 'result' && '完了状態'}
+                            </text>
+
+                            {/* 状態表示 */}
+                            <text
+                                x="300"
+                                y="60"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                n = {n}, flag = {flag}
+                                {flag === 0 && ' (zero待ち)'}
+                                {flag === 1 && ' (odd待ち)'}
+                                {flag === 2 && ' (even待ち)'}
+                            </text>
+
+                            {/* 出力配列 */}
+                            {output.length > 0 && (
+                                <>
+                                    <text
+                                        x="50"
+                                        y="100"
+                                        textAnchor="start"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#475569"
+                                    >
+                                        出力:
+                                    </text>
+                                    {output.map((val, idx) => {
+                                        const row = Math.floor(idx / maxPerRow);
+                                        const col = idx % maxPerRow;
+                                        const totalInRow = Math.min(
+                                            maxPerRow,
+                                            output.length - row * maxPerRow,
+                                        );
+                                        const rowWidth = totalInRow * spacing;
+                                        const startX = (600 - rowWidth) / 2 + spacing / 2;
+                                        const x = startX + col * spacing;
+                                        const y = 130 + row * 90;
+
+                                        let fillColor = '#e0f2fe';
+                                        let strokeColor = '#0284c7';
+
+                                        if (val === 0) {
+                                            fillColor = '#fef3c7';
+                                            strokeColor = '#f59e0b';
+                                        } else if (val % 2 === 1) {
+                                            fillColor = '#d1fae5';
+                                            strokeColor = '#059669';
+                                        } else {
+                                            fillColor = '#e0e7ff';
+                                            strokeColor = '#6366f1';
+                                        }
+
+                                        // 最後に追加された要素をハイライト
+                                        const isLastAdded =
+                                            idx === output.length - 1 &&
+                                            type !== 'init' &&
+                                            type !== 'result';
+
+                                        return (
+                                            <g key={idx}>
+                                                <rect
+                                                    x={x - boxWidth / 2}
+                                                    y={y}
+                                                    width={boxWidth}
+                                                    height={boxHeight}
+                                                    fill={fillColor}
+                                                    stroke={strokeColor}
+                                                    strokeWidth={isLastAdded ? '3' : '2'}
+                                                    rx="6"
+                                                />
+                                                <text
+                                                    x={x}
+                                                    y={y + boxHeight / 2}
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
+                                                    fontSize="18"
+                                                    fontWeight="600"
+                                                >
+                                                    {val}
+                                                </text>
+                                                {isLastAdded && (
+                                                    <>
+                                                        <path
+                                                            d={`M ${x} ${y - 25} L ${x} ${y - 5}`}
+                                                            stroke="#a855f7"
+                                                            strokeWidth="2"
+                                                            fill="none"
+                                                            markerEnd="url(#arrowDown)"
+                                                        />
+                                                        <text
+                                                            x={x}
+                                                            y={y - 35}
+                                                            textAnchor="middle"
+                                                            dominantBaseline="middle"
+                                                            fontSize="14"
+                                                            fontWeight="600"
+                                                            fill="#a855f7"
+                                                        >
+                                                            追加
+                                                        </text>
+                                                    </>
+                                                )}
+                                            </g>
+                                        );
+                                    })}
+                                </>
+                            )}
+
+                            {output.length === 0 && (
+                                <text
+                                    x="300"
+                                    y="130"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fill="#94a3b8"
+                                >
+                                    出力: []（空）
+                                </text>
+                            )}
+                        </svg>
+                    );
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            {renderVisualization(currentStepData.visual)}
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↻ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            ReactDOM.render(
+                <StepVisualization />,
+                document.getElementById('step-visualization-root'),
+            );
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    </body>
+</html>

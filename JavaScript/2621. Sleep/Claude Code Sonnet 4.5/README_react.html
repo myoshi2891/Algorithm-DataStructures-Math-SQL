@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sleep - 非同期スリープ関数の実装</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            /* Prism.js toolbar customization */
+            .code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            .code-toolbar > .toolbar button {
+                background: #10b981;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .code-toolbar > .toolbar button:hover {
+                background: #059669;
+                transform: translateY(-2px);
+            }
+
+            /* カスタムスクロールバー */
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 3px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+            /* テキスト切り詰め */
+            .line-clamp-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* フローチャートノードホバー効果 - トランジションのみ（scaleは削除） */
+            .flowchart-node {
+                transition: opacity 0.3s ease;
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-[1400px] mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Sleep - 非同期スリープ関数
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    Promise + setTimeout による O(1) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="概要セクションへ移動"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="ステップ解説セクションへ移動"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="コード実装セクションへ移動"
+                    >
+                        コード実装
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="フローチャートセクションへ移動"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="計算量分析セクションへ移動"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Overview -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">問題説明</h3>
+                <p class="text-slate-700 leading-7 mb-4">
+                    正の整数
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm">millis</code>
+                    を受け取り、その時間（ミリ秒）だけ非同期にスリープする関数を実装します。実際のスリープ時間が
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm">millis</code>
+                    から若干ずれても許容されます。
+                </p>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-slate-800 mb-2">例1:</p>
+                    <pre
+                        class="bg-slate-800 text-slate-100 p-4 rounded overflow-x-auto"
+                    ><code>Input: millis = 100
+Output: 100
+Explanation: 100msスリープ後に完了する</code></pre>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-slate-800 mb-2">例2:</p>
+                    <pre
+                        class="bg-slate-800 text-slate-100 p-4 rounded overflow-x-auto"
+                    ><code>Input: millis = 200
+Output: 200
+Explanation: 200msスリープ後に完了する</code></pre>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li>
+                        <code class="bg-slate-100 px-2 py-1 rounded text-sm"
+                            >1 ≤ millis ≤ 1000</code
+                        >
+                    </li>
+                    <li>
+                        戻り値は任意（通常は
+                        <code class="bg-slate-100 px-2 py-1 rounded text-sm">void</code> または
+                        <code class="bg-slate-100 px-2 py-1 rounded text-sm">undefined</code>）
+                    </li>
+                    <li>実際のスリープ時間の若干のずれは許容される</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li><strong>Promise</strong>: 非同期処理の結果を表すオブジェクトを作成</li>
+                    <li><strong>setTimeout</strong>: 指定時間後にコールバックを実行</li>
+                    <li><strong>resolve</strong>: Promiseを完了状態にする関数をsetTimeoutに渡す</li>
+                    <li><strong>async/await</strong>: 呼び出し側で簡潔に待機できるようにする</li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+                    <p class="text-slate-700">
+                        <strong class="text-emerald-700">時間計算量:</strong> O(1) -
+                        定数時間での処理開始
+                    </p>
+                    <p class="text-slate-700 mt-2">
+                        <strong class="text-emerald-700">空間計算量:</strong> O(1) -
+                        Promiseオブジェクト1つのみ
+                    </p>
+                    <p class="text-slate-700 mt-2">
+                        <strong class="text-emerald-700">最適化手法:</strong>
+                        外部ライブラリ不要、標準API のみ使用
+                    </p>
+                </div>
+            </section>
+
+            <!-- Steps -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- Code -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    TypeScript実装
+                </h2>
+                <pre class="line-numbers"><code class="language-typescript">/**
+ * 指定されたミリ秒数だけ非同期にスリープする関数
+ * @param millis - 待機するミリ秒数（1-1000）
+ * @returns void を解決するPromise
+ * @complexity Time: O(1), Space: O(1)
+ */
+async function sleep(millis: number): Promise&lt;void&gt; {
+    // Promiseでラップした setTimeout による非同期待機
+    return new Promise&lt;void&gt;((resolve) => {
+        setTimeout(resolve, millis);
+    });
+}
+
+/**
+ * 使用例
+ */
+let t = Date.now();
+sleep(100).then(() => {
+    console.log(Date.now() - t); // ~100
+});</code></pre>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-3">
+                    エラーハンドリング付き実装
+                </h3>
+                <pre
+                    class="line-numbers"
+                ><code class="language-typescript">async function sleep(millis: number): Promise&lt;void&gt; {
+    // 型ガード: 数値チェック
+    if (typeof millis !== 'number' || Number.isNaN(millis)) {
+        throw new TypeError('millis must be a valid number');
+    }
+
+    // 範囲チェック（制約条件: 1 &lt;= millis &lt;= 1000）
+    if (millis &lt; 1 || millis &gt; 1000) {
+        throw new RangeError('millis must be between 1 and 1000');
+    }
+
+    // 整数チェック（正の整数要件）
+    if (!Number.isInteger(millis)) {
+        throw new RangeError('millis must be an integer');
+    }
+
+    // Promise でラップした setTimeout による非同期待機
+    return new Promise&lt;void&gt;((resolve) => {
+        setTimeout(resolve, millis);
+    });
+}</code></pre>
+            </section>
+
+            <!-- Diagram -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div id="flowchart-root"></div>
+            </section>
+
+            <!-- Complexity -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-50">
+                                <th
+                                    class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    計算量
+                                </th>
+                                <th
+                                    class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    説明
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-slate-600">
+                                    Promise作成とsetTimeoutスケジューリングは定数時間
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-slate-600">
+                                    Promiseオブジェクトとクロージャのみ
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    実際の待機時間
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-sky-50 px-2 py-1 rounded text-sky-700"
+                                        >O(millis)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-slate-600">
+                                    実時間だが計算量ではない（CPU処理時間は無し）
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-4">実装手法の比較</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-cyan-50">
+                                <th
+                                    class="border border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                                >
+                                    手法
+                                </th>
+                                <th
+                                    class="border border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                                >
+                                    時間
+                                </th>
+                                <th
+                                    class="border border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                                >
+                                    空間
+                                </th>
+                                <th
+                                    class="border border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                                >
+                                    CPU使用率
+                                </th>
+                                <th
+                                    class="border border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                                >
+                                    推奨度
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    Promise + setTimeout
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-emerald-600">
+                                    0%（非ブロッキング）
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-emerald-700">
+                                    ⭐⭐⭐⭐⭐
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    Busy Wait（while loop）
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-red-50 px-2 py-1 rounded text-red-700"
+                                        >O(millis)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-red-600">
+                                    100%（ブロッキング）
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-red-700">
+                                    ✗ 非推奨
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    setInterval + clearInterval
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    <code class="bg-emerald-50 px-2 py-1 rounded text-emerald-700"
+                                        >O(1)</code
+                                    >
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-emerald-600">
+                                    0%（非ブロッキング）
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3 text-yellow-600">
+                                    ⭐⭐ 不要な複雑性
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded mt-6">
+                    <p class="text-slate-700 font-semibold">✅ 推奨: Promise + setTimeout</p>
+                    <p class="text-slate-600 mt-2">
+                        最もシンプルで効率的。イベントループをブロックせず、他のタスクが並行実行可能。
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <!-- React -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ステップデータ
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '関数呼び出し',
+                    desc: 'sleep(100) が呼び出される。millis = 100 を受け取る。',
+                    visual: {
+                        type: 'init',
+                        millis: 100,
+                        state: 'called',
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'Promise作成',
+                    desc: 'new Promise((resolve) => {...}) でPromiseオブジェクトを作成。この時点でPromiseはPending状態。',
+                    visual: {
+                        type: 'promise',
+                        millis: 100,
+                        state: 'pending',
+                        time: 0,
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'setTimeoutスケジュール',
+                    desc: 'setTimeout(resolve, 100) でタイマーを登録。100ms後にresolve関数が呼ばれるようイベントループにスケジュール。',
+                    visual: {
+                        type: 'schedule',
+                        millis: 100,
+                        state: 'scheduled',
+                        time: 0,
+                    },
+                },
+                {
+                    step: 4,
+                    title: '待機中 (25ms経過)',
+                    desc: 'Promiseは依然としてPending状態。イベントループは他のタスクを処理可能（非ブロッキング）。',
+                    visual: {
+                        type: 'waiting',
+                        millis: 100,
+                        state: 'pending',
+                        time: 25,
+                    },
+                },
+                {
+                    step: 5,
+                    title: '待機中 (50ms経過)',
+                    desc: 'まだ時間が経過していないため、Promiseは待機中。CPUはアイドル状態。',
+                    visual: {
+                        type: 'waiting',
+                        millis: 100,
+                        state: 'pending',
+                        time: 50,
+                    },
+                },
+                {
+                    step: 6,
+                    title: '待機中 (75ms経過)',
+                    desc: 'もうすぐタイマーが発火。引き続き非ブロッキングで待機。',
+                    visual: {
+                        type: 'waiting',
+                        millis: 100,
+                        state: 'pending',
+                        time: 75,
+                    },
+                },
+                {
+                    step: 7,
+                    title: 'タイマー発火 (100ms)',
+                    desc: '100ms経過。イベントループがsetTimeoutのコールバック（resolve）を実行。',
+                    visual: {
+                        type: 'callback',
+                        millis: 100,
+                        state: 'firing',
+                        time: 100,
+                    },
+                },
+                {
+                    step: 8,
+                    title: 'Promise完了',
+                    desc: 'resolve()が実行され、PromiseがPendingからResolved状態に遷移。await sleep(100)が再開される。',
+                    visual: {
+                        type: 'resolved',
+                        millis: 100,
+                        state: 'resolved',
+                        time: 100,
+                    },
+                },
+            ];
+
+            // 可視化コンポーネント（改善版）
+            function StepVisualization({ visual, stepNumber, totalSteps }) {
+                const { type, millis, state, time } = visual;
+
+                // タイムライン
+                const progress = time !== undefined ? time / millis : 0;
+                const progressPercent = Math.min(progress * 100, 100);
+
+                // 状態に応じた色とラベルの定義
+                const stateConfig = {
+                    called: {
+                        bg: '#dbeafe',
+                        border: '#3b82f6',
+                        text: '#1d4ed8',
+                        label: 'Called',
+                        icon: '🚀',
+                    },
+                    pending: {
+                        bg: '#fef3c7',
+                        border: '#f59e0b',
+                        text: '#92400e',
+                        label: 'Pending',
+                        icon: '⏳',
+                    },
+                    scheduled: {
+                        bg: '#e0f2fe',
+                        border: '#0284c7',
+                        text: '#075985',
+                        label: 'Scheduled',
+                        icon: '📋',
+                    },
+                    firing: {
+                        bg: '#fce7f3',
+                        border: '#ec4899',
+                        text: '#9d174d',
+                        label: 'Firing',
+                        icon: '🔔',
+                    },
+                    resolved: {
+                        bg: '#d1fae5',
+                        border: '#10b981',
+                        text: '#065f46',
+                        label: 'Resolved',
+                        icon: '✅',
+                    },
+                };
+                const currentState = stateConfig[state] || stateConfig.called;
+
+                return (
+                    <div className="mt-4">
+                        {/* ステップインジケーター */}
+                        <div className="flex items-center justify-between mb-4 px-2">
+                            <div className="flex items-center gap-2">
+                                {Array.from({ length: totalSteps }, (_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                            i + 1 === stepNumber
+                                                ? 'bg-emerald-500 scale-125 ring-2 ring-emerald-200'
+                                                : i + 1 < stepNumber
+                                                  ? 'bg-emerald-300'
+                                                  : 'bg-slate-200'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                            <span className="text-sm font-semibold text-slate-500">
+                                {stepNumber} / {totalSteps}
+                            </span>
+                        </div>
+
+                        <svg
+                            viewBox="0 0 600 320"
+                            style={{ maxWidth: '100%', height: 'auto' }}
+                            role="img"
+                            aria-label="Sleep関数の状態"
+                        >
+                            <defs>
+                                {/* グラデーション定義 */}
+                                <linearGradient id="timelineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#10b981" />
+                                    <stop offset="100%" stopColor="#0ea5e9" />
+                                </linearGradient>
+                                <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#34d399" />
+                                    <stop offset="100%" stopColor="#22d3ee" />
+                                </linearGradient>
+                                {/* パルスアニメーション */}
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+
+                            {/* 背景 */}
+                            <rect x="0" y="0" width="600" height="320" rx="16" fill="#f8fafc" />
+
+                            {/* タイムラインラベル */}
+                            <text x="50" y="30" fontSize="14" fontWeight="600" fill="#475569">
+                                タイムライン
+                            </text>
+
+                            {/* タイムライン背景 */}
+                            <rect x="50" y="45" width="500" height="50" rx="12" fill="#e2e8f0" />
+
+                            {/* タイムライン進捗 */}
+                            <rect
+                                x="50"
+                                y="45"
+                                width={Math.max(500 * progress, progress > 0 ? 24 : 0)}
+                                height="50"
+                                rx="12"
+                                fill="url(#progressGrad)"
+                                style={{ transition: 'width 0.5s ease-out' }}
+                            />
+
+                            {/* タイムラインテキスト */}
+                            <text
+                                x="300"
+                                y="75"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#1e293b"
+                            >
+                                {time !== undefined ? `${time}ms` : '0ms'} / {millis}ms
+                            </text>
+
+                            {/* 進捗パーセント（右上） */}
+                            <text
+                                x="540"
+                                y="30"
+                                textAnchor="end"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill={state === 'resolved' ? '#059669' : '#64748b'}
+                            >
+                                {progressPercent.toFixed(0)}%
+                            </text>
+
+                            {/* Promise状態カード */}
+                            <g transform="translate(100, 115)">
+                                <rect
+                                    x="0"
+                                    y="0"
+                                    width="400"
+                                    height="100"
+                                    rx="16"
+                                    fill={currentState.bg}
+                                    stroke={currentState.border}
+                                    strokeWidth="3"
+                                    filter={
+                                        state === 'firing' || state === 'resolved'
+                                            ? 'url(#glow)'
+                                            : ''
+                                    }
+                                    style={{ transition: 'all 0.3s ease' }}
+                                />
+
+                                {/* アイコン */}
+                                <text
+                                    x="50"
+                                    y="55"
+                                    fontSize="36"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                >
+                                    {currentState.icon}
+                                </text>
+
+                                {/* 状態ラベル */}
+                                <text
+                                    x="200"
+                                    y="40"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                    fill="#64748b"
+                                >
+                                    Promise State
+                                </text>
+                                <text
+                                    x="200"
+                                    y="70"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="28"
+                                    fontWeight="bold"
+                                    fill={currentState.text}
+                                >
+                                    {currentState.label}
+                                </text>
+
+                                {/* 状態インジケーター */}
+                                <circle
+                                    cx="370"
+                                    cy="50"
+                                    r="12"
+                                    fill={currentState.border}
+                                    style={{
+                                        animation:
+                                            state === 'pending' || state === 'scheduled'
+                                                ? 'pulse 2s infinite'
+                                                : 'none',
+                                    }}
+                                />
+                            </g>
+
+                            {/* イベントループ & CPU状態 */}
+                            {state !== 'called' && (
+                                <g transform="translate(0, 235)">
+                                    {/* イベントループ */}
+                                    <rect
+                                        x="50"
+                                        y="0"
+                                        width="240"
+                                        height="60"
+                                        rx="12"
+                                        fill={state === 'resolved' ? '#ecfdf5' : '#f0f9ff'}
+                                        stroke={state === 'resolved' ? '#10b981' : '#0ea5e9'}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="70"
+                                        y="25"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        fill="#64748b"
+                                    >
+                                        Event Loop
+                                    </text>
+                                    <text
+                                        x="70"
+                                        y="45"
+                                        fontSize="16"
+                                        fontWeight="bold"
+                                        fill={state === 'resolved' ? '#065f46' : '#0c4a6e'}
+                                    >
+                                        {state === 'resolved' ? '✓ 完了' : '⟳ 実行中...'}
+                                    </text>
+
+                                    {/* CPU状態 */}
+                                    <rect
+                                        x="310"
+                                        y="0"
+                                        width="240"
+                                        height="60"
+                                        rx="12"
+                                        fill={state === 'resolved' ? '#fef3c7' : '#ecfdf5'}
+                                        stroke={state === 'resolved' ? '#f59e0b' : '#10b981'}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="330"
+                                        y="25"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        fill="#64748b"
+                                    >
+                                        CPU Usage
+                                    </text>
+                                    <text
+                                        x="330"
+                                        y="45"
+                                        fontSize="16"
+                                        fontWeight="bold"
+                                        fill={state === 'resolved' ? '#92400e' : '#065f46'}
+                                    >
+                                        {state === 'resolved'
+                                            ? '⚡ アクティブ'
+                                            : '💤 アイドル (0%)'}
+                                    </text>
+                                </g>
+                            )}
+                        </svg>
+
+                        <style>{`
+                            @keyframes pulse {
+                                0%, 100% { opacity: 1; transform: scale(1); }
+                                50% { opacity: 0.5; transform: scale(1.1); }
+                            }
+                        `}</style>
+                    </div>
+                );
+            }
+
+            // メインコンポーネント（改善版）
+            function StepsExplanation() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                // 自動再生ロジック
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) {
+                        setIsPlaying(false);
+                    } else {
+                        if (activeStep === stepsData.length) {
+                            setActiveStep(1);
+                        }
+                        setIsPlaying(true);
+                    }
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+                        {/* 左: ステップリスト */}
+                        <div className="lg:max-h-[600px] lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-teal-800 text-lg font-semibold m-0">
+                                    ステップ一覧
+                                </h3>
+                                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+                                    {activeStep}/{stepsData.length}
+                                </span>
+                            </div>
+
+                            {/* プログレスバー */}
+                            <div className="w-full h-1.5 bg-slate-200 rounded-full mb-4 overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full transition-all duration-500"
+                                    style={{ width: `${(activeStep / stepsData.length) * 100}%` }}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    const isCompleted = step.step < activeStep;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left rounded-xl border-2 transition-all duration-200 cursor-pointer p-3',
+                                                'hover:border-emerald-400 hover:shadow-md',
+                                                isActive
+                                                    ? 'bg-gradient-to-r from-emerald-50 to-cyan-50 border-emerald-500 shadow-lg shadow-emerald-100'
+                                                    : isCompleted
+                                                      ? 'bg-slate-50 border-slate-200'
+                                                      : 'bg-white border-slate-200',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                {/* ステップ番号/チェックアイコン */}
+                                                <div
+                                                    className={[
+                                                        'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-all',
+                                                        isActive
+                                                            ? 'bg-emerald-500 text-white'
+                                                            : isCompleted
+                                                              ? 'bg-emerald-100 text-emerald-600'
+                                                              : 'bg-slate-100 text-slate-500',
+                                                    ].join(' ')}
+                                                >
+                                                    {isCompleted ? '✓' : step.step}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div
+                                                        className={[
+                                                            'font-semibold text-sm leading-tight',
+                                                            isActive
+                                                                ? 'text-emerald-800'
+                                                                : 'text-slate-700',
+                                                        ].join(' ')}
+                                                    >
+                                                        {step.title}
+                                                    </div>
+                                                    {isActive && (
+                                                        <div className="text-slate-500 text-xs mt-1 line-clamp-2">
+                                                            {step.desc}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 右: 可視化 + コントロール */}
+                        <div className="flex flex-col">
+                            {/* ステップ詳細カード */}
+                            <div className="rounded-2xl p-6 border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 shadow-sm">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-emerald-200">
+                                        {currentStepData.step}
+                                    </span>
+                                    <h3 className="text-xl font-bold text-slate-800 m-0">
+                                        {currentStepData.title}
+                                    </h3>
+                                    {isPlaying && (
+                                        <span className="ml-auto flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                            再生中
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-slate-600 leading-relaxed m-0 text-sm">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            {/* 可視化SVG */}
+                            <StepVisualization
+                                visual={currentStepData.visual}
+                                stepNumber={activeStep}
+                                totalSteps={stepsData.length}
+                            />
+
+                            {/* コントロールボタン */}
+                            <div className="flex flex-wrap justify-center items-center gap-3 mt-4">
+                                <button
+                                    type="button"
+                                    className={[
+                                        'flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg',
+                                        isPlaying
+                                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-200'
+                                            : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 shadow-emerald-200',
+                                    ].join(' ')}
+                                    onClick={handlePlay}
+                                    aria-label={isPlaying ? '一時停止' : '自動再生'}
+                                >
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        {isPlaying ? (
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                clipRule="evenodd"
+                                            />
+                                        ) : (
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                                clipRule="evenodd"
+                                            />
+                                        )}
+                                    </svg>
+                                    {isPlaying ? 'Pause' : 'Play'}
+                                </button>
+
+                                <div className="flex items-center gap-1 bg-white rounded-xl border-2 border-slate-200 p-1">
+                                    <button
+                                        type="button"
+                                        className="flex items-center justify-center w-10 h-10 rounded-lg font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        onClick={handlePrev}
+                                        disabled={activeStep === 1}
+                                        aria-label="前のステップ"
+                                    >
+                                        <svg
+                                            className="w-5 h-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M15 19l-7-7 7-7"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <span className="px-3 text-sm font-medium text-slate-500 min-w-[60px] text-center">
+                                        {activeStep} / {stepsData.length}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="flex items-center justify-center w-10 h-10 rounded-lg font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        onClick={handleNext}
+                                        disabled={activeStep === stepsData.length}
+                                        aria-label="次のステップ"
+                                    >
+                                        <svg
+                                            className="w-5 h-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-slate-600 transition-all bg-white border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                        />
+                                    </svg>
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // フローチャートコンポーネント（インタラクティブ版）
+            function FlowchartComponent() {
+                const [hoveredNode, setHoveredNode] = useState(null);
+                const [isAnimating, setIsAnimating] = useState(false);
+                const [animationStep, setAnimationStep] = useState(0);
+
+                const nodes = [
+                    {
+                        id: 'start',
+                        label: '開始',
+                        sublabel: 'sleep(millis)',
+                        type: 'terminal',
+                        x: 300,
+                        y: 40,
+                    },
+                    {
+                        id: 'validate',
+                        label: '入力検証',
+                        sublabel: 'millis 有効?',
+                        type: 'decision',
+                        x: 300,
+                        y: 140,
+                    },
+                    {
+                        id: 'error',
+                        label: 'エラー',
+                        sublabel: 'TypeError / RangeError',
+                        type: 'error',
+                        x: 520,
+                        y: 140,
+                    },
+                    {
+                        id: 'promise',
+                        label: 'Promise作成',
+                        sublabel: 'new Promise(resolve)',
+                        type: 'process',
+                        x: 300,
+                        y: 250,
+                    },
+                    {
+                        id: 'timer',
+                        label: 'タイマー登録',
+                        sublabel: 'setTimeout(resolve, millis)',
+                        type: 'process',
+                        x: 300,
+                        y: 350,
+                    },
+                    {
+                        id: 'wait',
+                        label: '待機中',
+                        sublabel: 'Pending...',
+                        type: 'wait',
+                        x: 300,
+                        y: 450,
+                    },
+                    {
+                        id: 'callback',
+                        label: 'コールバック',
+                        sublabel: 'resolve() 実行',
+                        type: 'process',
+                        x: 300,
+                        y: 550,
+                    },
+                    {
+                        id: 'end',
+                        label: '完了',
+                        sublabel: 'Resolved',
+                        type: 'terminal',
+                        x: 300,
+                        y: 650,
+                    },
+                ];
+
+                const nodeDescriptions = {
+                    start: 'sleep関数が呼び出され、引数 millis（待機時間）を受け取ります。',
+                    validate:
+                        '入力値が有効か検証します。数値型か、1〜1000の範囲か、整数かをチェック。',
+                    error: '検証に失敗した場合、TypeError または RangeError をスローします。',
+                    promise:
+                        'new Promise() でPromiseオブジェクトを作成。この時点でPromiseは Pending 状態。',
+                    timer: 'setTimeout(resolve, millis) でタイマーをイベントループに登録。',
+                    wait: 'Promiseは Pending 状態で待機。CPU はアイドル状態（非ブロッキング）。',
+                    callback: '指定時間経過後、resolve() が呼ばれ Promise が Resolved 状態に遷移。',
+                    end: 'await していた箇所が再開され、sleep関数が完了します。',
+                };
+
+                const animationOrder = [
+                    'start',
+                    'validate',
+                    'promise',
+                    'timer',
+                    'wait',
+                    'callback',
+                    'end',
+                ];
+
+                useEffect(() => {
+                    let timer;
+                    if (isAnimating && animationStep < animationOrder.length) {
+                        timer = setTimeout(() => {
+                            setAnimationStep((prev) => prev + 1);
+                        }, 800);
+                    } else if (animationStep >= animationOrder.length) {
+                        setIsAnimating(false);
+                    }
+                    return () => clearTimeout(timer);
+                }, [isAnimating, animationStep]);
+
+                const handleAnimate = () => {
+                    setAnimationStep(0);
+                    setIsAnimating(true);
+                };
+
+                const getNodeStyle = (node) => {
+                    const isHovered = hoveredNode === node.id;
+                    const isAnimated =
+                        isAnimating && animationOrder.indexOf(node.id) < animationStep;
+                    const isCurrent = isAnimating && animationOrder[animationStep - 1] === node.id;
+
+                    const styles = {
+                        terminal: { bg: '#d1fae5', border: '#10b981', text: '#065f46' },
+                        decision: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+                        process: { bg: '#e0f2fe', border: '#0284c7', text: '#075985' },
+                        wait: { bg: '#f1f5f9', border: '#64748b', text: '#334155' },
+                        error: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b' },
+                    };
+
+                    const style = styles[node.type];
+                    return {
+                        fill: isHovered || isCurrent ? style.border : style.bg,
+                        stroke: style.border,
+                        strokeWidth: isHovered || isCurrent ? 4 : 2,
+                        textFill: isHovered || isCurrent ? '#ffffff' : style.text,
+                        opacity: isAnimating && !isAnimated && !isCurrent ? 0.3 : 1,
+                    };
+                };
+
+                const renderNode = (node) => {
+                    const style = getNodeStyle(node);
+                    const width = node.type === 'decision' ? 90 : 160;
+                    const height = node.type === 'decision' ? 90 : 70;
+
+                    return (
+                        <g
+                            key={node.id}
+                            transform={`translate(${node.x}, ${node.y})`}
+                            style={{
+                                cursor: 'pointer',
+                                opacity: style.opacity,
+                            }}
+                            onMouseEnter={() => setHoveredNode(node.id)}
+                            onMouseLeave={() => setHoveredNode(null)}
+                        >
+                            {node.type === 'terminal' ? (
+                                <ellipse
+                                    cx="0"
+                                    cy="0"
+                                    rx="80"
+                                    ry="35"
+                                    fill={style.fill}
+                                    stroke={style.stroke}
+                                    strokeWidth={style.strokeWidth}
+                                    style={{ transition: 'all 0.3s ease' }}
+                                />
+                            ) : node.type === 'decision' ? (
+                                <path
+                                    d={`M 0 -45 L 50 0 L 0 45 L -50 0 Z`}
+                                    fill={style.fill}
+                                    stroke={style.stroke}
+                                    strokeWidth={style.strokeWidth}
+                                    style={{ transition: 'all 0.3s ease' }}
+                                />
+                            ) : (
+                                <rect
+                                    x={-width / 2}
+                                    y={-height / 2}
+                                    width={width}
+                                    height={height}
+                                    rx="12"
+                                    fill={style.fill}
+                                    stroke={style.stroke}
+                                    strokeWidth={style.strokeWidth}
+                                    style={{ transition: 'all 0.3s ease' }}
+                                />
+                            )}
+                            <text
+                                x="0"
+                                y={node.sublabel ? -8 : 0}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill={style.textFill}
+                                style={{ transition: 'all 0.3s ease' }}
+                            >
+                                {node.label}
+                            </text>
+                            {node.sublabel && (
+                                <text
+                                    x="0"
+                                    y="12"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="11"
+                                    fill={style.textFill}
+                                    opacity="0.85"
+                                    style={{ transition: 'all 0.3s ease' }}
+                                >
+                                    {node.sublabel}
+                                </text>
+                            )}
+                        </g>
+                    );
+                };
+
+                return (
+                    <div>
+                        {/* コントロール */}
+                        <div className="flex items-center justify-between mb-4">
+                            <p className="text-sm text-slate-500 m-0">ノードをホバーで詳細を表示</p>
+                            <button
+                                type="button"
+                                className={[
+                                    'flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all',
+                                    isAnimating
+                                        ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-emerald-200',
+                                ].join(' ')}
+                                onClick={handleAnimate}
+                                disabled={isAnimating}
+                            >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                                フローをアニメーション
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+                            {/* SVGフローチャート */}
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                                <svg
+                                    viewBox="0 0 600 720"
+                                    style={{ maxWidth: '100%', height: 'auto' }}
+                                    role="img"
+                                    aria-label="Sleep関数のフローチャート"
+                                >
+                                    <defs>
+                                        <marker
+                                            id="arrowFlow"
+                                            markerWidth="8"
+                                            markerHeight="8"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                        >
+                                            <path d="M0,0 L0,6 L7,3 z" fill="#64748b" />
+                                        </marker>
+                                        <marker
+                                            id="arrowGreenFlow"
+                                            markerWidth="8"
+                                            markerHeight="8"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                        >
+                                            <path d="M0,0 L0,6 L7,3 z" fill="#10b981" />
+                                        </marker>
+                                        <marker
+                                            id="arrowRedFlow"
+                                            markerWidth="8"
+                                            markerHeight="8"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                        >
+                                            <path d="M0,0 L0,6 L7,3 z" fill="#dc2626" />
+                                        </marker>
+                                        {/* アニメーション用グラデーション */}
+                                        <linearGradient
+                                            id="flowGrad"
+                                            x1="0%"
+                                            y1="0%"
+                                            x2="0%"
+                                            y2="100%"
+                                        >
+                                            <stop offset="0%" stopColor="#10b981">
+                                                <animate
+                                                    attributeName="offset"
+                                                    values="0;1;0"
+                                                    dur="2s"
+                                                    repeatCount="indefinite"
+                                                />
+                                            </stop>
+                                            <stop offset="50%" stopColor="#22d3ee">
+                                                <animate
+                                                    attributeName="offset"
+                                                    values="0.5;1.5;0.5"
+                                                    dur="2s"
+                                                    repeatCount="indefinite"
+                                                />
+                                            </stop>
+                                        </linearGradient>
+                                    </defs>
+
+                                    {/* 接続線 */}
+                                    {/* start -> validate */}
+                                    <path
+                                        d="M 300 75 L 300 95"
+                                        stroke="#64748b"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowFlow)"
+                                    />
+
+                                    {/* validate -> promise (はい) */}
+                                    <path
+                                        d="M 300 185 L 300 215"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowGreenFlow)"
+                                    />
+                                    <text
+                                        x="260"
+                                        y="200"
+                                        fontSize="12"
+                                        fill="#10b981"
+                                        fontWeight="600"
+                                    >
+                                        はい
+                                    </text>
+
+                                    {/* validate -> error (いいえ) */}
+                                    <path
+                                        d="M 350 140 L 440 140"
+                                        stroke="#dc2626"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowRedFlow)"
+                                    />
+                                    <text
+                                        x="380"
+                                        y="132"
+                                        fontSize="12"
+                                        fill="#dc2626"
+                                        fontWeight="600"
+                                    >
+                                        いいえ
+                                    </text>
+
+                                    {/* promise -> timer */}
+                                    <path
+                                        d="M 300 285 L 300 315"
+                                        stroke="#64748b"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowFlow)"
+                                    />
+
+                                    {/* timer -> wait */}
+                                    <path
+                                        d="M 300 385 L 300 415"
+                                        stroke="#64748b"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowFlow)"
+                                    />
+
+                                    {/* wait -> callback */}
+                                    <path
+                                        d="M 300 485 L 300 515"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowGreenFlow)"
+                                    />
+                                    <text
+                                        x="310"
+                                        y="500"
+                                        fontSize="11"
+                                        fill="#10b981"
+                                        fontWeight="500"
+                                    >
+                                        時間経過
+                                    </text>
+
+                                    {/* callback -> end */}
+                                    <path
+                                        d="M 300 585 L 300 615"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowGreenFlow)"
+                                    />
+
+                                    {/* error -> end (エラー終了) */}
+                                    <path
+                                        d="M 520 175 L 520 650 L 380 650"
+                                        stroke="#dc2626"
+                                        strokeWidth="2"
+                                        strokeDasharray="5,5"
+                                        fill="none"
+                                        markerEnd="url(#arrowRedFlow)"
+                                    />
+                                    <text
+                                        x="530"
+                                        y="400"
+                                        fontSize="11"
+                                        fill="#dc2626"
+                                        transform="rotate(90, 530, 400)"
+                                    >
+                                        エラー終了
+                                    </text>
+
+                                    {/* ノード描画 */}
+                                    {nodes.map(renderNode)}
+                                </svg>
+                            </div>
+
+                            {/* 説明パネル */}
+                            <div className="space-y-4">
+                                {/* ホバー説明 */}
+                                <div
+                                    className={[
+                                        'rounded-xl p-4 border-2 transition-all duration-300 min-h-[120px]',
+                                        hoveredNode
+                                            ? 'bg-gradient-to-br from-emerald-50 to-cyan-50 border-emerald-300 shadow-lg'
+                                            : 'bg-slate-50 border-slate-200',
+                                    ].join(' ')}
+                                >
+                                    {hoveredNode ? (
+                                        <>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                                <h4 className="font-bold text-slate-800 m-0">
+                                                    {nodes.find((n) => n.id === hoveredNode)?.label}
+                                                </h4>
+                                            </div>
+                                            <p className="text-sm text-slate-600 m-0 leading-relaxed">
+                                                {nodeDescriptions[hoveredNode]}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                                            ノードにカーソルを合わせると説明が表示されます
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 凡例 */}
+                                <div className="bg-white rounded-xl p-4 border border-slate-200">
+                                    <h4 className="font-semibold text-slate-700 text-sm mb-3 m-0">
+                                        凡例
+                                    </h4>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-5 rounded-full bg-emerald-100 border-2 border-emerald-500"></div>
+                                            <span className="text-xs text-slate-600">
+                                                開始/終了
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className="w-5 h-5 bg-amber-100 border-2 border-amber-500"
+                                                style={{ transform: 'rotate(45deg)' }}
+                                            ></div>
+                                            <span className="text-xs text-slate-600 ml-1">
+                                                条件分岐
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-5 rounded bg-sky-100 border-2 border-sky-500"></div>
+                                            <span className="text-xs text-slate-600">処理</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-5 rounded bg-slate-100 border-2 border-slate-400"></div>
+                                            <span className="text-xs text-slate-600">待機状態</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-5 rounded bg-red-100 border-2 border-red-500"></div>
+                                            <span className="text-xs text-slate-600">エラー</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* フロー概要 */}
+                                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
+                                    <h4 className="font-semibold text-slate-700 text-sm mb-2 m-0">
+                                        処理フロー概要
+                                    </h4>
+                                    <ol className="text-xs text-slate-600 space-y-1 m-0 pl-4">
+                                        <li>入力値を検証</li>
+                                        <li>Promiseオブジェクトを作成</li>
+                                        <li>setTimeoutでタイマー登録</li>
+                                        <li>非ブロッキングで待機</li>
+                                        <li>時間経過後にresolve実行</li>
+                                        <li>Promise完了、処理再開</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // レンダリング
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepsExplanation />);
+
+            const flowchartRoot = ReactDOM.createRoot(document.getElementById('flowchart-root'));
+            flowchartRoot.render(<FlowchartComponent />);
+        </script>
+    </body>
+</html>

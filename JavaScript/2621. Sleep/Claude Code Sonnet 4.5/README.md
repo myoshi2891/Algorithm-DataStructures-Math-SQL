@@ -189,7 +189,7 @@ async def sleep(millis: int) -> None:
         raise ValueError("millis must be an integer between 1 and 1000")
 
     # イベントループ取得
-    loop = asyncio.get_running_loop()  # 実行中のイベントループ取得（Python 3.10+推奨）
+    loop = asyncio.get_running_loop()  # 実行中のイベントループ取得（Python 3.7+で推奨）
 
     # Future 作成（コルーチンが待機するオブジェクト）
     future: asyncio.Future[None] = loop.create_future()

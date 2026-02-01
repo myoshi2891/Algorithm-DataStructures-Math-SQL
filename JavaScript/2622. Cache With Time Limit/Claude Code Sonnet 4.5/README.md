@@ -289,7 +289,7 @@ class TimeLimitedCache {
 
     /**
      * 期限切れエントリを一括削除
-     * @complexity Time: O(n), Space: O(n) where n = 削除対象数（最悪時全エントリ）
+     * @complexity Time: O(n), Space: O(1)
      */
     private cleanup(): void {
         const now = Date.now();

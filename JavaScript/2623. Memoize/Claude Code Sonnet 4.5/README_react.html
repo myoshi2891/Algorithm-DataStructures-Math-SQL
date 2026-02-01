@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeetCode 2623: Memoize II - 引数の順序を保持したキャッシュ関数</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 18 (Development) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Prism.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Source+Code+Pro:wght@500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    code, pre {
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    .code-toolbar > .toolbar {
+      opacity: 1 !important;
+      right: 0.5em !important;
+      top: 0.5em !important;
+    }
+
+    .code-toolbar > .toolbar button {
+      background: #10b981 !important;
+      color: white !important;
+      padding: 0.5em 1em !important;
+      border-radius: 0.5em !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3) !important;
+    }
+  </style>
+</head>
+<body class="bg-[linear-gradient(135deg,#f0fdf4,#e0f2fe)] min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <header
+      id="header"
+      class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+    >
+      <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">LeetCode 2623: Memoize II</h1>
+      <p class="text-xl text-cyan-700 font-semibold mt-2">
+        数値キー圧縮による O(1) メモイゼーション実装
+      </p>
+      <nav class="flex flex-wrap gap-4 mt-6">
+        <a
+          href="#overview"
+          class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+          aria-label="概要セクションへ移動"
+        >
+          概要
+        </a>
+        <a
+          href="#steps"
+          class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+          aria-label="ステップ解説セクションへ移動"
+        >
+          ステップ解説
+        </a>
+        <a
+          href="#code"
+          class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+          aria-label="コード実装セクションへ移動"
+        >
+          コード実装
+        </a>
+        <a
+          href="#diagram"
+          class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+          aria-label="フローチャートセクションへ移動"
+        >
+          フローチャート
+        </a>
+        <a
+          href="#complexity"
+          class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+          aria-label="計算量分析セクションへ移動"
+        >
+          計算量分析
+        </a>
+      </nav>
+    </header>
+
+    <!-- Overview Section -->
+    <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+      <h2 class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+        アルゴリズム概要
+      </h2>
+
+      <div class="mb-6">
+        <h3 class="text-xl font-bold text-teal-800 mb-3">問題の説明</h3>
+        <p class="text-slate-700 leading-7">
+          与えられた関数 <code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">fn</code> に対し、<strong>同じ引数の組み合わせに対して再度呼び出さない</strong>メモイズ版を返します。引数の順序は意味を持ち、<code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">(a, b)</code> と <code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">(b, a)</code> は異なるキーとして扱います。
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-xl font-bold text-teal-800 mb-3">対象関数</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-emerald-50">
+                <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">関数</th>
+                <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">引数</th>
+                <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">制約</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">sum</code></td>
+                <td class="border-2 border-slate-200 px-4 py-3">a, b (2つ)</td>
+                <td class="border-2 border-slate-200 px-4 py-3">0 ≤ a, b ≤ 10<sup>5</sup></td>
+              </tr>
+              <tr class="bg-slate-50">
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">fib</code></td>
+                <td class="border-2 border-slate-200 px-4 py-3">n (1つ)</td>
+                <td class="border-2 border-slate-200 px-4 py-3">1 ≤ n ≤ 10</td>
+              </tr>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">factorial</code></td>
+                <td class="border-2 border-slate-200 px-4 py-3">n (1つ)</td>
+                <td class="border-2 border-slate-200 px-4 py-3">1 ≤ n ≤ 10</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-xl font-bold text-teal-800 mb-3">入出力例</h3>
+        <div class="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+          <pre class="text-sm"><code>Input: fnName = "sum", actions = ["call","call","getCallCount","call","getCallCount"]
+       values = [[2,2],[2,2],[],[1,2],[]]
+Output: [4,4,1,3,2]
+
+Explanation:
+memoizedSum(2, 2); // returns 4, sum() が呼ばれる（初回）
+memoizedSum(2, 2); // returns 4, sum() は呼ばれない（キャッシュヒット）
+getCallCount();     // returns 1
+memoizedSum(1, 2); // returns 3, sum() が呼ばれる（新しい引数）
+getCallCount();     // returns 2</code></pre>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-xl font-bold text-teal-800 mb-3">戦略</h3>
+        <ul class="list-none space-y-3 text-slate-700">
+          <li class="flex items-start">
+            <span class="text-emerald-600 font-bold mr-2">•</span>
+            <span><strong>キー圧縮:</strong> 引数を単一の整数キーに変換し、<code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">Map&lt;number, number&gt;</code> で O(1) キャッシュ</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 font-bold mr-2">•</span>
+            <span><strong>引数1つ:</strong> キー = n そのもの（fib, factorial）</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 font-bold mr-2">•</span>
+            <span><strong>引数2つ:</strong> キー = a × 100001 + b（sum）— 衝突不可能な圧縮</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 font-bold mr-2">•</span>
+            <span><strong>順序保持:</strong> (3, 2) のキーは 300005、(2, 3) のキーは 200005 で異なる</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-200">
+        <h3 class="text-xl font-bold text-emerald-800 mb-3">主要ポイント</h3>
+        <ul class="list-none space-y-2 text-slate-700">
+          <li><strong>時間計算量:</strong> O(1) per call（キー計算とMap操作）</li>
+          <li><strong>空間計算量:</strong> O(m)（m = ユニーク引数組み合わせ数）</li>
+          <li><strong>最適化手法:</strong> 文字列キーを完全に廃除し、数値キーのみで構築</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Steps Section -->
+    <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+      <h2 class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+        ステップバイステップ解説
+      </h2>
+      <div id="react-steps-root"></div>
+    </section>
+
+    <!-- Code Section -->
+    <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+      <h2 class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+        TypeScript実装
+      </h2>
+      <pre class="line-numbers"><code class="language-typescript">type Fn = (...params: number[]) => number;
+
+function memoize(fn: Fn): Fn {
+    // キャッシュ: 数値キー → 計算結果
+    const cache = new Map<number, number>();
+
+    // 外部から観測される実際の関数呼び出し回数
+    let callCount = 0;
+
+    const memoized: Fn = function (...args: number[]): number {
+        // キー圧縮:
+        //   引数1つ → n そのもの (fib, factorial)
+        //   引数2つ → a * 100001 + b (sum)
+        // 100001 = 10^5 + 1 で、a と b の組み合わせが一意に対応
+        const key = args.length === 1 ? args[0] : args[0] * 100001 + args[1];
+
+        // キャッシュヒット: fn を呼び出さず結果を返す
+        if (cache.has(key)) {
+            return cache.get(key)!;
+        }
+
+        // キャッシュミス: fn を実行し結果を保存
+        callCount += 1;
+        const result = fn(...args);
+        cache.set(key, result);
+        return result;
+    };
+
+    // LeetCode の判定ハーネス側から呼ばれる拡張プロパティ
+    // Fn 型には収まらないため any キャスト（コア logic には影響なし）
+    (memoized as any).getCallCount = (): number => callCount;
+
+    return memoized;
+}</code></pre>
+    </section>
+
+    <!-- Diagram Section -->
+    <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+      <h2 class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+        フローチャート
+      </h2>
+      <div class="mt-[20px] overflow-x-auto">
+        <svg viewBox="0 0 880 720" style="max-width: 100%; height: auto; color: #333" role="img" aria-label="Memoize II フローチャート">
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+            </marker>
+            <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+            </marker>
+            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+            </marker>
+          </defs>
+
+          <!-- 開始 -->
+          <ellipse cx="420" cy="50" rx="80" ry="35" fill="#d1fae5" stroke="#10b981" stroke-width="3" />
+          <text x="420" y="50" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold" fill="#059669">
+            引数受信
+          </text>
+
+          <!-- 下向き矢印 -->
+          <path d="M 420 85 L 420 125" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+          <!-- キー計算 -->
+          <rect x="270" y="125" width="300" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+          <text x="420" y="148" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold" fill="#0369a1">
+            数値キーを計算
+          </text>
+          <text x="420" y="172" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#475569">
+            args.length === 1 ? args[0]
+          </text>
+          <text x="420" y="192" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#475569">
+            : args[0] * 100001 + args[1]
+          </text>
+
+          <!-- 下向き矢印 -->
+          <path d="M 420 205 L 420 245" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+          <!-- キャッシュヒット判定 -->
+          <path d="M 420 245 L 530 310 L 420 375 L 310 310 Z" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" />
+          <text x="420" y="300" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#b45309">
+            cache.has(key)?
+          </text>
+          <text x="420" y="322" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#78350f">
+            キャッシュヒット?
+          </text>
+
+          <!-- はい（キャッシュヒット） -->
+          <path d="M 530 310 L 680 310" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" />
+          <text x="600" y="298" text-anchor="middle" font-size="14" font-weight="bold" fill="#059669">はい</text>
+
+          <!-- キャッシュから返す -->
+          <rect x="680" y="280" width="160" height="60" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2" />
+          <text x="760" y="302" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#059669">
+            キャッシュから返す
+          </text>
+          <text x="760" y="322" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#064e3b">
+            cache.get(key)
+          </text>
+
+          <!-- いいえ（キャッシュミス） -->
+          <path d="M 420 375 L 420 420" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrowRed)" />
+          <text x="380" y="395" text-anchor="middle" font-size="14" font-weight="bold" fill="#dc2626">いいえ</text>
+
+          <!-- callCount++ -->
+          <rect x="310" y="420" width="220" height="50" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2" />
+          <text x="420" y="445" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#334155">
+            callCount += 1
+          </text>
+
+          <!-- 下向き矢印 -->
+          <path d="M 420 470 L 420 510" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+          <!-- fn実行 -->
+          <rect x="310" y="510" width="220" height="50" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+          <text x="420" y="535" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#0369a1">
+            result = fn(...args)
+          </text>
+
+          <!-- 下向き矢印 -->
+          <path d="M 420 560 L 420 600" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+          <!-- キャッシュに保存 -->
+          <rect x="310" y="600" width="220" height="50" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2" />
+          <text x="420" y="625" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#334155">
+            cache.set(key, result)
+          </text>
+
+          <!-- 合流：結果を返す -->
+          <path d="M 800 340 L 800 675 L 770 675" stroke="#059669" stroke-width="2" fill="none" marker-end="url(#arrowGreen)" />
+          <path d="M 420 650 L 420 675 L 570 675" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+          <!-- 終了 -->
+          <ellipse cx="670" cy="675" rx="100" ry="35" fill="#d1fae5" stroke="#10b981" stroke-width="3" />
+          <text x="670" y="675" text-anchor="middle" dominant-baseline="middle" font-size="18" font-weight="bold" fill="#059669">
+            結果を返す
+          </text>
+        </svg>
+      </div>
+
+      <p class="mt-8 font-[Source_Code_Pro] text-[18px] leading-8">
+        <strong class="text-2xl">フローの説明：</strong><br />
+        1. <strong>引数受信:</strong> 関数が引数を受け取る<br />
+        2. <strong>数値キーを計算:</strong> 引数の個数に応じてキーを生成（1つなら n、2つなら a × 100001 + b）<br />
+        3. <strong>キャッシュヒット判定:</strong> Map にキーが存在するか確認<br />
+        4. <strong>キャッシュヒット:</strong> 既存の結果を返す（fn を呼び出さない）<br />
+        5. <strong>キャッシュミス:</strong> callCount を増加し、fn を実行して結果をキャッシュに保存<br />
+        6. <strong>結果を返す:</strong> 計算またはキャッシュから取得した結果を返す
+      </p>
+    </section>
+
+    <!-- Complexity Section -->
+    <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+      <h2 class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+        計算量分析
+      </h2>
+
+      <div class="overflow-x-auto mb-6">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-emerald-50">
+              <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">操作</th>
+              <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">時間計算量</th>
+              <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">空間計算量</th>
+              <th class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800">備考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border-2 border-slate-200 px-4 py-3">キー計算</td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">O(1)</code></td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">O(1)</code></td>
+              <td class="border-2 border-slate-200 px-4 py-3">乗算・加算のみ</td>
+            </tr>
+            <tr class="bg-slate-50">
+              <td class="border-2 border-slate-200 px-4 py-3">Map ルックアップ</td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">O(1)</code> 平均</td>
+              <td class="border-2 border-slate-200 px-4 py-3">—</td>
+              <td class="border-2 border-slate-200 px-4 py-3">ハッシュテーブル</td>
+            </tr>
+            <tr>
+              <td class="border-2 border-slate-200 px-4 py-3">キャッシュ保持</td>
+              <td class="border-2 border-slate-200 px-4 py-3">—</td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">O(m)</code></td>
+              <td class="border-2 border-slate-200 px-4 py-3">m = ユニーク引数組み合わせ数</td>
+            </tr>
+            <tr class="bg-slate-50">
+              <td class="border-2 border-slate-200 px-4 py-3 font-bold">呼び出し全体</td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700 font-bold">O(1)</code> amortized</td>
+              <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700 font-bold">O(m)</code></td>
+              <td class="border-2 border-slate-200 px-4 py-3">fn の実行コストは含まない</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-xl font-bold text-teal-800 mb-3">最適化の比較</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-cyan-50">
+                <th class="border-2 border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800">指標</th>
+                <th class="border-2 border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800">改善前（文字列キー）</th>
+                <th class="border-2 border-cyan-200 px-4 py-3 text-left font-semibold text-cyan-800">現行（数値キー）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">キー型</td>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded">string</code></td>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">number</code></td>
+              </tr>
+              <tr class="bg-slate-50">
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">キー生成コスト</td>
+                <td class="border-2 border-slate-200 px-4 py-3">O(k) — join で新規文字列生成</td>
+                <td class="border-2 border-slate-200 px-4 py-3 text-emerald-700 font-semibold">O(1) — 乗算・加算のみ</td>
+              </tr>
+              <tr>
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">メモリ効率</td>
+                <td class="border-2 border-slate-200 px-4 py-3">文字列キー + 数値値</td>
+                <td class="border-2 border-slate-200 px-4 py-3 text-emerald-700 font-semibold">数値キー + 数値値（最小）</td>
+              </tr>
+              <tr class="bg-slate-50">
+                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">Map 型</td>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded">Map&lt;string, number&gt;</code></td>
+                <td class="border-2 border-slate-200 px-4 py-3"><code class="bg-slate-100 px-2 py-1 rounded text-emerald-700">Map&lt;number, number&gt;</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-cyan-50 rounded-lg p-6 border-2 border-cyan-200">
+        <h3 class="text-xl font-bold text-cyan-800 mb-3">キー圧縮の正しさ</h3>
+        <p class="text-slate-700 leading-7 mb-3">
+          <strong>なぜ 100001 か？</strong> b の最大値が 10<sup>5</sup> なので、異なる a で生成されるキー範囲が重ならないためには乗数が 10<sup>5</sup> + 1 = 100001 以上である必要があります。
+        </p>
+        <p class="text-slate-700 leading-7 mb-3">
+          <strong>衝突不可能性の証明:</strong> 異なる引数ペア (a₁, b₁) ≠ (a₂, b₂) が同じキーを生成しないことを示します。
+        </p>
+        <div class="bg-white rounded p-4 border border-cyan-200 font-mono text-sm">
+          a₁ × 100001 + b₁ = a₂ × 100001 + b₂<br />
+          → (a₁ - a₂) × 100001 = b₂ - b₁<br />
+          <br />
+          b の範囲が 0 ~ 10⁵ なので |b₂ - b₁| ≤ 10⁵ &lt; 100001<br />
+          左辺は 100001 の整数倍にならないため、a₁ = a₂ かつ b₁ = b₂ のみが成り立つ。<br />
+          <strong class="text-emerald-700">∴ 衝突は定理的に不可能</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- React Component -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    function StepsVisualization() {
+      const stepsData = [
+        {
+          step: 1,
+          title: "初期状態",
+          desc: "メモ化関数の初期状態。キャッシュは空で、callCount は 0。",
+          visual: {
+            type: "init",
+            cache: [],
+            callCount: 0
+          }
+        },
+        {
+          step: 2,
+          title: "初回呼び出し: sum(2, 2)",
+          desc: "キー = 2 × 100001 + 2 = 200004 を計算。キャッシュミス。fn を実行して結果 4 を保存。callCount = 1。",
+          visual: {
+            type: "call",
+            args: [2, 2],
+            key: 200004,
+            result: 4,
+            isHit: false,
+            cache: [[200004, 4]],
+            callCount: 1
+          }
+        },
+        {
+          step: 3,
+          title: "2回目呼び出し: sum(2, 2)",
+          desc: "同じキー 200004 を計算。キャッシュヒット！fn を呼び出さず結果 4 を返す。callCount = 1（変化なし）。",
+          visual: {
+            type: "call",
+            args: [2, 2],
+            key: 200004,
+            result: 4,
+            isHit: true,
+            cache: [[200004, 4]],
+            callCount: 1
+          }
+        },
+        {
+          step: 4,
+          title: "3回目呼び出し: sum(1, 2)",
+          desc: "新しいキー = 1 × 100001 + 2 = 100003 を計算。キャッシュミス。fn を実行して結果 3 を保存。callCount = 2。",
+          visual: {
+            type: "call",
+            args: [1, 2],
+            key: 100003,
+            result: 3,
+            isHit: false,
+            cache: [[200004, 4], [100003, 3]],
+            callCount: 2
+          }
+        },
+        {
+          step: 5,
+          title: "順序の区別: sum(2, 1)",
+          desc: "キー = 2 × 100001 + 1 = 200003 を計算。sum(1, 2) とは異なるキー。キャッシュミス。fn を実行して結果 3 を保存。callCount = 3。",
+          visual: {
+            type: "call",
+            args: [2, 1],
+            key: 200003,
+            result: 3,
+            isHit: false,
+            cache: [[200004, 4], [100003, 3], [200003, 3]],
+            callCount: 3
+          }
+        },
+        {
+          step: 6,
+          title: "1引数関数: fib(5)",
+          desc: "キー = 5 そのもの。キャッシュミス。fn を実行して結果 8 を保存。callCount = 4。",
+          visual: {
+            type: "call",
+            args: [5],
+            key: 5,
+            result: 8,
+            isHit: false,
+            cache: [[200004, 4], [100003, 3], [200003, 3], [5, 8]],
+            callCount: 4
+          }
+        },
+        {
+          step: 7,
+          title: "再度 fib(5)",
+          desc: "キー = 5。キャッシュヒット！結果 8 を返す。callCount = 4（変化なし）。",
+          visual: {
+            type: "call",
+            args: [5],
+            key: 5,
+            result: 8,
+            isHit: true,
+            cache: [[200004, 4], [100003, 3], [200003, 3], [5, 8]],
+            callCount: 4
+          }
+        }
+      ];
+
+      const [activeStep, setActiveStep] = useState(1);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const timerRef = useRef(null);
+
+      useEffect(() => {
+        if (isPlaying) {
+          if (activeStep > stepsData.length) {
+            setIsPlaying(false);
+            setActiveStep(1);
+            return;
+          }
+
+          timerRef.current = setTimeout(() => {
+            if (activeStep === stepsData.length) {
+              setActiveStep(1);
+              setIsPlaying(false);
+            } else {
+              setActiveStep(prev => prev + 1);
+            }
+          }, 2000);
+        }
+        return () => {
+          if (timerRef.current) clearTimeout(timerRef.current);
+        };
+      }, [isPlaying, activeStep]);
+
+      const handlePlay = () => {
+        if (isPlaying) return;
+        setActiveStep(1);
+        setIsPlaying(true);
+      };
+
+      const handlePrev = () => {
+        setIsPlaying(false);
+        setActiveStep(prev => Math.max(1, prev - 1));
+      };
+
+      const handleNext = () => {
+        setIsPlaying(false);
+        setActiveStep(prev => Math.min(stepsData.length, prev + 1));
+      };
+
+      const handleReset = () => {
+        setIsPlaying(false);
+        setActiveStep(1);
+      };
+
+      const handleStepClick = (step) => {
+        setIsPlaying(false);
+        setActiveStep(step);
+      };
+
+      const currentStepData = stepsData.find(s => s.step === activeStep) || stepsData[0];
+
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+          <div>
+            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">ステップ一覧</h3>
+            <div className="space-y-2">
+              {stepsData.map(step => {
+                const isActive = activeStep === step.step;
+                return (
+                  <button
+                    key={step.step}
+                    type="button"
+                    className={[
+                      "w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4",
+                      "bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1",
+                      isActive
+                        ? "bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]"
+                        : ""
+                    ].join(" ")}
+                    onClick={() => handleStepClick(step.step)}
+                    aria-label={`ステップ${step.step}: ${step.title}`}
+                    aria-current={isActive ? "step" : undefined}
+                  >
+                    <div className={["font-bold mb-1", isActive ? "text-emerald-900" : "text-teal-800"].join(" ")}>
+                      Step {step.step}: {step.title}
+                    </div>
+                    <div className="text-slate-500 text-sm mt-1">
+                      {step.desc.substring(0, 50)}{step.desc.length > 50 ? "..." : ""}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="my-auto">
+            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+              <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                Step {currentStepData.step}: {currentStepData.title}
+              </h3>
+              <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+            </div>
+
+            <StepVisualization visual={currentStepData.visual} />
+
+            <div className="flex flex-wrap justify-center gap-2 mt-1">
+              <button
+                type="button"
+                className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                onClick={handlePlay}
+                disabled={isPlaying}
+                aria-label="自動再生"
+              >
+                ▶ Play
+              </button>
+              <button
+                type="button"
+                className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                onClick={handlePrev}
+                disabled={activeStep === 1}
+                aria-label="前のステップ"
+              >
+                ◀ Prev
+              </button>
+              <button
+                type="button"
+                className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                onClick={handleNext}
+                disabled={activeStep === stepsData.length}
+                aria-label="次のステップ"
+              >
+                Next ▶
+              </button>
+              <button
+                type="button"
+                className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                onClick={handleReset}
+                aria-label="リセット"
+              >
+                ↻ Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function StepVisualization({ visual }) {
+      if (visual.type === "init") {
+        return (
+          <svg viewBox="0 0 600 200" style={{ maxWidth: "100%", height: "auto", marginTop: "20px" }}>
+            <rect x="50" y="30" width="500" height="140" rx="10" fill="#f0fdf4" stroke="#10b981" strokeWidth="2" />
+            <text x="300" y="60" textAnchor="middle" fontSize="20" fontWeight="bold" fill="#059669">
+              初期状態
+            </text>
+            <text x="300" y="95" textAnchor="middle" fontSize="16" fill="#475569">
+              cache: Map(empty)
+            </text>
+            <text x="300" y="125" textAnchor="middle" fontSize="16" fill="#475569">
+              callCount: 0
+            </text>
+          </svg>
+        );
+      }
+
+      if (visual.type === "call") {
+        const { args, key, result, isHit, cache, callCount } = visual;
+        const argsStr = args.join(", ");
+        const cacheEntries = cache.map(([k, v]) => `${k}: ${v}`);
+
+        const svgHeight = 280 + Math.max(cacheEntries.length, 1) * 28 + 20;
+
+        return (
+          <svg viewBox={`0 0 600 ${svgHeight}`} style={{ maxWidth: "100%", height: "auto", marginTop: "20px" }}>
+            {/* 引数表示 */}
+            <rect x="30" y="20" width="540" height="60" rx="10" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2" />
+            <text x="300" y="45" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#0369a1">
+              引数: ({argsStr})
+            </text>
+            <text x="300" y="65" textAnchor="middle" fontSize="16" fill="#475569">
+              キー = {key}
+            </text>
+
+            {/* キャッシュ判定 */}
+            <rect x="30" y="100" width="540" height="60" rx="10" fill={isHit ? "#d1fae5" : "#fee2e2"} stroke={isHit ? "#10b981" : "#dc2626"} strokeWidth="2" />
+            <text x="300" y="125" textAnchor="middle" fontSize="18" fontWeight="bold" fill={isHit ? "#059669" : "#dc2626"}>
+              {isHit ? "✓ キャッシュヒット" : "✗ キャッシュミス"}
+            </text>
+            <text x="300" y="145" textAnchor="middle" fontSize="16" fill={isHit ? "#064e3b" : "#7f1d1d"}>
+              {isHit ? "fn を呼び出さず結果を返す" : "fn を実行して結果をキャッシュ"}
+            </text>
+
+            {/* 結果 */}
+            <rect x="30" y="180" width="260" height="50" rx="10" fill="#fef3c7" stroke="#f59e0b" strokeWidth="2" />
+            <text x="160" y="210" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#b45309">
+              結果: {result}
+            </text>
+
+            {/* callCount */}
+            <rect x="310" y="180" width="260" height="50" rx="10" fill="#f1f5f9" stroke="#64748b" strokeWidth="2" />
+            <text x="440" y="210" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#334155">
+              callCount: {callCount}
+            </text>
+
+            {/* キャッシュ状態 */}
+            <rect x="30" y="250" width="540" height={30 + Math.max(cacheEntries.length, 1) * 28} rx="10" fill="#f8fafc" stroke="#64748b" strokeWidth="2" />
+            <text x="300" y="275" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#334155">
+              キャッシュ内容
+            </text>
+            {cacheEntries.length === 0 ? (
+              <text x="300" y="305" textAnchor="middle" fontSize="16" fill="#94a3b8">
+                (空)
+              </text>
+            ) : (
+              cacheEntries.map((entry, idx) => (
+                <text key={idx} x="300" y={300 + idx * 28} textAnchor="middle" fontSize="14" fill="#475569" fontFamily="JetBrains Mono">
+                  {entry}
+                </text>
+              ))
+            )}
+          </svg>
+        );
+      }
+
+      return null;
+    }
+
+    const container = document.getElementById('react-steps-root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<StepsVisualization />);
+  </script>
+
+  <!-- Prism Highlighting -->
+  <script>
+    Prism.highlightAll();
+  </script>
+</body>
+</html>

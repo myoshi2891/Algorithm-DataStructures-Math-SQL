@@ -189,7 +189,7 @@ async def sleep(millis: int) -> None:
         raise ValueError("millis must be an integer between 1 and 1000")
 
     # イベントループ取得
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()  # 実行中のイベントループ取得（Python 3.10+推奨）
 
     # Future 作成（コルーチンが待機するオブジェクト）
     future: asyncio.Future[None] = loop.create_future()
@@ -256,7 +256,7 @@ async def sleep(millis: int) -> None:
 MILLIS_TO_SECONDS = 0.001
 
 async def sleep(millis: int) -> None:
-    await asyncio.sleep(millis * MILLIS_TO_SECONDS)  # 除算より乗算が高速
+    await asyncio.sleep(millis * MILLIS_TO_SECONDS)  # 可読性とメンテナンス性の向上
 ```
 
 ### パフォーマンスノート
@@ -354,7 +354,7 @@ async function sleep(millis: number): Promise<void> {
 
 // Python 等価実装
 async def sleep(millis: int) -> None:
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()  # 実行中のイベントループ取得
     future = loop.create_future()
     loop.call_later(millis / 1000, future.set_result, None)
     await future

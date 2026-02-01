@@ -137,7 +137,8 @@ flowchart TD
 **終了性**:
 
 - `count` の走査は有限回（最大100エントリ）
-- メモリリークなし（遅延削除により期限切れエントリは自然に削減）
+- メモリリーク防止（遅延削除により`get`/`count`がアクセスされるエントリは削減されるが、
+  長時間アクセスがないキーは期限切れ後もメモリに残り続ける可能性がある）
 
 ---
 
@@ -272,6 +273,10 @@ class TimeLimitedCache {
 
 ### 積極削除版（オプション実装）
 
+> [!NOTE]
+> 以下のクラスは上記の実装とは別の代替実装です。どちらか一方のみを使用してください。
+> 同一ファイル内で両方を定義すると同名クラスの重複エラーが発生します。
+
 count() が頻繁に呼ばれる場合の最適化版:
 
 ```typescript
@@ -284,20 +289,16 @@ class TimeLimitedCache {
 
     /**
      * 期限切れエントリを一括削除
-     * @complexity Time: O(n), Space: O(k) where k = 削除対象数
+     * @complexity Time: O(n), Space: O(n) where n = 削除対象数（最悪時全エントリ）
      */
     private cleanup(): void {
         const now = Date.now();
-        const keysToDelete: number[] = [];
 
-        for (const [key, entry] of this.cache.entries()) {
+        // MapはforEach中の削除が安全なため、1パスで削除可能
+        for (const [key, entry] of this.cache) {
             if (entry.expiresAt <= now) {
-                keysToDelete.push(key);
+                this.cache.delete(key);
             }
-        }
-
-        for (const key of keysToDelete) {
-            this.cache.delete(key);
         }
     }
 
@@ -402,11 +403,14 @@ const hadUnexpiredKey = existingEntry !== undefined && existingEntry.expiresAt >
 
 ### パフォーマンス期待値
 
-| 実装方式         | Runtime              | Memory               |
+| 実装方式         | Runtime（参考値）    | Memory（参考値）     |
 | ---------------- | -------------------- | -------------------- |
 | setTimeout方式   | 54ms (30%)           | 54.80MB (74%)        |
 | **遅延削除方式** | **38-42ms (50-60%)** | **53-54MB (75-80%)** |
 | 積極削除方式     | 40-45ms (45-55%)     | 52-53MB (80-85%)     |
+
+> [!NOTE]
+> 上記の数値は特定の環境・入力での計測結果であり、実行環境により変動します。
 
 ---
 
@@ -489,7 +493,7 @@ cache.set(1, 100, 'invalid'); // duration must be number
 
 ### Q3: メモリリークは発生しないか？
 
-**A**: `get`時に期限切れエントリを遅延削除するため、アクセスされるエントリは自然に削除される。アクセスされないエントリも`count`時に除外されるため、実用上問題なし。
+**A**: `get`時に期限切れエントリを遅延削除するため、アクセスされるエントリは自然に削除される。ただし、**長時間アクセスがないキーは期限切れ後もメモリに残り続ける**可能性がある。LeetCodeの制約（最大100アクション）では問題ないが、本番環境で長期間稼働するアプリケーションでは、周期的な`cleanup()`の実行や積極削除版の採用を検討すべき。
 
 ### Q4: Date.now()の精度は十分か？
 

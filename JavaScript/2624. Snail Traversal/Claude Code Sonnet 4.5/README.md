@@ -163,7 +163,7 @@ declare global {
  * @returns 2D配列（Snail pattern）、無効な入力の場合は空配列
  * @complexity Time: O(n), Space: O(n) where n = this.length
  */
-Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
+Array.prototype.snail = function <T>(this: T[], rowsCount: number, colsCount: number): T[][] {
     // 入力バリデーション
     if (rowsCount * colsCount !== this.length) {
         return [];
@@ -183,7 +183,7 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
         // 偶数列: 上から下、奇数列: 下から上
         const row = col % 2 === 0 ? positionInCol : rowsCount - 1 - positionInCol;
 
-        result[row]![col] = this[i] as T;
+        result[row]![col] = this[i];
     }
 
     return result;
@@ -203,7 +203,7 @@ declare global {
  * Snail traversal（最適化版）
  * ビット演算と整数除算でパフォーマンス向上
  */
-Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
+Array.prototype.snail = function <T>(this: T[], rowsCount: number, colsCount: number): T[][] {
     const n = this.length;
     if (rowsCount * colsCount !== n) return [];
 
@@ -235,7 +235,7 @@ declare global {
     }
 }
 
-Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
+Array.prototype.snail = function <T>(this: T[], rowsCount: number, colsCount: number): T[][] {
     const n = this.length;
     if (rowsCount * colsCount !== n) return [];
 

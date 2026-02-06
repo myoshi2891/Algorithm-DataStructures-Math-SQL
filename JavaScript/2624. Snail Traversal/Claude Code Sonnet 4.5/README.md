@@ -134,11 +134,13 @@ graph LR
 
 **実装比較**:
 
-| 実装方法                     | Runtime | Memory | 特徴                     |
-| ---------------------------- | ------- | ------ | ------------------------ |
-| 基本版（Array.from）         | ~158ms  | ~69MB  | 可読性高、標準的         |
-| 最適化版（ビット演算）       | ~140ms  | ~68MB  | ビット演算で10-15%高速化 |
-| 高速化版（変数キャッシング） | ~125ms  | ~67MB  | Top 10-15%目標           |
+| 実装方法                     | Runtime\* | Memory | 特徴               |
+| ---------------------------- | --------- | ------ | ------------------ |
+| 基本版（Array.from）         | ~158ms    | ~69MB  | 可読性高、標準的   |
+| 最適化版（ビット演算）       | ~140ms    | ~68MB  | ビット演算で高速化 |
+| 高速化版（変数キャッシング） | ~125ms    | ~67MB  | 更なる高速化       |
+
+_\*数値は特定環境での測定例です_
 
 ---
 
@@ -149,7 +151,7 @@ graph LR
 ```typescript
 declare global {
     interface Array<T> {
-        snail(rowsCount: number, colsCount: number): number[][];
+        snail(rowsCount: number, colsCount: number): T[][];
     }
 }
 
@@ -161,17 +163,14 @@ declare global {
  * @returns 2D配列（Snail pattern）、無効な入力の場合は空配列
  * @complexity Time: O(n), Space: O(n) where n = this.length
  */
-Array.prototype.snail = function (rowsCount: number, colsCount: number): number[][] {
+Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
     // 入力バリデーション
     if (rowsCount * colsCount !== this.length) {
         return [];
     }
 
     // 結果配列の初期化
-    const result: number[][] = Array.from(
-        { length: rowsCount },
-        () => new Array<number>(colsCount),
-    );
+    const result: T[][] = Array.from({ length: rowsCount }, () => new Array<T>(colsCount));
 
     // Snail traversal pattern実装
     for (let i = 0; i < this.length; i++) {
@@ -184,7 +183,7 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): number[
         // 偶数列: 上から下、奇数列: 下から上
         const row = col % 2 === 0 ? positionInCol : rowsCount - 1 - positionInCol;
 
-        result[row]![col] = this[i] as number;
+        result[row]![col] = this[i] as T;
     }
 
     return result;
@@ -196,7 +195,7 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): number[
 ```typescript
 declare global {
     interface Array<T> {
-        snail(rowsCount: number, colsCount: number): number[][];
+        snail(rowsCount: number, colsCount: number): T[][];
     }
 }
 
@@ -204,12 +203,12 @@ declare global {
  * Snail traversal（最適化版）
  * ビット演算と整数除算でパフォーマンス向上
  */
-Array.prototype.snail = function (rowsCount: number, colsCount: number): number[][] {
+Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
     const n = this.length;
     if (rowsCount * colsCount !== n) return [];
 
     // 1段階での配列初期化
-    const result: number[][] = [];
+    const result: T[][] = [];
     for (let i = 0; i < rowsCount; i++) {
         result[i] = [];
     }
@@ -232,16 +231,16 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): number[
 ```typescript
 declare global {
     interface Array<T> {
-        snail(rowsCount: number, colsCount: number): number[][];
+        snail(rowsCount: number, colsCount: number): T[][];
     }
 }
 
-Array.prototype.snail = function (rowsCount: number, colsCount: number): number[][] {
+Array.prototype.snail = function (rowsCount: number, colsCount: number): T[][] {
     const n = this.length;
     if (rowsCount * colsCount !== n) return [];
 
     // 事前割り当て
-    const result: number[][] = new Array(rowsCount);
+    const result: T[][] = new Array(rowsCount);
     let i = rowsCount;
     while (i--) result[i] = new Array(colsCount);
 
@@ -270,7 +269,7 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): number[
 ```typescript
 // 前: col % 2 === 0
 // 後: col & 1
-// 効果: 約2倍高速（ビット演算は算術演算より効率的）
+// 効果: 算術演算より効率的（環境による）
 ```
 
 ### 2. 整数除算の最適化
@@ -278,7 +277,7 @@ Array.prototype.snail = function (rowsCount: number, colsCount: number): number[
 ```typescript
 // 前: Math.floor(i / rowsCount)
 // 後: (i / rowsCount) | 0
-// 効果: 約30%高速（ビットORで整数化）
+// 効果: ビットORで整数化（環境による）
 ```
 
 ### 3. モジュロ演算の削減
@@ -345,8 +344,8 @@ const lastRow = rows - 1;
 
     ```typescript
     [1, 2, 3, 4, 5, 6].snail(3, 2);
-    // → [[1,5], [2,4], [3,6]]
-    // 列0: [1,2,3](下), 列1: [6,5,4](上)
+    // → [[1,6], [2,5], [3,4]]
+    // 列0: [1,2,3](上→下), 列1: [4,5,6]を下→上に配置するので[6,5,4]の順
     ```
 
 7. **標準ケース（奇数列）**

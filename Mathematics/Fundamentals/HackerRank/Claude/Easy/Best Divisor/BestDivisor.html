@@ -1,0 +1,2238 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Best Divisor - √n約数列挙+桁和比較</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4, #e0f2fe);
+                min-height: 100vh;
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            /* Prism toolbar customization */
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button,
+            div.code-toolbar > .toolbar > .toolbar-item > span {
+                background: #10b981;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 6px;
+                border: none;
+                cursor: pointer;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button:hover {
+                background: #059669;
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Best Divisor</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    √n約数列挙+桁和比較 による O(√n) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">問題説明</h3>
+                <p class="text-slate-700 leading-7 mb-4">
+                    Kristenは数字の各桁の和（桁和）で数の良し悪しを判定します。与えられた整数
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">n</code>
+                    の約数のうち、以下の基準で「最良」のものを見つけてください：
+                </p>
+                <ol class="list-decimal list-inside space-y-2 text-slate-700 ml-4">
+                    <li>
+                        <strong>桁和が最大</strong
+                        >の約数を選ぶ（例：6の桁和は6、12の桁和は1+2=3なので6が優先）
+                    </li>
+                    <li>桁和が同じ場合は<strong>値が小さい方</strong>を選ぶ</li>
+                </ol>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                    <p class="font-semibold text-slate-800 mb-2">Input:</p>
+                    <pre class="bg-slate-800 text-emerald-300 p-3 rounded"><code>12</code></pre>
+                    <p class="font-semibold text-slate-800 mt-4 mb-2">Output:</p>
+                    <pre class="bg-slate-800 text-emerald-300 p-3 rounded"><code>6</code></pre>
+                    <p class="text-slate-600 mt-3">
+                        <strong>説明:</strong> 12の約数は {1, 2, 3, 4, 6, 12}。各桁和は {1, 2, 3, 4,
+                        6, 3}。最大桁和6を持つ約数は <strong>6</strong>。
+                    </p>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
+                    <li>1 ≤ n ≤ 10<sup>5</sup></li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ol class="list-decimal list-inside space-y-2 text-slate-700 ml-4">
+                    <li>
+                        <strong>効率的な約数列挙:</strong> √n まで探索し、i が約数なら i と n/i
+                        の両方を収集
+                    </li>
+                    <li><strong>桁和計算:</strong> 各約数を文字列化し、各桁を合計</li>
+                    <li><strong>最良選択:</strong> (桁和が最大, 値が最小) の優先順位で比較</li>
+                </ol>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                    <li>
+                        <strong>時間計算量:</strong> O(√n) - √n までのループ + O(d log d)
+                        の桁和計算（d は約数の個数）
+                    </li>
+                    <li><strong>空間計算量:</strong> O(d) - 約数リストの保存</li>
+                    <li>
+                        <strong>最適化:</strong> Pythonの組み込み関数
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">max()</code> と
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">sum()</code> を活用
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Steps Section with React -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- Code Section -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">def findBestDivisor(n: int) -> int:
+    """
+    最良の約数を見つける（競技プログラミング最適化版）
+
+    Time Complexity: O(√n)
+    Space Complexity: O(d) where d is number of divisors
+    """
+    divisors = []
+    i = 1
+
+    # √n まで探索して約数をペアで収集
+    while i * i <= n:
+        if n % i == 0:
+            divisors.append(i)
+            # 平方数でない場合のみペアを追加
+            if i != n // i:
+                divisors.append(n // i)
+        i += 1
+
+    # 桁和が最大、同値なら最小値を選択
+    # タプル比較: (桁和大, 値小) = (sum, -divisor)
+    return max(divisors, key=lambda x: (sum(int(d) for d in str(x)), -x))
+
+
+# 使用例
+if __name__ == '__main__':
+    n = int(input().strip())
+    result = findBestDivisor(n)
+    print(result)</code></pre>
+            </section>
+
+            <!-- Diagram Section -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <!-- 凡例（Legend） -->
+                <div class="mb-6 p-4 bg-slate-50 rounded-xl border-2 border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-700 mb-3">📖 フローチャートの見方</h3>
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-5 rounded-full bg-[#d1fae5] border-2 border-[#10b981]"
+                            ></div>
+                            <span class="text-slate-600">開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-5 rounded bg-[#e0f2fe] border-2 border-[#0284c7]"
+                            ></div>
+                            <span class="text-slate-600">処理</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-6 h-6 bg-[#fef3c7] border-2 border-[#f59e0b]"
+                                style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)"
+                            ></div>
+                            <span class="text-slate-600">条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-1 bg-[#059669] rounded"></div>
+                            <span class="text-slate-600 font-semibold text-[#059669]"
+                                >はい（Yes）</span
+                            >
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-1 bg-[#dc2626] rounded"></div>
+                            <span class="text-slate-600 font-semibold text-[#dc2626]"
+                                >いいえ（No）</span
+                            >
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-1 bg-[#a855f7] rounded"></div>
+                            <span class="text-slate-600 font-semibold text-[#a855f7]"
+                                >ループ戻り</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 900 1300"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Best Divisor flowchart"
+                    >
+                        <defs>
+                            <!-- 矢印マーカー（大きめに調整） -->
+                            <marker
+                                id="arrow"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="4"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,8 L10,4 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="4"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,8 L10,4 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="4"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,8 L10,4 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="4"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,8 L10,4 z" fill="#a855f7" />
+                            </marker>
+
+                            <!-- ドロップシャドウ -->
+                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow
+                                    dx="2"
+                                    dy="2"
+                                    stdDeviation="3"
+                                    flood-color="#00000020"
+                                />
+                            </filter>
+                        </defs>
+
+                        <!-- ===== STEP 1: 開始 ===== -->
+                        <g filter="url(#shadow)">
+                            <ellipse
+                                cx="450"
+                                cy="50"
+                                rx="90"
+                                ry="40"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="45"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="20"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+                        <text x="450" y="68" text-anchor="middle" font-size="12" fill="#047857">
+                            START
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="370" cy="25" r="18" fill="#10b981" />
+                        <text
+                            x="370"
+                            y="26"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            1
+                        </text>
+
+                        <!-- 矢印 1→2 -->
+                        <path
+                            d="M 450 90 L 450 130"
+                            stroke="#64748b"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ===== STEP 2: 入力 ===== -->
+                        <g filter="url(#shadow)">
+                            <rect
+                                x="320"
+                                y="135"
+                                width="260"
+                                height="70"
+                                rx="12"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="160"
+                            text-anchor="middle"
+                            font-size="20"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            入力: n
+                        </text>
+                        <text x="450" y="185" text-anchor="middle" font-size="15" fill="#475569">
+                            整数 n を受け取る
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="330" cy="145" r="18" fill="#0284c7" />
+                        <text
+                            x="330"
+                            y="146"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            2
+                        </text>
+
+                        <!-- 矢印 2→3 -->
+                        <path
+                            d="M 450 205 L 450 250"
+                            stroke="#64748b"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ===== STEP 3: 初期化 ===== -->
+                        <g filter="url(#shadow)">
+                            <rect
+                                x="300"
+                                y="255"
+                                width="300"
+                                height="85"
+                                rx="12"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="282"
+                            text-anchor="middle"
+                            font-size="20"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            初期化
+                        </text>
+                        <text
+                            x="450"
+                            y="308"
+                            text-anchor="middle"
+                            font-size="16"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            divisors = [ ]
+                        </text>
+                        <text
+                            x="450"
+                            y="330"
+                            text-anchor="middle"
+                            font-size="16"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            i = 1
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="310" cy="265" r="18" fill="#0284c7" />
+                        <text
+                            x="310"
+                            y="266"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            3
+                        </text>
+
+                        <!-- 矢印 3→4 -->
+                        <path
+                            d="M 450 340 L 450 390"
+                            stroke="#64748b"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ===== STEP 4: ループ条件判定 ===== -->
+                        <g filter="url(#shadow)">
+                            <path
+                                d="M 450 395 L 560 465 L 450 535 L 340 465 Z"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="450"
+                            text-anchor="middle"
+                            font-size="20"
+                            font-weight="bold"
+                            fill="#78350f"
+                        >
+                            i × i ≤ n ?
+                        </text>
+                        <text x="450" y="480" text-anchor="middle" font-size="14" fill="#92400e">
+                            ループ継続判定
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="355" cy="415" r="18" fill="#f59e0b" />
+                        <text
+                            x="355"
+                            y="416"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            4
+                        </text>
+
+                        <!-- ===== はい（Yes）分岐 - 右へ → STEP 5 ===== -->
+                        <path
+                            d="M 560 465 L 750 465"
+                            stroke="#059669"
+                            stroke-width="4"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <!-- ラベルボックス -->
+                        <rect
+                            x="585"
+                            y="430"
+                            width="55"
+                            height="24"
+                            rx="5"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="612"
+                            y="446"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- ===== いいえ（No）分岐 - 下へ → STEP 8 ===== -->
+                        <path
+                            d="M 450 535 L 450 1000"
+                            stroke="#dc2626"
+                            stroke-width="4"
+                            stroke-dasharray="8,4"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <!-- ラベルボックス -->
+                        <rect
+                            x="460"
+                            y="555"
+                            width="75"
+                            height="28"
+                            rx="5"
+                            fill="#fef2f2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="497"
+                            y="574"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                        <!-- 説明テキスト -->
+                        <text
+                            x="465"
+                            y="650"
+                            text-anchor="start"
+                            font-size="13"
+                            fill="#dc2626"
+                            font-style="italic"
+                        >
+                            ループ終了 →
+                        </text>
+                        <text
+                            x="485"
+                            y="670"
+                            text-anchor="start"
+                            font-size="13"
+                            fill="#dc2626"
+                            font-style="italic"
+                        >
+                            最良約数を選択
+                        </text>
+
+                        <!-- ===== STEP 5: 約数判定 ===== -->
+                        <g filter="url(#shadow)">
+                            <path
+                                d="M 750 465 L 850 535 L 750 605 L 650 535 Z"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="750"
+                            y="520"
+                            text-anchor="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#78350f"
+                        >
+                            n % i == 0 ?
+                        </text>
+                        <text x="750" y="550" text-anchor="middle" font-size="14" fill="#92400e">
+                            約数判定
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="662" cy="493" r="18" fill="#f59e0b" />
+                        <text
+                            x="662"
+                            y="494"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            5
+                        </text>
+
+                        <!-- ===== はい（Yes）分岐 - 下へ → STEP 6 ===== -->
+                        <path
+                            d="M 750 605 L 750 670"
+                            stroke="#059669"
+                            stroke-width="4"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <!-- ラベルボックス -->
+                        <rect
+                            x="770"
+                            y="615"
+                            width="55"
+                            height="24"
+                            rx="5"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="797"
+                            y="631"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- ===== いいえ（No）分岐 - 右から下へ回り込み → STEP 7 ===== -->
+                        <path
+                            d="M 850 535 L 870 535 L 870 845 L 750 845"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                            stroke-dasharray="6,3"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <!-- ラベルボックス -->
+                        <rect
+                            x="805"
+                            y="575"
+                            width="75"
+                            height="24"
+                            rx="5"
+                            fill="#fef2f2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="842"
+                            y="591"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                        <!-- 説明テキスト -->
+                        <text
+                            x="825"
+                            y="700"
+                            text-anchor="start"
+                            font-size="13"
+                            fill="#dc2626"
+                            font-style="italic"
+                        >
+                            スキップ
+                        </text>
+
+                        <!-- ===== STEP 6: 約数追加 ===== -->
+                        <g filter="url(#shadow)">
+                            <rect
+                                x="620"
+                                y="675"
+                                width="260"
+                                height="120"
+                                rx="12"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="750"
+                            y="700"
+                            text-anchor="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            約数をリストに追加
+                        </text>
+                        <text
+                            x="750"
+                            y="728"
+                            text-anchor="middle"
+                            font-size="15"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            divisors.append(i)
+                        </text>
+                        <text x="750" y="755" text-anchor="middle" font-size="14" fill="#64748b">
+                            もし i ≠ n ÷ i なら：
+                        </text>
+                        <text
+                            x="750"
+                            y="778"
+                            text-anchor="middle"
+                            font-size="15"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            divisors.append(n//i)
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="630" cy="685" r="18" fill="#0284c7" />
+                        <text
+                            x="630"
+                            y="686"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            6
+                        </text>
+
+                        <!-- 矢印 6→7 -->
+                        <path
+                            d="M 750 795 L 750 830"
+                            stroke="#64748b"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ===== STEP 7: i を増加 ===== -->
+                        <g filter="url(#shadow)">
+                            <rect
+                                x="650"
+                                y="835"
+                                width="200"
+                                height="65"
+                                rx="12"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="750"
+                            y="860"
+                            text-anchor="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            i を増加
+                        </text>
+                        <text
+                            x="750"
+                            y="885"
+                            text-anchor="middle"
+                            font-size="16"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            i = i + 1
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="660" cy="845" r="18" fill="#0284c7" />
+                        <text
+                            x="660"
+                            y="846"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            7
+                        </text>
+
+                        <!-- ===== ループバック矢印 7→4 ===== -->
+                        <path
+                            d="M 650 867 L 120 867 L 120 465 L 340 465"
+                            stroke="#a855f7"
+                            stroke-width="4"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <!-- ラベルボックス（ループバック） -->
+                        <rect
+                            x="140"
+                            y="640"
+                            width="120"
+                            height="50"
+                            rx="8"
+                            fill="#f3e8ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="200"
+                            y="660"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#a855f7"
+                        >
+                            🔄 ループ戻り
+                        </text>
+                        <text x="200" y="680" text-anchor="middle" font-size="12" fill="#7c3aed">
+                            次の i をチェック
+                        </text>
+
+                        <!-- ===== STEP 8: 最良約数を選択 ===== -->
+                        <g filter="url(#shadow)">
+                            <rect
+                                x="280"
+                                y="1010"
+                                width="340"
+                                height="120"
+                                rx="12"
+                                fill="#dcfce7"
+                                stroke="#16a34a"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="1040"
+                            text-anchor="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#166534"
+                        >
+                            最良の約数を選択
+                        </text>
+                        <text
+                            x="450"
+                            y="1068"
+                            text-anchor="middle"
+                            font-size="15"
+                            fill="#475569"
+                            font-family="'JetBrains Mono', monospace"
+                        >
+                            max(divisors, key=...)
+                        </text>
+                        <text x="450" y="1093" text-anchor="middle" font-size="14" fill="#64748b">
+                            ① 桁和が最大
+                        </text>
+                        <text x="450" y="1115" text-anchor="middle" font-size="14" fill="#64748b">
+                            ② 同点なら値が小さい方
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="290" cy="1020" r="18" fill="#16a34a" />
+                        <text
+                            x="290"
+                            y="1021"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            8
+                        </text>
+
+                        <!-- 矢印 8→9 -->
+                        <path
+                            d="M 450 1130 L 450 1180"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- ===== STEP 9: 終了 ===== -->
+                        <g filter="url(#shadow)">
+                            <ellipse
+                                cx="450"
+                                cy="1220"
+                                rx="90"
+                                ry="40"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                stroke-width="3"
+                            />
+                        </g>
+                        <text
+                            x="450"
+                            y="1215"
+                            text-anchor="middle"
+                            font-size="20"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            終了
+                        </text>
+                        <text x="450" y="1240" text-anchor="middle" font-size="12" fill="#047857">
+                            END
+                        </text>
+                        <!-- ステップ番号 -->
+                        <circle cx="370" cy="1195" r="18" fill="#10b981" />
+                        <text
+                            x="370"
+                            y="1196"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="white"
+                        >
+                            9
+                        </text>
+
+                        <!-- ===== 補足説明ボックス ===== -->
+                        <rect
+                            x="50"
+                            y="1050"
+                            width="200"
+                            height="100"
+                            rx="10"
+                            fill="#f8fafc"
+                            stroke="#94a3b8"
+                            stroke-width="2"
+                            stroke-dasharray="5,3"
+                        />
+                        <text
+                            x="150"
+                            y="1075"
+                            text-anchor="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#475569"
+                        >
+                            💡 ポイント
+                        </text>
+                        <text x="150" y="1098" text-anchor="middle" font-size="12" fill="#64748b">
+                            √n まで探索するので
+                        </text>
+                        <text x="150" y="1118" text-anchor="middle" font-size="12" fill="#64748b">
+                            効率が良い！
+                        </text>
+                        <text
+                            x="150"
+                            y="1138"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            O(√n)
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. 入力 n を受け取り、空の約数リスト divisors と i=1 で初期化<br />
+                    2. i×i ≤ n の間ループ：n を i で割り切れるか判定<br />
+                    3. 割り切れる場合、i と n//i を約数リストに追加（i≠n//i の場合のみペア追加）<br />
+                    4. i を1増やしてループ継続<br />
+                    5. ループ終了後、約数リストから桁和が最大（同値なら最小値）の約数を選択<br />
+                    6. 結果を返して終了
+                </p>
+            </section>
+
+            <!-- Complexity Section -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto mt-6">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-100">
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left text-teal-900"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left text-teal-900"
+                                >
+                                    本実装（√n列挙）
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left text-teal-900"
+                                >
+                                    代替手法（全探索）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold bg-slate-50"
+                                >
+                                    時間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span
+                                        class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-mono font-bold"
+                                        >O(√n)</span
+                                    >
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        √n までループ + O(d log d) 桁和計算
+                                    </div>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span
+                                        class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full font-mono font-bold"
+                                        >O(n)</span
+                                    >
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        1 から n まで全探索
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold bg-slate-50"
+                                >
+                                    空間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span
+                                        class="px-3 py-1 bg-sky-100 text-sky-800 rounded-full font-mono font-bold"
+                                        >O(d)</span
+                                    >
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        約数リスト（d は約数の個数）
+                                    </div>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span
+                                        class="px-3 py-1 bg-sky-100 text-sky-800 rounded-full font-mono font-bold"
+                                        >O(d)</span
+                                    >
+                                    <div class="text-sm text-slate-600 mt-1">同じ</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold bg-slate-50"
+                                >
+                                    実装コスト
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span class="text-emerald-700 font-bold">中</span>
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        √n 判定とペア追加が必要
+                                    </div>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span class="text-orange-700 font-bold">低</span>
+                                    <div class="text-sm text-slate-600 mt-1">シンプルなループ</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold bg-slate-50"
+                                >
+                                    制約 n≤10<sup>5</sup> での推奨度
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span class="text-emerald-700 font-bold text-lg">★★★★★</span>
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        最大√100000 ≈ 316 回のループで済む
+                                    </div>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <span class="text-orange-700 font-bold text-lg">★★★☆☆</span>
+                                    <div class="text-sm text-slate-600 mt-1">
+                                        100000回ループは許容範囲だが非効率
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-3">最適化ポイント</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                    <li>
+                        <strong>√n探索:</strong> 約数は必ずペア (i, n/i) で出現するため、√n
+                        まで調べれば全約数が得られる
+                    </li>
+                    <li>
+                        <strong>Python組み込み関数:</strong>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">max()</code>
+                        のkey引数で、タプル比較
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">(桁和, -値)</code>
+                        により1パスで最良約数を選択
+                    </li>
+                    <li>
+                        <strong>桁和計算:</strong>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm"
+                            >sum(int(d) for d in str(x))</code
+                        >
+                        でジェネレータ式とC実装のsumを活用
+                    </li>
+                    <li>
+                        <strong>平方数対策:</strong>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">i != n // i</code>
+                        で重複を防ぐ（例：n=16 の場合 i=4 を2回追加しない）
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-3">具体例での計算量</h3>
+                <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-cyan-500">
+                    <p class="font-semibold text-slate-800 mb-2">n = 12 の場合:</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700 ml-4">
+                        <li>√12 ≈ 3.46 → i=1,2,3 の3回ループ</li>
+                        <li>i=1: 約数 {1, 12}</li>
+                        <li>i=2: 約数 {2, 6} を追加</li>
+                        <li>i=3: 約数 {3, 4} を追加</li>
+                        <li>合計6個の約数を3回のループで収集（全探索なら12回）</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- React & Babel -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ステップデータ定義
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力と初期化',
+                    desc: 'n = 12 を入力し、空の約数リスト divisors = [] と i = 1 で初期化します。',
+                    visual: {
+                        type: 'init',
+                        n: 12,
+                        divisors: [],
+                        i: 1,
+                        iSquared: 1,
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'i=1 の約数判定',
+                    desc: 'i=1, i²=1≤12 なので継続。12%1=0 より1は約数。divisors に 1 と 12 を追加。',
+                    visual: {
+                        type: 'check',
+                        n: 12,
+                        divisors: [1, 12],
+                        i: 1,
+                        iSquared: 1,
+                        isDivisor: true,
+                        pair: [1, 12],
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'i=2 の約数判定',
+                    desc: 'i を2に増加。i²=4≤12 なので継続。12%2=0 より2は約数。divisors に 2 と 6 を追加。',
+                    visual: {
+                        type: 'check',
+                        n: 12,
+                        divisors: [1, 12, 2, 6],
+                        i: 2,
+                        iSquared: 4,
+                        isDivisor: true,
+                        pair: [2, 6],
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'i=3 の約数判定',
+                    desc: 'i を3に増加。i²=9≤12 なので継続。12%3=0 より3は約数。divisors に 3 と 4 を追加。',
+                    visual: {
+                        type: 'check',
+                        n: 12,
+                        divisors: [1, 12, 2, 6, 3, 4],
+                        i: 3,
+                        iSquared: 9,
+                        isDivisor: true,
+                        pair: [3, 4],
+                    },
+                },
+                {
+                    step: 5,
+                    title: 'ループ終了',
+                    desc: 'i を4に増加。i²=16>12 となりループ条件を満たさないため、約数列挙を終了します。',
+                    visual: {
+                        type: 'loopEnd',
+                        n: 12,
+                        divisors: [1, 12, 2, 6, 3, 4],
+                        i: 4,
+                        iSquared: 16,
+                    },
+                },
+                {
+                    step: 6,
+                    title: '桁和計算',
+                    desc: '各約数の桁和を計算：1→1, 12→3, 2→2, 6→6, 3→3, 4→4。',
+                    visual: {
+                        type: 'digitSum',
+                        n: 12,
+                        divisors: [1, 12, 2, 6, 3, 4],
+                        digitSums: [
+                            { divisor: 1, digitSum: 1 },
+                            { divisor: 12, digitSum: 3 },
+                            { divisor: 2, digitSum: 2 },
+                            { divisor: 6, digitSum: 6 },
+                            { divisor: 3, digitSum: 3 },
+                            { divisor: 4, digitSum: 4 },
+                        ],
+                    },
+                },
+                {
+                    step: 7,
+                    title: '最良約数の選択',
+                    desc: '桁和が最大の6を選択（桁和=6）。同じ桁和3を持つ約数（12,3）より、値が小さい3の方が優先されるが、桁和6が最大なので6が最良。',
+                    visual: {
+                        type: 'selectBest',
+                        n: 12,
+                        divisors: [1, 12, 2, 6, 3, 4],
+                        digitSums: [
+                            { divisor: 1, digitSum: 1 },
+                            { divisor: 12, digitSum: 3 },
+                            { divisor: 2, digitSum: 2 },
+                            { divisor: 6, digitSum: 6 },
+                            { divisor: 3, digitSum: 3 },
+                            { divisor: 4, digitSum: 4 },
+                        ],
+                        best: 6,
+                        bestDigitSum: 6,
+                    },
+                },
+                {
+                    step: 8,
+                    title: '結果出力',
+                    desc: '最良約数 6 を出力します。',
+                    visual: {
+                        type: 'result',
+                        n: 12,
+                        result: 6,
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 280"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrow"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            {/* Input */}
+                            <rect
+                                x="50"
+                                y="30"
+                                width="120"
+                                height="60"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="110"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#0c4a6e"
+                            >
+                                入力
+                            </text>
+                            <text
+                                x="110"
+                                y="72"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                n = {visual.n}
+                            </text>
+
+                            {/* Divisors List */}
+                            <rect
+                                x="230"
+                                y="30"
+                                width="320"
+                                height="80"
+                                rx="8"
+                                fill="#f0fdf4"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="390"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                約数リスト
+                            </text>
+                            <text
+                                x="390"
+                                y="75"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                divisors = [ ]
+                            </text>
+                            <text
+                                x="390"
+                                y="95"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                (空)
+                            </text>
+
+                            {/* Variables */}
+                            <rect
+                                x="50"
+                                y="150"
+                                width="500"
+                                height="100"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="175"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#78350f"
+                            >
+                                ループ変数
+                            </text>
+                            <text
+                                x="150"
+                                y="205"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                i = {visual.i}
+                            </text>
+                            <text
+                                x="300"
+                                y="205"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                i² = {visual.iSquared}
+                            </text>
+                            <text
+                                x="450"
+                                y="205"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                条件: i²≤{visual.n}
+                            </text>
+                            <text
+                                x="300"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                {visual.iSquared} ≤ {visual.n} ✓
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'check') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 380"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* Current Check */}
+                            <rect
+                                x="50"
+                                y="30"
+                                width="500"
+                                height="80"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="55"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#0c4a6e"
+                            >
+                                現在のチェック
+                            </text>
+                            <text
+                                x="150"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                i = {visual.i}
+                            </text>
+                            <text
+                                x="300"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                {visual.n} % {visual.i} = {visual.n % visual.i}
+                            </text>
+                            <text
+                                x="450"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                約数 ✓
+                            </text>
+
+                            {/* Pair Added */}
+                            <rect
+                                x="50"
+                                y="140"
+                                width="500"
+                                height="70"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="165"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                追加するペア
+                            </text>
+                            <text
+                                x="300"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                [ {visual.pair[0]}, {visual.pair[1]} ]
+                            </text>
+
+                            {/* Divisors List */}
+                            <rect
+                                x="50"
+                                y="240"
+                                width="500"
+                                height="110"
+                                rx="8"
+                                fill="#f0fdf4"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="265"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                約数リスト (更新後)
+                            </text>
+                            <text
+                                x="300"
+                                y="295"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                divisors = [ {visual.divisors.join(', ')} ]
+                            </text>
+                            <text
+                                x="300"
+                                y="325"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                ({visual.divisors.length}個の約数)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'loopEnd') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 320"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* Loop Condition */}
+                            <rect
+                                x="50"
+                                y="30"
+                                width="500"
+                                height="100"
+                                rx="8"
+                                fill="#fee2e2"
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="60"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#7f1d1d"
+                            >
+                                ループ終了条件
+                            </text>
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#475569"
+                            >
+                                i = {visual.i}
+                            </text>
+                            <text
+                                x="300"
+                                y="112"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#dc2626"
+                            >
+                                i² = {visual.iSquared} {'>'} {visual.n} → ループ終了
+                            </text>
+
+                            {/* Final Divisors */}
+                            <rect
+                                x="50"
+                                y="160"
+                                width="500"
+                                height="130"
+                                rx="8"
+                                fill="#f0fdf4"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                収集完了した約数リスト
+                            </text>
+                            <text
+                                x="300"
+                                y="220"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                [ {visual.divisors.join(', ')} ]
+                            </text>
+                            <text
+                                x="300"
+                                y="250"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                合計 {visual.divisors.length} 個の約数
+                            </text>
+                            <text
+                                x="300"
+                                y="273"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                ({visual.i - 1} 回のループで収集完了)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'digitSum') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 450"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#0c4a6e"
+                            >
+                                各約数の桁和計算
+                            </text>
+
+                            {visual.digitSums.map((item, idx) => {
+                                const x = 50 + (idx % 3) * 180;
+                                const y = 70 + Math.floor(idx / 3) * 120;
+                                const isMaxDigitSum = item.digitSum === 6;
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x={x}
+                                            y={y}
+                                            width="150"
+                                            height="90"
+                                            rx="8"
+                                            fill={isMaxDigitSum ? '#d1fae5' : '#e0f2fe'}
+                                            stroke={isMaxDigitSum ? '#10b981' : '#0284c7'}
+                                            strokeWidth={isMaxDigitSum ? '3' : '2'}
+                                        />
+                                        <text
+                                            x={x + 75}
+                                            y={y + 30}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="bold"
+                                            fill="#0c4a6e"
+                                        >
+                                            約数: {item.divisor}
+                                        </text>
+                                        <text
+                                            x={x + 75}
+                                            y={y + 55}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="15"
+                                            fill="#475569"
+                                        >
+                                            桁和 = {item.digitSum}
+                                        </text>
+                                        {isMaxDigitSum && (
+                                            <text
+                                                x={x + 75}
+                                                y={y + 75}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fontWeight="bold"
+                                                fill="#059669"
+                                            >
+                                                最大 ★
+                                            </text>
+                                        )}
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'selectBest') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 480"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#0c4a6e"
+                            >
+                                最良約数の選択
+                            </text>
+
+                            {/* All divisors with digit sums */}
+                            {visual.digitSums.map((item, idx) => {
+                                const x = 50 + (idx % 3) * 180;
+                                const y = 70 + Math.floor(idx / 3) * 120;
+                                const isBest = item.divisor === visual.best;
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x={x}
+                                            y={y}
+                                            width="150"
+                                            height="90"
+                                            rx="8"
+                                            fill={isBest ? '#d1fae5' : '#f1f5f9'}
+                                            stroke={isBest ? '#10b981' : '#cbd5e1'}
+                                            strokeWidth={isBest ? '4' : '2'}
+                                        />
+                                        <text
+                                            x={x + 75}
+                                            y={y + 25}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="bold"
+                                            fill={isBest ? '#065f46' : '#475569'}
+                                        >
+                                            {item.divisor}
+                                        </text>
+                                        <text
+                                            x={x + 75}
+                                            y={y + 50}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill={isBest ? '#059669' : '#64748b'}
+                                        >
+                                            桁和: {item.digitSum}
+                                        </text>
+                                        {isBest && (
+                                            <text
+                                                x={x + 75}
+                                                y={y + 73}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="15"
+                                                fontWeight="bold"
+                                                fill="#059669"
+                                            >
+                                                ✓ 最良
+                                            </text>
+                                        )}
+                                    </g>
+                                );
+                            })}
+
+                            {/* Best Result */}
+                            <rect
+                                x="100"
+                                y="370"
+                                width="400"
+                                height="80"
+                                rx="12"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="4"
+                            />
+                            <text
+                                x="300"
+                                y="395"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                選択結果
+                            </text>
+                            <text
+                                x="300"
+                                y="425"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                最良約数 = {visual.best} (桁和 = {visual.bestDigitSum})
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* Input */}
+                            <rect
+                                x="50"
+                                y="30"
+                                width="200"
+                                height="70"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="150"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#0c4a6e"
+                            >
+                                入力
+                            </text>
+                            <text
+                                x="150"
+                                y="78"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                n = {visual.n}
+                            </text>
+
+                            {/* Arrow */}
+                            <path
+                                d="M 250 65 L 340 65"
+                                stroke="#64748b"
+                                strokeWidth="3"
+                                fill="none"
+                                markerEnd="url(#arrow)"
+                            />
+                            <text
+                                x="295"
+                                y="50"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#64748b"
+                            >
+                                処理
+                            </text>
+
+                            {/* Output */}
+                            <rect
+                                x="350"
+                                y="30"
+                                width="200"
+                                height="70"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="450"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#065f46"
+                            >
+                                出力
+                            </text>
+                            <text
+                                x="450"
+                                y="78"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                {visual.result}
+                            </text>
+
+                            {/* Explanation */}
+                            <rect
+                                x="50"
+                                y="140"
+                                width="500"
+                                height="80"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="165"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#78350f"
+                            >
+                                結果の説明
+                            </text>
+                            <text
+                                x="300"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="15"
+                                fill="#475569"
+                            >
+                                {visual.n} の約数のうち、桁和が最大の約数は {visual.result}
+                            </text>
+                            <text
+                                x="300"
+                                y="208"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                (桁和 = {visual.result} が最大)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function StepByStepComponent() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep === stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* Left: Step List */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Right: Visualization */}
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Render
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepByStepComponent />);
+        </script>
+    </body>
+</html>

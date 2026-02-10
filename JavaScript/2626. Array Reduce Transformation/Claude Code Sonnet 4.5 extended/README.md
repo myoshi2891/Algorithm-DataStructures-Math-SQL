@@ -165,12 +165,9 @@ class Solution:
         # 累積値を初期値で初期化
         accumulator: int = init
 
-        # 配列長をキャッシュ（毎回の len() 呼び出しを回避）
-        length: int = len(nums)
-
         # 各要素に対してreducer関数を順次適用
-        for i in range(length):
-            accumulator = fn(accumulator, nums[i])
+        for num in nums:
+            accumulator = fn(accumulator, num)
 
         # 最終累積値を返す（空配列の場合は init がそのまま返る）
         return accumulator
@@ -197,18 +194,19 @@ class Solution:
 
 <h2 id="cpython">CPython最適化ポイント</h2>
 
-### 1. 属性アクセスの削減
+### 1. 直接反復（Direct Iteration）の推奨
 
 ```python
-# ❌ 遅い: 毎回 len(nums) を呼び出す
+# ❌ 遅い: インデックスアクセスに伴うオーバーヘッド（__getitem__呼び出し）
 for i in range(len(nums)):
     accumulator = fn(accumulator, nums[i])
 
-# ✅ 速い: len() の結果をキャッシュ
-length = len(nums)
-for i in range(length):
-    accumulator = fn(accumulator, nums[i])
+# ✅ 速い: 直接反復で要素を取得（内部イテレータが効率的）
+for num in nums:
+    accumulator = fn(accumulator, num)
 ```
+
+**解説**: `range(len(nums))` における `len()` は1回しか評価されませんが、ループ内での `nums[i]` は毎回 `__getitem__` を呼び出し、境界チェックも行います。直接反復の方が一般的に高速です。
 
 ### 2. 不要な条件分岐の回避
 
@@ -226,9 +224,9 @@ for i in range(len(nums)):
 
 ### 3. ループ方式の選択
 
-- **`range(len(nums))`**: インデックスベースで最速
-- **`for num in nums`**: イテレータ生成のオーバーヘッドあり
-- **`enumerate(nums)`**: さらにオーバーヘッド増加
+- **`for num in nums`**: 最速（`__getitem__`オーバーヘッドなし）
+- **`range(len(nums))`**: インデックスが必要な場合のみ使用
+- **`enumerate(nums)`**: インデックスと値の両方が必要な場合に使用（若干のタプル生成コストあり）
 
 ### 4. 型ヒントの影響
 
@@ -300,9 +298,9 @@ assert Solution().reduce([1000], lambda a, x: a + x, 1000) == 2000
 
 **A**: 本問題は reduce の内部動作を理解するための教育的課題。実務では `functools.reduce` を使うべき。
 
-### Q2: `len(nums)` のキャッシングは本当に速いのか？
+### Q2: `range(len(nums))` では `len()` が毎回呼ばれるのか？
 
-**A**: CPythonでは `len()` は O(1) だが、関数呼び出しのオーバーヘッドがある。ループ内で毎回呼び出すより、事前にキャッシュする方が 5-10% 高速。
+**A**: いいえ。`range` オブジェクト生成時に1回だけ評価されます。ただし、ループ内で `nums[i]` を使うとインデックスアクセスのコストがかかるため、直接反復（`for num in nums`）の方が効率的です。
 
 ### Q3: 再帰実装の方が関数型的では？
 
@@ -319,7 +317,7 @@ def reduce_recursive(self, nums: list[int], fn: Callable, init: int) -> int:
 
 ### Q4: `for num in nums` の方が Pythonic では？
 
-**A**: 可読性では優れるが、インデックスベースの `range(len(nums))` の方が 3-5% 高速。LeetCodeのような競技環境では後者を推奨。
+**A**: はい。可読性が高く、かつ CPython では `__getitem__` のオーバーヘッドを回避できるため、パフォーマンス面でも（多くの場合）有利です。
 
 ### Q5: 空配列チェックを追加すべきか？
 

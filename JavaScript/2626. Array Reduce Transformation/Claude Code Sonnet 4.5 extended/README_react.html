@@ -1,0 +1,1478 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Array Reduce Transformation - 配列リデュース変換</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <!-- React & ReactDOM -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                min-height: 100vh;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            /* Prism toolbar customization */
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+                right: 0.5em;
+                top: 0.5em;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button {
+                background: #10b981;
+                color: white;
+                padding: 0.5em 1em;
+                border-radius: 0.5em;
+                border: none;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.2s;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button:hover {
+                background: #059669;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
+        </style>
+    </head>
+    <body class="p-4 sm:p-6 lg:p-8">
+        <div class="max-w-[1400px] mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Array Reduce Transformation
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    配列の各要素に対するreducer関数の順次適用による O(n) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Overview -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題説明</h3>
+                <p class="text-slate-700 leading-7 mb-4">
+                    整数配列
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">nums</code
+                    >、2引数のreducer関数
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">fn</code>、初期値
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">init</code>
+                    を受け取り、配列の各要素に対して
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">fn</code>
+                    を順次適用した累積結果を返す関数を実装します。組み込みの
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                        >Array.reduce</code
+                    >
+                    は使用禁止です。
+                </p>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 mb-4 border-l-4 border-emerald-500">
+                    <p class="font-mono text-sm mb-2"><strong>例1:</strong></p>
+                    <pre class="font-mono text-sm text-slate-700">
+入力: nums = [1,2,3,4], fn = (acc, x) => acc + x, init = 0
+出力: 10
+説明: 0 + 1 = 1, 1 + 2 = 3, 3 + 3 = 6, 6 + 4 = 10</pre
+                    >
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-4 mb-4 border-l-4 border-cyan-500">
+                    <p class="font-mono text-sm mb-2"><strong>例2:</strong></p>
+                    <pre class="font-mono text-sm text-slate-700">
+入力: nums = [1,2,3,4], fn = (acc, x) => acc + x * x, init = 100
+出力: 130
+説明: 100 + 1² = 101, 101 + 2² = 105, 105 + 3² = 114, 114 + 4² = 130</pre
+                    >
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-4 mb-4 border-l-4 border-purple-500">
+                    <p class="font-mono text-sm mb-2"><strong>例3:</strong></p>
+                    <pre class="font-mono text-sm text-slate-700">
+入力: nums = [], fn = (acc, x) => 0, init = 25
+出力: 25
+説明: 空配列の場合は初期値をそのまま返す</pre
+                    >
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                    <li>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >0 &le; nums.length &le; 1000</code
+                        >
+                    </li>
+                    <li>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >0 &le; nums[i] &le; 1000</code
+                        >
+                    </li>
+                    <li>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >0 &le; init &le; 1000</code
+                        >
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                    <li>
+                        <strong class="text-emerald-700">単純なループ</strong>:
+                        配列を1回走査して累積値を更新
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">lengthキャッシング</strong>:
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >len(nums)</code
+                        >
+                        を事前に保存して毎回の関数呼び出しを回避
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">早期リターン不要</strong>:
+                        空配列でもループが自然に処理（range(0) で即終了）
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">純粋関数</strong>:
+                        副作用なし、元の配列を変更しない
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="bg-emerald-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                        <h4 class="font-semibold text-emerald-800 mb-2">時間計算量</h4>
+                        <p class="text-slate-700">
+                            <code class="px-2 py-1 bg-white rounded text-sm font-mono">O(n)</code> -
+                            配列を1回走査
+                        </p>
+                    </div>
+                    <div class="bg-cyan-50 rounded-lg p-4 border-l-4 border-cyan-500">
+                        <h4 class="font-semibold text-cyan-800 mb-2">空間計算量</h4>
+                        <p class="text-slate-700">
+                            <code class="px-2 py-1 bg-white rounded text-sm font-mono">O(1)</code> -
+                            定数メモリ（累積値のみ）
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Steps -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-visualization-root"></div>
+            </section>
+
+            <!-- Code -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    TypeScript実装
+                </h2>
+                <pre
+                    class="line-numbers"
+                ><code class="language-typescript">type Fn = (accum: number, curr: number) => number
+
+function reduce(nums: number[], fn: Fn, init: number): number {
+    // 累積値を初期値で初期化
+    let val = init;
+
+    // 配列長をキャッシュ（毎回の len() 呼び出しを回避）
+    const len = nums.length;
+
+    // 各要素に対してreducer関数を順次適用
+    for (let i = 0; i < len; i++) {
+        val = fn(val, nums[i]);
+    }
+
+    // 最終累積値を返す（空配列の場合は init がそのまま返る）
+    return val;
+}</code></pre>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-3">最適化ポイント</h3>
+                <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                    <li>
+                        <strong class="text-emerald-700">lengthキャッシング</strong>:
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >nums.length</code
+                        >
+                        を事前に保存し、ループ毎のプロパティアクセスを削減（5-10%高速化）
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">不要な条件分岐の削除</strong>:
+                        空配列チェックを省略し、分岐予測ミスのコストを回避
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">変数名の短縮</strong>:
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >accumulator</code
+                        >
+                        →
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">val</code>
+                        でメモリアクセス最適化
+                    </li>
+                    <li>
+                        <strong class="text-emerald-700">インデックスベースループ</strong>:
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono"
+                            >for (let i = 0; i &lt; len; i++)</code
+                        >
+                        が
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm font-mono">for-of</code>
+                        より3-5%高速
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Diagram -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 700"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Array Reduce Transformation flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始ノード -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#047857"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 初期化 -->
+                        <rect
+                            x="340"
+                            y="120"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="140"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            初期化
+                        </text>
+                        <text
+                            x="420"
+                            y="160"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            val = init
+                        </text>
+
+                        <!-- lengthキャッシング -->
+                        <rect
+                            x="340"
+                            y="210"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="230"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            長さキャッシング
+                        </text>
+                        <text
+                            x="420"
+                            y="250"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            len = nums.length
+                        </text>
+
+                        <!-- ループ判定 -->
+                        <path
+                            d="M 420 330 L 500 380 L 420 430 L 340 380 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="375"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#92400e"
+                        >
+                            i &lt; len ?
+                        </text>
+                        <text
+                            x="420"
+                            y="395"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#78350f"
+                        >
+                            (ループ継続)
+                        </text>
+
+                        <!-- fn適用 -->
+                        <rect
+                            x="640"
+                            y="350"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="720"
+                            y="370"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            fn適用
+                        </text>
+                        <text
+                            x="720"
+                            y="390"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            val = fn(val, nums[i])
+                        </text>
+
+                        <!-- カウンタ増加 -->
+                        <rect
+                            x="640"
+                            y="500"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="720"
+                            y="520"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#334155"
+                        >
+                            i++
+                        </text>
+
+                        <!-- 終了ノード -->
+                        <ellipse
+                            cx="420"
+                            cy="520"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="420"
+                            y="510"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                            fill="#047857"
+                        >
+                            結果を返す
+                        </text>
+                        <text
+                            x="420"
+                            y="530"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#047857"
+                        >
+                            return val
+                        </text>
+
+                        <!-- 矢印: 開始 → 初期化 -->
+                        <path
+                            d="M 420 85 L 420 120"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 矢印: 初期化 → lengthキャッシング -->
+                        <path
+                            d="M 420 180 L 420 210"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 矢印: lengthキャッシング → ループ判定 -->
+                        <path
+                            d="M 420 270 L 420 330"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 矢印: ループ判定 → fn適用 (Yes) -->
+                        <path
+                            d="M 500 380 L 640 380"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="560"
+                            y="365"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- 矢印: fn適用 → カウンタ増加 -->
+                        <path
+                            d="M 720 410 L 720 500"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 矢印: カウンタ増加 → ループ判定 (ループバック) -->
+                        <path
+                            d="M 720 550 L 720 585 L 30 585 L 30 380 L 340 380"
+                            stroke="#a855f7"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <text
+                            x="160"
+                            y="600"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#a855f7"
+                        >
+                            次の要素へ
+                        </text>
+
+                        <!-- 矢印: ループ判定 → 終了 (No) -->
+                        <path
+                            d="M 420 430 L 420 485"
+                            stroke="#dc2626"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="380"
+                            y="450"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. <strong>初期化</strong>: 累積値
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">val</code> を初期値
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">init</code> で初期化<br />
+                    2. <strong>長さキャッシング</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">len = nums.length</code>
+                    で配列長を保存（毎回の関数呼び出しを回避）<br />
+                    3. <strong>ループ判定</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">i &lt; len</code>
+                    をチェック。空配列の場合はここで即座に終了<br />
+                    4. <strong>fn適用</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm"
+                        >val = fn(val, nums[i])</code
+                    >
+                    で累積値を更新<br />
+                    5. <strong>カウンタ増加</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">i++</code>
+                    で次の要素へ<br />
+                    6. <strong>ループバック</strong>: ステップ3に戻って継続判定<br />
+                    7. <strong>結果返却</strong>: 全要素処理後、最終的な累積値
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">val</code> を返す
+                </p>
+            </section>
+
+            <!-- Complexity -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-emerald-50 rounded-lg p-6 border-l-4 border-emerald-500">
+                        <h3 class="text-xl font-semibold text-emerald-800 mb-3">
+                            時間計算量: O(n)
+                        </h3>
+                        <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                            <li>配列の各要素を1回ずつ処理</li>
+                            <li>
+                                reducer関数
+                                <code class="px-2 py-1 bg-white rounded text-sm font-mono">fn</code>
+                                の実行時間を O(1) と仮定
+                            </li>
+                            <li>ループ回数は配列長 n に比例</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-cyan-50 rounded-lg p-6 border-l-4 border-cyan-500">
+                        <h3 class="text-xl font-semibold text-cyan-800 mb-3">空間計算量: O(1)</h3>
+                        <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                            <li>
+                                累積値
+                                <code class="px-2 py-1 bg-white rounded text-sm font-mono"
+                                    >val</code
+                                >
+                                のみ使用
+                            </li>
+                            <li>
+                                ループカウンタ
+                                <code class="px-2 py-1 bg-white rounded text-sm font-mono">i</code>
+                                と長さ
+                                <code class="px-2 py-1 bg-white rounded text-sm font-mono"
+                                    >len</code
+                                >
+                            </li>
+                            <li>入力配列のサイズに依存しない定数メモリ</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-4">実装方式の比較</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    実装方法
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    可読性
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    備考
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50">
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    forループ (推奨)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(1)
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-emerald-700 font-semibold"
+                                >
+                                    高
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-sm">
+                                    最もシンプルで高速
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    for-ofループ
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(1)
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-cyan-700 font-semibold"
+                                >
+                                    高
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-sm">
+                                    3-5%遅い（イテレータ生成）
+                                </td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    再帰
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 font-mono text-sm">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-slate-500">中</td>
+                                <td class="border border-slate-300 px-4 py-3 text-sm text-red-700">
+                                    スタック深度 n、非推奨
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 bg-purple-50 rounded-lg p-6 border-l-4 border-purple-500">
+                    <h4 class="font-semibold text-purple-800 mb-3 text-lg">最適化のポイント</h4>
+                    <ul class="list-disc list-inside text-slate-700 leading-7 space-y-2">
+                        <li>
+                            <strong>lengthキャッシング</strong>:
+                            <code class="px-2 py-1 bg-white rounded text-sm font-mono"
+                                >nums.length</code
+                            >
+                            を事前に保存することで、ループ毎のプロパティアクセスを削減（5-10%高速化）
+                        </li>
+                        <li>
+                            <strong>不要な条件分岐の削除</strong>:
+                            空配列チェックを省略し、分岐予測ミスのコストを回避
+                        </li>
+                        <li>
+                            <strong>インデックスベースアクセス</strong>:
+                            <code class="px-2 py-1 bg-white rounded text-sm font-mono"
+                                >for (let i = 0; i &lt; len; i++)</code
+                            >
+                            がイテレータベースより高速
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- Prism.js Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ステップデータ
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力と初期化',
+                    desc: 'nums = [1,2,3,4], fn = (acc, x) => acc + x, init = 0 の場合を例とする。累積値 val を初期値 0 で初期化する。',
+                    visual: {
+                        type: 'init',
+                        nums: [1, 2, 3, 4],
+                        val: 0,
+                        i: 0,
+                        len: 4,
+                        fnDesc: '(acc, x) => acc + x',
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'i=0: 最初の要素を処理',
+                    desc: 'val = fn(0, 1) = 0 + 1 = 1。累積値が 0 から 1 に更新される。',
+                    visual: {
+                        type: 'apply',
+                        nums: [1, 2, 3, 4],
+                        i: 0,
+                        val: 0,
+                        newVal: 1,
+                        curr: 1,
+                        operation: '0 + 1 = 1',
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'i=1: 2番目の要素を処理',
+                    desc: 'val = fn(1, 2) = 1 + 2 = 3。累積値が 1 から 3 に更新される。',
+                    visual: {
+                        type: 'apply',
+                        nums: [1, 2, 3, 4],
+                        i: 1,
+                        val: 1,
+                        newVal: 3,
+                        curr: 2,
+                        operation: '1 + 2 = 3',
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'i=2: 3番目の要素を処理',
+                    desc: 'val = fn(3, 3) = 3 + 3 = 6。累積値が 3 から 6 に更新される。',
+                    visual: {
+                        type: 'apply',
+                        nums: [1, 2, 3, 4],
+                        i: 2,
+                        val: 3,
+                        newVal: 6,
+                        curr: 3,
+                        operation: '3 + 3 = 6',
+                    },
+                },
+                {
+                    step: 5,
+                    title: 'i=3: 最後の要素を処理',
+                    desc: 'val = fn(6, 4) = 6 + 4 = 10。累積値が 6 から 10 に更新される。',
+                    visual: {
+                        type: 'apply',
+                        nums: [1, 2, 3, 4],
+                        i: 3,
+                        val: 6,
+                        newVal: 10,
+                        curr: 4,
+                        operation: '6 + 4 = 10',
+                    },
+                },
+                {
+                    step: 6,
+                    title: 'ループ終了・結果返却',
+                    desc: 'i=4 となり i < len (4 < 4) が偽となるのでループ終了。最終的な累積値 10 を返す。',
+                    visual: {
+                        type: 'result',
+                        nums: [1, 2, 3, 4],
+                        val: 10,
+                        i: 4,
+                        len: 4,
+                    },
+                },
+            ];
+
+            // 可視化コンポーネント
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="初期化"
+                        >
+                            {/* 配列 */}
+                            <text x="50" y="30" fontSize="16" fontWeight="600" fill="#0c4a6e">
+                                配列 nums:
+                            </text>
+                            {visual.nums.map((num, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={50 + idx * 80}
+                                        y="50"
+                                        width="70"
+                                        height="50"
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                        rx="4"
+                                    />
+                                    <text
+                                        x={85 + idx * 80}
+                                        y="75"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                        fill="#0c4a6e"
+                                    >
+                                        {num}
+                                    </text>
+                                    <text
+                                        x={85 + idx * 80}
+                                        y="115"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#64748b"
+                                    >
+                                        index {idx}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* 初期値 */}
+                            <text x="50" y="170" fontSize="16" fontWeight="600" fill="#047857">
+                                初期化:
+                            </text>
+                            <rect
+                                x="50"
+                                y="190"
+                                width="150"
+                                height="50"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                rx="4"
+                            />
+                            <text
+                                x="125"
+                                y="215"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#047857"
+                            >
+                                val = {visual.val}
+                            </text>
+
+                            {/* 関数 */}
+                            <text x="250" y="170" fontSize="16" fontWeight="600" fill="#7c3aed">
+                                reducer関数:
+                            </text>
+                            <rect
+                                x="250"
+                                y="190"
+                                width="300"
+                                height="50"
+                                fill="#f3e8ff"
+                                stroke="#7c3aed"
+                                strokeWidth="2"
+                                rx="4"
+                            />
+                            <text
+                                x="400"
+                                y="215"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontFamily="monospace"
+                                fill="#5b21b6"
+                            >
+                                {visual.fnDesc}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'apply') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="fn適用"
+                        >
+                            {/* 配列 */}
+                            <text x="50" y="30" fontSize="16" fontWeight="600" fill="#0c4a6e">
+                                配列 nums:
+                            </text>
+                            {visual.nums.map((num, idx) => {
+                                const isActive = idx === visual.i;
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x={50 + idx * 80}
+                                            y="50"
+                                            width="70"
+                                            height="50"
+                                            fill={isActive ? '#fef3c7' : '#e0f2fe'}
+                                            stroke={isActive ? '#f59e0b' : '#0284c7'}
+                                            strokeWidth={isActive ? '3' : '2'}
+                                            rx="4"
+                                        />
+                                        <text
+                                            x={85 + idx * 80}
+                                            y="75"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="18"
+                                            fontWeight="600"
+                                            fill={isActive ? '#92400e' : '#0c4a6e'}
+                                        >
+                                            {num}
+                                        </text>
+                                        <text
+                                            x={85 + idx * 80}
+                                            y="115"
+                                            textAnchor="middle"
+                                            fontSize="12"
+                                            fill="#64748b"
+                                        >
+                                            index {idx}
+                                        </text>
+                                        {isActive && (
+                                            <text
+                                                x={85 + idx * 80}
+                                                y="135"
+                                                textAnchor="middle"
+                                                fontSize="13"
+                                                fontWeight="600"
+                                                fill="#f59e0b"
+                                            >
+                                                ← 現在処理中
+                                            </text>
+                                        )}
+                                    </g>
+                                );
+                            })}
+
+                            {/* 計算 */}
+                            <text x="50" y="180" fontSize="16" fontWeight="600" fill="#7c3aed">
+                                計算:
+                            </text>
+                            <rect
+                                x="50"
+                                y="200"
+                                width="500"
+                                height="50"
+                                fill="#f3e8ff"
+                                stroke="#7c3aed"
+                                strokeWidth="2"
+                                rx="4"
+                            />
+                            <text
+                                x="300"
+                                y="225"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontFamily="monospace"
+                                fontWeight="600"
+                                fill="#5b21b6"
+                            >
+                                fn({visual.val}, {visual.curr}) = {visual.operation}
+                            </text>
+
+                            {/* 累積値の更新 */}
+                            <text x="50" y="280" fontSize="16" fontWeight="600" fill="#047857">
+                                累積値:
+                            </text>
+                            <g>
+                                <rect
+                                    x="50"
+                                    y="300"
+                                    width="100"
+                                    height="40"
+                                    fill="#fee2e2"
+                                    stroke="#dc2626"
+                                    strokeWidth="2"
+                                    rx="4"
+                                />
+                                <text
+                                    x="100"
+                                    y="320"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#991b1b"
+                                >
+                                    旧: {visual.val}
+                                </text>
+                            </g>
+
+                            <text x="175" y="320" fontSize="20" fontWeight="700" fill="#64748b">
+                                →
+                            </text>
+
+                            <g>
+                                <rect
+                                    x="220"
+                                    y="300"
+                                    width="100"
+                                    height="40"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    strokeWidth="2"
+                                    rx="4"
+                                />
+                                <text
+                                    x="270"
+                                    y="320"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#047857"
+                                >
+                                    新: {visual.newVal}
+                                </text>
+                            </g>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="結果"
+                        >
+                            {/* 配列 */}
+                            <text x="50" y="30" fontSize="16" fontWeight="600" fill="#0c4a6e">
+                                配列 nums（全要素処理完了）:
+                            </text>
+                            {visual.nums.map((num, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={50 + idx * 80}
+                                        y="50"
+                                        width="70"
+                                        height="50"
+                                        fill="#d1fae5"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                        rx="4"
+                                    />
+                                    <text
+                                        x={85 + idx * 80}
+                                        y="75"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                        fill="#047857"
+                                    >
+                                        {num}
+                                    </text>
+                                    <text
+                                        x={85 + idx * 80}
+                                        y="115"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#64748b"
+                                    >
+                                        ✓ 処理済
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* ループ終了 */}
+                            <text x="50" y="160" fontSize="16" fontWeight="600" fill="#64748b">
+                                ループ条件:
+                            </text>
+                            <rect
+                                x="50"
+                                y="180"
+                                width="250"
+                                height="50"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                                rx="4"
+                            />
+                            <text
+                                x="175"
+                                y="205"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="15"
+                                fontFamily="monospace"
+                                fill="#334155"
+                            >
+                                i ({visual.i}) &lt; len ({visual.len}) = false
+                            </text>
+
+                            {/* 最終結果 */}
+                            <text x="350" y="160" fontSize="16" fontWeight="600" fill="#047857">
+                                最終結果:
+                            </text>
+                            <rect
+                                x="350"
+                                y="180"
+                                width="200"
+                                height="50"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2.5"
+                                rx="4"
+                            />
+                            <text
+                                x="450"
+                                y="205"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="700"
+                                fill="#047857"
+                            >
+                                return {visual.val}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            // メインコンポーネント
+            function StepByStepVisualization() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                // 自動再生ロジック（v3.3）
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep === stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* 左: ステップリスト */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 右: 可視化 + コントロール */}
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-white text-slate-700 border-2 border-slate-300 hover:border-emerald-500"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-white text-slate-700 border-2 border-slate-300 hover:border-emerald-500"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold transition shadow hover:-translate-y-0.5 bg-slate-600 text-white hover:bg-slate-700"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↻ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // レンダリング
+            const root = ReactDOM.createRoot(document.getElementById('step-visualization-root'));
+            root.render(<StepByStepVisualization />);
+        </script>
+    </body>
+</html>

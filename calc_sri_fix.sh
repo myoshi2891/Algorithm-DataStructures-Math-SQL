@@ -5,18 +5,17 @@ set -euo pipefail
 calculate_sri() {
     url="$1"
     temp_file=$(mktemp)
+    trap 'rm -f "$temp_file"' RETURN
 
     # curl options: -f (fail on HTTP error), -S (show error), -s (silent equivalent), -L (follow redirects)
     if ! curl -fS -sL "$url" -o "$temp_file"; then
         echo "Error downloading $url" >&2
-        rm -f "$temp_file"
         return 1
     fi
 
     # Check for empty response
     if [ ! -s "$temp_file" ]; then
         echo "Error: Empty response from $url" >&2
-        rm -f "$temp_file"
         return 1
     fi
 

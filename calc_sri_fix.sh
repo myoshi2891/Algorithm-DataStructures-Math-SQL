@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+# calculate_sri downloads the given URL, computes the SHA-384 SRI hash of its content (base64) and echoes a line "<url> sha384-<base64_hash>".
 calculate_sri() {
     local url="$1"
     local temp_file

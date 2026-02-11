@@ -210,10 +210,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    pass
 
 
 def restaurant(l: int, b: int) -> int:
@@ -298,12 +295,12 @@ if __name__ == '__main__':
 ### 定数倍削減テクニック
 
 ```python
-# ❌ 非効率: 中間変数の無駄な生成
+# 可読性重視: 中間変数を使った例
 area = l * b
 square_area = g * g
 result = area // square_area
 
-# ✅ 最適: 1行で計算
+# より簡潔に書ける
 result = (l * b) // (g * g)
 ```
 

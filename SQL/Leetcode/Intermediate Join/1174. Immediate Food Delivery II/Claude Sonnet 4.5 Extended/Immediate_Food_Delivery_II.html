@@ -1,0 +1,2444 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1174: Immediate Food Delivery II - グループ内最小値抽出</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                color: #1e293b;
+                line-height: 1.7;
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            /* Prism Toolbar Customization */
+            .code-toolbar > .toolbar {
+                opacity: 1;
+                right: 0.5em;
+                top: 0.5em;
+            }
+
+            .code-toolbar > .toolbar button {
+                background: #10b981;
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .code-toolbar > .toolbar button:hover {
+                background: #059669;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Immediate Food Delivery II
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    グループ内最小値抽出 + 条件集計 による O(N) 実装
+                </p>
+                <nav
+                    class="flex flex-wrap gap-4 mt-6"
+                    role="navigation"
+                    aria-label="ページ内ナビゲーション"
+                >
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Algorithm Overview -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+                <p class="text-slate-600 leading-7 mb-4">
+                    食品配達サービスにおいて、各顧客の<strong>最初の注文</strong>が即日配達（order_date
+                    = customer_pref_delivery_date）だった割合を求めます。
+                    即日配達の場合は「immediate」、予約配達の場合は「scheduled」として分類されます。
+                </p>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 overflow-x-auto">
+                    <pre class="text-sm"><code>Delivery table:
++-------------+-------------+------------+-----------------------------+
+| delivery_id | customer_id | order_date | customer_pref_delivery_date |
++-------------+-------------+------------+-----------------------------+
+| 1           | 1           | 2019-08-01 | 2019-08-02                  |
+| 2           | 2           | 2019-08-02 | 2019-08-02                  |
+| 3           | 1           | 2019-08-11 | 2019-08-12                  |
+| 4           | 3           | 2019-08-24 | 2019-08-24                  |
+| 5           | 3           | 2019-08-21 | 2019-08-22                  |
+| 6           | 2           | 2019-08-11 | 2019-08-13                  |
+| 7           | 4           | 2019-08-09 | 2019-08-09                  |
++-------------+-------------+------------+-----------------------------+</code></pre>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">出力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 overflow-x-auto">
+                    <pre class="text-sm"><code>+----------------------+
+| immediate_percentage |
++----------------------+
+| 50.00                |
++----------------------+</code></pre>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside text-slate-600 leading-7 space-y-2">
+                    <li>delivery_id は主キー（重複なし）</li>
+                    <li>各顧客は必ず1つ以上の注文を持つ</li>
+                    <li>customer_pref_delivery_date は order_date 以降の日付</li>
+                    <li>結果は小数点2桁で四捨五入</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">解法戦略</h3>
+                <div class="bg-emerald-50 rounded-lg p-6 border-l-4 border-emerald-500">
+                    <ol class="list-decimal list-inside text-slate-700 leading-8 space-y-2">
+                        <li><strong>グループ化</strong>: customer_id でグループ化</li>
+                        <li>
+                            <strong>最小値抽出</strong>: 各グループ内で order_date
+                            が最小の行を特定（ROW_NUMBER または idxmin）
+                        </li>
+                        <li>
+                            <strong>条件判定</strong>: order_date = customer_pref_delivery_date
+                            かどうか
+                        </li>
+                        <li><strong>集計</strong>: 即日配達の件数 ÷ 総顧客数 × 100</li>
+                        <li><strong>丸め</strong>: ROUND(..., 2) で小数点2桁</li>
+                    </ol>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <ul class="list-disc list-inside text-slate-600 leading-7 space-y-2">
+                    <li><strong>時間計算量</strong>: O(N) - 全行を1回走査</li>
+                    <li><strong>空間計算量</strong>: O(顧客数) - 最初の注文のみ保持</li>
+                    <li><strong>最適化</strong>: ウィンドウ関数を使用して1パスで処理</li>
+                </ul>
+            </section>
+
+            <!-- Step-by-Step Explanation (React Component) -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- Code Examples -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    実装コード
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">PostgreSQL 16.6+ 実装</h3>
+                <pre class="line-numbers"><code class="language-sql">WITH first_orders AS (
+  SELECT
+    customer_id,
+    order_date,
+    customer_pref_delivery_date,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id
+      ORDER BY order_date
+    ) AS rn
+  FROM Delivery
+)
+SELECT
+  ROUND(
+    100.0 * SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END)
+    / COUNT(*),
+    2
+  ) AS immediate_percentage
+FROM first_orders
+WHERE rn = 1;</code></pre>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-3">
+                    Python (Pandas 2.2.2) 実装
+                </h3>
+                <pre class="line-numbers"><code class="language-python">import pandas as pd
+
+def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
+    """
+    各顧客の最初の注文における即日配達の割合を計算
+
+    Args:
+        delivery: 配達情報 (delivery_id, customer_id, order_date, customer_pref_delivery_date)
+
+    Returns:
+        pd.DataFrame: 列名は ['immediate_percentage']、1行のみ
+    """
+    # 各顧客の最初の注文（order_dateが最小）のインデックスを取得
+    first_order_idx = delivery.groupby('customer_id')['order_date'].idxmin()
+
+    # 最初の注文のみを抽出
+    first_orders = delivery.loc[first_order_idx, ['order_date', 'customer_pref_delivery_date']]
+
+    # 即日配達判定（order_date == customer_pref_delivery_date）
+    is_immediate = (first_orders['order_date'] == first_orders['customer_pref_delivery_date'])
+
+    # 割合を計算（パーセンテージ、小数点2桁）
+    percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
+
+    return pd.DataFrame({'immediate_percentage': [percentage]})</code></pre>
+            </section>
+
+            <!-- Flowchart -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 900 950"
+                        style="max-width: 100%; height: auto"
+                        role="img"
+                        aria-label="Immediate Food Delivery II flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始ノード -->
+                        <ellipse
+                            cx="450"
+                            cy="50"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 矢印: 開始 → 入力 -->
+                        <path
+                            d="M 450 85 L 450 130"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 入力 -->
+                        <rect
+                            x="320"
+                            y="130"
+                            width="260"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="150"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            Deliveryテーブル読込
+                        </text>
+                        <text
+                            x="450"
+                            y="175"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            全配達記録 N行
+                        </text>
+
+                        <!-- 矢印: 入力 → グループ化 -->
+                        <path
+                            d="M 450 200 L 450 245"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- グループ化 -->
+                        <rect
+                            x="305"
+                            y="245"
+                            width="290"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="265"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            customer_idでグループ化
+                        </text>
+                        <text
+                            x="450"
+                            y="290"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            PARTITION BY customer_id
+                        </text>
+
+                        <!-- 矢印: グループ化 → ウィンドウ関数 -->
+                        <path
+                            d="M 450 315 L 450 360"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ウィンドウ関数適用 -->
+                        <rect
+                            x="290"
+                            y="360"
+                            width="320"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="380"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            ROW_NUMBER適用
+                        </text>
+                        <text
+                            x="450"
+                            y="405"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            ORDER BY order_date（昇順）
+                        </text>
+
+                        <!-- 矢印: ウィンドウ関数 → 最初の注文抽出 -->
+                        <path
+                            d="M 450 430 L 450 475"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 最初の注文抽出 -->
+                        <rect
+                            x="310"
+                            y="475"
+                            width="280"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="495"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            rn = 1 でフィルタ
+                        </text>
+                        <text
+                            x="450"
+                            y="520"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            各顧客の最初の注文のみ抽出
+                        </text>
+
+                        <!-- 矢印: 最初の注文抽出 → 即日配達判定 -->
+                        <path
+                            d="M 450 545 L 450 590"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 即日配達判定（ダイヤモンド） -->
+                        <path
+                            d="M 450 590 L 550 650 L 450 710 L 350 650 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="640"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="#92400e"
+                        >
+                            order_date =
+                        </text>
+                        <text
+                            x="450"
+                            y="660"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="#92400e"
+                        >
+                            pref_date?
+                        </text>
+
+                        <!-- はい（即日配達） -->
+                        <path
+                            d="M 550 650 L 720 650"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="635"
+                            y="635"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <rect
+                            x="720"
+                            y="610"
+                            width="140"
+                            height="80"
+                            rx="10"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="790"
+                            y="635"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            即日配達
+                        </text>
+                        <text
+                            x="790"
+                            y="660"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#065f46"
+                        >
+                            カウント+1
+                        </text>
+
+                        <!-- いいえ（予約配達） -->
+                        <path
+                            d="M 350 650 L 180 650"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <text
+                            x="265"
+                            y="635"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="700"
+                            fill="#64748b"
+                        >
+                            いいえ
+                        </text>
+
+                        <rect
+                            x="40"
+                            y="610"
+                            width="140"
+                            height="80"
+                            rx="10"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="110"
+                            y="635"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="700"
+                            fill="#475569"
+                        >
+                            予約配達
+                        </text>
+                        <text
+                            x="110"
+                            y="660"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            スキップ
+                        </text>
+
+                        <!-- 合流点の矢印 -->
+                        <!-- 即日配達から合流 -->
+                        <path
+                            d="M 790 690 L 790 740 L 450 740"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- 予約配達から合流 -->
+                        <path
+                            d="M 110 690 L 110 740 L 420 740"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 合流点（視覚的に明確にするための円） -->
+                        <circle cx="450" cy="740" r="8" fill="#64748b" />
+
+                        <!-- 矢印: 合流 → 割合計算 -->
+                        <path
+                            d="M 450 748 L 450 780"
+                            stroke="#64748b"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 割合計算 -->
+                        <rect
+                            x="310"
+                            y="780"
+                            width="280"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="800"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            割合計算 & 丸め
+                        </text>
+                        <text
+                            x="450"
+                            y="825"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                        >
+                            ROUND(100 × 即日/総数, 2)
+                        </text>
+
+                        <!-- 矢印: 割合計算 → 終了 -->
+                        <path
+                            d="M 450 850 L 450 885"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- 終了ノード -->
+                        <ellipse
+                            cx="450"
+                            cy="905"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="450"
+                            y="905"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            終了
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="mt-8 bg-slate-50 rounded-lg p-6 border-l-4 border-cyan-500">
+                    <p class="font-[Source_Code_Pro] text-[18px] leading-8">
+                        <strong class="text-2xl text-teal-800">フローの説明：</strong><br /><br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">1.</span>
+                        <strong>入力</strong>: Deliveryテーブルから全配達記録を読み込み<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">2.</span>
+                        <strong>グループ化</strong>: customer_idでグループを作成（PARTITION BY）<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">3.</span>
+                        <strong>順位付け</strong>:
+                        各グループ内でorder_dateの昇順にROW_NUMBERを付与<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">4.</span>
+                        <strong>抽出</strong>: rn = 1（最初の注文）のみをフィルタ<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">5.</span>
+                        <strong>条件判定</strong>: order_date = customer_pref_delivery_date
+                        か確認<br />
+                        <span class="inline-block w-8 text-cyan-600 font-bold">6a.</span>
+                        <strong class="text-emerald-700">はい</strong> → 即日配達カウントに加算<br />
+                        <span class="inline-block w-8 text-cyan-600 font-bold">6b.</span>
+                        <strong class="text-slate-600">いいえ</strong> → 予約配達としてスキップ<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">7.</span>
+                        <strong>集計</strong>: 即日配達の件数を総数で割って100倍<br />
+                        <span class="inline-block w-8 text-emerald-600 font-bold">8.</span>
+                        <strong>丸め</strong>: ROUND(..., 2) で小数点2桁に丸めて出力
+                    </p>
+                </div>
+            </section>
+
+            <!-- Complexity Analysis -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto mt-6">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-100">
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    本実装（Window Function）
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    代替案（Subquery）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    O(N log N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    O(N × 顧客数)
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    O(顧客数)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    O(N)
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    データベーススキャン
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    1回
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    顧客数分
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    実装の簡潔さ
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    ★★★★★
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    ★★★☆☆
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    インデックス活用
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    効率的
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    非効率
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-3">詳細説明</h3>
+
+                <div class="bg-emerald-50 rounded-lg p-6 border-l-4 border-emerald-500 mb-6">
+                    <h4 class="font-semibold text-teal-800 mb-2">時間計算量: O(N log N)</h4>
+                    <ul class="list-disc list-inside text-slate-600 leading-7 space-y-1">
+                        <li>ROW_NUMBER(): 各グループ内でソートが必要 → O(N log N)</li>
+                        <li>フィルタリング（rn = 1）: O(N)</li>
+                        <li>集計（SUM, COUNT）: O(顧客数)</li>
+                        <li>支配項: O(N log N)</li>
+                    </ul>
+                </div>
+
+                <div class="bg-sky-50 rounded-lg p-6 border-l-4 border-sky-500 mb-6">
+                    <h4 class="font-semibold text-cyan-800 mb-2">空間計算量: O(顧客数)</h4>
+                    <ul class="list-disc list-inside text-slate-600 leading-7 space-y-1">
+                        <li>CTEで最初の注文のみを保持（顧客数分の行）</li>
+                        <li>インデックスがあれば更に効率化</li>
+                        <li>Pandasの場合: idxmin()で顧客数分のインデックス配列</li>
+                    </ul>
+                </div>
+
+                <div class="bg-amber-50 rounded-lg p-6 border-l-4 border-amber-500">
+                    <h4 class="font-semibold text-orange-800 mb-2">最適化のポイント</h4>
+                    <ul class="list-disc list-inside text-slate-600 leading-7 space-y-1">
+                        <li>
+                            <strong>インデックス</strong>: (customer_id, order_date)
+                            に複合インデックス
+                        </li>
+                        <li>
+                            <strong>DISTINCT ON</strong>: PostgreSQL特有の構文で更に簡潔に記述可能
+                        </li>
+                        <li>
+                            <strong>Pandas idxmin()</strong>:
+                            rank()より効率的（全行にランク値を保持しない）
+                        </li>
+                        <li>
+                            <strong>並列処理</strong>: 大規模データではパーティション並列化が有効
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- React 18 (Development) -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ステップデータ定義
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力データの確認',
+                    desc: 'Deliveryテーブルには複数の配達記録があり、各顧客(customer_id)は複数の注文を持つことができます。例: 顧客1は配達ID 1と3、顧客2は配達ID 2と6を持っています。',
+                    visual: {
+                        type: 'input',
+                        data: [
+                            {
+                                delivery_id: 1,
+                                customer_id: 1,
+                                order_date: '2019-08-01',
+                                pref_date: '2019-08-02',
+                            },
+                            {
+                                delivery_id: 2,
+                                customer_id: 2,
+                                order_date: '2019-08-02',
+                                pref_date: '2019-08-02',
+                            },
+                            {
+                                delivery_id: 3,
+                                customer_id: 1,
+                                order_date: '2019-08-11',
+                                pref_date: '2019-08-12',
+                            },
+                            {
+                                delivery_id: 4,
+                                customer_id: 3,
+                                order_date: '2019-08-24',
+                                pref_date: '2019-08-24',
+                            },
+                            {
+                                delivery_id: 5,
+                                customer_id: 3,
+                                order_date: '2019-08-21',
+                                pref_date: '2019-08-22',
+                            },
+                            {
+                                delivery_id: 6,
+                                customer_id: 2,
+                                order_date: '2019-08-11',
+                                pref_date: '2019-08-13',
+                            },
+                            {
+                                delivery_id: 7,
+                                customer_id: 4,
+                                order_date: '2019-08-09',
+                                pref_date: '2019-08-09',
+                            },
+                        ],
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'グループ化と順位付け',
+                    desc: 'customer_idでグループ化し、各グループ内でorder_dateの昇順にROW_NUMBER()を付与します。これにより各顧客の最初の注文(rn=1)を特定できます。',
+                    visual: {
+                        type: 'grouped',
+                        data: [
+                            {
+                                delivery_id: 1,
+                                customer_id: 1,
+                                order_date: '2019-08-01',
+                                pref_date: '2019-08-02',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 3,
+                                customer_id: 1,
+                                order_date: '2019-08-11',
+                                pref_date: '2019-08-12',
+                                rn: 2,
+                            },
+                            {
+                                delivery_id: 2,
+                                customer_id: 2,
+                                order_date: '2019-08-02',
+                                pref_date: '2019-08-02',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 6,
+                                customer_id: 2,
+                                order_date: '2019-08-11',
+                                pref_date: '2019-08-13',
+                                rn: 2,
+                            },
+                            {
+                                delivery_id: 5,
+                                customer_id: 3,
+                                order_date: '2019-08-21',
+                                pref_date: '2019-08-22',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 4,
+                                customer_id: 3,
+                                order_date: '2019-08-24',
+                                pref_date: '2019-08-24',
+                                rn: 2,
+                            },
+                            {
+                                delivery_id: 7,
+                                customer_id: 4,
+                                order_date: '2019-08-09',
+                                pref_date: '2019-08-09',
+                                rn: 1,
+                            },
+                        ],
+                    },
+                },
+                {
+                    step: 3,
+                    title: '最初の注文のみ抽出',
+                    desc: 'rn = 1の行のみをフィルタリングします。これにより各顧客の最初の注文（order_dateが最も早い注文）のみが残ります。',
+                    visual: {
+                        type: 'filtered',
+                        data: [
+                            {
+                                delivery_id: 1,
+                                customer_id: 1,
+                                order_date: '2019-08-01',
+                                pref_date: '2019-08-02',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 2,
+                                customer_id: 2,
+                                order_date: '2019-08-02',
+                                pref_date: '2019-08-02',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 5,
+                                customer_id: 3,
+                                order_date: '2019-08-21',
+                                pref_date: '2019-08-22',
+                                rn: 1,
+                            },
+                            {
+                                delivery_id: 7,
+                                customer_id: 4,
+                                order_date: '2019-08-09',
+                                pref_date: '2019-08-09',
+                                rn: 1,
+                            },
+                        ],
+                    },
+                },
+                {
+                    step: 4,
+                    title: '即日配達判定',
+                    desc: '各行について order_date = customer_pref_delivery_date かどうかを判定します。顧客2と4が即日配達（immediate）、顧客1と3が予約配達（scheduled）です。',
+                    visual: {
+                        type: 'judged',
+                        data: [
+                            {
+                                customer_id: 1,
+                                order_date: '2019-08-01',
+                                pref_date: '2019-08-02',
+                                is_immediate: false,
+                            },
+                            {
+                                customer_id: 2,
+                                order_date: '2019-08-02',
+                                pref_date: '2019-08-02',
+                                is_immediate: true,
+                            },
+                            {
+                                customer_id: 3,
+                                order_date: '2019-08-21',
+                                pref_date: '2019-08-22',
+                                is_immediate: false,
+                            },
+                            {
+                                customer_id: 4,
+                                order_date: '2019-08-09',
+                                pref_date: '2019-08-09',
+                                is_immediate: true,
+                            },
+                        ],
+                    },
+                },
+                {
+                    step: 5,
+                    title: '割合計算と丸め',
+                    desc: '即日配達の件数（2件）を総顧客数（4件）で割り、100倍してパーセンテージに変換します。最後にROUND(..., 2)で小数点2桁に丸めます。結果: 50.00%',
+                    visual: {
+                        type: 'result',
+                        immediate_count: 2,
+                        total_count: 4,
+                        percentage: 50.0,
+                    },
+                },
+            ];
+
+            // 視覚化コンポーネント
+            function StepVisualization({ visual }) {
+                if (!visual) return null;
+
+                if (visual.type === 'input') {
+                    return (
+                        <svg
+                            viewBox="0 0 800 380"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowGray"
+                                    markerWidth="8"
+                                    markerHeight="8"
+                                    refX="7"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L7,3 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            {/* タイトル */}
+                            <text
+                                x="400"
+                                y="25"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0c4a6e"
+                            >
+                                Deliveryテーブル（入力データ）
+                            </text>
+
+                            {/* テーブルヘッダー */}
+                            <rect
+                                x="20"
+                                y="50"
+                                width="100"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="70"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                delivery_id
+                            </text>
+
+                            <rect
+                                x="130"
+                                y="50"
+                                width="110"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="185"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                customer_id
+                            </text>
+
+                            <rect
+                                x="250"
+                                y="50"
+                                width="120"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="310"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                order_date
+                            </text>
+
+                            <rect
+                                x="380"
+                                y="50"
+                                width="180"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="470"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                pref_delivery_date
+                            </text>
+
+                            {/* データ行 */}
+                            {visual.data.map((row, idx) => {
+                                const y = 100 + idx * 40;
+                                const bgColor = idx % 2 === 0 ? '#f1f5f9' : 'white';
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x="20"
+                                            y={y}
+                                            width="100"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke="#cbd5e1"
+                                            strokeWidth="1.5"
+                                        />
+                                        <text
+                                            x="70"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="13"
+                                            fill="#334155"
+                                        >
+                                            {row.delivery_id}
+                                        </text>
+
+                                        <rect
+                                            x="130"
+                                            y={y}
+                                            width="110"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke="#cbd5e1"
+                                            strokeWidth="1.5"
+                                        />
+                                        <text
+                                            x="185"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="13"
+                                            fontWeight="600"
+                                            fill="#0c4a6e"
+                                        >
+                                            {row.customer_id}
+                                        </text>
+
+                                        <rect
+                                            x="250"
+                                            y={y}
+                                            width="120"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke="#cbd5e1"
+                                            strokeWidth="1.5"
+                                        />
+                                        <text
+                                            x="310"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#334155"
+                                        >
+                                            {row.order_date}
+                                        </text>
+
+                                        <rect
+                                            x="380"
+                                            y={y}
+                                            width="180"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke="#cbd5e1"
+                                            strokeWidth="1.5"
+                                        />
+                                        <text
+                                            x="470"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#334155"
+                                        >
+                                            {row.pref_date}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {/* 説明 */}
+                            <text x="600" y="150" fontSize="15" fontWeight="600" fill="#0c4a6e">
+                                問題:
+                            </text>
+                            <text x="600" y="175" fontSize="14" fill="#475569">
+                                各顧客の
+                            </text>
+                            <text x="600" y="195" fontSize="14" fontWeight="600" fill="#059669">
+                                最初の注文
+                            </text>
+                            <text x="600" y="215" fontSize="14" fill="#475569">
+                                における即日配達の
+                            </text>
+                            <text x="600" y="235" fontSize="14" fill="#475569">
+                                割合を求める
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'grouped') {
+                    return (
+                        <svg
+                            viewBox="0 0 900 420"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* タイトル */}
+                            <text
+                                x="450"
+                                y="25"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0c4a6e"
+                            >
+                                グループ化 + ROW_NUMBER付与
+                            </text>
+
+                            {/* テーブルヘッダー */}
+                            <rect
+                                x="20"
+                                y="50"
+                                width="90"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="65"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                del_id
+                            </text>
+
+                            <rect
+                                x="120"
+                                y="50"
+                                width="100"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="170"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                cust_id
+                            </text>
+
+                            <rect
+                                x="230"
+                                y="50"
+                                width="110"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="285"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                order_date
+                            </text>
+
+                            <rect
+                                x="350"
+                                y="50"
+                                width="160"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="430"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                pref_date
+                            </text>
+
+                            <rect
+                                x="520"
+                                y="50"
+                                width="70"
+                                height="40"
+                                fill="#f59e0b"
+                                stroke="#d97706"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="555"
+                                y="70"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                rn
+                            </text>
+
+                            {/* データ行 */}
+                            {visual.data.map((row, idx) => {
+                                const y = 100 + idx * 40;
+                                const isFirstOrder = row.rn === 1;
+                                const bgColor = isFirstOrder
+                                    ? '#d1fae5'
+                                    : idx % 2 === 0
+                                      ? '#f1f5f9'
+                                      : 'white';
+                                const borderColor = isFirstOrder ? '#10b981' : '#cbd5e1';
+                                const borderWidth = isFirstOrder ? '2.5' : '1.5';
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x="20"
+                                            y={y}
+                                            width="90"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth={borderWidth}
+                                        />
+                                        <text
+                                            x="65"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="13"
+                                            fill="#334155"
+                                        >
+                                            {row.delivery_id}
+                                        </text>
+
+                                        <rect
+                                            x="120"
+                                            y={y}
+                                            width="100"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth={borderWidth}
+                                        />
+                                        <text
+                                            x="170"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="13"
+                                            fontWeight="600"
+                                            fill="#0c4a6e"
+                                        >
+                                            {row.customer_id}
+                                        </text>
+
+                                        <rect
+                                            x="230"
+                                            y={y}
+                                            width="110"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth={borderWidth}
+                                        />
+                                        <text
+                                            x="285"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#334155"
+                                        >
+                                            {row.order_date}
+                                        </text>
+
+                                        <rect
+                                            x="350"
+                                            y={y}
+                                            width="160"
+                                            height="40"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth={borderWidth}
+                                        />
+                                        <text
+                                            x="430"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#334155"
+                                        >
+                                            {row.pref_date}
+                                        </text>
+
+                                        <rect
+                                            x="520"
+                                            y={y}
+                                            width="70"
+                                            height="40"
+                                            fill={isFirstOrder ? '#fef3c7' : bgColor}
+                                            stroke={isFirstOrder ? '#f59e0b' : borderColor}
+                                            strokeWidth={borderWidth}
+                                        />
+                                        <text
+                                            x="555"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fontWeight={isFirstOrder ? '700' : '600'}
+                                            fill={isFirstOrder ? '#92400e' : '#334155'}
+                                        >
+                                            {row.rn}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {/* 説明 */}
+                            <text x="630" y="120" fontSize="15" fontWeight="600" fill="#0c4a6e">
+                                PARTITION BY customer_id
+                            </text>
+                            <text x="630" y="145" fontSize="15" fontWeight="600" fill="#0c4a6e">
+                                ORDER BY order_date
+                            </text>
+                            <text x="630" y="180" fontSize="14" fill="#475569">
+                                → 各グループ内で
+                            </text>
+                            <text x="630" y="200" fontSize="14" fill="#475569">
+                                {' '}
+                                最も早い注文に
+                            </text>
+                            <text x="630" y="220" fontSize="14" fontWeight="600" fill="#059669">
+                                {' '}
+                                rn = 1
+                            </text>
+                            <text x="630" y="240" fontSize="14" fill="#475569">
+                                {' '}
+                                を付与
+                            </text>
+
+                            {/* 緑のハイライト凡例 */}
+                            <rect
+                                x="630"
+                                y="270"
+                                width="30"
+                                height="25"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                rx="3"
+                            />
+                            <text x="670" y="283" fontSize="13" fill="#475569">
+                                = 最初の注文 (rn=1)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'filtered') {
+                    return (
+                        <svg
+                            viewBox="0 0 750 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* タイトル */}
+                            <text
+                                x="375"
+                                y="25"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0c4a6e"
+                            >
+                                rn = 1 でフィルタ（最初の注文のみ）
+                            </text>
+
+                            {/* テーブルヘッダー */}
+                            <rect
+                                x="30"
+                                y="60"
+                                width="90"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="75"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                del_id
+                            </text>
+
+                            <rect
+                                x="130"
+                                y="60"
+                                width="100"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="180"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                cust_id
+                            </text>
+
+                            <rect
+                                x="240"
+                                y="60"
+                                width="120"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                order_date
+                            </text>
+
+                            <rect
+                                x="370"
+                                y="60"
+                                width="160"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="450"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                pref_date
+                            </text>
+
+                            <rect
+                                x="540"
+                                y="60"
+                                width="70"
+                                height="40"
+                                fill="#10b981"
+                                stroke="#059669"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="575"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                rn
+                            </text>
+
+                            {/* データ行 */}
+                            {visual.data.map((row, idx) => {
+                                const y = 110 + idx * 40;
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x="30"
+                                            y={y}
+                                            width="90"
+                                            height="40"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="75"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="13"
+                                            fill="#065f46"
+                                        >
+                                            {row.delivery_id}
+                                        </text>
+
+                                        <rect
+                                            x="130"
+                                            y={y}
+                                            width="100"
+                                            height="40"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="180"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fontWeight="700"
+                                            fill="#065f46"
+                                        >
+                                            {row.customer_id}
+                                        </text>
+
+                                        <rect
+                                            x="240"
+                                            y={y}
+                                            width="120"
+                                            height="40"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="300"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#065f46"
+                                        >
+                                            {row.order_date}
+                                        </text>
+
+                                        <rect
+                                            x="370"
+                                            y={y}
+                                            width="160"
+                                            height="40"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="450"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill="#065f46"
+                                        >
+                                            {row.pref_date}
+                                        </text>
+
+                                        <rect
+                                            x="540"
+                                            y={y}
+                                            width="70"
+                                            height="40"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="575"
+                                            y={y + 20}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fontWeight="700"
+                                            fill="#92400e"
+                                        >
+                                            1
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {/* 説明 */}
+                            <text x="50" y="270" fontSize="14" fontWeight="600" fill="#059669">
+                                ✓ 各顧客の最初の注文のみが残ります（4行）
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'judged') {
+                    return (
+                        <svg
+                            viewBox="0 0 850 340"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* タイトル */}
+                            <text
+                                x="425"
+                                y="25"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0c4a6e"
+                            >
+                                即日配達判定（order_date = pref_date ?）
+                            </text>
+
+                            {/* テーブルヘッダー */}
+                            <rect
+                                x="30"
+                                y="60"
+                                width="100"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="80"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                cust_id
+                            </text>
+
+                            <rect
+                                x="140"
+                                y="60"
+                                width="120"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="200"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                order_date
+                            </text>
+
+                            <rect
+                                x="270"
+                                y="60"
+                                width="160"
+                                height="40"
+                                fill="#0284c7"
+                                stroke="#0369a1"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="350"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                pref_date
+                            </text>
+
+                            <rect
+                                x="440"
+                                y="60"
+                                width="140"
+                                height="40"
+                                fill="#f59e0b"
+                                stroke="#d97706"
+                                strokeWidth="2"
+                                rx="5"
+                            />
+                            <text
+                                x="510"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                is_immediate
+                            </text>
+
+                            {/* データ行 */}
+                            {visual.data.map((row, idx) => {
+                                const y = 110 + idx * 50;
+                                const isImmediate = row.is_immediate;
+                                const bgColor = isImmediate ? '#d1fae5' : '#fee2e2';
+                                const borderColor = isImmediate ? '#10b981' : '#dc2626';
+                                const textColor = isImmediate ? '#065f46' : '#991b1b';
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x="30"
+                                            y={y}
+                                            width="100"
+                                            height="45"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="80"
+                                            y={y + 22}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fontWeight="700"
+                                            fill={textColor}
+                                        >
+                                            {row.customer_id}
+                                        </text>
+
+                                        <rect
+                                            x="140"
+                                            y={y}
+                                            width="120"
+                                            height="45"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="200"
+                                            y={y + 22}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill={textColor}
+                                        >
+                                            {row.order_date}
+                                        </text>
+
+                                        <rect
+                                            x="270"
+                                            y={y}
+                                            width="160"
+                                            height="45"
+                                            fill={bgColor}
+                                            stroke={borderColor}
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="350"
+                                            y={y + 22}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="12"
+                                            fill={textColor}
+                                        >
+                                            {row.pref_date}
+                                        </text>
+
+                                        <rect
+                                            x="440"
+                                            y={y}
+                                            width="140"
+                                            height="45"
+                                            fill={isImmediate ? '#fef3c7' : '#fecaca'}
+                                            stroke={isImmediate ? '#f59e0b' : '#dc2626'}
+                                            strokeWidth="2.5"
+                                        />
+                                        <text
+                                            x="510"
+                                            y={y + 22}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="15"
+                                            fontWeight="700"
+                                            fill={isImmediate ? '#92400e' : '#991b1b'}
+                                        >
+                                            {isImmediate ? 'TRUE' : 'FALSE'}
+                                        </text>
+
+                                        {/* ラベル */}
+                                        <text
+                                            x="620"
+                                            y={y + 22}
+                                            textAnchor="start"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fontWeight="600"
+                                            fill={isImmediate ? '#059669' : '#dc2626'}
+                                        >
+                                            {isImmediate ? '即日配達' : '予約配達'}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {/* 統計 */}
+                            <text x="50" y="315" fontSize="15" fontWeight="600" fill="#0c4a6e">
+                                即日配達: 2件 / 総数: 4件
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 320"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            {/* タイトル */}
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="22"
+                                fontWeight="700"
+                                fill="#0c4a6e"
+                            >
+                                最終結果: 割合計算
+                            </text>
+
+                            {/* 計算式 */}
+                            <rect
+                                x="80"
+                                y="70"
+                                width="540"
+                                height="100"
+                                fill="#f0f9ff"
+                                stroke="#0284c7"
+                                strokeWidth="2.5"
+                                rx="10"
+                            />
+
+                            <text
+                                x="350"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0c4a6e"
+                            >
+                                immediate_percentage =
+                            </text>
+
+                            <text
+                                x="350"
+                                y="135"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="700"
+                                fill="#059669"
+                            >
+                                {visual.immediate_count} ÷ {visual.total_count} × 100
+                            </text>
+
+                            <text
+                                x="350"
+                                y="160"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#475569"
+                            >
+                                = {visual.percentage.toFixed(2)}%
+                            </text>
+
+                            {/* 詳細 */}
+                            <rect
+                                x="100"
+                                y="200"
+                                width="220"
+                                height="90"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                rx="8"
+                            />
+                            <text
+                                x="210"
+                                y="230"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#065f46"
+                            >
+                                即日配達（immediate）
+                            </text>
+                            <text
+                                x="210"
+                                y="255"
+                                textAnchor="middle"
+                                fontSize="28"
+                                fontWeight="700"
+                                fill="#059669"
+                            >
+                                {visual.immediate_count}
+                            </text>
+                            <text x="210" y="280" textAnchor="middle" fontSize="14" fill="#065f46">
+                                顧客ID: 2, 4
+                            </text>
+
+                            <rect
+                                x="380"
+                                y="200"
+                                width="220"
+                                height="90"
+                                fill="#fee2e2"
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                                rx="8"
+                            />
+                            <text
+                                x="490"
+                                y="230"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#991b1b"
+                            >
+                                予約配達（scheduled）
+                            </text>
+                            <text
+                                x="490"
+                                y="255"
+                                textAnchor="middle"
+                                fontSize="28"
+                                fontWeight="700"
+                                fill="#dc2626"
+                            >
+                                {visual.total_count - visual.immediate_count}
+                            </text>
+                            <text x="490" y="280" textAnchor="middle" fontSize="14" fill="#991b1b">
+                                顧客ID: 1, 3
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            // メインコンポーネント
+            function StepByStepExplanation() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                // 自動再生ロジック（v3.3修正版）
+                useEffect(() => {
+                    if (isPlaying) {
+                        // 最終ステップを超えたら停止してStep 1に戻る
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            // 最終ステップの次はStep 1に直接戻る（図解が消えないように）
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000); // 2秒間隔
+                    }
+
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* 左: ステップリスト */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 60)}
+                                                {step.desc.length > 60 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 右: 可視化 + コントロール */}
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-40 shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-40 shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.30)] bg-slate-600"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Render
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepByStepExplanation />);
+        </script>
+    </body>
+</html>

@@ -17,6 +17,7 @@ description: SVG flowchart and data visualization best practices to avoid common
 1. **Always add 30-50px padding** below the last element in your viewBox height. If the last element ends at y=940 with ry=35, set viewBox height to at least `1000`.
 
 2. **For dynamic data tables**, calculate viewBox height based on number of rows:
+
     ```
     viewBox height = header_height + (row_count × row_height) + summary_text_spacing + padding
     ```

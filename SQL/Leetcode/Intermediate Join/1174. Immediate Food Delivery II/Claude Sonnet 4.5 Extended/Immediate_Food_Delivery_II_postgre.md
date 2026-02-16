@@ -86,9 +86,12 @@ WITH first_orders AS (
   ORDER BY customer_id, order_date
 )
 SELECT
-  ROUND(
-    100.0 * COUNT(*) FILTER (WHERE is_immediate) / COUNT(*),
-    2
+  COALESCE(
+    ROUND(
+      100.0 * COUNT(*) FILTER (WHERE is_immediate) / NULLIF(COUNT(*), 0),
+      2
+    ),
+    0.00
   ) AS immediate_percentage
 FROM first_orders;
 ```

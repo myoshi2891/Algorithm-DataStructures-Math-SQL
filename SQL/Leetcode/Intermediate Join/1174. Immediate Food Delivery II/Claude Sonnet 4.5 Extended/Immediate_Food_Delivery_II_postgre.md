@@ -91,7 +91,7 @@ SELECT
       100.0 * COUNT(*) FILTER (WHERE is_immediate) / NULLIF(COUNT(*), 0),
       2
     ),
-    0.00
+    0.0
   ) AS immediate_percentage
 FROM first_orders;
 ```

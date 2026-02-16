@@ -47,8 +47,11 @@ def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
     # 即日配達判定（order_date == customer_pref_delivery_date）
     is_immediate = (first_orders['order_date'] == first_orders['customer_pref_delivery_date'])
 
-    # 割合を計算（パーセンテージ、小数点2桁）
-    percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
+    # 割合を計算(パーセンテージ、小数点2桁)
+    if is_immediate.empty:
+        percentage = 0.0
+    else:
+        percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
 
     return pd.DataFrame({'immediate_percentage': [percentage]})
 ```
@@ -62,15 +65,20 @@ def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
 # Memory 68.14 MB
 # Beats 52.06%
 def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
-    # 各顧客内でorder_dateの昇順ランク付け
-    delivery['rn'] = delivery.groupby('customer_id')['order_date'].rank(method='first', ascending=True)
+    # 各顧客内でorder_dateの昇順ランク付け(元のDataFrameを変更しない)
+    delivery_with_rank = delivery.assign(
+        rn=delivery.groupby('customer_id')['order_date'].rank(method='first', ascending=True)
+    )
 
     # 最初の注文のみ抽出
-    first_orders = delivery.loc[delivery['rn'] == 1]
+    first_orders = delivery_with_rank.loc[delivery_with_rank['rn'] == 1]
 
     # 即日配達判定と集計
     is_immediate = (first_orders['order_date'] == first_orders['customer_pref_delivery_date'])
-    percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
+    if is_immediate.empty:
+        percentage = 0.0
+    else:
+        percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
 
     return pd.DataFrame({'immediate_percentage': [percentage]})
 ```
@@ -88,12 +96,17 @@ def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
     # 各顧客の最小order_dateを全行に展開
     min_order_date = delivery.groupby('customer_id')['order_date'].transform('min')
 
-    # 最初の注文のみ抽出
-    first_orders = delivery[delivery['order_date'] == min_order_date]
+    # 最初の注文のみ抽出(同じorder_dateが複数ある場合は1行のみ)
+    first_orders = delivery[delivery['order_date'] == min_order_date].drop_duplicates(
+        subset=['customer_id', 'order_date']
+    )
 
     # 即日配達判定と集計
     is_immediate = (first_orders['order_date'] == first_orders['customer_pref_delivery_date'])
-    percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
+    if is_immediate.empty:
+        percentage = 0.0
+    else:
+        percentage = round(100.0 * is_immediate.sum() / len(is_immediate), 2)
 
     return pd.DataFrame({'immediate_percentage': [percentage]})
 ```

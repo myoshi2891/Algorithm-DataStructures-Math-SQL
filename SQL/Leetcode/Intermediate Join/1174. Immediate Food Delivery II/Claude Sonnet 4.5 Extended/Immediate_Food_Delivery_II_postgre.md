@@ -35,10 +35,13 @@ WITH first_orders AS (
   FROM Delivery
 )
 SELECT
-  ROUND(
-    100.0 * SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END)
-    / COUNT(*),
-    2
+  COALESCE(
+    ROUND(
+      100.0 * SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END)
+      / COUNT(*),
+      2
+    ),
+    0.0
   ) AS immediate_percentage
 FROM first_orders
 WHERE rn = 1;
@@ -62,7 +65,7 @@ WITH first_orders AS (
 )
 SELECT
   ROUND(
-    100.0 * AVG(is_immediate::int),
+    100.0 * COALESCE(AVG(is_immediate::int), 0.0),
     2
   ) AS immediate_percentage
 FROM first_orders

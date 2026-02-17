@@ -239,7 +239,11 @@ if __name__ == "__main__":
     dlog(2)
 
     # 2が125ms（75 + 50）に実行される
-    time.sleep(0.1)  # 待機
+    time.sleep(0.1)  # 待機してタイマーを発火させる
+
+    # タイマースレッドが実行を完了するのを待つ
+    # 注: threading.Timerはデーモンスレッドではないため、
+    # メインスレッド終了後も実行される
 ```
 
 ### 主要ステップの説明
@@ -271,8 +275,12 @@ if __name__ == "__main__":
 ```python
 # asyncio版（参考）
 import asyncio
+from typing import Callable, Coroutine, Any
 
-def debounce_async(fn: Callable, t: float) -> Callable:
+def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, None]]:
+    """
+    Returns a coroutine function that must be awaited when called.
+    """
     task: asyncio.Task | None = None
 
     async def debounced(*args, **kwargs):
@@ -337,10 +345,10 @@ class Debouncer:
 
 ```python
 dlog = debounce(log, 0)
-dlog("instant")  # 即座に実行（デバウンスなし）
+dlog("instant")  # Timer(0, fn, ...)でスレッド起動
 ```
 
-**期待動作**: タイマーは即座に発火、実質的にデバウンスなし
+**期待動作**: `Timer(0, fn, ...)` はスケジューラによる遅延があり、完全に即座ではない。連続呼び出しでは前のタイマーがキャンセル前に発火する可能性がある。本当に即座に実行したい場合は `log` を直接呼び出すか、小さい正の値（例: 1ms）を使用することを推奨。
 
 ### 2. 連続呼び出し
 
@@ -424,9 +432,15 @@ dlog_long("delayed")
 **A**: はい。以下のように使用可能：
 
 ```python
-@debounce(fn=lambda: None, t=100)  # ❌ 引数が合わない
+# ❌ 間違った使い方 - debounceは直接デコレータとして使えない
+# @debounce  # これはエラーになる
 
-# 正しいデコレータ化
+# ❌ 技術的には動くが意味的に間違い
+@debounce(fn=lambda: None, t=100)
+# 問題: fnをキーワード引数で渡すと、lambda関数がデバウンスされ、
+# 装飾対象の関数は単なる引数として扱われてしまう
+
+# ✅ 正しいデコレータ化の方法1: ラッパー関数を使う
 def debounce_decorator(t: float):
     def decorator(fn: Callable):
         return debounce(fn, t)
@@ -435,6 +449,9 @@ def debounce_decorator(t: float):
 @debounce_decorator(100)
 def my_func():
     print("Called")
+
+# ✅ 正しい使い方2: 直接呼び出す
+my_func_debounced = debounce(my_func, 100)
 ```
 
 ### Q4. JavaScriptのdebounceとの違いは？

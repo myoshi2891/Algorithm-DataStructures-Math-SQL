@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Debounce - 関数実行の遅延とキャンセル制御 | Python実装</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                min-height: 100vh;
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace !important;
+            }
+
+            /* Prism Toolbar カスタマイズ */
+            .code-toolbar > .toolbar {
+                opacity: 1 !important;
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item > button {
+                background: #10b981 !important;
+                color: white !important;
+                padding: 8px 16px !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                transition: all 0.2s !important;
+            }
+
+            .code-toolbar > .toolbar > .toolbar-item > button:hover {
+                background: #059669 !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+            }
+        </style>
+    </head>
+    <body class="p-4 sm:p-8">
+        <div class="max-w-[1400px] mx-auto">
+            <!-- ヘッダー -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Debounce - 関数実行の遅延とキャンセル制御
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">タイマー管理による O(1) 実装</p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="概要セクションへ"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="ステップ解説へ"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="コード実装へ"
+                    >
+                        コード実装
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="フローチャートへ"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="計算量分析へ"
+                    >
+                        計算量分析
+                    </a>
+                </nav>
+            </header>
+
+            <!-- 概要 -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">問題の説明</h3>
+                        <p class="text-slate-700 leading-7">
+                            関数 <code class="px-2 py-1 bg-slate-100 rounded">fn</code> と遅延時間
+                            <code class="px-2 py-1 bg-slate-100 rounded">t</code
+                            >（ミリ秒）を受け取り、<strong>デバウンスされた関数</strong>を返す。
+                            デバウンスされた関数は以下の性質を持つ：
+                        </p>
+                        <ul
+                            class="list-disc list-inside text-slate-700 leading-7 mt-2 ml-4 space-y-1"
+                        >
+                            <li>
+                                実行が
+                                <code class="px-2 py-1 bg-slate-100 rounded">t</code>
+                                ミリ秒遅延される
+                            </li>
+                            <li>
+                                遅延時間内に再度呼び出されると、<strong>前の実行がキャンセル</strong>される
+                            </li>
+                            <li>
+                                <strong>最後の呼び出しから</strong>
+                                <code class="px-2 py-1 bg-slate-100 rounded">t</code>
+                                ミリ秒後に実行される
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">入出力例</h3>
+                        <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-emerald-500">
+                            <p class="font-semibold text-slate-800 mb-2">Example 1: t = 50ms</p>
+                            <pre class="text-sm text-slate-700"><code>calls = [
+  {"t": 50, "inputs": [1]},
+  {"t": 75, "inputs": [2]}
+]
+Output: [{"t": 125, "inputs": [2]}]
+
+説明: 1回目の呼び出しは2回目によってキャンセルされる
+     2回目は75ms + 50ms = 125msに実行される</code></pre>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-cyan-500 mt-4">
+                            <p class="font-semibold text-slate-800 mb-2">Example 2: t = 20ms</p>
+                            <pre class="text-sm text-slate-700"><code>calls = [
+  {"t": 50, "inputs": [1]},
+  {"t": 100, "inputs": [2]}
+]
+Output: [{"t": 70, "inputs": [1]}, {"t": 120, "inputs": [2]}]
+
+説明: 1回目は50ms + 20ms = 70msに実行
+     2回目は100ms + 20ms = 120msに実行</code></pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">戦略</h3>
+                        <ul class="list-disc list-inside text-slate-700 leading-7 ml-4 space-y-2">
+                            <li>
+                                <code class="px-2 py-1 bg-slate-100 rounded">threading.Timer</code>
+                                を使った遅延実行とキャンセル制御
+                            </li>
+                            <li>
+                                クロージャで
+                                <code class="px-2 py-1 bg-slate-100 rounded">Timer</code>
+                                オブジェクトを保持
+                            </li>
+                            <li>関数が呼ばれるたびに、既存のタイマーをキャンセル</li>
+                            <li>
+                                新しいタイマーを
+                                <code class="px-2 py-1 bg-slate-100 rounded">t/1000</code>
+                                秒後にセット
+                            </li>
+                            <li>最新の引数をクロージャで保持</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">主要ポイント</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                                <p class="font-semibold text-emerald-800 mb-1">⏱️ 時間計算量</p>
+                                <p class="text-slate-700">O(1) per call</p>
+                            </div>
+                            <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                                <p class="font-semibold text-cyan-800 mb-1">💾 空間計算量</p>
+                                <p class="text-slate-700">O(1) - タイマー1つのみ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップバイステップ解説 -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-visualization-root"></div>
+            </section>
+
+            <!-- Python実装 -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from __future__ import annotations
+from typing import Callable, Any
+from threading import Timer
+
+
+def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
+    """
+    関数の実行をデバウンスする（遅延実行＆キャンセル機能付き）
+
+    Args:
+        fn: デバウンス対象の関数
+        t: 遅延時間（ミリ秒）
+
+    Returns:
+        デバウンスされた関数
+
+    Complexity:
+        Time: O(1) per call
+        Space: O(1)
+    """
+    # タイマーオブジェクトを保持するクロージャ変数
+    timer: Timer | None = None
+
+    def debounced_func(*args: Any, **kwargs: Any) -> None:
+        nonlocal timer
+
+        # 既存のタイマーがあればキャンセル
+        if timer is not None:
+            timer.cancel()
+
+        # 新しいタイマーをセット（t/1000 秒後に fn を実行）
+        # threading.Timer は秒単位なので、ミリ秒を秒に変換
+        timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+        timer.start()
+
+    return debounced_func
+
+
+# LeetCode形式の実装例
+class Solution:
+    """
+    LeetCode形式のラッパークラス
+    実際のLeetCodeにはこの問題はJavaScript/TypeScriptのみだが、
+    Pythonで同等の機能を提供
+    """
+
+    def debounce(self, fn: Callable[..., Any], t: int) -> Callable[..., None]:
+        """
+        Args:
+            fn: デバウンス対象の関数
+            t: 遅延時間（ミリ秒、整数）
+
+        Returns:
+            デバウンスされた関数
+        """
+        timer: Timer | None = None
+
+        def debounced(*args: Any, **kwargs: Any) -> None:
+            nonlocal timer
+
+            # 基底条件: タイマーが存在すればキャンセル
+            if timer is not None:
+                timer.cancel()
+
+            # 遷移: 新しいタイマーを作成して開始
+            # t ミリ秒 = t/1000 秒
+            timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+            timer.start()
+
+        return debounced</code></pre>
+            </section>
+
+            <!-- フローチャート -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 720"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Debounce flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            デバウンス呼び出し
+                        </text>
+
+                        <!-- 開始 → タイマー確認 -->
+                        <path
+                            d="M 420 85 L 420 150"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- タイマー確認 -->
+                        <path
+                            d="M 420 150 L 500 200 L 420 250 L 340 200 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="420"
+                            y="195"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            タイマーあり？
+                        </text>
+                        <text
+                            x="420"
+                            y="215"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#78350f"
+                        >
+                            timer != None
+                        </text>
+
+                        <!-- はい → キャンセル -->
+                        <path
+                            d="M 500 200 L 640 200"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="570"
+                            y="185"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- キャンセル処理 -->
+                        <rect
+                            x="640"
+                            y="170"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="720"
+                            y="195"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            タイマーキャンセル
+                        </text>
+                        <text
+                            x="720"
+                            y="215"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            timer.cancel()
+                        </text>
+
+                        <!-- キャンセル → 新規タイマー（右から下へ） -->
+                        <path
+                            d="M 720 230 L 720 320 L 550 320"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- いいえ → 新規タイマー -->
+                        <path
+                            d="M 420 250 L 420 320 L 450 320"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="360"
+                            y="285"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- 新規タイマーセット -->
+                        <rect
+                            x="450"
+                            y="290"
+                            width="100"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="500"
+                            y="310"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            新規タイマー
+                        </text>
+                        <text
+                            x="500"
+                            y="330"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            Timer(t/1000)
+                        </text>
+
+                        <!-- 新規タイマー → 引数保存 -->
+                        <path
+                            d="M 500 350 L 500 400"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 引数保存 -->
+                        <rect
+                            x="420"
+                            y="400"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="500"
+                            y="420"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            引数保存
+                        </text>
+                        <text
+                            x="500"
+                            y="440"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            クロージャに保持
+                        </text>
+
+                        <!-- 引数保存 → タイマー開始 -->
+                        <path
+                            d="M 500 460 L 500 510"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- タイマー開始 -->
+                        <rect
+                            x="420"
+                            y="510"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="500"
+                            y="530"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            タイマー開始
+                        </text>
+                        <text
+                            x="500"
+                            y="550"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            timer.start()
+                        </text>
+
+                        <!-- タイマー開始 → 実行 -->
+                        <path
+                            d="M 500 570 L 500 620"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text x="550" y="595" text-anchor="start" font-size="14" fill="#059669">
+                            t ms 待機後
+                        </text>
+
+                        <!-- 関数実行 -->
+                        <ellipse
+                            cx="500"
+                            cy="655"
+                            rx="120"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="500"
+                            y="655"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            fn(*args, **kwargs) 実行
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. デバウンス関数が呼ばれると、まず既存のタイマーの有無を確認<br />
+                    2. タイマーがあれば即座にキャンセル（前の実行を中止）<br />
+                    3. 新しいタイマーを t/1000 秒後に設定<br />
+                    4. 呼び出し時の引数をクロージャに保存<br />
+                    5. タイマーを開始し、t ミリ秒待機<br />
+                    6. 待機完了後、保存された引数で元の関数 fn を実行
+                </p>
+            </section>
+
+            <!-- 計算量分析 -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">時間計算量</h3>
+                        <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                            <p class="text-lg font-semibold text-emerald-800 mb-2">O(1) per call</p>
+                            <ul class="list-disc list-inside text-slate-700 ml-4 space-y-1">
+                                <li>タイマーのキャンセル: O(1)</li>
+                                <li>新規タイマーの生成: O(1)</li>
+                                <li>実行時: O(f) where f は元の関数 fn の計算量</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">空間計算量</h3>
+                        <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                            <p class="text-lg font-semibold text-cyan-800 mb-2">O(1)</p>
+                            <ul class="list-disc list-inside text-slate-700 ml-4 space-y-1">
+                                <li>タイマーオブジェクト1つと引数のタプル/辞書のみ</li>
+                                <li>引数のサイズ: O(args_size) だが、これは呼び出し元の責任</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">実装比較</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100">
+                                        <th class="border border-slate-300 px-4 py-2 text-left">
+                                            実装方式
+                                        </th>
+                                        <th class="border border-slate-300 px-4 py-2 text-left">
+                                            メリット
+                                        </th>
+                                        <th class="border border-slate-300 px-4 py-2 text-left">
+                                            デメリット
+                                        </th>
+                                        <th class="border border-slate-300 px-4 py-2 text-left">
+                                            用途
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="border border-slate-300 px-4 py-2 font-semibold">
+                                            threading.Timer<br />(本実装)
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ✅ 同期コードで使いやすい<br />
+                                            ✅ 追加の依存なし
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ❌ スレッドオーバーヘッド
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            汎用的な用途
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-slate-300 px-4 py-2 font-semibold">
+                                            asyncio
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ✅ スレッドなしで軽量<br />
+                                            ✅ 大量の同時debounce処理に有利
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ❌ async/awaitの学習コスト
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            非同期処理が主体
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-slate-300 px-4 py-2 font-semibold">
+                                            time.sleep
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ✅ 最もシンプル
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            ❌ ブロッキング<br />
+                                            ❌ キャンセル不可
+                                        </td>
+                                        <td class="border border-slate-300 px-4 py-2">
+                                            debounceには不適
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- フッター -->
+            <footer class="text-center text-slate-600 mt-12 pb-8">
+                <p class="text-sm">
+                    © 2026 Algorithm Visualization | Python + React Implementation
+                </p>
+            </footer>
+        </div>
+
+        <!-- React & ReactDOM (Production) -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script
+            src="https://unpkg.com/@babel/standalone/babel.min.js"
+            crossorigin="anonymous"
+        ></script>
+
+        <!-- Prism.js -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"
+            crossorigin="anonymous"
+        ></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ステップデータ
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期状態',
+                    desc: 'debounce関数が呼ばれ、ラッパー関数が返される。この時点ではタイマーはまだセットされていない（timer = None）。',
+                    visual: {
+                        type: 'init',
+                        timer: null,
+                        calls: [],
+                        executedAt: null,
+                    },
+                },
+                {
+                    step: 2,
+                    title: '最初の呼び出し (t=50ms, args=[1])',
+                    desc: 'dlog(1)が50msで呼ばれる。タイマーなし→新規タイマーをセット（100msに実行予定）。引数[1]をクロージャに保存。',
+                    visual: {
+                        type: 'firstCall',
+                        timer: { id: 1, scheduledAt: 100, args: [1], status: 'active' },
+                        calls: [{ t: 50, args: [1], status: 'pending' }],
+                        executedAt: null,
+                        currentTime: 50,
+                    },
+                },
+                {
+                    step: 3,
+                    title: '2回目の呼び出し (t=75ms, args=[2])',
+                    desc: 'dlog(2)が75msで呼ばれる。既存のタイマー(ID:1)をキャンセル→新規タイマーをセット（125msに実行予定）。引数[2]で上書き。',
+                    visual: {
+                        type: 'secondCall',
+                        timer: { id: 2, scheduledAt: 125, args: [2], status: 'active' },
+                        calls: [
+                            { t: 50, args: [1], status: 'cancelled' },
+                            { t: 75, args: [2], status: 'pending' },
+                        ],
+                        executedAt: null,
+                        currentTime: 75,
+                    },
+                },
+                {
+                    step: 4,
+                    title: '待機期間 (t=100ms)',
+                    desc: '100ms時点。前のタイマー(ID:1)は既にキャンセル済み。現在のタイマー(ID:2)は125msまで待機中。',
+                    visual: {
+                        type: 'waiting',
+                        timer: { id: 2, scheduledAt: 125, args: [2], status: 'active' },
+                        calls: [
+                            { t: 50, args: [1], status: 'cancelled' },
+                            { t: 75, args: [2], status: 'pending' },
+                        ],
+                        executedAt: null,
+                        currentTime: 100,
+                    },
+                },
+                {
+                    step: 5,
+                    title: '関数実行 (t=125ms)',
+                    desc: '125ms到達。タイマー(ID:2)が発火し、fn(2)が実行される。最後の呼び出しの引数[2]が使用される。',
+                    visual: {
+                        type: 'executed',
+                        timer: null,
+                        calls: [
+                            { t: 50, args: [1], status: 'cancelled' },
+                            { t: 75, args: [2], status: 'executed' },
+                        ],
+                        executedAt: 125,
+                        currentTime: 125,
+                    },
+                },
+                {
+                    step: 6,
+                    title: '完了状態',
+                    desc: 'debounce処理完了。結果として、最後の呼び出し dlog(2) のみが実行された。最初の呼び出し dlog(1) はキャンセルされた。',
+                    visual: {
+                        type: 'result',
+                        timer: null,
+                        calls: [
+                            { t: 50, args: [1], status: 'cancelled' },
+                            { t: 75, args: [2], status: 'executed' },
+                        ],
+                        executedAt: 125,
+                        currentTime: 125,
+                        summary: "Output: [{'t': 125, 'inputs': [2]}]",
+                    },
+                },
+            ];
+
+            // 可視化コンポーネント
+            function StepVisualization({ visual }) {
+                if (!visual) return null;
+
+                const { type, timer, calls, executedAt, currentTime, summary } = visual;
+
+                return (
+                    <div className="mt-6 rounded-xl p-6 bg-white border-2 border-slate-200">
+                        <svg
+                            viewBox="0 0 700 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                            role="img"
+                            aria-label="デバウンス動作のタイムライン可視化"
+                        >
+                            {/* タイムライン */}
+                            <line
+                                x1="50"
+                                y1="80"
+                                x2="650"
+                                y2="80"
+                                stroke="#cbd5e1"
+                                strokeWidth="3"
+                            />
+
+                            {/* 時刻マーカー */}
+                            <text x="50" y="110" textAnchor="middle" fontSize="14" fill="#475569">
+                                0ms
+                            </text>
+                            <text x="200" y="110" textAnchor="middle" fontSize="14" fill="#475569">
+                                50ms
+                            </text>
+                            <text x="350" y="110" textAnchor="middle" fontSize="14" fill="#475569">
+                                100ms
+                            </text>
+                            <text x="500" y="110" textAnchor="middle" fontSize="14" fill="#475569">
+                                150ms
+                            </text>
+
+                            {/* 現在時刻インジケーター */}
+                            {currentTime !== null && currentTime !== undefined && (
+                                <>
+                                    <line
+                                        x1={50 + (currentTime / 150) * 450}
+                                        y1="60"
+                                        x2={50 + (currentTime / 150) * 450}
+                                        y2="100"
+                                        stroke="#8b5cf6"
+                                        strokeWidth="3"
+                                        strokeDasharray="5,5"
+                                    />
+                                    <text
+                                        x={50 + (currentTime / 150) * 450}
+                                        y="50"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fontWeight="bold"
+                                        fill="#8b5cf6"
+                                    >
+                                        現在: {currentTime}ms
+                                    </text>
+                                </>
+                            )}
+
+                            {/* 呼び出しイベント */}
+                            {calls &&
+                                calls.map((call, idx) => {
+                                    const x = 50 + (call.t / 150) * 450;
+                                    const color =
+                                        call.status === 'cancelled'
+                                            ? '#dc2626'
+                                            : call.status === 'executed'
+                                              ? '#059669'
+                                              : '#f59e0b';
+                                    const label =
+                                        call.status === 'cancelled'
+                                            ? '×'
+                                            : call.status === 'executed'
+                                              ? '✓'
+                                              : '◯';
+
+                                    return (
+                                        <g key={idx}>
+                                            <circle cx={x} cy={80} r="8" fill={color} />
+                                            <text
+                                                x={x}
+                                                y={145}
+                                                textAnchor="middle"
+                                                fontSize="14"
+                                                fontWeight="bold"
+                                                fill={color}
+                                            >
+                                                dlog({call.args.join(', ')})
+                                            </text>
+                                            <text
+                                                x={x}
+                                                y={165}
+                                                textAnchor="middle"
+                                                fontSize="12"
+                                                fill="#64748b"
+                                            >
+                                                {call.t}ms
+                                            </text>
+                                            <text
+                                                x={x}
+                                                y="75"
+                                                textAnchor="middle"
+                                                fontSize="20"
+                                                fontWeight="bold"
+                                                fill="white"
+                                            >
+                                                {label}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+
+                            {/* 実行タイミング */}
+                            {executedAt !== null && executedAt !== undefined && (
+                                <>
+                                    <circle
+                                        cx={50 + (executedAt / 150) * 450}
+                                        cy={80}
+                                        r="12"
+                                        fill="none"
+                                        stroke="#059669"
+                                        strokeWidth="3"
+                                    />
+                                    <text
+                                        x={50 + (executedAt / 150) * 450}
+                                        y="200"
+                                        textAnchor="middle"
+                                        fontSize="16"
+                                        fontWeight="bold"
+                                        fill="#059669"
+                                    >
+                                        fn 実行
+                                    </text>
+                                </>
+                            )}
+
+                            {/* タイマー状態表示 */}
+                            <rect
+                                x="50"
+                                y="230"
+                                width="600"
+                                height="100"
+                                rx="8"
+                                fill="#f8fafc"
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+                            <text x="70" y="255" fontSize="16" fontWeight="bold" fill="#334155">
+                                タイマー状態:
+                            </text>
+
+                            {timer ? (
+                                <>
+                                    <text x="70" y="280" fontSize="14" fill="#059669">
+                                        ✓ アクティブ (ID: {timer.id})
+                                    </text>
+                                    <text x="70" y="300" fontSize="14" fill="#475569">
+                                        実行予定: {timer.scheduledAt}ms
+                                    </text>
+                                    <text x="70" y="320" fontSize="14" fill="#475569">
+                                        引数: [{timer.args.join(', ')}]
+                                    </text>
+                                </>
+                            ) : (
+                                <text x="70" y="280" fontSize="14" fill="#64748b">
+                                    ⊘ タイマーなし
+                                </text>
+                            )}
+
+                            {/* サマリー */}
+                            {summary && (
+                                <text
+                                    x="350"
+                                    y="280"
+                                    textAnchor="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="#059669"
+                                >
+                                    {summary}
+                                </text>
+                            )}
+                        </svg>
+
+                        {/* 状態の説明 */}
+                        <div className="mt-4 p-4 bg-slate-50 rounded-lg">
+                            <p className="text-sm text-slate-700 leading-6">
+                                {type === 'init' && 'まだ呼び出しが発生していない初期状態です。'}
+                                {type === 'firstCall' &&
+                                    '最初の呼び出しが発生し、タイマーがセットされました。'}
+                                {type === 'secondCall' &&
+                                    '2回目の呼び出しにより、前のタイマーがキャンセルされ、新しいタイマーがセットされました。'}
+                                {type === 'waiting' && 'タイマーが実行時刻まで待機中です。'}
+                                {type === 'executed' && 'タイマーが発火し、関数が実行されました。'}
+                                {type === 'result' &&
+                                    '処理が完了しました。最後の呼び出しのみが実行されています。'}
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+
+            // メインコンポーネント
+            function StepByStepVisualization() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                // 自動再生ロジック（v3.3）
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* 左: ステップリスト */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 60)}
+                                                {step.desc.length > 60 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 右: 可視化 + コントロール */}
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7 mt-2">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            {/* コントロールボタン */}
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(100,116,139,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↻ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // レンダリング
+            const root = ReactDOM.createRoot(document.getElementById('step-visualization-root'));
+            root.render(<StepByStepVisualization />);
+        </script>
+    </body>
+</html>

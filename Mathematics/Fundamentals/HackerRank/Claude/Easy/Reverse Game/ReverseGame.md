@@ -1,4 +1,4 @@
-## 問題分析
+## Quick Reference
 
 n個のボール [0, 1, ..., n-1] に対して、位置 0, 1, 2, ... から順に末尾まで逆順操作を繰り返す。
 
@@ -196,7 +196,6 @@ flowchart TD
   Branch{k &lt; tau ?}
   OddPath[奇数インデックス配置<br>位置 = 2k + 1]
   EvenPath["偶数インデックス配置<br>位置 = 2 × (n - 1 - k)"]
-  Output[出力-1-k]
   Output[インデックスを出力]
 
   Start --> Threshold
@@ -370,7 +369,7 @@ input = sys.stdin.readline   # input() より約3倍高速
 
 ### `from __future__ import annotations`
 
-Python 3.13 以降の型注釈評価を遅延させ、インポート時のコストを削減する。
+Python 3.7 以降（PEP 563）で型注釈の評価を遅延させ（アノテーションを文字列として保存し実行時まで評価しない）、インポート時のコストを削減する。
 
 ---
 

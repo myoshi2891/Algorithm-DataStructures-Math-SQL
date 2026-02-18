@@ -66,8 +66,8 @@ def solve_production(n: int, k: int) -> int:
     Raises:
         ValueError: 制約違反の場合
     """
-    if n <= 0:
-        raise ValueError(f"n must be positive, got {n}")
+    if n < 1:
+        raise ValueError(f"n must be >= 1, got {n}")
     if not (0 <= k < n):
         raise ValueError(f"k must satisfy 0 <= k < n, got k={k}, n={n}")
 

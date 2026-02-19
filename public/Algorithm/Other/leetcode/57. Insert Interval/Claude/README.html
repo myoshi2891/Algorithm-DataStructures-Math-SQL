@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Insert Interval Algorithm Analysis</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                text-align: center;
+                color: white;
+                margin-bottom: 30px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .header h1 {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+            }
+
+            .header p {
+                font-size: 1.2em;
+                opacity: 0.9;
+            }
+
+            .section {
+                background: white;
+                border-radius: 15px;
+                margin-bottom: 30px;
+                padding: 25px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            }
+
+            .section h2 {
+                color: #4a5568;
+                font-size: 1.8em;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section h2::before {
+                content: '🔧';
+                font-size: 1.2em;
+            }
+
+            .code-container {
+                position: relative;
+                margin: 20px 0;
+            }
+
+            .code-header {
+                background: #2d3748;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 8px 8px 0 0;
+                font-size: 0.9em;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .copy-btn {
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8em;
+                transition: background 0.3s ease;
+            }
+
+            .copy-btn:hover {
+                background: #5a67d8;
+            }
+
+            .code-block {
+                background: #1a1a1a;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 0 0 8px 8px;
+                font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+                font-size: 14px;
+                line-height: 1.5;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                position: relative;
+            }
+
+            .line-number {
+                display: inline-block;
+                width: 30px;
+                color: #6b7280;
+                text-align: right;
+                margin-right: 15px;
+                user-select: none;
+            }
+
+            .keyword {
+                color: #8b5cf6;
+            }
+
+            .string {
+                color: #10b981;
+            }
+
+            .comment {
+                color: #6b7280;
+            }
+
+            .function-name {
+                color: #3b82f6;
+            }
+
+            .type {
+                color: #f59e0b;
+            }
+
+            .operator {
+                color: #ef4444;
+            }
+
+            .visualization {
+                background: #f7fafc;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .step {
+                margin: 20px 0;
+                padding: 15px;
+                border-left: 4px solid #667eea;
+                background: #f0f4f8;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .step h3,
+            .step h4 {
+                color: #2d3748;
+                margin-bottom: 10px;
+            }
+
+            .interval-display {
+                display: flex;
+                gap: 10px;
+                margin: 10px 0;
+                flex-wrap: wrap;
+            }
+
+            .interval {
+                background: #4299e1;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .interval:hover {
+                transform: scale(1.05);
+                background: #3182ce;
+            }
+
+            .interval.new {
+                background: #ed8936;
+            }
+
+            .interval.merged {
+                background: #38a169;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 12px;
+                text-align: left;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .complexity-table th {
+                background: #667eea;
+                color: white;
+            }
+
+            .complexity-table tr:hover {
+                background: #f7fafc;
+            }
+
+            .demo-button {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 1em;
+                transition: all 0.3s ease;
+                margin: 10px 5px;
+            }
+
+            .demo-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .algorithm-flow {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .flow-step {
+                background: #f7fafc;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .flow-step:hover {
+                border-color: #667eea;
+                transform: translateY(-5px);
+            }
+
+            .flow-step::before {
+                content: '⚙️';
+                font-size: 2em;
+                display: block;
+                margin-bottom: 10px;
+            }
+
+            .flow-step:nth-child(1)::before {
+                content: '⬅️';
+            }
+
+            .flow-step:nth-child(2)::before {
+                content: '🔄';
+            }
+
+            .flow-step:nth-child(3)::before {
+                content: '➡️';
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+
+                .header h1 {
+                    font-size: 2em;
+                }
+
+                .section {
+                    padding: 15px;
+                }
+            }
+
+            .error-display {
+                background: #fed7d7;
+                border: 1px solid #fc8181;
+                color: #c53030;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+                display: none;
+            }
+
+            .success-display {
+                background: #c6f6d5;
+                border: 1px solid #68d391;
+                color: #2f855a;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔧 Insert Interval Algorithm Analysis</h1>
+                <p>TypeScriptを用いた効率的な区間挿入アルゴリズムの詳細解析</p>
+            </div>
+
+            <div class="section">
+                <h2>TypeScript実装コード</h2>
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>TypeScript Implementation</span>
+                        <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+                    </div>
+                    <div class="code-block" id="main-code">
+                        <span class="comment"
+                            >/** * Insert a new interval into a sorted array of non-overlapping
+                            intervals * @param intervals - Array of non-overlapping intervals sorted
+                            by start time * @param newInterval - New interval to insert [start, end]
+                            * @returns New array of intervals after insertion and merging */</span
+                        >
+                        <span class="keyword">function</span>
+                        <span class="function-name">insert</span>(<span class="type">intervals</span
+                        >: <span class="type">number[][]</span>,
+                        <span class="type">newInterval</span>: <span class="type">number[]</span>):
+                        <span class="type">number[][]</span> { <span class="keyword">const</span>
+                        <span class="type">result</span>: <span class="type">number[][]</span>
+                        <span class="operator">=</span> []; <span class="keyword">let</span>
+                        <span class="type">i</span> <span class="operator">=</span>
+                        <span class="string">0</span>; <span class="keyword">const</span>
+                        <span class="type">n</span>
+                        <span class="operator">=</span> intervals.length;
+
+                        <span class="comment"
+                            >// Step 1: Add all intervals that end before newInterval starts</span
+                        >
+                        <span class="keyword">while</span> (i <span class="operator">&lt;</span> n
+                        <span class="operator">&amp;&amp;</span> intervals[i][<span class="string"
+                            >1</span
+                        >] <span class="operator">&lt;</span> newInterval[<span class="string"
+                            >0</span
+                        >]) { result.push(intervals[i]); i<span class="operator">++</span>; }
+
+                        <span class="comment"
+                            >// Step 2: Merge all overlapping intervals with newInterval</span
+                        >
+                        <span class="keyword">let</span> <span class="type">mergedStart</span>
+                        <span class="operator">=</span> newInterval[<span class="string">0</span>];
+                        <span class="keyword">let</span> <span class="type">mergedEnd</span>
+                        <span class="operator">=</span> newInterval[<span class="string">1</span>];
+
+                        <span class="keyword">while</span> (i <span class="operator">&lt;</span> n
+                        <span class="operator">&amp;&amp;</span> intervals[i][<span class="string"
+                            >0</span
+                        >] <span class="operator">&lt;=</span> newInterval[<span class="string"
+                            >1</span
+                        >]) { mergedStart <span class="operator">=</span>
+                        <span class="function-name">Math.min</span>(mergedStart, intervals[i][<span
+                            class="string"
+                            >0</span
+                        >]); mergedEnd <span class="operator">=</span>
+                        <span class="function-name">Math.max</span>(mergedEnd, intervals[i][<span
+                            class="string"
+                            >1</span
+                        >]); i<span class="operator">++</span>; }
+
+                        <span class="comment">// Add the merged interval</span>
+                        result.push([mergedStart, mergedEnd]);
+
+                        <span class="comment"
+                            >// Step 3: Add all remaining intervals that start after newInterval
+                            ends</span
+                        >
+                        <span class="keyword">while</span> (i <span class="operator">&lt;</span> n)
+                        { result.push(intervals[i]); i<span class="operator">++</span>; }
+
+                        <span class="keyword">return</span> result; }
+                    </div>
+                    <div class="error-display" id="error-display"></div>
+                    <div class="success-display" id="success-display"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>アルゴリズムフロー</h2>
+                <div class="algorithm-flow">
+                    <div class="flow-step" onclick="highlightStep(1)">
+                        <h3>Step 1</h3>
+                        <p>新区間開始前に終了する区間を追加</p>
+                    </div>
+                    <div class="flow-step" onclick="highlightStep(2)">
+                        <h3>Step 2</h3>
+                        <p>重複区間をマージ</p>
+                    </div>
+                    <div class="flow-step" onclick="highlightStep(3)">
+                        <h3>Step 3</h3>
+                        <p>新区間終了後に開始する区間を追加</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>視覚的デモンストレーション</h2>
+                <div class="visualization">
+                    <h3>Example 1: intervals = [[1,3],[6,9]], newInterval = [2,5]</h3>
+                    <button class="demo-button" onclick="runDemo1()">▶️ デモ実行</button>
+                    <div id="demo1-container"></div>
+                </div>
+
+                <div class="visualization">
+                    <h3>
+                        Example 2: intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval =
+                        [4,8]
+                    </h3>
+                    <button class="demo-button" onclick="runDemo2()">▶️ デモ実行</button>
+                    <div id="demo2-container"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>各ステップの詳細解析</h2>
+
+                <div class="step">
+                    <h3>Step 1: 前処理 (Non-overlapping前区間の追加)</h3>
+                    <p><strong>条件:</strong> <code>intervals[i][1] < newInterval[0]</code></p>
+                    <p><strong>処理:</strong> 新区間と重複しない前の区間をそのまま結果に追加</p>
+                </div>
+
+                <div class="step">
+                    <h3>Step 2: マージ処理 (重複区間の統合)</h3>
+                    <p><strong>条件:</strong> <code>intervals[i][0] <= newInterval[1]</code></p>
+                    <p><strong>処理:</strong> 重複する全ての区間を新区間と統合</p>
+                </div>
+
+                <div class="step">
+                    <h3>Step 3: 後処理 (残り区間の追加)</h3>
+                    <p><strong>条件:</strong> <code>i < n</code> (残りの区間が存在)</p>
+                    <p><strong>処理:</strong> 新区間と重複しない後の区間をそのまま結果に追加</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>計算量解析</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>計算量</th>
+                            <th>説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>時間計算量</strong></td>
+                            <td>O(n)</td>
+                            <td>配列を一度だけ線形走査</td>
+                        </tr>
+                        <tr>
+                            <td><strong>空間計算量</strong></td>
+                            <td>O(1)</td>
+                            <td>結果配列以外の追加領域は定数</td>
+                        </tr>
+                        <tr>
+                            <td><strong>最悪ケース</strong></td>
+                            <td>O(n)</td>
+                            <td>全区間が重複する場合でも線形時間</td>
+                        </tr>
+                        <tr>
+                            <td><strong>最良ケース</strong></td>
+                            <td>O(n)</td>
+                            <td>重複なしでも全配列走査が必要</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>最適化のポイント</h2>
+                <div class="step">
+                    <h3>1. 単一パス処理</h3>
+                    <p>配列を一度だけ走査することで、効率的な処理を実現</p>
+                </div>
+                <div class="step">
+                    <h3>2. 3段階分割</h3>
+                    <p>処理を明確に3段階に分けることで、複雑な条件判定を回避</p>
+                </div>
+                <div class="step">
+                    <h3>3. Math.min/maxの活用</h3>
+                    <p>条件分岐を最小化し、コードの可読性と効率性を向上</p>
+                </div>
+                <div class="step">
+                    <h3>4. TypeScript型安全性</h3>
+                    <p>コンパイル時の型チェックによる実行時エラーの防止</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Error handling
+            function showError(message) {
+                console.error(message);
+                const errorDiv = document.getElementById('error-display');
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            function showSuccess(message) {
+                console.log(message);
+                const successDiv = document.getElementById('success-display');
+                if (successDiv) {
+                    successDiv.textContent = message;
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        successDiv.style.display = 'none';
+                    }, 3000);
+                }
+            }
+
+            function copyCode() {
+                try {
+                    const codeElement = document.getElementById('main-code');
+                    if (!codeElement) {
+                        showError('Code element not found');
+                        return;
+                    }
+
+                    const code = codeElement.textContent || codeElement.innerText;
+
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard
+                            .writeText(code)
+                            .then(() => {
+                                showCopySuccess();
+                            })
+                            .catch((err) => {
+                                showError('Clipboard write failed: ' + err.message);
+                                fallbackCopyTextToClipboard(code);
+                            });
+                    } else {
+                        fallbackCopyTextToClipboard(code);
+                    }
+                } catch (error) {
+                    showError('Copy function error: ' + error.message);
+                }
+            }
+
+            function fallbackCopyTextToClipboard(text) {
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+
+                    if (successful) {
+                        showCopySuccess();
+                    } else {
+                        showError('Fallback copy failed');
+                    }
+                } catch (err) {
+                    showError('Fallback copy error: ' + err.message);
+                }
+            }
+
+            function showCopySuccess() {
+                const btn = document.querySelector('.copy-btn');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ Copied!';
+                    btn.style.background = '#38a169';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '#667eea';
+                    }, 2000);
+                }
+                showSuccess('Code copied to clipboard!');
+            }
+
+            function highlightStep(step) {
+                try {
+                    const steps = document.querySelectorAll('.flow-step');
+                    if (!steps || steps.length < step) {
+                        showError('Invalid step or steps not found');
+                        return;
+                    }
+
+                    steps.forEach((s) => {
+                        s.style.borderColor = '#e2e8f0';
+                        s.style.background = '#f7fafc';
+                    });
+
+                    const currentStep = steps[step - 1];
+                    if (currentStep) {
+                        currentStep.style.borderColor = '#667eea';
+                        currentStep.style.background = '#f0f4f8';
+
+                        setTimeout(() => {
+                            currentStep.style.background = '#f7fafc';
+                        }, 1000);
+                    }
+                } catch (error) {
+                    showError('Highlight step error: ' + error.message);
+                }
+            }
+
+            function createIntervalDisplay(intervals, className = 'interval') {
+                if (!Array.isArray(intervals)) {
+                    return '';
+                }
+                return intervals
+                    .map((interval) => {
+                        if (!Array.isArray(interval) || interval.length < 2) {
+                            return '';
+                        }
+                        return (
+                            '<span class="' +
+                            className +
+                            '">[' +
+                            interval[0] +
+                            ',' +
+                            interval[1] +
+                            ']</span>'
+                        );
+                    })
+                    .join('');
+            }
+
+            function runDemo1() {
+                try {
+                    const container = document.getElementById('demo1-container');
+                    if (!container) {
+                        showError('Demo1 container not found');
+                        return;
+                    }
+
+                    const intervals = [
+                        [1, 3],
+                        [6, 9],
+                    ];
+                    const newInterval = [2, 5];
+
+                    container.innerHTML =
+                        '<div class="step">' +
+                        '<h4>初期状態:</h4>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay(intervals) +
+                        createIntervalDisplay([newInterval], 'interval new') +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>Step 1: 前区間チェック</h4>' +
+                        '<p>[1,3]の終了時刻3 ≮ 新区間開始時刻2 → 重複可能性あり</p>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>Step 2: マージ処理</h4>' +
+                        '<p>[1,3]と[2,5]をマージ → [1,5]</p>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay([[1, 5]], 'interval merged') +
+                        createIntervalDisplay([[6, 9]]) +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>最終結果:</h4>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay(
+                            [
+                                [1, 5],
+                                [6, 9],
+                            ],
+                            'interval merged',
+                        ) +
+                        '</div>' +
+                        '</div>';
+
+                    showSuccess('Demo 1 executed successfully');
+                } catch (error) {
+                    showError('Demo1 error: ' + error.message);
+                }
+            }
+
+            function runDemo2() {
+                try {
+                    const container = document.getElementById('demo2-container');
+                    if (!container) {
+                        showError('Demo2 container not found');
+                        return;
+                    }
+
+                    const intervals = [
+                        [1, 2],
+                        [3, 5],
+                        [6, 7],
+                        [8, 10],
+                        [12, 16],
+                    ];
+                    const newInterval = [4, 8];
+
+                    container.innerHTML =
+                        '<div class="step">' +
+                        '<h4>初期状態:</h4>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay(intervals) +
+                        createIntervalDisplay([newInterval], 'interval new') +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>Step 1: 前区間追加</h4>' +
+                        '<p>[1,2]の終了時刻2 < 新区間開始時刻4 → 結果に追加</p>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay([[1, 2]]) +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>Step 2: マージ処理</h4>' +
+                        '<p>[3,5], [6,7], [8,10]と[4,8]をマージ → [3,10]</p>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay([[1, 2]]) +
+                        createIntervalDisplay([[3, 10]], 'interval merged') +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>Step 3: 後区間追加</h4>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay([[1, 2]]) +
+                        createIntervalDisplay([[3, 10]], 'interval merged') +
+                        createIntervalDisplay([[12, 16]]) +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="step">' +
+                        '<h4>最終結果:</h4>' +
+                        '<div class="interval-display">' +
+                        createIntervalDisplay(
+                            [
+                                [1, 2],
+                                [3, 10],
+                                [12, 16],
+                            ],
+                            'interval merged',
+                        ) +
+                        '</div>' +
+                        '</div>';
+
+                    showSuccess('Demo 2 executed successfully');
+                } catch (error) {
+                    showError('Demo2 error: ' + error.message);
+                }
+            }
+
+            // Initialize when page loads
+            window.addEventListener('load', function () {
+                try {
+                    console.log('Page loaded successfully');
+                    showSuccess('Page initialized successfully');
+                } catch (error) {
+                    showError('Initialization error: ' + error.message);
+                }
+            });
+
+            // Global error handler
+            window.addEventListener('error', function (e) {
+                const message = e.error ? e.error.message : e.message || 'Unknown error';
+                showError('Global error: ' + message);
+                console.error('Global error details:', e);
+                return false;
+            });
+
+            window.addEventListener('unhandledrejection', function (e) {
+                showError('Unhandled promise rejection: ' + e.reason);
+                console.error('Unhandled rejection:', e);
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1505 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 67: Add Binary - 二進数加算</title>
+        <script crossorigin src="/vendor/react/react.development.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.development.js"
+        ></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/themes/prism.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <div style="max-width: 1400px; margin: 0 auto">
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">LeetCode 67: Add Binary</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    右から左へのビット加算 による O(max(m,n)) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+                <p class="text-slate-700 leading-7 mb-4">
+                    2つの二進数文字列
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">a</code> と
+                    <code class="px-2 py-1 bg-slate-100 rounded text-sm">b</code>
+                    が与えられます。これらを加算し、結果を二進数文字列として返します。
+                </p>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                    <p class="font-semibold mb-2">例1:</p>
+                    <pre
+                        class="bg-white p-3 rounded border border-slate-200"
+                    ><code>入力: a = "11", b = "1"
+出力: "100"
+説明: 11 (3) + 1 (1) = 100 (4)</code></pre>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                    <p class="font-semibold mb-2">例2:</p>
+                    <pre
+                        class="bg-white p-3 rounded border border-slate-200"
+                    ><code>入力: a = "1010", b = "1011"
+出力: "10101"
+説明: 1010 (10) + 1011 (11) = 10101 (21)</code></pre>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm"
+                            >1 <= a.length, b.length <= 10⁴</code
+                        >
+                    </li>
+                    <li>
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">a</code> と
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">b</code> は
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">'0'</code> または
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">'1'</code>
+                        のみで構成される
+                    </li>
+                    <li>各文字列は先頭のゼロを含まない（ゼロ自体を除く）</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ul class="list-disc list-inside space-y-2 text-slate-700">
+                    <li>
+                        <strong>右から左へのビット加算:</strong>
+                        最下位ビット（右端）から順に加算を行う
+                    </li>
+                    <li>
+                        <strong>キャリー処理:</strong>
+                        各桁の加算結果が2以上の場合、次の桁にキャリーを持ち越す
+                    </li>
+                    <li><strong>文字列の長さの違い:</strong> 短い文字列は0として扱う</li>
+                    <li>
+                        <strong>結果の構築:</strong> 各桁の計算結果を文字列として構築し、最後に反転
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <div class="bg-emerald-50 p-4 rounded-lg border-l-4 border-emerald-500">
+                    <p class="font-semibold text-emerald-800 mb-2">時間計算量: O(max(m, n))</p>
+                    <p class="text-slate-700 mb-2">
+                        m と n はそれぞれ文字列 a と b の長さ。各桁を1回ずつ処理します。
+                    </p>
+                    <p class="font-semibold text-emerald-800 mb-2 mt-4">空間計算量: O(max(m, n))</p>
+                    <p class="text-slate-700">
+                        結果の文字列は最大で max(m, n) + 1 の長さになります。
+                    </p>
+                </div>
+            </section>
+
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre class="line-numbers"><code class="language-python">class Solution:
+    def addBinary(self, a: str, b: str) -> str:
+        result = []
+        carry = 0
+        i, j = len(a) - 1, len(b) - 1
+
+        # 右から左へ各桁を処理
+        while i >= 0 or j >= 0 or carry:
+            # 現在の桁の値を取得（範囲外は0）
+            digit_a = int(a[i]) if i >= 0 else 0
+            digit_b = int(b[j]) if j >= 0 else 0
+
+            # 現在の桁の合計 = digit_a + digit_b + carry
+            total = digit_a + digit_b + carry
+
+            # 結果の桁を追加（total % 2）
+            result.append(str(total % 2))
+
+            # 次の桁へのキャリーを計算（total // 2）
+            carry = total // 2
+
+            # インデックスを左に移動
+            i -= 1
+            j -= 1
+
+        # 結果を反転して返す（右から左に構築したため）
+        return ''.join(reversed(result))</code></pre>
+            </section>
+
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 1150"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Add Binary flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 初期化 -->
+                        <path
+                            d="M 420 85 L 420 115"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="290"
+                            y="115"
+                            width="260"
+                            height="85"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="145"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-14">初期化</tspan>
+                            <tspan x="420" dy="18">result = [], carry = 0</tspan>
+                            <tspan x="420" dy="18">i = len(a)-1, j = len(b)-1</tspan>
+                        </text>
+
+                        <!-- ループ条件チェック -->
+                        <path
+                            d="M 420 200 L 420 235"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <path
+                            d="M 420 235 L 540 300 L 420 365 L 300 300 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="295"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">i &gt;= 0 または j &gt;= 0</tspan>
+                            <tspan x="420" dy="18">または carry &gt; 0?</tspan>
+                        </text>
+
+                        <!-- いいえ → 結果反転へ -->
+                        <path
+                            d="M 540 300 L 680 300 L 680 1010 L 565 1010"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="610"
+                            y="290"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- はい → 桁の値取得 -->
+                        <path
+                            d="M 420 365 L 420 405"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="380"
+                            y="385"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <rect
+                            x="270"
+                            y="405"
+                            width="300"
+                            height="85"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="435"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-14">桁の値を取得</tspan>
+                            <tspan x="420" dy="18">digit_a = a[i] if i &gt;= 0 else 0</tspan>
+                            <tspan x="420" dy="18">digit_b = b[j] if j &gt;= 0 else 0</tspan>
+                        </text>
+
+                        <!-- 合計計算 -->
+                        <path
+                            d="M 420 490 L 420 530"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="270"
+                            y="530"
+                            width="300"
+                            height="65"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="550"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-10">合計計算</tspan>
+                            <tspan x="420" dy="20">total = digit_a + digit_b + carry</tspan>
+                        </text>
+
+                        <!-- 結果追加 -->
+                        <path
+                            d="M 420 595 L 420 635"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="270"
+                            y="635"
+                            width="300"
+                            height="65"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="655"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-10">結果に追加</tspan>
+                            <tspan x="420" dy="20">result.append(str(total % 2))</tspan>
+                        </text>
+
+                        <!-- キャリー更新 -->
+                        <path
+                            d="M 420 700 L 420 740"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="300"
+                            y="740"
+                            width="240"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="760"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">キャリー更新</tspan>
+                            <tspan x="420" dy="18">carry = total // 2</tspan>
+                        </text>
+
+                        <!-- インデックス更新 -->
+                        <path
+                            d="M 420 800 L 420 840"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="300"
+                            y="840"
+                            width="240"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="860"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">インデックス更新</tspan>
+                            <tspan x="420" dy="18">i -= 1, j -= 1</tspan>
+                        </text>
+
+                        <!-- ループバック -->
+                        <path
+                            d="M 420 900 L 420 930 L 180 930 L 180 300 L 300 300"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <text
+                            x="280"
+                            y="920"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#a855f7"
+                        >
+                            次の桁へ
+                        </text>
+
+                        <!-- 結果反転 -->
+                        <rect
+                            x="270"
+                            y="980"
+                            width="300"
+                            height="65"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="1000"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-10">結果を反転</tspan>
+                            <tspan x="420" dy="20">return ''.join(reversed(result))</tspan>
+                        </text>
+
+                        <!-- 終了 -->
+                        <path
+                            d="M 420 1045 L 420 1075"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <ellipse
+                            cx="420"
+                            cy="1110"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="1110"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                        >
+                            終了
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[18px] leading-relaxed">
+                    <strong class="text-xl text-teal-800">フローの説明：</strong><br />
+                    1. <strong class="text-teal-700">初期化</strong>:
+                    結果配列、キャリー、インデックス（i, j）を初期化<br />
+                    2. <strong class="text-teal-700">ループ条件</strong>: i または j
+                    が0以上、またはキャリーがある間繰り返す<br />
+                    3. <strong class="text-teal-700">桁の値取得</strong>:
+                    各文字列から現在の桁の値を取得（範囲外は0）<br />
+                    4. <strong class="text-teal-700">合計計算</strong>: digit_a + digit_b + carry
+                    を計算<br />
+                    5. <strong class="text-teal-700">結果追加</strong>: total % 2
+                    を結果配列に追加<br />
+                    6. <strong class="text-teal-700">キャリー更新</strong>: total // 2
+                    を次のキャリーとして保存<br />
+                    7. <strong class="text-teal-700">インデックス更新</strong>: i と j
+                    をデクリメント<br />
+                    8. <strong class="text-purple-700">ループバック</strong>: 次の桁へ戻る<br />
+                    9. <strong class="text-teal-700">結果反転</strong>:
+                    右から左に構築したため、結果を反転して返す
+                </p>
+            </section>
+
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-50">
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    指標
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    本実装（ビット加算）
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    代替手法（整数変換）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    時間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(max(m, n))</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(m + n)</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    空間計算量
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(max(m, n))</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(max(m, n))</td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    実装の複雑さ
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    中程度（キャリー処理が必要）
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    簡単（組み込み関数使用）
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    大きな数への対応
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    ◎ 任意の長さ対応
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    △ 整数オーバーフローの可能性
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    推奨度
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-700 font-semibold"
+                                >
+                                    ★★★★★ 最適
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    ★★☆☆☆ 小さい数のみ
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 p-4 bg-sky-50 rounded-lg border-l-4 border-sky-500">
+                    <h3 class="font-semibold text-sky-900 mb-2">💡 最適化のポイント</h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700">
+                        <li>各桁を1回ずつ処理するため、時間計算量は O(max(m, n)) で最適</li>
+                        <li>キャリーの処理により、任意の長さの二進数文字列に対応可能</li>
+                        <li>整数変換による手法と異なり、オーバーフローの心配がない</li>
+                        <li>
+                            Pythonの
+                            <code class="px-2 py-1 bg-white rounded text-sm">reversed()</code>
+                            は効率的にイテレータを返す
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 p-4 bg-amber-50 rounded-lg border-l-4 border-amber-500">
+                    <h3 class="font-semibold text-amber-900 mb-2">⚠️ 注意点</h3>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700">
+                        <li>
+                            文字列のインデックスは右から左（最下位ビットから最上位ビット）に処理
+                        </li>
+                        <li>キャリーは必ず0または1（二進数の性質）</li>
+                        <li>ループ終了条件には carry も含める（最後のキャリーを忘れないため）</li>
+                        <li>結果は逆順で構築されるため、最後に反転が必要</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期化',
+                    desc: 'a = "1010", b = "1011" の場合を例とします。result配列、carry、インデックスi、jを初期化します。',
+                    visual: {
+                        type: 'init',
+                        a: '1010',
+                        b: '1011',
+                        i: 3,
+                        j: 3,
+                        carry: 0,
+                        result: [],
+                    },
+                },
+                {
+                    step: 2,
+                    title: '最下位ビット処理 (i=3, j=3)',
+                    desc: "a[3]='0', b[3]='1', carry=0。合計: 0+1+0=1。結果に'1'を追加し、carry=0。",
+                    visual: {
+                        type: 'processing',
+                        a: '1010',
+                        b: '1011',
+                        i: 3,
+                        j: 3,
+                        digitA: 0,
+                        digitB: 1,
+                        carry: 0,
+                        total: 1,
+                        newCarry: 0,
+                        result: ['1'],
+                    },
+                },
+                {
+                    step: 3,
+                    title: '2桁目処理 (i=2, j=2)',
+                    desc: "a[2]='1', b[2]='1', carry=0。合計: 1+1+0=2。結果に'0'を追加し、carry=1（桁上がり）。",
+                    visual: {
+                        type: 'processing',
+                        a: '1010',
+                        b: '1011',
+                        i: 2,
+                        j: 2,
+                        digitA: 1,
+                        digitB: 1,
+                        carry: 0,
+                        total: 2,
+                        newCarry: 1,
+                        result: ['1', '0'],
+                    },
+                },
+                {
+                    step: 4,
+                    title: '3桁目処理 (i=1, j=1)',
+                    desc: "a[1]='0', b[1]='0', carry=1。合計: 0+0+1=1。結果に'1'を追加し、carry=0。",
+                    visual: {
+                        type: 'processing',
+                        a: '1010',
+                        b: '1011',
+                        i: 1,
+                        j: 1,
+                        digitA: 0,
+                        digitB: 0,
+                        carry: 1,
+                        total: 1,
+                        newCarry: 0,
+                        result: ['1', '0', '1'],
+                    },
+                },
+                {
+                    step: 5,
+                    title: '4桁目処理 (i=0, j=0)',
+                    desc: "a[0]='1', b[0]='1', carry=0。合計: 1+1+0=2。結果に'0'を追加し、carry=1。",
+                    visual: {
+                        type: 'processing',
+                        a: '1010',
+                        b: '1011',
+                        i: 0,
+                        j: 0,
+                        digitA: 1,
+                        digitB: 1,
+                        carry: 0,
+                        total: 2,
+                        newCarry: 1,
+                        result: ['1', '0', '1', '0'],
+                    },
+                },
+                {
+                    step: 6,
+                    title: '最上位キャリー処理 (i=-1, j=-1)',
+                    desc: "i < 0 かつ j < 0 ですが、carry=1が残っています。結果に'1'を追加し、carry=0。",
+                    visual: {
+                        type: 'processing',
+                        a: '1010',
+                        b: '1011',
+                        i: -1,
+                        j: -1,
+                        digitA: 0,
+                        digitB: 0,
+                        carry: 1,
+                        total: 1,
+                        newCarry: 0,
+                        result: ['1', '0', '1', '0', '1'],
+                    },
+                },
+                {
+                    step: 7,
+                    title: '結果を反転',
+                    desc: '右から左に構築したため、結果を反転します。最終結果: "10101"',
+                    visual: {
+                        type: 'result',
+                        a: '1010',
+                        b: '1011',
+                        result: ['1', '0', '1', '0', '1'],
+                        finalResult: '10101',
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="300"
+                                y="10"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                初期状態
+                            </text>
+
+                            {/* a の表示 */}
+                            <text
+                                x="100"
+                                y="60"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                a =
+                            </text>
+                            {visual.a.split('').map((bit, idx) => (
+                                <g key={`a-${idx}`}>
+                                    <rect
+                                        x={150 + idx * 60}
+                                        y="40"
+                                        width="50"
+                                        height="50"
+                                        rx="6"
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={175 + idx * 60}
+                                        y="65"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {bit}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* b の表示 */}
+                            <text
+                                x="100"
+                                y="160"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                b =
+                            </text>
+                            {visual.b.split('').map((bit, idx) => (
+                                <g key={`b-${idx}`}>
+                                    <rect
+                                        x={150 + idx * 60}
+                                        y="140"
+                                        width="50"
+                                        height="50"
+                                        rx="6"
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={175 + idx * 60}
+                                        y="165"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {bit}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* インデックス表示 */}
+                            <path
+                                d="M 355 120 L 355 140"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+                            <text
+                                x="355"
+                                y="108"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                i={visual.i}, j={visual.j}
+                            </text>
+
+                            {/* 初期値表示 */}
+                            <rect
+                                x="150"
+                                y="220"
+                                width="300"
+                                height="50"
+                                rx="8"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="245"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                result = [], carry = {visual.carry}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'processing') {
+                    const hasValidIndices = visual.i >= 0 && visual.j >= 0;
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowPurpleStep"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="300"
+                                y="10"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                {hasValidIndices
+                                    ? `処理中: 位置 ${visual.i}`
+                                    : '最上位キャリー処理'}
+                            </text>
+
+                            {/* a の表示 */}
+                            <text
+                                x="80"
+                                y="55"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                a =
+                            </text>
+                            {visual.a.split('').map((bit, idx) => (
+                                <g key={`a-${idx}`}>
+                                    <rect
+                                        x={120 + idx * 55}
+                                        y="35"
+                                        width="45"
+                                        height="45"
+                                        rx="6"
+                                        fill={idx === visual.i ? '#d1fae5' : '#e0f2fe'}
+                                        stroke={idx === visual.i ? '#10b981' : '#0284c7'}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={142.5 + idx * 55}
+                                        y="58.5"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {bit}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* b の表示 */}
+                            <text
+                                x="80"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                b =
+                            </text>
+                            {visual.b.split('').map((bit, idx) => (
+                                <g key={`b-${idx}`}>
+                                    <rect
+                                        x={120 + idx * 55}
+                                        y="120"
+                                        width="45"
+                                        height="45"
+                                        rx="6"
+                                        fill={idx === visual.j ? '#d1fae5' : '#e0f2fe'}
+                                        stroke={idx === visual.j ? '#10b981' : '#0284c7'}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={142.5 + idx * 55}
+                                        y="142.5"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {bit}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* インデックス表示 */}
+                            {hasValidIndices && (
+                                <>
+                                    <path
+                                        d={`M ${142.5 + visual.i * 55} 110 L ${142.5 + visual.i * 55} 120`}
+                                        stroke="#a855f7"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowPurpleStep)"
+                                    />
+                                    <text
+                                        x={142.5 + visual.i * 55}
+                                        y="90"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fontWeight="600"
+                                        fill="#a855f7"
+                                    >
+                                        i, j
+                                    </text>
+                                </>
+                            )}
+
+                            {/* 計算過程 */}
+                            <rect
+                                x="100"
+                                y="200"
+                                width="400"
+                                height="80"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="225"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                {visual.digitA} + {visual.digitB} + {visual.carry} = {visual.total}
+                            </text>
+                            <text
+                                x="300"
+                                y="250"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="15"
+                                fill="#64748b"
+                            >
+                                結果に追加: {visual.total % 2}, 新しいcarry: {visual.newCarry}
+                            </text>
+
+                            {/* 結果配列 */}
+                            <rect
+                                x="100"
+                                y="310"
+                                width="400"
+                                height="60"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="340"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                result = [{visual.result.map((r) => `'${r}'`).join(', ')}]
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                最終結果
+                            </text>
+
+                            {/* 構築された配列（逆順） */}
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                構築された配列（右→左）
+                            </text>
+                            <rect
+                                x="100"
+                                y="100"
+                                width="400"
+                                height="50"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="125"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                [{visual.result.map((r) => `'${r}'`).join(', ')}]
+                            </text>
+
+                            {/* 矢印 */}
+                            <text
+                                x="300"
+                                y="175"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fill="#a855f7"
+                            >
+                                ↓ 反転
+                            </text>
+
+                            {/* 最終結果 */}
+                            <text
+                                x="300"
+                                y="210"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                最終結果
+                            </text>
+                            {visual.finalResult.split('').map((bit, idx) => (
+                                <g key={`final-${idx}`}>
+                                    <rect
+                                        x={150 + idx * 60}
+                                        y="230"
+                                        width="50"
+                                        height="60"
+                                        rx="6"
+                                        fill="#d1fae5"
+                                        stroke="#10b981"
+                                        strokeWidth="3"
+                                    />
+                                    <text
+                                        x={175 + idx * 60}
+                                        y="260"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="20"
+                                        fontWeight="600"
+                                    >
+                                        {bit}
+                                    </text>
+                                </g>
+                            ))}
+
+                            <text
+                                x="300"
+                                y="320"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                "{visual.finalResult}"
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep(activeStep - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep(activeStep + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1681 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Time Limited Cache - 有効期限付きキャッシュ | LeetCode解説</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+                font-family:
+                    'Inter',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif;
+            }
+
+            body {
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                min-height: 100vh;
+            }
+
+            /* Prism Toolbar customization */
+            .code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button {
+                background: #10b981;
+                color: white;
+                margin-top: 1rem;
+                margin-right: 1rem;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                transition: all 0.2s;
+            }
+
+            div.code-toolbar > .toolbar > .toolbar-item > button:hover {
+                background: #059669;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Time Limited Cache - 有効期限付きキャッシュ
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    遅延削除方式による O(1) set/get 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="概要セクションへ移動"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="ステップ解説へ移動"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="コード例へ移動"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="フローチャートへ移動"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="計算量分析へ移動"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Overview -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-teal-800 mb-3">問題の説明</h3>
+                    <p class="text-slate-700 leading-7 mb-4">
+                        有効期限付きキャッシュクラスを実装します。各キーに有効期限（ミリ秒）を設定し、期限切れのキーは自動的にアクセス不可になります。
+                    </p>
+                    <p class="text-slate-700 leading-7">3つのメソッドを実装する必要があります：</p>
+                    <ul class="list-disc list-inside text-slate-700 ml-4 mt-2 space-y-2">
+                        <li>
+                            <code class="bg-slate-100 px-2 py-1 rounded text-sm"
+                                >set(key, value, duration)</code
+                            >: キーと値を設定。既存の未期限切れキーがあれば true、なければ false
+                            を返す
+                        </li>
+                        <li>
+                            <code class="bg-slate-100 px-2 py-1 rounded text-sm">get(key)</code>:
+                            未期限切れキーの値を返す。存在しない、または期限切れなら -1
+                        </li>
+                        <li>
+                            <code class="bg-slate-100 px-2 py-1 rounded text-sm">count()</code>:
+                            未期限切れキーの総数を返す
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-teal-800 mb-3">入出力例</h3>
+                    <pre class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm"><code>Input:
+actions = ["TimeLimitedCache", "set", "get", "count", "get"]
+values = [[], [1, 42, 100], [1], [], [1]]
+timeDelays = [0, 0, 50, 50, 150]
+
+Output: [null, false, 42, 1, -1]
+
+説明:
+t=0: キャッシュを構築
+t=0: set(1, 42, 100) → false（新規キー）
+t=50: get(1) → 42（未期限切れ）
+t=50: count() → 1（アクティブなキー）
+t=100: key=1 が期限切れ
+t=150: get(1) → -1（期限切れ）</code></pre>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-teal-800 mb-3">制約条件</h3>
+                    <ul class="list-disc list-inside text-slate-700 ml-4 space-y-1">
+                        <li>0 &le; key, value &le; 10<sup>9</sup></li>
+                        <li>0 &le; duration &le; 1000</li>
+                        <li>1 &le; actions.length &le; 100</li>
+                        <li>期限切れエントリの適切な処理が必須</li>
+                    </ul>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-teal-800 mb-3">戦略の説明</h3>
+                    <div class="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200">
+                        <p class="text-slate-700 leading-7 mb-4">
+                            <strong class="text-emerald-800">遅延削除方式（Lazy Deletion）</strong
+                            >を採用します：
+                        </p>
+                        <ul class="list-disc list-inside text-slate-700 ml-4 space-y-2">
+                            <li>各エントリに <strong>期限時刻（expiresAt）</strong> を保存</li>
+                            <li>
+                                <code class="bg-white px-2 py-1 rounded text-sm">setTimeout</code>
+                                を使わず、<code class="bg-white px-2 py-1 rounded text-sm"
+                                    >Date.now()</code
+                                >
+                                との比較で期限判定
+                            </li>
+                            <li>
+                                <code class="bg-white px-2 py-1 rounded text-sm">get</code>
+                                時に期限切れなら遅延削除
+                            </li>
+                            <li>
+                                <code class="bg-white px-2 py-1 rounded text-sm">count</code>
+                                時に全エントリを走査して有効数をカウント
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-teal-800 mb-3">主要ポイント</h3>
+                    <ul class="list-disc list-inside text-slate-700 ml-4 space-y-2">
+                        <li><strong>時間計算量</strong>: set O(1), get O(1), count O(n)</li>
+                        <li><strong>空間計算量</strong>: O(n) - タイマーオブジェクト不要で軽量</li>
+                        <li>
+                            <strong>最適化手法</strong>: タイマー操作の完全排除、Map操作の最小化
+                        </li>
+                        <li>
+                            <strong>型安全性</strong>: TypeScript strict モードで完全な型チェック
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Steps -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- Code -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    TypeScript実装
+                </h2>
+                <pre class="line-numbers"><code class="language-typescript">/**
+ * キャッシュエントリの内部構造
+ * @property value - 保存された値
+ * @property expiresAt - 期限時刻（ミリ秒、Date.now()ベース）
+ */
+interface CacheEntry {
+    value: number;
+    expiresAt: number;
+}
+
+/**
+ * 有効期限付きキャッシュクラス（遅延削除方式）
+ * @description タイマーを使わず期限時刻で管理することで高速化
+ */
+class TimeLimitedCache {
+    private cache: Map&lt;number, CacheEntry&gt;;
+
+    constructor() {
+        this.cache = new Map&lt;number, CacheEntry&gt;();
+    }
+
+    /**
+     * キーと値を設定し、有効期限を指定
+     * @param key - キー (0 &lt;= key &lt;= 10^9)
+     * @param value - 値 (0 &lt;= value &lt;= 10^9)
+     * @param duration - 有効期限（ミリ秒、0 &lt;= duration &lt;= 1000）
+     * @returns 既存の未期限切れキーが存在した場合true、それ以外false
+     * @complexity Time: O(1), Space: O(1)
+     */
+    set(key: number, value: number, duration: number): boolean {
+        // 現在時刻と期限時刻を計算
+        const now = Date.now();
+        const expiresAt = now + duration;
+
+        // 既存エントリの確認
+        const existingEntry = this.cache.get(key);
+
+        // 既存エントリが存在し、かつ未期限切れかチェック
+        const hadUnexpiredKey = existingEntry !== undefined
+            && existingEntry.expiresAt &gt; now;
+
+        // 新しいエントリを設定（タイマー不要）
+        this.cache.set(key, { value, expiresAt });
+
+        return hadUnexpiredKey;
+    }
+
+    /**
+     * キーに対応する値を取得
+     * @param key - 取得するキー
+     * @returns 未期限切れのキーが存在すれば対応する値、存在しなければ-1
+     * @complexity Time: O(1), Space: O(1)
+     */
+    get(key: number): number {
+        const entry = this.cache.get(key);
+
+        // エントリが存在しない場合
+        if (entry === undefined) {
+            return -1;
+        }
+
+        // 期限切れチェック
+        if (entry.expiresAt &lt;= Date.now()) {
+            // 遅延削除: get時に初めて削除
+            this.cache.delete(key);
+            return -1;
+        }
+
+        return entry.value;
+    }
+
+    /**
+     * 未期限切れキーの数を取得
+     * @returns アクティブなキーの数
+     * @complexity Time: O(n), Space: O(1)
+     */
+    count(): number {
+        const now = Date.now();
+        let count = 0;
+
+        // 全エントリを走査して有効なもののみカウント
+        for (const entry of this.cache.values()) {
+            if (entry.expiresAt &gt; now) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+}
+
+/**
+ * 使用例:
+ * const timeLimitedCache = new TimeLimitedCache()
+ * timeLimitedCache.set(1, 42, 1000); // false
+ * timeLimitedCache.get(1) // 42
+ * timeLimitedCache.count() // 1
+ */</code></pre>
+            </section>
+
+            <!-- Diagram -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート: set メソッド
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 800"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Time Limited Cache set method flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                        </defs>
+
+                        <!-- Start node -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#047857"
+                        >
+                            Start set
+                        </text>
+
+                        <!-- Calculate expiresAt -->
+                        <rect
+                            x="320"
+                            y="120"
+                            width="200"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="145"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            expiresAt =
+                        </text>
+                        <text
+                            x="420"
+                            y="165"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            now + duration
+                        </text>
+
+                        <!-- Arrow: Start to CalcExpire -->
+                        <path
+                            d="M 420 85 L 420 120"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- Existing entry check -->
+                        <path
+                            d="M 420 230 L 470 280 L 420 330 L 370 280 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="275"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#92400e"
+                        >
+                            既存エントリ
+                        </text>
+                        <text
+                            x="420"
+                            y="295"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#92400e"
+                        >
+                            存在？
+                        </text>
+
+                        <!-- Arrow: CalcExpire to CheckExist -->
+                        <path
+                            d="M 420 180 L 420 230"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- Expired check (Yes branch) -->
+                        <path
+                            d="M 640 360 L 690 410 L 640 460 L 590 410 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="640"
+                            y="405"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#92400e"
+                        >
+                            期限切れ？
+                        </text>
+
+                        <!-- Arrow: Yes (to expired check) -->
+                        <path
+                            d="M 470 280 L 640 280 L 640 360"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="555"
+                            y="268"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- SetTrue (not expired) -->
+                        <rect
+                            x="620"
+                            y="520"
+                            width="180"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="710"
+                            y="545"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            hadUnexpiredKey
+                        </text>
+                        <text
+                            x="710"
+                            y="565"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            = true
+                        </text>
+
+                        <!-- Arrow: Not expired to SetTrue -->
+                        <path
+                            d="M 640 460 L 640 490 L 710 490 L 710 520"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="660"
+                            y="480"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- SetFalse (expired or no existing) -->
+                        <rect
+                            x="140"
+                            y="390"
+                            width="180"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="230"
+                            y="415"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            hadUnexpiredKey
+                        </text>
+                        <text
+                            x="230"
+                            y="435"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            = false
+                        </text>
+
+                        <!-- Arrow: No existing entry to SetFalse -->
+                        <path
+                            d="M 370 280 L 230 280 L 230 390"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="300"
+                            y="268"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- Arrow: Expired to SetFalse -->
+                        <path
+                            d="M 590 410 L 320 420"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="455"
+                            y="400"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- Update cache -->
+                        <rect
+                            x="320"
+                            y="610"
+                            width="200"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="630"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            cache.set(key,
+                        </text>
+                        <text
+                            x="420"
+                            y="650"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            fill="#0c4a6e"
+                        >
+                            {value, expiresAt})
+                        </text>
+
+                        <!-- Arrow: SetFalse to Update -->
+                        <path
+                            d="M 230 450 L 230 640 L 320 640"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- Arrow: SetTrue to Update -->
+                        <path
+                            d="M 710 580 L 710 640 L 520 640"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- Return -->
+                        <ellipse
+                            cx="420"
+                            cy="750"
+                            rx="120"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="750"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                            fill="#047857"
+                        >
+                            Return hadUnexpiredKey
+                        </text>
+
+                        <!-- Arrow: Update to Return -->
+                        <path
+                            d="M 420 670 L 420 715"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. <strong>期限時刻を計算</strong>:
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm"
+                        >Date.now() + duration</code
+                    >
+                    で期限時刻を算出<br />
+                    2. <strong>既存エントリのチェック</strong>: Mapから既存エントリを取得<br />
+                    3. <strong>期限切れ判定</strong>: 既存エントリがある場合、<code
+                        class="bg-slate-100 px-2 py-1 rounded text-sm"
+                        >expiresAt &gt; now</code
+                    >
+                    で有効性を確認<br />
+                    4. <strong>フラグ設定</strong>: 未期限切れなら true、それ以外は false<br />
+                    5. <strong>エントリ更新</strong>: 新しい値と期限時刻でMapを更新<br />
+                    6. <strong>結果を返却</strong>: hadUnexpiredKey を返す
+                </p>
+            </section>
+
+            <!-- Complexity -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-50">
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left text-teal-800 font-bold"
+                                >
+                                    メソッド
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left text-teal-800 font-bold"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left text-teal-800 font-bold"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-200 px-4 py-3 text-left text-teal-800 font-bold"
+                                >
+                                    理由
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-mono text-sm">
+                                    set
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-emerald-700">O(1)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-emerald-700">O(1)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                    Map操作 + 期限時刻計算のみ
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-mono text-sm">
+                                    get
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-emerald-700">O(1)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-emerald-700">O(1)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                    Map取得 + 期限判定 + 削除（最悪）
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-mono text-sm">
+                                    count
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-yellow-700">O(n)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">
+                                    <strong class="text-emerald-700">O(1)</strong>
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                    全エントリ走査（n = 現在のキー数）
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold text-teal-800 mb-4">アプローチ比較</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-cyan-50">
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        方式
+                                    </th>
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        set
+                                    </th>
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        get
+                                    </th>
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        count
+                                    </th>
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        メモリ
+                                    </th>
+                                    <th
+                                        class="border-2 border-cyan-200 px-4 py-3 text-left text-cyan-800 font-bold"
+                                    >
+                                        備考
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                        setTimeout方式
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1) + タイマー
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">中</td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        タイマーオーバーヘッド
+                                    </td>
+                                </tr>
+                                <tr class="bg-emerald-50">
+                                    <td
+                                        class="border-2 border-slate-200 px-4 py-3 font-semibold text-emerald-800"
+                                    >
+                                        遅延削除方式 ★
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(n)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">軽</td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        タイマー不要で高速
+                                    </td>
+                                </tr>
+                                <tr class="bg-slate-50">
+                                    <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                        積極削除方式
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(1)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        O(n)
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        最軽
+                                    </td>
+                                    <td class="border-2 border-slate-200 px-4 py-3 text-sm">
+                                        count時に一括削除
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-sky-50 p-6 rounded-xl border-2 border-sky-200">
+                    <h3 class="text-xl font-bold text-sky-800 mb-3">最適化のポイント</h3>
+                    <ul class="list-disc list-inside text-slate-700 space-y-2">
+                        <li>
+                            <strong>タイマー操作の完全排除</strong>: setTimeout/clearTimeout
+                            のコストが不要
+                        </li>
+                        <li><strong>Map操作の最小化</strong>: 1回の get で存在チェックと値取得</li>
+                        <li><strong>オブジェクト生成の最適化</strong>: シンプルな構造で軽量化</li>
+                        <li>
+                            <strong>期待性能</strong>: Runtime 38-42ms (50-60%), Memory 53-54MB
+                            (75-80%)
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- React -->
+        <script crossorigin src="/vendor/react/react.production.min.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.production.min.js"
+        ></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React App -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // Step data
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期状態',
+                    desc: '空のキャッシュでスタート。Mapは何も保存していない状態です。',
+                    visual: {
+                        type: 'init',
+                        cache: new Map(),
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'set(1, 42, 100) - 新規追加',
+                    desc: 't=0でkey=1, value=42, duration=100msを追加。既存エントリがないためfalseを返します。期限時刻はt=100msです。',
+                    visual: {
+                        type: 'set',
+                        cache: new Map([[1, { value: 42, expiresAt: 100 }]]),
+                        key: 1,
+                        value: 42,
+                        duration: 100,
+                        currentTime: 0,
+                        result: false,
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'get(1) at t=50',
+                    desc: 't=50でkey=1を取得。期限時刻(t=100)より前なので、値42を返します。',
+                    visual: {
+                        type: 'get',
+                        cache: new Map([[1, { value: 42, expiresAt: 100 }]]),
+                        key: 1,
+                        currentTime: 50,
+                        result: 42,
+                        isExpired: false,
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'count() at t=50',
+                    desc: 't=50でアクティブなキーをカウント。key=1は未期限切れなので、1を返します。',
+                    visual: {
+                        type: 'count',
+                        cache: new Map([[1, { value: 42, expiresAt: 100 }]]),
+                        currentTime: 50,
+                        result: 1,
+                    },
+                },
+                {
+                    step: 5,
+                    title: 'get(1) at t=150 - 期限切れ',
+                    desc: 't=150でkey=1を取得。期限時刻(t=100)を過ぎているため、遅延削除して-1を返します。',
+                    visual: {
+                        type: 'get',
+                        cache: new Map([[1, { value: 42, expiresAt: 100 }]]),
+                        key: 1,
+                        currentTime: 150,
+                        result: -1,
+                        isExpired: true,
+                    },
+                },
+                {
+                    step: 6,
+                    title: '複数キーの管理',
+                    desc: '複数のキーを同時に管理。それぞれ異なる期限時刻を持ちます。',
+                    visual: {
+                        type: 'multiple',
+                        cache: new Map([
+                            [1, { value: 100, expiresAt: 200 }],
+                            [2, { value: 200, expiresAt: 300 }],
+                            [3, { value: 300, expiresAt: 150 }],
+                        ]),
+                        currentTime: 180,
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 200"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="150"
+                                y="50"
+                                width="300"
+                                height="100"
+                                rx="8"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#475569"
+                            >
+                                空のキャッシュ
+                            </text>
+                            <text
+                                x="300"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                Map サイズ: 0
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'set') {
+                    const { key, value, duration, currentTime, result } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 320"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowVis"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+
+                            {/* Timeline */}
+                            <line
+                                x1="50"
+                                y1="40"
+                                x2="550"
+                                y2="40"
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+                            <circle cx="50" cy="40" r="6" fill="#10b981" />
+                            <text x="50" y="65" textAnchor="middle" fontSize="14" fill="#475569">
+                                t=0
+                            </text>
+                            <text
+                                x="50"
+                                y="85"
+                                textAnchor="middle"
+                                fontSize="12"
+                                fill="#10b981"
+                                fontWeight="600"
+                            >
+                                現在
+                            </text>
+
+                            <circle cx="300" cy="40" r="6" fill="#dc2626" />
+                            <text x="300" y="65" textAnchor="middle" fontSize="14" fill="#475569">
+                                t=100
+                            </text>
+                            <text
+                                x="300"
+                                y="85"
+                                textAnchor="middle"
+                                fontSize="12"
+                                fill="#dc2626"
+                                fontWeight="600"
+                            >
+                                期限
+                            </text>
+
+                            {/* Cache entry */}
+                            <rect
+                                x="100"
+                                y="140"
+                                width="400"
+                                height="140"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="170"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#047857"
+                            >
+                                キャッシュエントリ
+                            </text>
+
+                            <text x="150" y="210" fontSize="16" fill="#475569">
+                                key:{' '}
+                                <tspan fontWeight="600" fill="#059669">
+                                    {key}
+                                </tspan>
+                            </text>
+                            <text x="150" y="235" fontSize="16" fill="#475569">
+                                value:{' '}
+                                <tspan fontWeight="600" fill="#059669">
+                                    {value}
+                                </tspan>
+                            </text>
+                            <text x="150" y="260" fontSize="16" fill="#475569">
+                                expiresAt:{' '}
+                                <tspan fontWeight="600" fill="#059669">
+                                    {currentTime + duration}ms
+                                </tspan>
+                            </text>
+
+                            <text
+                                x="300"
+                                y="300"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#047857"
+                            >
+                                返り値: {result ? 'true' : 'false'}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'get') {
+                    const { key, currentTime, result, isExpired, cache } = visual;
+                    const entry = cache.get(key);
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 340"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            {/* Timeline */}
+                            <line
+                                x1="50"
+                                y1="40"
+                                x2="550"
+                                y2="40"
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+
+                            {isExpired ? (
+                                <>
+                                    <circle cx="450" cy="40" r="6" fill="#dc2626" />
+                                    <text
+                                        x="450"
+                                        y="65"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fill="#475569"
+                                    >
+                                        t={currentTime}
+                                    </text>
+                                    <text
+                                        x="450"
+                                        y="85"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#dc2626"
+                                        fontWeight="600"
+                                    >
+                                        現在（期限切れ）
+                                    </text>
+
+                                    <circle cx="200" cy="40" r="6" fill="#94a3b8" />
+                                    <text
+                                        x="200"
+                                        y="65"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fill="#475569"
+                                    >
+                                        t={entry.expiresAt}
+                                    </text>
+                                    <text
+                                        x="200"
+                                        y="85"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#64748b"
+                                    >
+                                        期限
+                                    </text>
+                                </>
+                            ) : (
+                                <>
+                                    <circle cx="150" cy="40" r="6" fill="#10b981" />
+                                    <text
+                                        x="150"
+                                        y="65"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fill="#475569"
+                                    >
+                                        t={currentTime}
+                                    </text>
+                                    <text
+                                        x="150"
+                                        y="85"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#10b981"
+                                        fontWeight="600"
+                                    >
+                                        現在
+                                    </text>
+
+                                    <circle cx="400" cy="40" r="6" fill="#dc2626" />
+                                    <text
+                                        x="400"
+                                        y="65"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fill="#475569"
+                                    >
+                                        t={entry.expiresAt}
+                                    </text>
+                                    <text
+                                        x="400"
+                                        y="85"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#dc2626"
+                                    >
+                                        期限
+                                    </text>
+                                </>
+                            )}
+
+                            {/* Cache entry */}
+                            <rect
+                                x="100"
+                                y="140"
+                                width="400"
+                                height="160"
+                                rx="8"
+                                fill={isExpired ? '#fee2e2' : '#ecfdf5'}
+                                stroke={isExpired ? '#dc2626' : '#10b981'}
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="170"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill={isExpired ? '#991b1b' : '#047857'}
+                            >
+                                {isExpired ? '期限切れエントリ' : '有効なエントリ'}
+                            </text>
+
+                            <text x="150" y="210" fontSize="16" fill="#475569">
+                                key: <tspan fontWeight="600">{key}</tspan>
+                            </text>
+                            <text x="150" y="235" fontSize="16" fill="#475569">
+                                value: <tspan fontWeight="600">{entry.value}</tspan>
+                            </text>
+                            <text x="150" y="260" fontSize="16" fill="#475569">
+                                expiresAt: <tspan fontWeight="600">{entry.expiresAt}ms</tspan>
+                            </text>
+
+                            {isExpired && (
+                                <text
+                                    x="300"
+                                    y="285"
+                                    textAnchor="middle"
+                                    fontSize="14"
+                                    fill="#dc2626"
+                                    fontWeight="600"
+                                >
+                                    → 遅延削除実行
+                                </text>
+                            )}
+
+                            <text
+                                x="300"
+                                y="315"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill={isExpired ? '#991b1b' : '#047857'}
+                            >
+                                返り値: {result}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'count') {
+                    const { cache, currentTime, result } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 280"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            {/* Timeline */}
+                            <line
+                                x1="50"
+                                y1="40"
+                                x2="550"
+                                y2="40"
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+                            <circle cx="150" cy="40" r="6" fill="#10b981" />
+                            <text x="150" y="65" textAnchor="middle" fontSize="14" fill="#475569">
+                                t={currentTime}
+                            </text>
+                            <text
+                                x="150"
+                                y="85"
+                                textAnchor="middle"
+                                fontSize="12"
+                                fill="#10b981"
+                                fontWeight="600"
+                            >
+                                現在
+                            </text>
+
+                            {/* Count visualization */}
+                            <rect
+                                x="100"
+                                y="140"
+                                width="400"
+                                height="100"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="170"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#047857"
+                            >
+                                アクティブなキー数をカウント
+                            </text>
+
+                            <text x="300" y="210" textAnchor="middle" fontSize="16" fill="#475569">
+                                有効なエントリ数:{' '}
+                                <tspan fontWeight="600" fill="#059669">
+                                    {result}
+                                </tspan>
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'multiple') {
+                    const { cache, currentTime } = visual;
+                    const entries = Array.from(cache.entries());
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            {/* Timeline */}
+                            <line
+                                x1="50"
+                                y1="40"
+                                x2="550"
+                                y2="40"
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+                            <circle cx="280" cy="40" r="6" fill="#10b981" />
+                            <text x="280" y="65" textAnchor="middle" fontSize="14" fill="#475569">
+                                t={currentTime}
+                            </text>
+                            <text
+                                x="280"
+                                y="85"
+                                textAnchor="middle"
+                                fontSize="12"
+                                fill="#10b981"
+                                fontWeight="600"
+                            >
+                                現在
+                            </text>
+
+                            {/* Cache entries */}
+                            {entries.map(([key, entry], idx) => {
+                                const isExpired = entry.expiresAt <= currentTime;
+                                const y = 140 + idx * 80;
+
+                                return (
+                                    <g key={key}>
+                                        <rect
+                                            x="80"
+                                            y={y}
+                                            width="440"
+                                            height="60"
+                                            rx="8"
+                                            fill={isExpired ? '#fee2e2' : '#ecfdf5'}
+                                            stroke={isExpired ? '#dc2626' : '#10b981'}
+                                            strokeWidth="2"
+                                        />
+
+                                        <text x="100" y={y + 25} fontSize="16" fill="#475569">
+                                            key: <tspan fontWeight="600">{key}</tspan>
+                                        </text>
+                                        <text x="200" y={y + 25} fontSize="16" fill="#475569">
+                                            value: <tspan fontWeight="600">{entry.value}</tspan>
+                                        </text>
+                                        <text x="320" y={y + 25} fontSize="16" fill="#475569">
+                                            expires:{' '}
+                                            <tspan fontWeight="600">{entry.expiresAt}ms</tspan>
+                                        </text>
+
+                                        <text
+                                            x="100"
+                                            y={y + 48}
+                                            fontSize="14"
+                                            fontWeight="600"
+                                            fill={isExpired ? '#dc2626' : '#059669'}
+                                        >
+                                            {isExpired ? '期限切れ' : '有効'}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function StepsInteractive() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                // 自動再生の間隔（ミリ秒）
+                const AUTO_PLAY_INTERVAL_MS = 2000;
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, AUTO_PLAY_INTERVAL_MS);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Render
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepsInteractive />);
+        </script>
+    </body>
+</html>

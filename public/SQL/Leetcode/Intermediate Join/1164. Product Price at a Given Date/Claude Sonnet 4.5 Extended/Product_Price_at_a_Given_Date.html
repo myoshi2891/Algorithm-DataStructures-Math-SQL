@@ -1,0 +1,2668 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Product Prices - 価格履歴管理 | Pandas解説</title>
+
+        <!-- React 18 CDN -->
+        <script crossorigin src="/vendor/react/react.development.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.development.js"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Prism.js Core -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+        <!-- Prism.js Python -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+        <!-- Prism.js Plugins -->
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                min-height: 100vh;
+                padding: 2rem;
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            .code-toolbar > .toolbar {
+                opacity: 1 !important;
+                top: 0.5rem !important;
+                right: 0.5rem !important;
+            }
+
+            .code-toolbar > .toolbar button {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 0.5rem !important;
+                padding: 0.5rem 1rem !important;
+                font-size: 0.875rem !important;
+                font-weight: 600 !important;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+            }
+
+            .code-toolbar > .toolbar button:hover {
+                background: #059669 !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="max-width: 1400px; margin: 0 auto">
+            <!-- ヘッダー -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Product Prices - 価格履歴管理
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    groupby + idxmax による O(N) 最新価格抽出
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="概要セクションへ移動"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="ステップ解説へ移動"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="コード例へ移動"
+                    >
+                        コード例
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="フローチャートへ移動"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        aria-label="計算量分析へ移動"
+                    >
+                        計算量分析
+                    </a>
+                </nav>
+            </header>
+
+            <!-- 概要 -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="text-slate-700 leading-7 space-y-4">
+                    <p class="text-lg">
+                        <strong class="text-teal-800">問題:</strong> Products
+                        テーブルには製品の価格変更履歴が記録されています。 すべての製品は初期価格 10
+                        でスタートし、<code class="bg-slate-100 px-2 py-1 rounded text-cyan-700"
+                            >change_date</code
+                        >
+                        に新しい価格
+                        <code class="bg-slate-100 px-2 py-1 rounded text-cyan-700">new_price</code>
+                        に変更されます。
+                        <strong class="text-emerald-700">2019-08-16 時点での全製品の価格</strong
+                        >を求めてください。
+                    </p>
+
+                    <div class="bg-slate-50 p-6 rounded-xl border-2 border-slate-200">
+                        <h3 class="text-lg font-bold text-teal-800 mb-3">入力例</h3>
+                        <pre class="text-sm overflow-x-auto"><code>Products table:
++------------+-----------+-------------+
+| product_id | new_price | change_date |
++------------+-----------+-------------+
+| 1          | 20        | 2019-08-14  |
+| 2          | 50        | 2019-08-14  |
+| 1          | 30        | 2019-08-15  |
+| 1          | 35        | 2019-08-16  |
+| 2          | 65        | 2019-08-17  |
+| 3          | 20        | 2019-08-18  |
++------------+-----------+-------------+</code></pre>
+                    </div>
+
+                    <div class="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200">
+                        <h3 class="text-lg font-bold text-emerald-800 mb-3">出力例</h3>
+                        <pre class="text-sm overflow-x-auto"><code>+------------+-------+
+| product_id | price |
++------------+-------+
+| 1          | 35    |
+| 2          | 50    |
+| 3          | 10    |
++------------+-------+</code></pre>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">解法の戦略</h3>
+                        <ul class="list-disc list-inside space-y-2 text-slate-700">
+                            <li>
+                                <strong class="text-cyan-700">ステップ1:</strong> 対象日
+                                (2019-08-16) 以前のデータのみにフィルタ
+                            </li>
+                            <li>
+                                <strong class="text-cyan-700">ステップ2:</strong>
+                                <code class="bg-slate-100 px-2 py-1 rounded"
+                                    >groupby('product_id')['change_date'].idxmax()</code
+                                >
+                                で各製品の最新変更日のインデックスを取得
+                            </li>
+                            <li>
+                                <strong class="text-cyan-700">ステップ3:</strong>
+                                全製品リストを生成（重複削除）
+                            </li>
+                            <li>
+                                <strong class="text-cyan-700">ステップ4:</strong>
+                                <code class="bg-slate-100 px-2 py-1 rounded">map()</code> で高速結合
+                            </li>
+                            <li>
+                                <strong class="text-cyan-700">ステップ5:</strong>
+                                <code class="bg-slate-100 px-2 py-1 rounded">fillna(10)</code>
+                                で価格変更履歴がない製品にデフォルト値を設定
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-cyan-50 p-6 rounded-xl border-2 border-cyan-200 mt-6">
+                        <h3 class="text-xl font-bold text-cyan-800 mb-3">主要ポイント</h3>
+                        <ul class="list-disc list-inside space-y-2 text-slate-700">
+                            <li>
+                                <strong>時間計算量:</strong>
+                                <code
+                                    class="bg-white px-2 py-1 rounded text-emerald-700 font-semibold"
+                                    >O(N)</code
+                                >
+                                - Nは全レコード数
+                            </li>
+                            <li>
+                                <strong>空間計算量:</strong>
+                                <code
+                                    class="bg-white px-2 py-1 rounded text-emerald-700 font-semibold"
+                                    >O(M)</code
+                                >
+                                - Mはユニーク製品数
+                            </li>
+                            <li>
+                                <strong>最適化手法:</strong>
+                                <code>idxmax()</code> によるインデックスベースの抽出で、ソート不要
+                            </li>
+                            <li>
+                                <strong>高速結合:</strong> <code>map()</code> は
+                                <code>merge()</code> より高速（単一キー時）
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップバイステップ解説 -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-root"></div>
+            </section>
+
+            <!-- コード例 -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre class="line-numbers"><code class="language-python">import pandas as pd
+
+def price_at_given_date(products: pd.DataFrame) -> pd.DataFrame:
+    """
+    2019-08-16時点での全製品の価格を算出
+
+    Parameters
+    ----------
+    products : pd.DataFrame
+        Columns: product_id, new_price, change_date
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: product_id, price
+    """
+
+    # --- 対象日以前のデータのみ抽出
+    target_date = '2019-08-16'
+    before_target = products[products['change_date'] <= target_date]
+
+    # --- 各製品の最新価格を取得（groupby + idxmax）
+    if not before_target.empty:
+        latest_idx = before_target.groupby('product_id')['change_date'].idxmax()
+        latest_prices = before_target.loc[latest_idx, ['product_id', 'new_price']]
+    else:
+        latest_prices = pd.DataFrame(columns=['product_id', 'new_price'])
+
+    # --- 全製品リストを生成
+    all_products = products[['product_id']].drop_duplicates()
+
+    # --- 軽量結合（map優先）
+    price_mapper = latest_prices.set_index('product_id')['new_price']
+
+    out = pd.DataFrame({
+        'product_id': all_products['product_id'],
+        'price': all_products['product_id'].map(price_mapper).fillna(10).astype(int)
+    })
+
+    return out
+
+
+# テストデータ
+products = pd.DataFrame({
+    'product_id': [1, 2, 1, 1, 2, 3],
+    'new_price': [20, 50, 30, 35, 65, 20],
+    'change_date': pd.to_datetime([
+        '2019-08-14', '2019-08-14', '2019-08-15',
+        '2019-08-16', '2019-08-17', '2019-08-18'
+    ])
+})
+
+result = price_at_given_date(products)
+print(result)
+
+# 出力:
+#    product_id  price
+# 0           1     35
+# 1           2     50
+# 2           3     10</code></pre>
+            </section>
+
+            <!-- フローチャート -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 900"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Product Prices flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 入力読み込み -->
+                        <rect
+                            x="320"
+                            y="120"
+                            width="200"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="145"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            入力読み込み
+                        </text>
+                        <text
+                            x="420"
+                            y="165"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            products DataFrame
+                        </text>
+                        <path
+                            d="M 420 85 L 420 120"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 対象日フィルタ -->
+                        <rect
+                            x="320"
+                            y="230"
+                            width="200"
+                            height="80"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="255"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            対象日フィルタ
+                        </text>
+                        <text
+                            x="420"
+                            y="275"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            change_date
+                        </text>
+                        <text
+                            x="420"
+                            y="292"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            &lt;= 2019-08-16
+                        </text>
+                        <path
+                            d="M 420 190 L 420 230"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- データ存在確認 -->
+                        <path
+                            d="M 420 345 L 520 395 L 420 445 L 320 395 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="390"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#78350f"
+                        >
+                            データあり?
+                        </text>
+                        <text
+                            x="420"
+                            y="408"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#78350f"
+                        >
+                            empty check
+                        </text>
+                        <path
+                            d="M 420 310 L 420 345"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- はい分岐 -->
+                        <text
+                            x="560"
+                            y="395"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+                        <path
+                            d="M 520 395 L 640 395"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- いいえ分岐 -->
+                        <text
+                            x="280"
+                            y="395"
+                            text-anchor="end"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                        <path
+                            d="M 320 395 L 200 395"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+
+                        <!-- groupby + idxmax -->
+                        <rect
+                            x="640"
+                            y="350"
+                            width="180"
+                            height="90"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="730"
+                            y="375"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            groupby + idxmax
+                        </text>
+                        <text
+                            x="730"
+                            y="395"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#475569"
+                        >
+                            各製品の最新日付
+                        </text>
+                        <text
+                            x="730"
+                            y="412"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#475569"
+                        >
+                            インデックスを取得
+                        </text>
+                        <text
+                            x="730"
+                            y="430"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#64748b"
+                            font-style="italic"
+                        >
+                            latest_idx
+                        </text>
+
+                        <!-- loc抽出 -->
+                        <rect
+                            x="640"
+                            y="480"
+                            width="180"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="730"
+                            y="505"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            loc で行抽出
+                        </text>
+                        <text
+                            x="730"
+                            y="525"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#475569"
+                        >
+                            latest_prices
+                        </text>
+                        <path
+                            d="M 730 440 L 730 480"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 空DataFrame作成 -->
+                        <rect
+                            x="20"
+                            y="350"
+                            width="180"
+                            height="90"
+                            rx="10"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="110"
+                            y="375"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="bold"
+                            fill="#7f1d1d"
+                        >
+                            空DataFrame
+                        </text>
+                        <text
+                            x="110"
+                            y="395"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#991b1b"
+                        >
+                            作成
+                        </text>
+                        <text
+                            x="110"
+                            y="415"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#991b1b"
+                        >
+                            latest_prices
+                        </text>
+                        <text
+                            x="110"
+                            y="432"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#991b1b"
+                        >
+                            = empty
+                        </text>
+
+                        <!-- 全製品リスト生成 -->
+                        <rect
+                            x="320"
+                            y="590"
+                            width="200"
+                            height="70"
+                            rx="10"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="615"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#1e293b"
+                        >
+                            全製品リスト生成
+                        </text>
+                        <text
+                            x="420"
+                            y="635"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            drop_duplicates()
+                        </text>
+
+                        <!-- 空から合流 -->
+                        <path
+                            d="M 110 440 L 110 625 L 320 625"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+
+                        <!-- locから合流 -->
+                        <path
+                            d="M 730 550 L 730 625 L 520 625"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- 入力から全製品リストへ -->
+                        <path
+                            d="M 520 155 L 600 155 L 600 625 L 520 625"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- map結合 -->
+                        <rect
+                            x="320"
+                            y="700"
+                            width="200"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="725"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            map 結合
+                        </text>
+                        <text
+                            x="420"
+                            y="745"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            set_index + map
+                        </text>
+                        <path
+                            d="M 420 660 L 420 700"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- fillna -->
+                        <rect
+                            x="320"
+                            y="810"
+                            width="200"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="835"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                        >
+                            fillna(10)
+                        </text>
+                        <text
+                            x="420"
+                            y="855"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                        >
+                            デフォルト価格設定
+                        </text>
+                        <path
+                            d="M 420 770 L 420 810"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 終了 -->
+                        <ellipse
+                            cx="420"
+                            cy="920"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="420"
+                            y="920"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            終了
+                        </text>
+                        <path
+                            d="M 420 880 L 420 885"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-['Source_Code_Pro'] text-[18px] leading-8">
+                    <strong class="text-2xl text-teal-800">フローの説明：</strong><br />
+                    1. <strong class="text-cyan-700">入力読み込み</strong>: products DataFrame
+                    を受け取る<br />
+                    2. <strong class="text-cyan-700">対象日フィルタ</strong>: change_date &lt;=
+                    2019-08-16 の条件でフィルタ<br />
+                    3. <strong class="text-orange-600">データ存在確認</strong>:
+                    フィルタ後のデータが空でないかチェック<br />
+                    4a. <strong class="text-emerald-700">はい</strong>: groupby + idxmax
+                    で各製品の最新日付のインデックスを取得 → loc で行抽出<br />
+                    4b. <strong class="text-red-600">いいえ</strong>: 空の latest_prices DataFrame
+                    を作成<br />
+                    5. <strong class="text-slate-700">全製品リスト生成</strong>: 元データから
+                    product_id をユニーク化<br />
+                    6. <strong class="text-cyan-700">map結合</strong>: set_index で辞書化し、map()
+                    で高速マッピング<br />
+                    7. <strong class="text-cyan-700">fillna(10)</strong>:
+                    価格変更履歴がない製品にデフォルト値 10 を設定<br />
+                    8. <strong class="text-emerald-700">終了</strong>: 結果を返却
+                </p>
+            </section>
+
+            <!-- 計算量分析 -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)]">
+                                <th
+                                    class="border-2 border-emerald-300 px-6 py-3 text-left text-emerald-900 font-bold"
+                                >
+                                    処理
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-6 py-3 text-left text-emerald-900 font-bold"
+                                >
+                                    計算量
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-6 py-3 text-left text-emerald-900 font-bold"
+                                >
+                                    備考
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-700">
+                                    フィルタ
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-6 py-3 font-mono text-cyan-700 font-semibold"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-600">
+                                    ブール索引で全行をスキャン
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-700">
+                                    groupby + idxmax
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-6 py-3 font-mono text-cyan-700 font-semibold"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-600">
+                                    ハッシュテーブル構築 + 各グループで最大値探索
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-700">
+                                    loc 抽出
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-6 py-3 font-mono text-cyan-700 font-semibold"
+                                >
+                                    O(M)
+                                </td>
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-600">
+                                    M = ユニーク製品数、インデックスベースで高速
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-700">
+                                    drop_duplicates
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-6 py-3 font-mono text-cyan-700 font-semibold"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-600">
+                                    ハッシュセットで重複削除
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-700">
+                                    map
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-6 py-3 font-mono text-cyan-700 font-semibold"
+                                >
+                                    O(M)
+                                </td>
+                                <td class="border-2 border-slate-200 px-6 py-3 text-slate-600">
+                                    辞書ルックアップ、merge より高速
+                                </td>
+                            </tr>
+                            <tr class="bg-emerald-100 font-bold">
+                                <td class="border-2 border-emerald-400 px-6 py-3 text-emerald-900">
+                                    合計
+                                </td>
+                                <td
+                                    class="border-2 border-emerald-400 px-6 py-3 font-mono text-emerald-700 text-lg"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-emerald-400 px-6 py-3 text-emerald-800">
+                                    N = 全レコード数
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 bg-cyan-50 p-6 rounded-xl border-2 border-cyan-200">
+                    <h3 class="text-xl font-bold text-cyan-800 mb-4">代替手法との比較</h3>
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-cyan-100">
+                                <th
+                                    class="border-2 border-cyan-300 px-4 py-2 text-left text-cyan-900 font-bold"
+                                >
+                                    手法
+                                </th>
+                                <th
+                                    class="border-2 border-cyan-300 px-4 py-2 text-left text-cyan-900 font-bold"
+                                >
+                                    時間
+                                </th>
+                                <th
+                                    class="border-2 border-cyan-300 px-4 py-2 text-left text-cyan-900 font-bold"
+                                >
+                                    空間
+                                </th>
+                                <th
+                                    class="border-2 border-cyan-300 px-4 py-2 text-left text-cyan-900 font-bold"
+                                >
+                                    メリット
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-cyan-50">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-semibold text-emerald-700"
+                                >
+                                    本実装（idxmax）
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-cyan-700"
+                                >
+                                    O(N)
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-cyan-700"
+                                >
+                                    O(M)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-2 text-slate-600">
+                                    ソート不要、最速
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-cyan-50">
+                                <td class="border-2 border-slate-200 px-4 py-2 text-slate-700">
+                                    sort + first()
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-slate-600"
+                                >
+                                    O(N log N)
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-slate-600"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-2 text-slate-600">
+                                    直感的だが遅い
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-cyan-50">
+                                <td class="border-2 border-slate-200 px-4 py-2 text-slate-700">
+                                    merge ベース
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-slate-600"
+                                >
+                                    O(N)
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-2 font-mono text-slate-600"
+                                >
+                                    O(N)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-2 text-slate-600">
+                                    メモリ消費大
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200">
+                    <h3 class="text-xl font-bold text-emerald-800 mb-3">最適化のポイント</h3>
+                    <ul class="list-disc list-inside space-y-2 text-slate-700">
+                        <li>
+                            <strong class="text-cyan-700">idxmax() の優位性</strong>:
+                            ソートせずに各グループの最大値インデックスを取得できるため、O(N log N)
+                            を回避
+                        </li>
+                        <li>
+                            <strong class="text-cyan-700">map() の高速性</strong>:
+                            単一キーの結合では merge() より高速。辞書ルックアップ O(1) を利用
+                        </li>
+                        <li>
+                            <strong class="text-cyan-700">メモリ効率</strong>:
+                            中間DataFrameは最小限の列のみ保持。latest_prices は M 行のみ
+                        </li>
+                        <li>
+                            <strong class="text-cyan-700">スケーラビリティ</strong>:
+                            製品数が増えても線形時間で処理可能
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- React StepByStepGuide Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            function StepByStepGuide() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '問題理解と入力データ',
+                        desc: 'Products テーブルには製品の価格変更履歴が記録されています。すべての製品は初期価格 10 でスタートし、change_date に new_price へ変更されます。2019-08-16 時点での全製品の価格を求めます。',
+                        visual: {
+                            type: 'input',
+                            data: [
+                                { product_id: 1, new_price: 20, change_date: '2019-08-14' },
+                                { product_id: 2, new_price: 50, change_date: '2019-08-14' },
+                                { product_id: 1, new_price: 30, change_date: '2019-08-15' },
+                                { product_id: 1, new_price: 35, change_date: '2019-08-16' },
+                                { product_id: 2, new_price: 65, change_date: '2019-08-17' },
+                                { product_id: 3, new_price: 20, change_date: '2019-08-18' },
+                            ],
+                        },
+                    },
+                    {
+                        step: 2,
+                        title: '対象日以前のデータをフィルタ',
+                        desc: "change_date <= '2019-08-16' の条件でフィルタします。product_id=2 の 8/17 のレコードと、product_id=3 の 8/18 のレコードは除外されます。",
+                        visual: {
+                            type: 'filter',
+                            data: [
+                                {
+                                    product_id: 1,
+                                    new_price: 20,
+                                    change_date: '2019-08-14',
+                                    included: true,
+                                },
+                                {
+                                    product_id: 2,
+                                    new_price: 50,
+                                    change_date: '2019-08-14',
+                                    included: true,
+                                },
+                                {
+                                    product_id: 1,
+                                    new_price: 30,
+                                    change_date: '2019-08-15',
+                                    included: true,
+                                },
+                                {
+                                    product_id: 1,
+                                    new_price: 35,
+                                    change_date: '2019-08-16',
+                                    included: true,
+                                },
+                                {
+                                    product_id: 2,
+                                    new_price: 65,
+                                    change_date: '2019-08-17',
+                                    included: false,
+                                },
+                                {
+                                    product_id: 3,
+                                    new_price: 20,
+                                    change_date: '2019-08-18',
+                                    included: false,
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        step: 3,
+                        title: 'groupby + idxmax で最新抽出',
+                        desc: '各製品ごとに change_date が最大の行のインデックスを取得します。product_id=1 は index=3 (8/16)、product_id=2 は index=1 (8/14) が選ばれます。',
+                        visual: {
+                            type: 'groupby',
+                            data: [
+                                {
+                                    product_id: 1,
+                                    new_price: 20,
+                                    change_date: '2019-08-14',
+                                    index: 0,
+                                    selected: false,
+                                },
+                                {
+                                    product_id: 2,
+                                    new_price: 50,
+                                    change_date: '2019-08-14',
+                                    index: 1,
+                                    selected: true,
+                                },
+                                {
+                                    product_id: 1,
+                                    new_price: 30,
+                                    change_date: '2019-08-15',
+                                    index: 2,
+                                    selected: false,
+                                },
+                                {
+                                    product_id: 1,
+                                    new_price: 35,
+                                    change_date: '2019-08-16',
+                                    index: 3,
+                                    selected: true,
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        step: 4,
+                        title: 'loc で最新価格を抽出',
+                        desc: 'idxmax() で取得したインデックスを使って、各製品の最新価格を持つ行を抽出します。latest_prices DataFrame が作成されます。',
+                        visual: {
+                            type: 'extract',
+                            data: [
+                                { product_id: 1, new_price: 35 },
+                                { product_id: 2, new_price: 50 },
+                            ],
+                        },
+                    },
+                    {
+                        step: 5,
+                        title: '全製品リストを生成',
+                        desc: '元の products DataFrame から product_id をユニーク化して、全製品のリストを作成します。price 変更履歴がない product_id=3 も含まれます。',
+                        visual: {
+                            type: 'allproducts',
+                            data: [{ product_id: 1 }, { product_id: 2 }, { product_id: 3 }],
+                        },
+                    },
+                    {
+                        step: 6,
+                        title: 'map で価格を結合',
+                        desc: "latest_prices を set_index('product_id') で辞書化し、全製品リストに map() で結合します。product_id=3 は価格変更履歴がないため NaN になります。",
+                        visual: {
+                            type: 'map',
+                            data: [
+                                { product_id: 1, price: 35 },
+                                { product_id: 2, price: 50 },
+                                { product_id: 3, price: null },
+                            ],
+                        },
+                    },
+                    {
+                        step: 7,
+                        title: 'fillna(10) でデフォルト値設定',
+                        desc: 'fillna(10) で NaN を初期価格 10 に変換し、astype(int) で整数化します。これで全製品の価格が確定します。',
+                        visual: {
+                            type: 'result',
+                            data: [
+                                { product_id: 1, price: 35 },
+                                { product_id: 2, price: 50 },
+                                { product_id: 3, price: 10 },
+                            ],
+                        },
+                    },
+                ];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'input') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 700 400" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="50"
+                                    y="30"
+                                    width="600"
+                                    height="340"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="350"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    入力 DataFrame (products)
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="70"
+                                    y="80"
+                                    width="120"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="130"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="190"
+                                    y="80"
+                                    width="120"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="250"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    new_price
+                                </text>
+
+                                <rect
+                                    x="310"
+                                    y="80"
+                                    width="150"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="385"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    change_date
+                                </text>
+
+                                <rect
+                                    x="460"
+                                    y="80"
+                                    width="160"
+                                    height="35"
+                                    fill="#94a3b8"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="540"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    index
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 115 + idx * 40;
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="70"
+                                                y={y}
+                                                width="120"
+                                                height="35"
+                                                fill="white"
+                                                stroke="#cbd5e1"
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="130"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="190"
+                                                y={y}
+                                                width="120"
+                                                height="35"
+                                                fill="white"
+                                                stroke="#cbd5e1"
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="250"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                            >
+                                                {row.new_price}
+                                            </text>
+
+                                            <rect
+                                                x="310"
+                                                y={y}
+                                                width="150"
+                                                height="35"
+                                                fill="white"
+                                                stroke="#cbd5e1"
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="385"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fill="#475569"
+                                            >
+                                                {row.change_date}
+                                            </text>
+
+                                            <rect
+                                                x="460"
+                                                y={y}
+                                                width="160"
+                                                height="35"
+                                                fill="#f1f5f9"
+                                                stroke="#cbd5e1"
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="540"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fill="#64748b"
+                                            >
+                                                {idx}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'filter') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 720 400" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="40"
+                                    y="30"
+                                    width="640"
+                                    height="340"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="360"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    フィルタ: change_date &lt;= 2019-08-16
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="60"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="110"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="160"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="210"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    new_price
+                                </text>
+
+                                <rect
+                                    x="260"
+                                    y="80"
+                                    width="130"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="325"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    change_date
+                                </text>
+
+                                <rect
+                                    x="390"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#94a3b8"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="440"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    index
+                                </text>
+
+                                <rect
+                                    x="490"
+                                    y="80"
+                                    width="160"
+                                    height="35"
+                                    fill="#94a3b8"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="570"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    含まれる?
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 115 + idx * 40;
+                                    const bgColor = row.included ? 'white' : '#fee2e2';
+                                    const borderColor = row.included ? '#cbd5e1' : '#fca5a5';
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="60"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="110"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="160"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="210"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                            >
+                                                {row.new_price}
+                                            </text>
+
+                                            <rect
+                                                x="260"
+                                                y={y}
+                                                width="130"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="325"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="12"
+                                                fill="#475569"
+                                            >
+                                                {row.change_date}
+                                            </text>
+
+                                            <rect
+                                                x="390"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill="#f1f5f9"
+                                                stroke={borderColor}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="440"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fill="#64748b"
+                                            >
+                                                {idx}
+                                            </text>
+
+                                            <rect
+                                                x="490"
+                                                y={y}
+                                                width="160"
+                                                height="35"
+                                                fill={row.included ? '#d1fae5' : '#fee2e2'}
+                                                stroke={borderColor}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="570"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fontWeight="bold"
+                                                fill={row.included ? '#065f46' : '#991b1b'}
+                                            >
+                                                {row.included ? '✓ はい' : '✗ いいえ'}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'groupby') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 720 350" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="40"
+                                    y="30"
+                                    width="640"
+                                    height="290"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="360"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    groupby + idxmax: 各製品の最新日付インデックス
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="60"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="110"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="160"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="210"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    new_price
+                                </text>
+
+                                <rect
+                                    x="260"
+                                    y="80"
+                                    width="130"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="325"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    change_date
+                                </text>
+
+                                <rect
+                                    x="390"
+                                    y="80"
+                                    width="100"
+                                    height="35"
+                                    fill="#94a3b8"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="440"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    index
+                                </text>
+
+                                <rect
+                                    x="490"
+                                    y="80"
+                                    width="160"
+                                    height="35"
+                                    fill="#10b981"
+                                    stroke="#059669"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="570"
+                                    y="102"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    最新?
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 115 + idx * 40;
+                                    const bgColor = row.selected ? '#d1fae5' : 'white';
+                                    const borderColor = row.selected ? '#10b981' : '#cbd5e1';
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="60"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth={row.selected ? 2 : 1}
+                                            />
+                                            <text
+                                                x="110"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                                fontWeight={row.selected ? 'bold' : 'normal'}
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="160"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth={row.selected ? 2 : 1}
+                                            />
+                                            <text
+                                                x="210"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fill="#1e293b"
+                                                fontWeight={row.selected ? 'bold' : 'normal'}
+                                            >
+                                                {row.new_price}
+                                            </text>
+
+                                            <rect
+                                                x="260"
+                                                y={y}
+                                                width="130"
+                                                height="35"
+                                                fill={bgColor}
+                                                stroke={borderColor}
+                                                strokeWidth={row.selected ? 2 : 1}
+                                            />
+                                            <text
+                                                x="325"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="12"
+                                                fill="#475569"
+                                                fontWeight={row.selected ? 'bold' : 'normal'}
+                                            >
+                                                {row.change_date}
+                                            </text>
+
+                                            <rect
+                                                x="390"
+                                                y={y}
+                                                width="100"
+                                                height="35"
+                                                fill="#f1f5f9"
+                                                stroke={borderColor}
+                                                strokeWidth={row.selected ? 2 : 1}
+                                            />
+                                            <text
+                                                x="440"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fill="#64748b"
+                                                fontWeight={row.selected ? 'bold' : 'normal'}
+                                            >
+                                                {row.index}
+                                            </text>
+
+                                            <rect
+                                                x="490"
+                                                y={y}
+                                                width="160"
+                                                height="35"
+                                                fill={row.selected ? '#10b981' : '#f1f5f9'}
+                                                stroke={borderColor}
+                                                strokeWidth={row.selected ? 2 : 1}
+                                            />
+                                            <text
+                                                x="570"
+                                                y={y + 18}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="14"
+                                                fontWeight="bold"
+                                                fill={row.selected ? 'white' : '#64748b'}
+                                            >
+                                                {row.selected ? '✓ 選択' : ''}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'extract') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 280" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="50"
+                                    y="30"
+                                    width="500"
+                                    height="220"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="300"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    latest_prices DataFrame
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="100"
+                                    y="90"
+                                    width="150"
+                                    height="35"
+                                    fill="#10b981"
+                                    stroke="#059669"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="175"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="250"
+                                    y="90"
+                                    width="150"
+                                    height="35"
+                                    fill="#10b981"
+                                    stroke="#059669"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="325"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    new_price
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 125 + idx * 45;
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="100"
+                                                y={y}
+                                                width="150"
+                                                height="40"
+                                                fill="#d1fae5"
+                                                stroke="#10b981"
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x="175"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="bold"
+                                                fill="#065f46"
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="250"
+                                                y={y}
+                                                width="150"
+                                                height="40"
+                                                fill="#d1fae5"
+                                                stroke="#10b981"
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x="325"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="bold"
+                                                fill="#065f46"
+                                            >
+                                                {row.new_price}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'allproducts') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 500 300" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="50"
+                                    y="30"
+                                    width="400"
+                                    height="240"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="250"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    all_products (全製品リスト)
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="125"
+                                    y="90"
+                                    width="250"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="250"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 125 + idx * 45;
+                                    const isNew = row.product_id === 3;
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="125"
+                                                y={y}
+                                                width="250"
+                                                height="40"
+                                                fill={isNew ? '#fef3c7' : 'white'}
+                                                stroke={isNew ? '#f59e0b' : '#cbd5e1'}
+                                                strokeWidth={isNew ? 2 : 1}
+                                            />
+                                            <text
+                                                x="250"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight={isNew ? 'bold' : 'normal'}
+                                                fill={isNew ? '#78350f' : '#1e293b'}
+                                            >
+                                                {row.product_id}
+                                            </text>
+                                            {isNew && (
+                                                <text
+                                                    x="390"
+                                                    y={y + 20}
+                                                    textAnchor="start"
+                                                    dominantBaseline="middle"
+                                                    fontSize="12"
+                                                    fontWeight="bold"
+                                                    fill="#f59e0b"
+                                                >
+                                                    ← 価格変更なし
+                                                </text>
+                                            )}
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'map') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 650 320" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="50"
+                                    y="30"
+                                    width="550"
+                                    height="260"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="325"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fontWeight="bold"
+                                    fill="#0f766e"
+                                >
+                                    map() で価格を結合
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="100"
+                                    y="90"
+                                    width="150"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="175"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="250"
+                                    y="90"
+                                    width="150"
+                                    height="35"
+                                    fill="#0891b2"
+                                    stroke="#0e7490"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="325"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    price
+                                </text>
+
+                                <rect
+                                    x="400"
+                                    y="90"
+                                    width="150"
+                                    height="35"
+                                    fill="#94a3b8"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="475"
+                                    y="112"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="13"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    状態
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 125 + idx * 50;
+                                    const isNull = row.price === null;
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="100"
+                                                y={y}
+                                                width="150"
+                                                height="40"
+                                                fill="white"
+                                                stroke="#cbd5e1"
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="175"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fill="#1e293b"
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="250"
+                                                y={y}
+                                                width="150"
+                                                height="40"
+                                                fill={isNull ? '#fee2e2' : 'white'}
+                                                stroke={isNull ? '#fca5a5' : '#cbd5e1'}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="325"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fill={isNull ? '#991b1b' : '#1e293b'}
+                                                fontStyle={isNull ? 'italic' : 'normal'}
+                                            >
+                                                {isNull ? 'NaN' : row.price}
+                                            </text>
+
+                                            <rect
+                                                x="400"
+                                                y={y}
+                                                width="150"
+                                                height="40"
+                                                fill={isNull ? '#fef3c7' : '#d1fae5'}
+                                                stroke={isNull ? '#f59e0b' : '#10b981'}
+                                                strokeWidth="1"
+                                            />
+                                            <text
+                                                x="475"
+                                                y={y + 20}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="13"
+                                                fontWeight="bold"
+                                                fill={isNull ? '#78350f' : '#065f46'}
+                                            >
+                                                {isNull ? '要 fillna' : 'OK'}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 300" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <rect
+                                    x="50"
+                                    y="30"
+                                    width="500"
+                                    height="240"
+                                    fill="#f8fafc"
+                                    stroke="#cbd5e1"
+                                    strokeWidth="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="300"
+                                    y="60"
+                                    textAnchor="middle"
+                                    fontSize="20"
+                                    fontWeight="bold"
+                                    fill="#065f46"
+                                >
+                                    ✓ 最終結果
+                                </text>
+
+                                {/* ヘッダー */}
+                                <rect
+                                    x="125"
+                                    y="90"
+                                    width="150"
+                                    height="40"
+                                    fill="#10b981"
+                                    stroke="#059669"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="200"
+                                    y="115"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="15"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    product_id
+                                </text>
+
+                                <rect
+                                    x="275"
+                                    y="90"
+                                    width="150"
+                                    height="40"
+                                    fill="#10b981"
+                                    stroke="#059669"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="350"
+                                    y="115"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="15"
+                                    fontWeight="bold"
+                                    fill="white"
+                                >
+                                    price
+                                </text>
+
+                                {/* データ行 */}
+                                {visual.data.map((row, idx) => {
+                                    const y = 130 + idx * 50;
+                                    const isDefault = row.price === 10;
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x="125"
+                                                y={y}
+                                                width="150"
+                                                height="45"
+                                                fill="#d1fae5"
+                                                stroke="#10b981"
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x="200"
+                                                y={y + 23}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="18"
+                                                fontWeight="bold"
+                                                fill="#065f46"
+                                            >
+                                                {row.product_id}
+                                            </text>
+
+                                            <rect
+                                                x="275"
+                                                y={y}
+                                                width="150"
+                                                height="45"
+                                                fill={isDefault ? '#fef3c7' : '#d1fae5'}
+                                                stroke={isDefault ? '#f59e0b' : '#10b981'}
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x="350"
+                                                y={y + 23}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="18"
+                                                fontWeight="bold"
+                                                fill={isDefault ? '#78350f' : '#065f46'}
+                                            >
+                                                {row.price}
+                                            </text>
+                                            {isDefault && (
+                                                <text
+                                                    x="440"
+                                                    y={y + 23}
+                                                    textAnchor="start"
+                                                    dominantBaseline="middle"
+                                                    fontSize="13"
+                                                    fontWeight="bold"
+                                                    fill="#f59e0b"
+                                                >
+                                                    ← デフォルト
+                                                </text>
+                                            )}
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                return null;
+            }
+
+            ReactDOM.render(<StepByStepGuide />, document.getElementById('step-root'));
+        </script>
+
+        <script>
+            // Prism.js初期化
+            Prism.highlightAll();
+        </script>
+    </body>
+</html>

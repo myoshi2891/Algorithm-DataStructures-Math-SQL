@@ -1,0 +1,2691 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="LeetCode 90: Subsets II - 重複要素を含む配列からユニークな全部分集合を生成する反復的拡張法の解説"
+        />
+        <title>Subsets II - 反復的拡張法による重複排除 | アルゴリズム解説</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+        <script type="text/plain" class="mermaid">
+            mermaid.initialize({
+              startOnLoad: true,
+              securityLevel: "loose", // HTMLラベルを使うなら
+              htmlLabels: true, // <br>等を使うなら
+              theme: "neutral",
+            });
+        </script>
+        <!-- Prism.js -->
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --code-lh: 1.6;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            .subtitle {
+                text-align: center;
+                color: #666;
+                margin-bottom: 30px;
+                font-size: 14px;
+            }
+            .mermaid {
+                display: flex;
+                justify-content: center;
+                margin: 20px 0;
+            }
+            .info {
+                background-color: #e8f4f8;
+                padding: 15px;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+            .info h3 {
+                margin-top: 0;
+                color: #2c5aa0;
+            }
+            .info ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            .info li {
+                margin: 5px 0;
+            }
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    'Liberation Mono', 'Courier New', monospace;
+            }
+
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 6px 10px;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            .step-card {
+                transition: all 0.2s ease;
+            }
+
+            .step-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
+            }
+
+            .step-card.active {
+                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+                border-color: #10b981;
+            }
+
+            .svg-stage {
+                opacity: 0;
+                transition: opacity 0.4s ease;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .svg-stage.active {
+                opacity: 1;
+                position: relative;
+            }
+
+            .control-btn {
+                transition: all 0.2s ease;
+            }
+
+            .control-btn:hover:not(:disabled) {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(16, 185, 129, 0.2);
+            }
+
+            .control-btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            .nav-btn {
+                transition: all 0.2s ease;
+            }
+
+            .nav-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            }
+        </style>
+    </head>
+    <body class="bg-gradient-to-br from-emerald-50 via-sky-50 to-slate-50 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-emerald-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-4xl font-bold text-slate-800 mb-2">
+                    Subsets II - 重複排除の部分集合生成
+                </h1>
+                <p class="text-lg text-slate-600 mb-6">
+                    反復的拡張法と prev_size
+                    による重複制御で、重複要素を含む配列からユニークな全部分集合を O(n·2^n) で生成
+                </p>
+
+                <!-- Navigation -->
+                <nav class="flex flex-wrap gap-3" aria-label="ページ内ナビゲーション">
+                    <a
+                        href="#overview"
+                        class="nav-btn px-4 py-2 bg-white border border-emerald-200 rounded-lg text-emerald-700 font-semibold hover:bg-emerald-50"
+                        aria-label="概要セクションへ移動"
+                    >
+                        📋 概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="nav-btn px-4 py-2 bg-white border border-sky-200 rounded-lg text-sky-700 font-semibold hover:bg-sky-50"
+                        aria-label="ステップセクションへ移動"
+                    >
+                        🔄 ステップ
+                    </a>
+                    <a
+                        href="#code"
+                        class="nav-btn px-4 py-2 bg-white border border-purple-200 rounded-lg text-purple-700 font-semibold hover:bg-purple-50"
+                        aria-label="コードセクションへ移動"
+                    >
+                        💻 コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="nav-btn px-4 py-2 bg-white border border-indigo-200 rounded-lg text-indigo-700 font-semibold hover:bg-indigo-50"
+                        aria-label="図解セクションへ移動"
+                    >
+                        📊 図解
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="nav-btn px-4 py-2 bg-white border border-amber-200 rounded-lg text-amber-700 font-semibold hover:bg-amber-50"
+                        aria-label="計算量セクションへ移動"
+                    >
+                        ⚡ 計算量
+                    </a>
+                    <a
+                        href="#edgecases"
+                        class="nav-btn px-4 py-2 bg-white border border-rose-200 rounded-lg text-rose-700 font-semibold hover:bg-rose-50"
+                        aria-label="エッジケースセクションへ移動"
+                    >
+                        🔍 エッジケース
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+            <!-- Overview Section -->
+            <section
+                id="overview"
+                class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8"
+            >
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-emerald-500">📋</span>
+                    アルゴリズム概要
+                </h2>
+                <div class="space-y-4 text-slate-700 leading-relaxed">
+                    <p class="text-lg">
+                        <strong class="text-emerald-700">LeetCode 90: Subsets II</strong>
+                        では、重複要素を含む可能性のある整数配列から、<strong>重複のない</strong>すべての部分集合（パワーセット）を生成します。
+                    </p>
+                    <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+                        <p class="font-semibold text-emerald-900 mb-2">核心戦略</p>
+                        <ul class="list-disc list-inside space-y-1 text-emerald-800">
+                            <li>入力配列を<strong>昇順ソート</strong>し、同値を隣接させる</li>
+                            <li><strong>反復的拡張法</strong>で部分集合を段階的に生成</li>
+                            <li><strong>prev_size</strong> 変数で重複要素の拡張範囲を制御</li>
+                            <li>新規要素は全体拡張、重複要素は前回追加分のみ拡張</li>
+                        </ul>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-sky-50 p-4 rounded-lg border border-sky-200">
+                            <p class="font-semibold text-sky-900 mb-2">📥 入力例</p>
+                            <code class="text-sm text-sky-800">nums = [1, 2, 2]</code>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                            <p class="font-semibold text-purple-900 mb-2">📤 出力例</p>
+                            <code class="text-sm text-purple-800"
+                                >[[], [1], [1,2], [1,2,2], [2], [2,2]]</code
+                            >
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Steps Section -->
+            <section id="steps" class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-sky-500">🔄</span>
+                    ステップバイステップ解説
+                </h2>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Steps List -->
+                    <div class="space-y-3">
+                        <div
+                            class="step-card bg-slate-50 border-2 border-slate-200 rounded-xl p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            data-step="1"
+                            aria-label="ステップ1: ソートと初期化"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span
+                                    class="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold"
+                                    >1</span
+                                >
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">ソートと初期化</h3>
+                                    <p class="text-sm text-slate-600">
+                                        配列を昇順ソート、空集合で初期化、prev_size = 0
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border-2 border-slate-200 rounded-xl p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            data-step="2"
+                            aria-label="ステップ2: 最初の要素を追加"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span
+                                    class="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold"
+                                    >2</span
+                                >
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">
+                                        最初の要素 (1) を追加
+                                    </h3>
+                                    <p class="text-sm text-slate-600">
+                                        新規要素: 全体を拡張。[] に 1 を追加 → [1]
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border-2 border-slate-200 rounded-xl p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            data-step="3"
+                            aria-label="ステップ3: 2番目の要素を追加"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span
+                                    class="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold"
+                                    >3</span
+                                >
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">
+                                        2番目の要素 (2) を追加
+                                    </h3>
+                                    <p class="text-sm text-slate-600">
+                                        新規要素: 全体を拡張。[2], [1,2] を追加
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border-2 border-slate-200 rounded-xl p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            data-step="4"
+                            aria-label="ステップ4: 重複要素を追加"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span
+                                    class="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold"
+                                    >4</span
+                                >
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">
+                                        3番目の要素 (2) - 重複
+                                    </h3>
+                                    <p class="text-sm text-slate-600">
+                                        重複要素: 前回追加分のみ拡張。[2,2], [1,2,2] を追加
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="step-card bg-slate-50 border-2 border-slate-200 rounded-xl p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            data-step="5"
+                            aria-label="ステップ5: 完了"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span
+                                    class="flex-shrink-0 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold"
+                                    >5</span
+                                >
+                                <div>
+                                    <h3 class="font-bold text-slate-800 mb-1">完了</h3>
+                                    <p class="text-sm text-slate-600">
+                                        6個のユニークな部分集合を生成完了
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualization -->
+                    <div class="relative">
+                        <div
+                            class="bg-slate-50 rounded-xl p-6 border-2 border-slate-200 min-h-[400px]"
+                        >
+                            <div class="relative" style="min-height: 360px">
+                                <!-- ステージ 1 -->
+                                <div class="svg-stage active" data-stage="1">
+                                    <svg viewBox="0 0 400 320" class="w-full h-auto">
+                                        <text
+                                            x="200"
+                                            y="30"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-bold"
+                                            font-size="16"
+                                        >
+                                            ステージ 1: ソートと初期化
+                                        </text>
+
+                                        <!-- 入力配列 -->
+                                        <rect
+                                            x="50"
+                                            y="60"
+                                            width="60"
+                                            height="40"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="85"
+                                            text-anchor="middle"
+                                            class="fill-slate-800 font-semibold"
+                                            font-size="14"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="60"
+                                            width="60"
+                                            height="40"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="150"
+                                            y="85"
+                                            text-anchor="middle"
+                                            class="fill-slate-800 font-semibold"
+                                            font-size="14"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="190"
+                                            y="60"
+                                            width="60"
+                                            height="40"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="220"
+                                            y="85"
+                                            text-anchor="middle"
+                                            class="fill-slate-800 font-semibold"
+                                            font-size="14"
+                                        >
+                                            2
+                                        </text>
+                                        <text
+                                            x="30"
+                                            y="85"
+                                            text-anchor="end"
+                                            class="fill-slate-600"
+                                            font-size="12"
+                                        >
+                                            配列:
+                                        </text>
+
+                                        <!-- 矢印 -->
+                                        <path
+                                            d="M 150 110 L 150 140"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            fill="none"
+                                            marker-end="url(#arrowhead)"
+                                        />
+
+                                        <!-- 結果 -->
+                                        <rect
+                                            x="100"
+                                            y="160"
+                                            width="200"
+                                            height="120"
+                                            fill="#ecfdf5"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="185"
+                                            text-anchor="middle"
+                                            class="fill-emerald-700 font-bold"
+                                            font-size="14"
+                                        >
+                                            結果 = [ ]
+                                        </text>
+                                        <text x="110" y="210" class="fill-slate-700" font-size="13">
+                                            • 空の部分集合
+                                        </text>
+                                        <text x="110" y="235" class="fill-slate-700" font-size="13">
+                                            • prev_size = 0
+                                        </text>
+                                        <text x="110" y="260" class="fill-slate-700" font-size="13">
+                                            • 拡張準備完了
+                                        </text>
+
+                                        <defs>
+                                            <marker
+                                                id="arrowhead"
+                                                markerWidth="10"
+                                                markerHeight="10"
+                                                refX="9"
+                                                refY="3"
+                                                orient="auto"
+                                            >
+                                                <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+                                            </marker>
+                                        </defs>
+                                    </svg>
+                                </div>
+
+                                <!-- ステージ 2 -->
+                                <div class="svg-stage" data-stage="2">
+                                    <svg viewBox="0 0 400 320" class="w-full h-auto">
+                                        <text
+                                            x="200"
+                                            y="30"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-bold"
+                                            font-size="16"
+                                        >
+                                            ステージ 2: 要素 1 を追加
+                                        </text>
+
+                                        <!-- 現在の要素 -->
+                                        <rect
+                                            x="140"
+                                            y="60"
+                                            width="120"
+                                            height="45"
+                                            fill="#dbeafe"
+                                            stroke="#3b82f6"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="88"
+                                            text-anchor="middle"
+                                            class="fill-blue-800 font-bold"
+                                            font-size="14"
+                                        >
+                                            処理中: 1
+                                        </text>
+
+                                        <!-- 処理前 -->
+                                        <text
+                                            x="60"
+                                            y="140"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="13"
+                                        >
+                                            処理前:
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="150"
+                                            width="45"
+                                            height="30"
+                                            fill="#f1f5f9"
+                                            stroke="#64748b"
+                                            stroke-width="1.5"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="82"
+                                            y="170"
+                                            text-anchor="middle"
+                                            class="fill-slate-700"
+                                            font-size="12"
+                                        >
+                                            [ ]
+                                        </text>
+
+                                        <!-- 矢印 -->
+                                        <path
+                                            d="M 130 165 L 180 165"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            fill="none"
+                                            marker-end="url(#arrowhead2)"
+                                        />
+                                        <text
+                                            x="155"
+                                            y="155"
+                                            text-anchor="middle"
+                                            class="fill-emerald-600"
+                                            font-size="11"
+                                        >
+                                            全て拡張
+                                        </text>
+
+                                        <!-- 処理後 -->
+                                        <text
+                                            x="200"
+                                            y="140"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="13"
+                                        >
+                                            処理後:
+                                        </text>
+                                        <rect
+                                            x="200"
+                                            y="150"
+                                            width="45"
+                                            height="30"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="222"
+                                            y="170"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800"
+                                            font-size="12"
+                                        >
+                                            [ ]
+                                        </text>
+                                        <rect
+                                            x="255"
+                                            y="150"
+                                            width="50"
+                                            height="30"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="280"
+                                            y="170"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800"
+                                            font-size="12"
+                                        >
+                                            [1]
+                                        </text>
+
+                                        <!-- 情報ボックス -->
+                                        <rect
+                                            x="50"
+                                            y="220"
+                                            width="300"
+                                            height="70"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="1.5"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="245"
+                                            text-anchor="middle"
+                                            class="fill-amber-900 font-semibold"
+                                            font-size="13"
+                                        >
+                                            新要素 → 全ての部分集合を拡張
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="270"
+                                            text-anchor="middle"
+                                            class="fill-amber-800"
+                                            font-size="12"
+                                        >
+                                            start = 0, size = 1, prev_size = 1
+                                        </text>
+
+                                        <defs>
+                                            <marker
+                                                id="arrowhead2"
+                                                markerWidth="10"
+                                                markerHeight="10"
+                                                refX="9"
+                                                refY="3"
+                                                orient="auto"
+                                            >
+                                                <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+                                            </marker>
+                                        </defs>
+                                    </svg>
+                                </div>
+
+                                <!-- ステージ 3 -->
+                                <div class="svg-stage" data-stage="3">
+                                    <svg viewBox="0 0 400 320" class="w-full h-auto">
+                                        <text
+                                            x="200"
+                                            y="30"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-bold"
+                                            font-size="16"
+                                        >
+                                            ステージ 3: 要素 2 を追加(初回出現)
+                                        </text>
+
+                                        <!-- 現在の要素 -->
+                                        <rect
+                                            x="140"
+                                            y="60"
+                                            width="120"
+                                            height="45"
+                                            fill="#dbeafe"
+                                            stroke="#3b82f6"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="88"
+                                            text-anchor="middle"
+                                            class="fill-blue-800 font-bold"
+                                            font-size="14"
+                                        >
+                                            処理中: 2
+                                        </text>
+
+                                        <!-- 処理前 -->
+                                        <text
+                                            x="40"
+                                            y="140"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="12"
+                                        >
+                                            処理前:
+                                        </text>
+                                        <rect
+                                            x="40"
+                                            y="148"
+                                            width="40"
+                                            height="26"
+                                            fill="#f1f5f9"
+                                            stroke="#64748b"
+                                            stroke-width="1.5"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="60"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-slate-700"
+                                            font-size="11"
+                                        >
+                                            [ ]
+                                        </text>
+                                        <rect
+                                            x="85"
+                                            y="148"
+                                            width="40"
+                                            height="26"
+                                            fill="#f1f5f9"
+                                            stroke="#64748b"
+                                            stroke-width="1.5"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="105"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-slate-700"
+                                            font-size="11"
+                                        >
+                                            [1]
+                                        </text>
+
+                                        <!-- 矢印 -->
+                                        <path
+                                            d="M 140 161 L 180 161"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            fill="none"
+                                            marker-end="url(#arrowhead3)"
+                                        />
+                                        <text
+                                            x="160"
+                                            y="150"
+                                            text-anchor="middle"
+                                            class="fill-emerald-600"
+                                            font-size="10"
+                                        >
+                                            全て拡張
+                                        </text>
+
+                                        <!-- 処理後 -->
+                                        <text
+                                            x="190"
+                                            y="140"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="12"
+                                        >
+                                            処理後:
+                                        </text>
+                                        <rect
+                                            x="190"
+                                            y="148"
+                                            width="40"
+                                            height="26"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1.5"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="210"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800"
+                                            font-size="11"
+                                        >
+                                            [ ]
+                                        </text>
+                                        <rect
+                                            x="235"
+                                            y="148"
+                                            width="40"
+                                            height="26"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1.5"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="255"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800"
+                                            font-size="11"
+                                        >
+                                            [1]
+                                        </text>
+                                        <rect
+                                            x="280"
+                                            y="148"
+                                            width="40"
+                                            height="26"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="300"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-amber-800 font-semibold"
+                                            font-size="11"
+                                        >
+                                            [2]
+                                        </text>
+                                        <rect
+                                            x="325"
+                                            y="148"
+                                            width="50"
+                                            height="26"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="3"
+                                        />
+                                        <text
+                                            x="350"
+                                            y="165"
+                                            text-anchor="middle"
+                                            class="fill-amber-800 font-semibold"
+                                            font-size="11"
+                                        >
+                                            [1,2]
+                                        </text>
+
+                                        <!-- 情報ボックス -->
+                                        <rect
+                                            x="50"
+                                            y="215"
+                                            width="300"
+                                            height="80"
+                                            fill="#dbeafe"
+                                            stroke="#3b82f6"
+                                            stroke-width="1.5"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="240"
+                                            text-anchor="middle"
+                                            class="fill-blue-900 font-semibold"
+                                            font-size="13"
+                                        >
+                                            新要素 (2 ≠ 1)
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="260"
+                                            text-anchor="middle"
+                                            class="fill-blue-800"
+                                            font-size="12"
+                                        >
+                                            全て拡張: [] → [2], [1] → [1,2]
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="280"
+                                            text-anchor="middle"
+                                            class="fill-blue-700"
+                                            font-size="11"
+                                        >
+                                            start = 0, size = 2, prev_size = 2
+                                        </text>
+
+                                        <defs>
+                                            <marker
+                                                id="arrowhead3"
+                                                markerWidth="10"
+                                                markerHeight="10"
+                                                refX="9"
+                                                refY="3"
+                                                orient="auto"
+                                            >
+                                                <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+                                            </marker>
+                                        </defs>
+                                    </svg>
+                                </div>
+
+                                <!-- ステージ 4 -->
+                                <div class="svg-stage" data-stage="4">
+                                    <svg viewBox="0 0 400 340" class="w-full h-auto">
+                                        <text
+                                            x="200"
+                                            y="30"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-bold"
+                                            font-size="16"
+                                        >
+                                            ステージ 4: 要素 2 を追加(重複!)
+                                        </text>
+
+                                        <!-- 現在の要素 -->
+                                        <rect
+                                            x="120"
+                                            y="55"
+                                            width="160"
+                                            height="45"
+                                            fill="#fee2e2"
+                                            stroke="#ef4444"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="83"
+                                            text-anchor="middle"
+                                            class="fill-red-800 font-bold"
+                                            font-size="14"
+                                        >
+                                            処理中: 2 (重複)
+                                        </text>
+
+                                        <!-- マーカー付き処理前 -->
+                                        <text
+                                            x="30"
+                                            y="130"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="11"
+                                        >
+                                            処理前:
+                                        </text>
+                                        <rect
+                                            x="30"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#f1f5f9"
+                                            stroke="#94a3b8"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="47"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-slate-600"
+                                            font-size="10"
+                                        >
+                                            [ ]
+                                        </text>
+                                        <rect
+                                            x="70"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#f1f5f9"
+                                            stroke="#94a3b8"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="87"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-slate-600"
+                                            font-size="10"
+                                        >
+                                            [1]
+                                        </text>
+
+                                        <!-- 前回追加分をハイライト -->
+                                        <rect
+                                            x="110"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="127"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-amber-800 font-bold"
+                                            font-size="10"
+                                        >
+                                            [2]
+                                        </text>
+                                        <text
+                                            x="127"
+                                            y="170"
+                                            text-anchor="middle"
+                                            class="fill-amber-600"
+                                            font-size="8"
+                                        >
+                                            前回分
+                                        </text>
+
+                                        <rect
+                                            x="150"
+                                            y="138"
+                                            width="42"
+                                            height="24"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            stroke-width="2"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="171"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-amber-800 font-bold"
+                                            font-size="10"
+                                        >
+                                            [1,2]
+                                        </text>
+                                        <text
+                                            x="171"
+                                            y="170"
+                                            text-anchor="middle"
+                                            class="fill-amber-600"
+                                            font-size="8"
+                                        >
+                                            前回分
+                                        </text>
+                                        <!-- 矢印 -->
+                                        <path
+                                            d="M 200 150 L 240 150"
+                                            stroke="#ef4444"
+                                            stroke-width="2"
+                                            fill="none"
+                                            marker-end="url(#arrowhead4)"
+                                        />
+                                        <text
+                                            x="220"
+                                            y="140"
+                                            text-anchor="middle"
+                                            class="fill-red-600 font-semibold"
+                                            font-size="9"
+                                        >
+                                            前回分のみ
+                                        </text>
+
+                                        <!-- 処理後 -->
+                                        <text
+                                            x="250"
+                                            y="130"
+                                            class="fill-slate-600 font-semibold"
+                                            font-size="11"
+                                        >
+                                            処理後:
+                                        </text>
+                                        <rect
+                                            x="250"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="267"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-emerald-700"
+                                            font-size="10"
+                                        >
+                                            [ ]
+                                        </text>
+                                        <rect
+                                            x="290"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="307"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-emerald-700"
+                                            font-size="10"
+                                        >
+                                            [1]
+                                        </text>
+                                        <rect
+                                            x="330"
+                                            y="138"
+                                            width="35"
+                                            height="24"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="347"
+                                            y="153"
+                                            text-anchor="middle"
+                                            class="fill-emerald-700"
+                                            font-size="10"
+                                        >
+                                            [2]
+                                        </text>
+
+                                        <rect
+                                            x="250"
+                                            y="168"
+                                            width="42"
+                                            height="24"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="1"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="271"
+                                            y="183"
+                                            text-anchor="middle"
+                                            class="fill-emerald-700"
+                                            font-size="10"
+                                        >
+                                            [1,2]
+                                        </text>
+                                        <rect
+                                            x="297"
+                                            y="168"
+                                            width="42"
+                                            height="24"
+                                            fill="#fee2e2"
+                                            stroke="#ef4444"
+                                            stroke-width="2"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="318"
+                                            y="183"
+                                            text-anchor="middle"
+                                            class="fill-red-800 font-bold"
+                                            font-size="10"
+                                        >
+                                            [2,2]
+                                        </text>
+                                        <text
+                                            x="318"
+                                            y="200"
+                                            text-anchor="middle"
+                                            class="fill-red-600"
+                                            font-size="8"
+                                        >
+                                            新規
+                                        </text>
+
+                                        <rect
+                                            x="344"
+                                            y="168"
+                                            width="50"
+                                            height="24"
+                                            fill="#fee2e2"
+                                            stroke="#ef4444"
+                                            stroke-width="2"
+                                            rx="2"
+                                        />
+                                        <text
+                                            x="369"
+                                            y="183"
+                                            text-anchor="middle"
+                                            class="fill-red-800 font-bold"
+                                            font-size="10"
+                                        >
+                                            [1,2,2]
+                                        </text>
+                                        <text
+                                            x="369"
+                                            y="200"
+                                            text-anchor="middle"
+                                            class="fill-red-600"
+                                            font-size="8"
+                                        >
+                                            新規
+                                        </text>
+
+                                        <!-- 情報ボックス -->
+                                        <rect
+                                            x="30"
+                                            y="230"
+                                            width="340"
+                                            height="85"
+                                            fill="#fef2f2"
+                                            stroke="#ef4444"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="255"
+                                            text-anchor="middle"
+                                            class="fill-red-900 font-bold"
+                                            font-size="13"
+                                        >
+                                            重複検出: 2 == 2
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="275"
+                                            text-anchor="middle"
+                                            class="fill-red-800"
+                                            font-size="12"
+                                        >
+                                            前回追加分のみ拡張 (prev_size..size-1)
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="295"
+                                            text-anchor="middle"
+                                            class="fill-red-700"
+                                            font-size="11"
+                                        >
+                                            start = prev_size = 2, size = 4, new_prev_size = 4
+                                        </text>
+
+                                        <defs>
+                                            <marker
+                                                id="arrowhead4"
+                                                markerWidth="10"
+                                                markerHeight="10"
+                                                refX="9"
+                                                refY="3"
+                                                orient="auto"
+                                            >
+                                                <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
+                                            </marker>
+                                        </defs>
+                                    </svg>
+                                </div>
+
+                                <!-- ステージ 5 -->
+                                <div class="svg-stage" data-stage="5">
+                                    <svg viewBox="0 0 400 340" class="w-full h-auto">
+                                        <text
+                                            x="200"
+                                            y="30"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-bold"
+                                            font-size="18"
+                                        >
+                                            ステージ 5: 完了!
+                                        </text>
+
+                                        <!-- 成功バッジ -->
+                                        <rect
+                                            x="100"
+                                            y="50"
+                                            width="200"
+                                            height="50"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="3"
+                                            rx="8"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="80"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-bold"
+                                            font-size="16"
+                                        >
+                                            ✓ 全ての一意な部分集合
+                                        </text>
+
+                                        <!-- 最終結果 -->
+                                        <text
+                                            x="200"
+                                            y="130"
+                                            text-anchor="middle"
+                                            class="fill-slate-700 font-semibold"
+                                            font-size="14"
+                                        >
+                                            最終結果 (6個の部分集合):
+                                        </text>
+
+                                        <!-- 行 1 -->
+                                        <rect
+                                            x="50"
+                                            y="150"
+                                            width="45"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="72"
+                                            y="172"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [ ]
+                                        </text>
+
+                                        <rect
+                                            x="105"
+                                            y="150"
+                                            width="45"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="127"
+                                            y="172"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [1]
+                                        </text>
+
+                                        <rect
+                                            x="160"
+                                            y="150"
+                                            width="45"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="182"
+                                            y="172"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [2]
+                                        </text>
+
+                                        <!-- 行 2 -->
+                                        <rect
+                                            x="80"
+                                            y="195"
+                                            width="55"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="107"
+                                            y="217"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [1,2]
+                                        </text>
+
+                                        <rect
+                                            x="145"
+                                            y="195"
+                                            width="55"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="172"
+                                            y="217"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [2, 2]
+                                        </text>
+
+                                        <rect
+                                            x="210"
+                                            y="195"
+                                            width="65"
+                                            height="35"
+                                            fill="#dcfce7"
+                                            stroke="#10b981"
+                                            stroke-width="2"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="242"
+                                            y="217"
+                                            text-anchor="middle"
+                                            class="fill-emerald-800 font-semibold"
+                                            font-size="13"
+                                        >
+                                            [1,2,2]
+                                        </text>
+
+                                        <!-- 統計 -->
+                                        <rect
+                                            x="50"
+                                            y="250"
+                                            width="300"
+                                            height="70"
+                                            fill="#f0fdfa"
+                                            stroke="#14b8a6"
+                                            stroke-width="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x="200"
+                                            y="275"
+                                            text-anchor="middle"
+                                            class="fill-teal-900 font-bold"
+                                            font-size="13"
+                                        >
+                                            アルゴリズム完了
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="295"
+                                            text-anchor="middle"
+                                            class="fill-teal-800"
+                                            font-size="12"
+                                        >
+                                            時間計算量: O(n·2^n) | 空間計算量: O(1) 追加分
+                                        </text>
+                                        <text
+                                            x="200"
+                                            y="312"
+                                            text-anchor="middle"
+                                            class="fill-teal-700"
+                                            font-size="11"
+                                        >
+                                            重複なし、全ての一意な組み合わせを生成
+                                        </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="mt-6 flex flex-wrap gap-3 justify-center">
+                            <button
+                                class="control-btn px-6 py-3 bg-emerald-500 text-white rounded-lg font-semibold shadow-md hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+                                data-action="play"
+                                aria-label="自動再生"
+                            >
+                                ▶ Play
+                            </button>
+                            <button
+                                class="control-btn px-6 py-3 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+                                data-action="prev"
+                                aria-label="前のステップ"
+                            >
+                                ← Prev
+                            </button>
+                            <button
+                                class="control-btn px-6 py-3 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+                                data-action="next"
+                                aria-label="次のステップ"
+                            >
+                                Next →
+                            </button>
+                            <button
+                                class="control-btn px-6 py-3 bg-slate-500 text-white rounded-lg font-semibold shadow-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                                data-action="reset"
+                                aria-label="リセット"
+                            >
+                                ↺ Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Section -->
+            <section id="code" class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-purple-500">💻</span>
+                    Python実装（LeetCode形式）
+                </h2>
+
+                <div class="prose prose-slate max-w-none mb-6">
+                    <p class="text-slate-700">
+                        以下は
+                        <strong>class Solution</strong>
+                        形式の実装です。型注釈完備で、Pylance での静的解析に対応しています。
+                    </p>
+                </div>
+
+                <pre class="line-numbers"><code class="language-python">from typing import List
+class Solution:
+"""
+LeetCode 90: Subsets II
+重複要素を含む配列からユニークな全部分集合を生成
+反復的拡張法 + prev_size による重複制御
+Time: O(n·2^n), Space: O(1) extra (excluding output)
+"""
+
+def subsetsWithDup(self, nums: List[int]) -> List[List[int]]:
+    """
+    重複要素を含む配列からユニークな全部分集合を返す
+
+    Args:
+        nums: 整数配列（重複を含む可能性あり）
+
+    Returns:
+        重複のないすべての部分集合のリスト
+
+    Examples:
+        >>> Solution().subsetsWithDup([1,2,2])
+        [[], [1], [1,2], [1,2,2], [2], [2,2]]
+
+        >>> Solution().subsetsWithDup([0])
+        [[], [0]]
+    """
+    # ステップ1: ソートして同値を隣接させる
+    # これにより重複判定が O(1) で可能になる
+    arr: List[int] = sorted(nums)
+
+    # ステップ2: 空集合で初期化
+    res: List[List[int]] = [[]]
+
+    # prev_size: 直前イテレーション開始時の res の長さ
+    # 重複要素の拡張範囲を制御するために使用
+    prev_size: int = 0
+
+    # ステップ3: 各要素について部分集合を拡張
+    for i, v in enumerate(arr):
+        # 現在の部分集合数を保存
+        size: int = len(res)
+
+        # ステップ4: 拡張開始位置を決定
+        # 重複要素なら前回追加分のみ拡張、そうでなければ全体を拡張
+        if i > 0 and v == arr[i - 1]:
+            # 重複: 前回イテレーションで追加された部分のみ拡張
+            start: int = prev_size
+        else:
+            # 新規要素: すべての既存部分集合を拡張
+            start = 0
+
+        # ステップ5: 部分集合を拡張
+        # start から size-1 までの各部分集合に v を追加
+        for j in range(start, size):
+            base = res[j]
+            # Python の list 連結は C 実装で高速
+            res.append(base + [v])
+
+        # ステップ6: 次回イテレーション用に現在のサイズを保存
+        prev_size = size
+
+    return res</code></pre>
+            </section>
+
+            <!-- Diagram Section -->
+            <section
+                id="diagram"
+                class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8"
+            >
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-indigo-500">📊</span>
+                    視覚的図解・フローチャート
+                </h2>
+
+                <div class="space-y-8">
+                    <!-- Algorithm Flow -->
+                    <div class="container">
+                        <h1>Subsets II アルゴリズムフロー</h1>
+                        <p class="subtitle">重複要素を含む配列から重複なしの全部分集合を生成</p>
+                        <!-- prettier-ignore-start -->
+                        <pre class="mermaid">
+              flowchart TD
+    Start([開始: subsetsWithDup]) --> Sort["配列をソート<br/>arr = sorted(nums)"]
+    Sort --> Init["結果を初期化<br/>res = [[]]<br/>prev_size = 0"]
+    Init --> LoopCheck{"配列の全要素を<br/>処理したか?"}
+
+    LoopCheck -->|No| GetElement["現在の要素 v を取得<br/>i番目の要素"]
+    LoopCheck -->|Yes| Return([結果を返す: res])
+
+    GetElement --> SaveSize["現在のサイズを保存<br/>size = len(res)"]
+    SaveSize --> DupCheck{"重複要素か?<br/>i > 0 かつ<br/>v == arr[i-1]"}
+
+    DupCheck -->|Yes| SetStartPrev["拡張開始位置を設定<br/>start = prev_size<br/>前回追加分のみ拡張"]
+    DupCheck -->|No| SetStartZero["拡張開始位置を設定<br/>start = 0<br/>全体を拡張"]
+
+    SetStartPrev --> InnerLoop["内側ループ開始<br/>j = start to size-1"]
+    SetStartZero --> InnerLoop
+
+    InnerLoop --> InnerCheck{"j < size?"}
+
+    InnerCheck -->|Yes| CreateSubset["新しい部分集合を作成<br/>base = res[j]<br/>new = base + [v]"]
+    InnerCheck -->|No| UpdatePrev["prev_sizeを更新<br/>prev_size = size"]
+
+    CreateSubset --> AppendRes["結果に追加<br/>res.append(new)"]
+    AppendRes --> IncrJ["j++"]
+    IncrJ --> InnerCheck
+
+    UpdatePrev --> IncrI["i++"]
+    IncrI --> LoopCheck
+
+    style Start fill:#e1f5e1
+    style Return fill:#e1f5e1
+    style DupCheck fill:#fff4e1
+    style LoopCheck fill:#fff4e1
+    style InnerCheck fill:#fff4e1
+    style CreateSubset fill:#e1e5f5
+    style AppendRes fill:#e1e5f5
+    style Sort fill:#f5e1e1
+            </pre>
+                        <!-- prettier-ignore-end -->
+
+                        <div class="info">
+                            <h3>アルゴリズムの特徴</h3>
+                            <ul>
+                                <li>
+                                    <strong>時間計算量:</strong> O(n·2^n) -
+                                    n個の要素から2^n個の部分集合を生成
+                                </li>
+                                <li><strong>空間計算量:</strong> O(1) 追加空間（出力を除く）</li>
+                                <li>
+                                    <strong>重複排除の仕組み:</strong>
+                                    ソート後、重複要素は前回追加分のみを拡張することで重複を防ぐ
+                                </li>
+                                <li>
+                                    <strong>prev_sizeの役割:</strong>
+                                    前回のイテレーション開始時点でのresのサイズを記録し、重複要素時の拡張範囲を制限
+                                </li>
+                            </ul>
+
+                            <h3>処理例: [1, 2, 2]</h3>
+                            <ul>
+                                <li>初期: res = [[]]</li>
+                                <li>要素1追加: res = [[], [1]]</li>
+                                <li>要素2(1つ目)追加: res = [[], [1], [2], [1,2]]</li>
+                                <li>
+                                    要素2(2つ目・重複)追加: res = [[], [1], [2], [1,2], [2,2],
+                                    [1,2,2]]
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Data Flow -->
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">データフロー</h3>
+                        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                            <svg viewBox="0 0 700 280" class="w-full h-auto">
+                                <!-- 入力フェーズ -->
+                                <rect
+                                    x="20"
+                                    y="20"
+                                    width="160"
+                                    height="240"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="100"
+                                    y="45"
+                                    text-anchor="middle"
+                                    class="fill-amber-900 font-bold"
+                                    font-size="14"
+                                >
+                                    入力フェーズ
+                                </text>
+
+                                <rect
+                                    x="40"
+                                    y="70"
+                                    width="120"
+                                    height="40"
+                                    fill="#fff"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="100"
+                                    y="95"
+                                    text-anchor="middle"
+                                    class="fill-amber-800 font-semibold"
+                                    font-size="12"
+                                >
+                                    配列を入力
+                                </text>
+
+                                <path
+                                    d="M 100 110 L 100 130"
+                                    stroke="#f59e0b"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-amber)"
+                                />
+
+                                <rect
+                                    x="40"
+                                    y="130"
+                                    width="120"
+                                    height="40"
+                                    fill="#fff"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="100"
+                                    y="155"
+                                    text-anchor="middle"
+                                    class="fill-amber-800 font-semibold"
+                                    font-size="12"
+                                >
+                                    配列をソート
+                                </text>
+
+                                <!-- 初期化フェーズ -->
+                                <rect
+                                    x="210"
+                                    y="20"
+                                    width="160"
+                                    height="240"
+                                    fill="#dbeafe"
+                                    stroke="#3b82f6"
+                                    stroke-width="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="290"
+                                    y="45"
+                                    text-anchor="middle"
+                                    class="fill-blue-900 font-bold"
+                                    font-size="14"
+                                >
+                                    初期化
+                                </text>
+
+                                <rect
+                                    x="230"
+                                    y="70"
+                                    width="120"
+                                    height="40"
+                                    fill="#fff"
+                                    stroke="#3b82f6"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="290"
+                                    y="90"
+                                    text-anchor="middle"
+                                    class="fill-blue-800 font-semibold"
+                                    font-size="11"
+                                >
+                                    結果 = [[]]
+                                </text>
+                                <text
+                                    x="290"
+                                    y="102"
+                                    text-anchor="middle"
+                                    class="fill-blue-700"
+                                    font-size="10"
+                                >
+                                    空の部分集合
+                                </text>
+
+                                <path
+                                    d="M 290 110 L 290 130"
+                                    stroke="#3b82f6"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-blue)"
+                                />
+
+                                <rect
+                                    x="230"
+                                    y="130"
+                                    width="120"
+                                    height="40"
+                                    fill="#fff"
+                                    stroke="#3b82f6"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="290"
+                                    y="150"
+                                    text-anchor="middle"
+                                    class="fill-blue-800 font-semibold"
+                                    font-size="11"
+                                >
+                                    prev_size = 0
+                                </text>
+                                <text
+                                    x="290"
+                                    y="162"
+                                    text-anchor="middle"
+                                    class="fill-blue-700"
+                                    font-size="10"
+                                >
+                                    カウンタを初期化
+                                </text>
+
+                                <!-- 反復フェーズ -->
+                                <rect
+                                    x="400"
+                                    y="20"
+                                    width="180"
+                                    height="240"
+                                    fill="#f3e8ff"
+                                    stroke="#a855f7"
+                                    stroke-width="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="490"
+                                    y="45"
+                                    text-anchor="middle"
+                                    class="fill-purple-900 font-bold"
+                                    font-size="14"
+                                >
+                                    反復処理
+                                </text>
+
+                                <rect
+                                    x="420"
+                                    y="70"
+                                    width="140"
+                                    height="35"
+                                    fill="#fff"
+                                    stroke="#a855f7"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="490"
+                                    y="92"
+                                    text-anchor="middle"
+                                    class="fill-purple-800 font-semibold"
+                                    font-size="11"
+                                >
+                                    各要素 v について
+                                </text>
+
+                                <path
+                                    d="M 490 105 L 490 120"
+                                    stroke="#a855f7"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-purple)"
+                                />
+
+                                <polygon
+                                    points="490,120 540,145 490,170 440,145"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                                <text
+                                    x="490"
+                                    y="148"
+                                    text-anchor="middle"
+                                    class="fill-amber-800 font-semibold"
+                                    font-size="10"
+                                >
+                                    重複？
+                                </text>
+
+                                <path
+                                    d="M 440 145 L 420 145 L 420 190 L 440 190"
+                                    stroke="#ef4444"
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    marker-end="url(#arrow-red)"
+                                />
+                                <text
+                                    x="410"
+                                    y="168"
+                                    text-anchor="end"
+                                    class="fill-red-600"
+                                    font-size="9"
+                                >
+                                    はい
+                                </text>
+                                <rect
+                                    x="440"
+                                    y="180"
+                                    width="100"
+                                    height="30"
+                                    fill="#fee2e2"
+                                    stroke="#ef4444"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="490"
+                                    y="200"
+                                    text-anchor="middle"
+                                    class="fill-red-800"
+                                    font-size="10"
+                                >
+                                    前回分を拡張
+                                </text>
+
+                                <path
+                                    d="M 540 145 L 560 145 L 560 220 L 540 220"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                    fill="none"
+                                    marker-end="url(#arrow-green)"
+                                />
+                                <text
+                                    x="570"
+                                    y="183"
+                                    text-anchor="start"
+                                    class="fill-emerald-600"
+                                    font-size="9"
+                                >
+                                    いいえ
+                                </text>
+                                <rect
+                                    x="440"
+                                    y="215"
+                                    width="100"
+                                    height="30"
+                                    fill="#dcfce7"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="490"
+                                    y="235"
+                                    text-anchor="middle"
+                                    class="fill-emerald-800"
+                                    font-size="10"
+                                >
+                                    全てを拡張
+                                </text>
+
+                                <!-- 出力フェーズ -->
+                                <rect
+                                    x="610"
+                                    y="20"
+                                    width="80"
+                                    height="240"
+                                    fill="#dcfce7"
+                                    stroke="#10b981"
+                                    stroke-width="2"
+                                    rx="8"
+                                />
+                                <text
+                                    x="650"
+                                    y="45"
+                                    text-anchor="middle"
+                                    class="fill-emerald-900 font-bold"
+                                    font-size="14"
+                                >
+                                    出力
+                                </text>
+
+                                <rect
+                                    x="620"
+                                    y="100"
+                                    width="60"
+                                    height="60"
+                                    fill="#fff"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                    rx="4"
+                                />
+                                <text
+                                    x="650"
+                                    y="125"
+                                    text-anchor="middle"
+                                    class="fill-emerald-800 font-semibold"
+                                    font-size="11"
+                                >
+                                    返却
+                                </text>
+                                <text
+                                    x="650"
+                                    y="140"
+                                    text-anchor="middle"
+                                    class="fill-emerald-700"
+                                    font-size="10"
+                                >
+                                    全ての一意な
+                                </text>
+                                <text
+                                    x="650"
+                                    y="152"
+                                    text-anchor="middle"
+                                    class="fill-emerald-700"
+                                    font-size="10"
+                                >
+                                    部分集合
+                                </text>
+
+                                <!-- 接続線 -->
+                                <path
+                                    d="M 180 150 L 210 150"
+                                    stroke="#64748b"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-gray)"
+                                />
+                                <path
+                                    d="M 370 150 L 400 150"
+                                    stroke="#64748b"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-gray)"
+                                />
+                                <path
+                                    d="M 580 200 L 610 150"
+                                    stroke="#64748b"
+                                    stroke-width="2"
+                                    fill="none"
+                                    marker-end="url(#arrow-gray)"
+                                />
+
+                                <defs>
+                                    <marker
+                                        id="arrow-amber"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#f59e0b" />
+                                    </marker>
+                                    <marker
+                                        id="arrow-blue"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+                                    </marker>
+                                    <marker
+                                        id="arrow-purple"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#a855f7" />
+                                    </marker>
+                                    <marker
+                                        id="arrow-red"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
+                                    </marker>
+                                    <marker
+                                        id="arrow-green"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+                                    </marker>
+                                    <marker
+                                        id="arrow-gray"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                    >
+                                        <polygon points="0 0, 10 3, 0 6" fill="#64748b" />
+                                    </marker>
+                                </defs>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-3">
+                            入力のソートと初期化後、各要素を順次処理。重複判定により拡張範囲を制御し、最終的にユニークな全部分集合を出力します。
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <!-- Complexity Section -->
+            <section
+                id="complexity"
+                class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8"
+            >
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-amber-500">⚡</span>
+                    計算量説明
+                </h2>
+
+                <div class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Time Complexity -->
+                        <div
+                            class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6"
+                        >
+                            <h3
+                                class="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2"
+                            >
+                                <span>⏱️</span>
+                                時間計算量
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-lg p-4 border border-emerald-100">
+                                    <p class="text-3xl font-bold text-emerald-700 text-center mb-2">
+                                        O(n · 2<sup>n</sup>)
+                                    </p>
+                                </div>
+                                <ul class="space-y-2 text-sm text-slate-700">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                        <span><strong>ソート:</strong> O(n log n) - Timsort</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                        <span
+                                            ><strong>部分集合生成:</strong> 最大 2<sup>n</sup>
+                                            個の部分集合</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                        <span
+                                            ><strong>各生成:</strong> リストコピーに O(平均サイズ) ≈
+                                            O(n)</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                                        <span
+                                            ><strong>支配項:</strong> O(n · 2<sup>n</sup>)
+                                            が支配</span
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Space Complexity -->
+                        <div
+                            class="bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-6"
+                        >
+                            <h3 class="text-xl font-bold text-sky-900 mb-4 flex items-center gap-2">
+                                <span>💾</span>
+                                空間計算量
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-lg p-4 border border-sky-100">
+                                    <p class="text-3xl font-bold text-sky-700 text-center mb-2">
+                                        O(1)
+                                    </p>
+                                    <p class="text-sm text-sky-600 text-center">
+                                        追加メモリ（出力除く）
+                                    </p>
+                                </div>
+                                <ul class="space-y-2 text-sm text-slate-700">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-sky-500 font-bold mt-0.5">✓</span>
+                                        <span
+                                            ><strong>ローカル変数:</strong> prev_size, size, start
+                                            のみ</span
+                                        >
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-sky-500 font-bold mt-0.5">✓</span>
+                                        <span><strong>ソート:</strong> in-place（実質 O(1)）</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-sky-500 font-bold mt-0.5">✓</span>
+                                        <span><strong>出力配列:</strong> 問題要件のため別計上</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-sky-500 font-bold mt-0.5">✓</span>
+                                        <span
+                                            ><strong>再帰なし:</strong> スタック深度の心配不要</span
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Table -->
+                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">アプローチ比較</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b-2 border-slate-300">
+                                        <th class="text-left py-3 px-4 font-bold text-slate-700">
+                                            手法
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-bold text-slate-700">
+                                            時間
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-bold text-slate-700">
+                                            空間（追加）
+                                        </th>
+                                        <th class="text-left py-3 px-4 font-bold text-slate-700">
+                                            特徴
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    <tr class="hover:bg-slate-100">
+                                        <td class="py-3 px-4 text-slate-700">再帰バックトラック</td>
+                                        <td class="py-3 px-4 text-slate-700">O(n·2<sup>n</sup>)</td>
+                                        <td class="py-3 px-4 text-slate-700">O(n)</td>
+                                        <td class="py-3 px-4 text-slate-600">
+                                            関数呼び出しスタック深度 n
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-emerald-50 hover:bg-emerald-100">
+                                        <td class="py-3 px-4 font-bold text-emerald-800">
+                                            反復拡張（採用）
+                                        </td>
+                                        <td class="py-3 px-4 font-bold text-emerald-800">
+                                            O(n·2<sup>n</sup>)
+                                        </td>
+                                        <td class="py-3 px-4 font-bold text-emerald-800">O(1)</td>
+                                        <td class="py-3 px-4 text-emerald-700">
+                                            関数呼び出しなし、最小オーバーヘッド
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-100">
+                                        <td class="py-3 px-4 text-slate-700">ビットマスク列挙</td>
+                                        <td class="py-3 px-4 text-slate-700">O(n·2<sup>n</sup>)</td>
+                                        <td class="py-3 px-4 text-slate-700">O(1)</td>
+                                        <td class="py-3 px-4 text-slate-600">
+                                            重複排除に追加ロジック必要
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Key Points -->
+                    <div
+                        class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6"
+                    >
+                        <h3 class="text-lg font-bold text-purple-900 mb-3 flex items-center gap-2">
+                            <span>🎯</span>
+                            計算量のポイント
+                        </h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-500 font-bold mt-1">•</span>
+                                <span
+                                    >出力サイズが 2<sup>n</sup> のため、<strong
+                                        >理論的な下限も O(n·2<sup>n</sup>)</strong
+                                    >。これ以上の高速化は不可能。</span
+                                >
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-500 font-bold mt-1">•</span>
+                                <span
+                                    >本実装は
+                                    <strong>prev_size による O(1) の重複判定</strong
+                                    >で、追加メモリを最小化。</span
+                                >
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-500 font-bold mt-1">•</span>
+                                <span
+                                    >CPython の
+                                    <code class="bg-white px-2 py-0.5 rounded text-xs"
+                                        >list + [item]</code
+                                    >
+                                    は C 実装で効率的。</span
+                                >
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-500 font-bold mt-1">•</span>
+                                <span
+                                    >制約 n ≤ 10 のため、最大 1024
+                                    個の部分集合。実用上十分高速。</span
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Edge Cases Section -->
+            <section
+                id="edgecases"
+                class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8"
+            >
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+                    <span class="text-rose-500">🔍</span>
+                    エッジケースと検証観点
+                </h2>
+
+                <div class="space-y-6">
+                    <!-- Boundary Cases -->
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">境界ケース</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-rose-50 border border-rose-200 rounded-lg p-4">
+                                <h4 class="font-bold text-rose-900 mb-2">最小入力</h4>
+                                <code class="text-sm text-rose-800 bg-white px-2 py-1 rounded"
+                                    >nums = [0]</code
+                                >
+                                <p class="text-sm text-slate-700 mt-2">
+                                    期待出力:
+                                    <code class="bg-white px-1.5 py-0.5 rounded">[[], [0]]</code>
+                                </p>
+                            </div>
+
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <h4 class="font-bold text-amber-900 mb-2">すべて同じ要素</h4>
+                                <code class="text-sm text-amber-800 bg-white px-2 py-1 rounded"
+                                    >nums = [1, 1, 1]</code
+                                >
+                                <p class="text-sm text-slate-700 mt-2">
+                                    期待:
+                                    <code class="bg-white px-1.5 py-0.5 rounded"
+                                        >[[], [1], [1,1], [1,1,1]]</code
+                                    >
+                                </p>
+                            </div>
+
+                            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                                <h4 class="font-bold text-emerald-900 mb-2">すべて異なる要素</h4>
+                                <code class="text-sm text-emerald-800 bg-white px-2 py-1 rounded"
+                                    >nums = [1, 2, 3]</code
+                                >
+                                <p class="text-sm text-slate-700 mt-2">
+                                    期待: 2<sup>3</sup> = 8 個の部分集合
+                                </p>
+                            </div>
+
+                            <div class="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                                <h4 class="font-bold text-sky-900 mb-2">最大長</h4>
+                                <code class="text-sm text-sky-800 bg-white px-2 py-1 rounded"
+                                    >len(nums) = 10</code
+                                >
+                                <p class="text-sm text-slate-700 mt-2">
+                                    最大 2<sup>10</sup> = 1024 個の部分集合
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Cases -->
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">特殊ケース</h3>
+                        <div class="space-y-3">
+                            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                                <h4 class="font-bold text-purple-900 mb-1">負の数を含む</h4>
+                                <code class="text-sm text-purple-800">nums = [-1, 0, 1, 1]</code>
+                                <p class="text-sm text-slate-700 mt-2">
+                                    ソートの正しさ、負数処理の確認
+                                </p>
+                            </div>
+
+                            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded">
+                                <h4 class="font-bold text-indigo-900 mb-1">連続する重複</h4>
+                                <code class="text-sm text-indigo-800">nums = [1, 1, 2, 2]</code>
+                                <p class="text-sm text-slate-700 mt-2">
+                                    複数の重複グループの処理確認
+                                </p>
+                            </div>
+
+                            <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded">
+                                <h4 class="font-bold text-teal-900 mb-1">重複が末尾</h4>
+                                <code class="text-sm text-teal-800">nums = [1, 2, 2]</code>
+                                <p class="text-sm text-slate-700 mt-2">
+                                    Example 1 - 重複が最後に来る場合の動作確認
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Points -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">正当性の検証観点</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h4
+                                    class="font-semibold text-slate-700 mb-2 flex items-center gap-2"
+                                >
+                                    <span class="text-emerald-500">✓</span>
+                                    一意性（Uniqueness）
+                                </h4>
+                                <p class="text-sm text-slate-600">
+                                    同一の部分集合が複数生成されないこと
+                                </p>
+                            </div>
+
+                            <div>
+                                <h4
+                                    class="font-semibold text-slate-700 mb-2 flex items-center gap-2"
+                                >
+                                    <span class="text-emerald-500">✓</span>
+                                    完全性（Completeness）
+                                </h4>
+                                <p class="text-sm text-slate-600">
+                                    理論的な部分集合数と一致すること
+                                </p>
+                            </div>
+
+                            <div>
+                                <h4
+                                    class="font-semibold text-slate-700 mb-2 flex items-center gap-2"
+                                >
+                                    <span class="text-emerald-500">✓</span>
+                                    順序不変性
+                                </h4>
+                                <p class="text-sm text-slate-600">入力の順序によらず同じ結果集合</p>
+                            </div>
+
+                            <div>
+                                <h4
+                                    class="font-semibold text-slate-700 mb-2 flex items-center gap-2"
+                                >
+                                    <span class="text-emerald-500">✓</span>
+                                    型安全性
+                                </h4>
+                                <p class="text-sm text-slate-600">Pylance で警告・エラーなし</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-800 text-slate-300 py-8 mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <p class="text-sm">LeetCode 90: Subsets II - 反復的拡張法による解説</p>
+                <p class="text-xs text-slate-400 mt-2">Created with Tailwind CSS & Prism.js</p>
+            </div>
+        </footer>
+
+        <!-- Prism.js Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- Interactive Controls Script -->
+        <script>
+            (function () {
+                'use strict';
+
+                // State
+                let currentStep = 1;
+                let isPlaying = false;
+                const totalSteps = 5;
+
+                // Elements
+                const stepCards = document.querySelectorAll('[data-step]');
+                const stages = document.querySelectorAll('[data-stage]');
+                const playBtn = document.querySelector('[data-action="play"]');
+                const prevBtn = document.querySelector('[data-action="prev"]');
+                const nextBtn = document.querySelector('[data-action="next"]');
+                const resetBtn = document.querySelector('[data-action="reset"]');
+
+                // Functions
+                function updateDisplay() {
+                    // Update step cards
+                    stepCards.forEach((card) => {
+                        const step = parseInt(card.dataset.step);
+                        if (step === currentStep) {
+                            card.classList.add('active');
+                            card.setAttribute('aria-pressed', 'true');
+                        } else {
+                            card.classList.remove('active');
+                            card.setAttribute('aria-pressed', 'false');
+                        }
+                    });
+
+                    // Update stages
+                    stages.forEach((stage) => {
+                        const stageNum = parseInt(stage.dataset.stage);
+                        if (stageNum === currentStep) {
+                            stage.classList.add('active');
+                            stage.setAttribute('aria-hidden', 'false');
+                        } else {
+                            stage.classList.remove('active');
+                            stage.setAttribute('aria-hidden', 'true');
+                        }
+                    });
+
+                    // Update button states
+                    prevBtn.disabled = currentStep === 1;
+                    nextBtn.disabled = currentStep === totalSteps;
+                }
+
+                function goToStep(step) {
+                    if (step >= 1 && step <= totalSteps) {
+                        currentStep = step;
+                        updateDisplay();
+                    }
+                }
+
+                function playAnimation() {
+                    if (isPlaying) return; // Prevent multiple plays
+
+                    isPlaying = true;
+                    playBtn.disabled = true;
+                    playBtn.textContent = '▶ Playing...';
+
+                    let step = 1;
+
+                    function nextFrame() {
+                        if (step <= totalSteps) {
+                            goToStep(step);
+                            step++;
+                            setTimeout(nextFrame, 1500); // 1.5s per step
+                        } else {
+                            // Animation complete, reset to step 1
+                            setTimeout(() => {
+                                goToStep(1);
+                                isPlaying = false;
+                                playBtn.disabled = false;
+                                playBtn.textContent = '▶ Play';
+                            }, 800);
+                        }
+                    }
+
+                    nextFrame();
+                }
+
+                // Event Listeners
+                stepCards.forEach((card) => {
+                    card.addEventListener('click', () => {
+                        const step = parseInt(card.dataset.step);
+                        goToStep(step);
+                    });
+
+                    card.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const step = parseInt(card.dataset.step);
+                            goToStep(step);
+                        }
+                    });
+                });
+
+                playBtn.addEventListener('click', playAnimation);
+
+                prevBtn.addEventListener('click', () => {
+                    goToStep(currentStep - 1);
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    goToStep(currentStep + 1);
+                });
+
+                resetBtn.addEventListener('click', () => {
+                    goToStep(1);
+                });
+
+                // Initialize
+                updateDisplay();
+            })();
+        </script>
+    </body>
+</html>

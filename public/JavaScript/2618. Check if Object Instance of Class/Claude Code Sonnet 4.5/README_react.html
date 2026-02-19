@@ -1,0 +1,1850 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>checkIfInstanceOf - プロトタイプチェーン検証</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js -->
+        <link
+            href="/vendor/prismjs/themes/prism.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* Dark mode styles */
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+                    color: #e2e8f0 !important;
+                }
+
+                header {
+                    background: linear-gradient(135deg, #1e3a5f, #1e40af) !important;
+                }
+
+                header h1 {
+                    color: #7dd3fc !important;
+                }
+
+                header p {
+                    color: #67e8f9 !important;
+                }
+
+                header a {
+                    background: #1e293b !important;
+                    color: #e2e8f0 !important;
+                    border-color: #475569 !important;
+                }
+
+                header a:hover {
+                    background: linear-gradient(180deg, #0d9488, #0f766e) !important;
+                    border-color: #14b8a6 !important;
+                    color: #fff !important;
+                }
+
+                section {
+                    background: #1e293b !important;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+                }
+
+                h2,
+                h3 {
+                    color: #7dd3fc !important;
+                }
+
+                h2 {
+                    border-color: #0d9488 !important;
+                }
+
+                p,
+                li {
+                    color: #cbd5e1 !important;
+                }
+
+                code {
+                    background: #334155 !important;
+                    color: #7dd3fc !important;
+                }
+
+                /* Table styles for dark mode */
+                table {
+                    border-color: #475569 !important;
+                }
+
+                thead tr {
+                    background: #1e3a5f !important;
+                }
+
+                thead th {
+                    color: #7dd3fc !important;
+                    border-color: #0d9488 !important;
+                }
+
+                tbody td {
+                    border-color: #475569 !important;
+                    color: #e2e8f0 !important;
+                }
+
+                tbody tr:nth-child(odd) {
+                    background: #1e293b !important;
+                }
+
+                tbody tr:nth-child(even) {
+                    background: #334155 !important;
+                }
+
+                tr.bg-green-50 {
+                    background: #064e3b !important;
+                }
+
+                tr.bg-slate-50 {
+                    background: #334155 !important;
+                }
+
+                /* Code block background for dark mode */
+                pre[class*='language-'] {
+                    background: #1e293b !important;
+                    border: 1px solid #475569 !important;
+                }
+
+                code[class*='language-'] {
+                    color: #e2e8f0 !important;
+                    background: transparent !important;
+                }
+
+                .token.comment,
+                .token.prolog,
+                .token.doctype,
+                .token.cdata {
+                    color: #64748b !important;
+                }
+
+                .token.punctuation {
+                    color: #94a3b8 !important;
+                }
+
+                .token.property,
+                .token.tag,
+                .token.boolean,
+                .token.number,
+                .token.constant,
+                .token.symbol,
+                .token.deleted {
+                    color: #f472b6 !important;
+                }
+
+                .token.selector,
+                .token.attr-name,
+                .token.string,
+                .token.char,
+                .token.builtin,
+                .token.inserted {
+                    color: #4ade80 !important;
+                }
+
+                .token.operator,
+                .token.entity,
+                .token.url,
+                .language-css .token.string,
+                .style .token.string {
+                    color: #facc15 !important;
+                }
+
+                .token.atrule,
+                .token.attr-value,
+                .token.keyword {
+                    color: #38bdf8 !important;
+                }
+
+                .token.function,
+                .token.class-name {
+                    color: #c084fc !important;
+                }
+
+                .token.regex,
+                .token.important,
+                .token.variable {
+                    color: #fb923c !important;
+                }
+
+                div.code-toolbar > .toolbar .toolbar-item > button,
+                div.code-toolbar > .toolbar .toolbar-item > a {
+                    background: #334155 !important;
+                    border-color: #475569 !important;
+                    color: #e2e8f0 !important;
+                }
+
+                div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                    background: linear-gradient(180deg, #0d9488, #0f766e) !important;
+                }
+
+                /* SVG styles for dark mode */
+                svg text {
+                    fill: #e2e8f0 !important;
+                }
+
+                svg text[fill='#64748b'] {
+                    fill: #94a3b8 !important;
+                }
+
+                svg text[fill='#059669'] {
+                    fill: #34d399 !important;
+                }
+
+                svg text[fill='#dc2626'] {
+                    fill: #f87171 !important;
+                }
+
+                svg text[fill='#a855f7'] {
+                    fill: #c084fc !important;
+                }
+
+                svg text[fill='#0284c7'] {
+                    fill: #38bdf8 !important;
+                }
+
+                svg text[fill='#f59e0b'] {
+                    fill: #fbbf24 !important;
+                }
+
+                svg text[fill='#10b981'] {
+                    fill: #34d399 !important;
+                }
+
+                /* SVG shape fills for dark mode */
+                svg ellipse[fill='#d1fae5'] {
+                    fill: #064e3b !important;
+                    stroke: #34d399 !important;
+                }
+
+                svg rect[fill='#e0f2fe'] {
+                    fill: #0c4a6e !important;
+                    stroke: #38bdf8 !important;
+                }
+
+                svg rect[fill='#fef3c7'] {
+                    fill: #713f12 !important;
+                    stroke: #fbbf24 !important;
+                }
+
+                svg path[fill='#fef3c7'] {
+                    fill: #713f12 !important;
+                    stroke: #fbbf24 !important;
+                }
+
+                svg rect[fill='#d1fae5'] {
+                    fill: #064e3b !important;
+                    stroke: #34d399 !important;
+                }
+
+                svg rect[fill='#fee2e2'] {
+                    fill: #7f1d1d !important;
+                    stroke: #f87171 !important;
+                }
+
+                svg rect[fill='#f1f5f9'] {
+                    fill: #334155 !important;
+                    stroke: #64748b !important;
+                }
+
+                /* SVG arrow markers for dark mode */
+                svg path[fill='#64748b'] {
+                    fill: #94a3b8 !important;
+                }
+
+                svg path[fill='#059669'] {
+                    fill: #34d399 !important;
+                }
+
+                svg path[fill='#dc2626'] {
+                    fill: #f87171 !important;
+                }
+
+                svg path[fill='#a855f7'] {
+                    fill: #c084fc !important;
+                }
+
+                /* SVG lines for dark mode */
+                svg path[stroke='#64748b'] {
+                    stroke: #94a3b8 !important;
+                }
+
+                svg path[stroke='#059669'] {
+                    stroke: #34d399 !important;
+                }
+
+                svg path[stroke='#dc2626'] {
+                    stroke: #f87171 !important;
+                }
+
+                svg path[stroke='#a855f7'] {
+                    stroke: #c084fc !important;
+                }
+
+                /* Step list items for dark mode */
+                .bg-slate-50 {
+                    background: #334155 !important;
+                }
+
+                /* React component step buttons */
+                button.bg-white {
+                    background: #334155 !important;
+                    border-color: #475569 !important;
+                }
+
+                button.bg-white:hover {
+                    border-color: #34d399 !important;
+                }
+
+                /* Step visualization container */
+                div[class*='bg-[linear-gradient'] {
+                    background: linear-gradient(135deg, #1e3a5f, #1e293b) !important;
+                    border-color: #0d9488 !important;
+                }
+
+                /* Step list text colors */
+                .text-teal-800 {
+                    color: #5eead4 !important;
+                }
+
+                .text-slate-500 {
+                    color: #94a3b8 !important;
+                }
+
+                .text-slate-600 {
+                    color: #94a3b8 !important;
+                }
+
+                .text-emerald-900 {
+                    color: #6ee7b7 !important;
+                }
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <!-- Header -->
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                checkIfInstanceOf - プロトタイプチェーン検証
+            </h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">isPrototypeOf() による O(d) 実装</p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    概要
+                </a>
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    解説
+                </a>
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    コード
+                </a>
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    図解
+                </a>
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    計算量
+                </a>
+            </nav>
+        </header>
+
+        <!-- Overview -->
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+            <p class="mb-4">
+                与えられた値
+                <code class="px-2 py-1 bg-slate-100 rounded">obj</code> が、指定されたクラス
+                <code class="px-2 py-1 bg-slate-100 rounded">classFunction</code
+                >（またはそのスーパークラス）のインスタンスであるかを判定する関数を実装します。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">重要な要件</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>
+                    <strong>プリミティブ値対応</strong>: JavaScript の
+                    <code class="px-2 py-1 bg-slate-100 rounded">instanceof</code>
+                    とは異なり、プリミティブ値も正しく判定
+                    <ul class="list-circle list-inside ml-6 mt-1 space-y-1">
+                        <li>
+                            <code class="px-2 py-1 bg-slate-100 rounded">5</code> は
+                            <code class="px-2 py-1 bg-slate-100 rounded">Number</code>
+                            のインスタンス
+                        </li>
+                        <li>
+                            <code class="px-2 py-1 bg-slate-100 rounded">"hello"</code> は
+                            <code class="px-2 py-1 bg-slate-100 rounded">String</code>
+                            のインスタンス
+                        </li>
+                        <li>
+                            <code class="px-2 py-1 bg-slate-100 rounded">true</code> は
+                            <code class="px-2 py-1 bg-slate-100 rounded">Boolean</code>
+                            のインスタンス
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>プロトタイプチェーン走査</strong>: 継承関係を正しく検出</li>
+                <li>
+                    <strong>任意の型対応</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded">null</code>,
+                    <code class="px-2 py-1 bg-slate-100 rounded">undefined</code> も含む
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+            <div class="bg-slate-50 p-4 rounded-lg">
+                <pre class="text-sm"><code>checkIfInstanceOf(new Date(), Date)  // true
+checkIfInstanceOf(5, Number)         // true (プリミティブ対応)
+checkIfInstanceOf(5, String)         // false
+checkIfInstanceOf(null, Object)      // false
+
+class Animal {}
+class Dog extends Animal {}
+checkIfInstanceOf(new Dog(), Animal) // true (継承)</code></pre>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+            <ol class="list-decimal list-inside space-y-2 ml-4">
+                <li>
+                    <strong>早期リターン</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded">null/undefined</code> や不正な
+                    <code class="px-2 py-1 bg-slate-100 rounded">classFunction</code> を即座に除外
+                </li>
+                <li>
+                    <strong>プリミティブ処理</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded">Object()</code>
+                    でラッパーオブジェクト化（1回のみ）
+                </li>
+                <li>
+                    <strong>プロトタイプチェーン走査</strong>:
+                    <code class="px-2 py-1 bg-slate-100 rounded">isPrototypeOf()</code>
+                    でV8最適化を活用
+                </li>
+                <li><strong>型安全性</strong>: TypeScript の型ガードで実行時安全性を確保</li>
+            </ol>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>
+                    <strong>時間計算量</strong>: O(d) - d はプロトタイプチェーンの深度（通常3-10）
+                </li>
+                <li><strong>空間計算量</strong>: O(1) - プリミティブのボックス化のみ</li>
+                <li>
+                    <strong>最適化手法</strong>: V8ネイティブの
+                    <code class="px-2 py-1 bg-slate-100 rounded">isPrototypeOf()</code> を使用
+                </li>
+            </ul>
+        </section>
+
+        <!-- Steps -->
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="react-root"></div>
+        </section>
+
+        <!-- Code -->
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                TypeScript実装
+            </h2>
+            <pre class="line-numbers"><code class="language-typescript">/**
+ * 値が指定されたクラスまたはスーパークラスのインスタンスかチェック
+ *
+ * @param obj - チェック対象の値（任意の型、null/undefined含む）
+ * @param classFunction - クラスコンストラクタ
+ * @returns obj が classFunction（またはそのスーパークラス）のインスタンスなら true
+ *
+ * @complexity
+ * - Time: O(d) - d はプロトタイプチェーンの深度（通常3-10）
+ * - Space: O(1) - 固定サイズの変数のみ使用
+ */
+var checkIfInstanceOf = function(obj: unknown, classFunction: unknown): boolean {
+    // 早期リターン: null/undefined または classFunction が関数でない
+    if (obj == null || typeof classFunction !== 'function') {
+        return false;
+    }
+
+    // プリミティブはボックス化
+    // typeof による型判定（object と function 以外は全てプリミティブ）
+    if (typeof obj !== 'object' && typeof obj !== 'function') {
+        // Object() はプリミティブを対応するラッパーオブジェクトに変換
+        // 例: Object(5) → Number {5}, Object("a") → String {"a"}
+        obj = Object(obj);
+    }
+
+    // Optional Chaining + Nullish Coalescing で安全に処理
+    // ?. により prototype が undefined の場合（Arrow関数等）は undefined を返す
+    // ?? により undefined の場合は false を返す
+    return (classFunction as any).prototype?.isPrototypeOf(obj as object) ?? false;
+};</code></pre>
+        </section>
+
+        <!-- Diagram -->
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 900 980"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="checkIfInstanceOf flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="12"
+                            markerHeight="12"
+                            refX="10"
+                            refY="4"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,8 L10,4 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="12"
+                            markerHeight="12"
+                            refX="10"
+                            refY="4"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,8 L10,4 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="12"
+                            markerHeight="12"
+                            refX="10"
+                            refY="4"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,8 L10,4 z" fill="#dc2626" />
+                        </marker>
+                    </defs>
+
+                    <!-- 開始 -->
+                    <ellipse
+                        cx="420"
+                        cy="50"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="50"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始
+                    </text>
+
+                    <!-- obj が null/undefined? -->
+                    <path
+                        d="M 420 85 L 420 150"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 150 L 520 200 L 420 250 L 320 200 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="200"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">obj が</tspan>
+                        <tspan x="420" dy="18">null/undefined?</tspan>
+                    </text>
+
+                    <!-- いいえ → classFunction が関数? -->
+                    <path
+                        d="M 420 250 L 420 315"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="450"
+                        y="270"
+                        text-anchor="start"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        いいえ
+                    </text>
+
+                    <path
+                        d="M 420 315 L 520 365 L 420 415 L 320 365 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="365"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">classFunction が</tspan>
+                        <tspan x="420" dy="18">関数?</tspan>
+                    </text>
+
+                    <!-- いいえ → プリミティブ? -->
+                    <path
+                        d="M 420 415 L 420 480"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="450"
+                        y="435"
+                        text-anchor="start"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <path
+                        d="M 420 480 L 520 530 L 420 580 L 320 530 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="530"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">obj が</tspan>
+                        <tspan x="420" dy="18">プリミティブ?</tspan>
+                    </text>
+
+                    <!-- はい → ボックス化 -->
+                    <path
+                        d="M 520 530 L 670 530"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="570"
+                        y="520"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <rect
+                        x="670"
+                        y="500"
+                        width="140"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="740"
+                        y="530"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="740" dy="-8">obj を</tspan>
+                        <tspan x="740" dy="18">Object(obj) 化</tspan>
+                    </text>
+
+                    <!-- ボックス化 → prototype取得へ -->
+                    <path
+                        d="M 740 560 L 740 620 L 420 620 L 420 600"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- いいえ → prototype取得 -->
+                    <path
+                        d="M 320 530 L 220 530 L 220 620 L 420 620 L 420 600"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <text
+                        x="270"
+                        y="520"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#64748b"
+                    >
+                        いいえ
+                    </text>
+
+                    <!-- prototype取得 -->
+                    <rect
+                        x="320"
+                        y="600"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="630"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">classFunction</tspan>
+                        <tspan x="420" dy="18">.prototype を取得</tspan>
+                    </text>
+
+                    <!-- prototype存在? -->
+                    <path
+                        d="M 420 660 L 420 725"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <path
+                        d="M 420 725 L 520 775 L 420 825 L 320 775 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="775"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">prototype が</tspan>
+                        <tspan x="420" dy="18">存在?</tspan>
+                    </text>
+
+                    <!-- はい → isPrototypeOf -->
+                    <path
+                        d="M 520 775 L 670 775"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="570"
+                        y="765"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <rect
+                        x="670"
+                        y="745"
+                        width="140"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="740"
+                        y="775"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="740" dy="-8">isPrototypeOf</tspan>
+                        <tspan x="740" dy="18">で検証</tspan>
+                    </text>
+
+                    <!-- 終了（成功） -->
+                    <path
+                        d="M 740 805 L 740 850"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <ellipse
+                        cx="740"
+                        cy="870"
+                        rx="80"
+                        ry="25"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="740"
+                        y="870"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        結果を返す
+                    </text>
+
+                    <!-- false返却（各エラーパス） -->
+                    <!-- obj が null/undefined → false -->
+                    <path
+                        d="M 520 200 L 600 200 L 600 900"
+                        stroke="#dc2626"
+                        stroke-width="3"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="550"
+                        y="185"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="700"
+                        fill="#dc2626"
+                    >
+                        はい
+                    </text>
+
+                    <!-- classFunction が関数でない → false -->
+                    <path
+                        d="M 320 365 L 160 365 L 160 920 L 530 920"
+                        stroke="#dc2626"
+                        stroke-width="3"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="240"
+                        y="350"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="700"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <!-- prototype なし → false -->
+                    <path
+                        d="M 320 775 L 160 775 L 160 920"
+                        stroke="#dc2626"
+                        stroke-width="3"
+                        fill="none"
+                    />
+                    <text
+                        x="240"
+                        y="760"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="700"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <rect
+                        x="530"
+                        y="900"
+                        width="120"
+                        height="60"
+                        rx="8"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="590"
+                        y="930"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        false 返却
+                    </text>
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. <strong>null/undefined チェック</strong>: obj が null または undefined なら即座に
+                false<br />
+                2. <strong>関数チェック</strong>: classFunction が関数でなければ false<br />
+                3. <strong>プリミティブ処理</strong>: プリミティブ値なら Object() でボックス化<br />
+                4. <strong>prototype取得</strong>: classFunction.prototype を取得<br />
+                5. <strong>isPrototypeOf検証</strong>: プロトタイプチェーン内に存在するか確認<br />
+                6. <strong>結果返却</strong>: true/false を返す
+            </p>
+        </section>
+
+        <!-- Complexity -->
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                項目
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                計算量
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                説明
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                時間計算量
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(d)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                d はプロトタイプチェーンの深度（通常3-10）<br />isPrototypeOf()
+                                がチェーンを走査
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                空間計算量
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(1)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                プリミティブのボックス化のみ<br />新規オブジェクト生成は最小限
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-4">アプローチ比較</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                アプローチ
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                Time
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                Space
+                            </th>
+                            <th
+                                class="border-2 border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                備考
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-green-50">
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                isPrototypeOf() ✅
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(d)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(1)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                推奨: V8最適化 + TypeScript型安全
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                __proto__ 走査
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(d)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(1)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                非標準、型定義が曖昧
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                Object.getPrototypeOf()
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(d)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(1)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                手動ループ、関数呼び出しコスト
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                instanceof
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(d)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">
+                                <code class="px-2 py-1 bg-slate-100 rounded">O(1)</code>
+                            </td>
+                            <td class="border-2 border-slate-200 px-4 py-3">プリミティブ非対応</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-4">V8 最適化ポイント</h3>
+            <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>
+                    <strong>isPrototypeOf() のネイティブ実装</strong>:
+                    C++レベルで実装され、JITコンパイラによる最適化が効果的
+                </li>
+                <li>
+                    <strong>早期リターン</strong>: CPU
+                    の分岐予測を活用し、パイプライン・ストールを削減
+                </li>
+                <li>
+                    <strong>型安定性の維持</strong>: Hidden Class が変更されず、Inline Cache
+                    が効果的に機能
+                </li>
+                <li>
+                    <strong>Optional Chaining の効率的使用</strong>: 1回の null
+                    チェックで分岐回数を削減
+                </li>
+                <li>
+                    <strong>TypeScript のゼロコスト抽象化</strong>:
+                    型チェックはコンパイル時のみ、実行時オーバーヘッドなし
+                </li>
+            </ul>
+        </section>
+
+        <!-- React App -->
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            function StepVisualization({ visual }) {
+                const { type, value, classFunc, isPrimitive, boxed, protoChain, result } = visual;
+
+                if (type === 'input') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 250" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <text
+                                    x="300"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    入力値と型チェック
+                                </text>
+
+                                {/* obj */}
+                                <rect
+                                    x="100"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="6"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="175"
+                                    y="110"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                >
+                                    obj
+                                </text>
+                                <text
+                                    x="175"
+                                    y="135"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#0284c7"
+                                >
+                                    {value}
+                                </text>
+
+                                {/* classFunction */}
+                                <rect
+                                    x="350"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="6"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="425"
+                                    y="110"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                >
+                                    classFunction
+                                </text>
+                                <text
+                                    x="425"
+                                    y="135"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#f59e0b"
+                                >
+                                    {classFunc}
+                                </text>
+
+                                <text
+                                    x="300"
+                                    y="200"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    {isPrimitive
+                                        ? 'obj はプリミティブ値です'
+                                        : 'obj はオブジェクト/関数です'}
+                                </text>
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (type === 'boxing') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 300" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <text
+                                    x="300"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    プリミティブのボックス化
+                                </text>
+
+                                {/* Before */}
+                                <rect
+                                    x="75"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="6"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="150"
+                                    y="100"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                >
+                                    変換前
+                                </text>
+                                <text
+                                    x="150"
+                                    y="130"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#0284c7"
+                                >
+                                    {value}
+                                </text>
+
+                                {/* Arrow */}
+                                <path
+                                    d="M 225 120 L 350 120"
+                                    stroke="#a855f7"
+                                    strokeWidth="2"
+                                    fill="none"
+                                    markerEnd="url(#arrowPurple)"
+                                />
+                                <defs>
+                                    <marker
+                                        id="arrowPurple"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="9"
+                                        refY="3"
+                                        orient="auto"
+                                        markerUnits="strokeWidth"
+                                    >
+                                        <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                    </marker>
+                                </defs>
+                                <text
+                                    x="287"
+                                    y="110"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                    fill="#a855f7"
+                                >
+                                    Object()
+                                </text>
+
+                                {/* After */}
+                                <rect
+                                    x="350"
+                                    y="80"
+                                    width="175"
+                                    height="80"
+                                    rx="6"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="437"
+                                    y="100"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                >
+                                    変換後（ボックス化）
+                                </text>
+                                <text
+                                    x="437"
+                                    y="130"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#10b981"
+                                >
+                                    {boxed}
+                                </text>
+
+                                <text
+                                    x="300"
+                                    y="200"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    プリミティブをラッパーオブジェクトに変換
+                                </text>
+                                <text
+                                    x="300"
+                                    y="230"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fill="#64748b"
+                                >
+                                    例: 5 → Number {'{'}
+                                    {5}
+                                    {'}'}, "hello" → String {'{'}
+                                    {'hello'}
+                                    {'}'}, true → Boolean {'{'}true{'}'}
+                                </text>
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (type === 'prototype') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 400" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <text
+                                    x="300"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    プロトタイプチェーン検証
+                                </text>
+
+                                {/* Object */}
+                                <rect
+                                    x="225"
+                                    y="70"
+                                    width="150"
+                                    height="60"
+                                    rx="6"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="300"
+                                    y="100"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                >
+                                    {boxed || value}
+                                </text>
+
+                                {/* Prototype Chain */}
+                                {protoChain.map((proto, idx) => {
+                                    const y = 160 + idx * 70;
+                                    const isTarget = proto.includes(classFunc);
+                                    return (
+                                        <g key={idx}>
+                                            <path
+                                                d={`M 300 ${y - 30} L 300 ${y - 10}`}
+                                                stroke="#a855f7"
+                                                strokeWidth="2"
+                                                fill="none"
+                                                markerEnd="url(#arrowPurple)"
+                                            />
+                                            <rect
+                                                x="225"
+                                                y={y}
+                                                width="150"
+                                                height="50"
+                                                rx="6"
+                                                fill={isTarget ? '#d1fae5' : '#f1f5f9'}
+                                                stroke={isTarget ? '#10b981' : '#94a3b8'}
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x="300"
+                                                y={y + 25}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="600"
+                                                fill={isTarget ? '#10b981' : '#64748b'}
+                                            >
+                                                {proto}
+                                            </text>
+                                            {isTarget && (
+                                                <text
+                                                    x="400"
+                                                    y={y + 25}
+                                                    textAnchor="start"
+                                                    dominantBaseline="middle"
+                                                    fontSize="16"
+                                                    fontWeight="600"
+                                                    fill="#10b981"
+                                                >
+                                                    ← 発見！
+                                                </text>
+                                            )}
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                }
+
+                if (type === 'result') {
+                    return (
+                        <div style={{ marginTop: '20px' }}>
+                            <svg viewBox="0 0 600 250" style={{ maxWidth: '100%', height: 'auto' }}>
+                                <text
+                                    x="300"
+                                    y="30"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fontWeight="600"
+                                >
+                                    判定結果
+                                </text>
+
+                                <rect
+                                    x="175"
+                                    y="80"
+                                    width="250"
+                                    height="100"
+                                    rx="8"
+                                    fill={result ? '#d1fae5' : '#fee2e2'}
+                                    stroke={result ? '#10b981' : '#dc2626'}
+                                    strokeWidth="3"
+                                />
+                                <text
+                                    x="300"
+                                    y="120"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="24"
+                                    fontWeight="600"
+                                    fill={result ? '#059669' : '#dc2626'}
+                                >
+                                    {result ? 'true' : 'false'}
+                                </text>
+                                <text
+                                    x="300"
+                                    y="150"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fill={result ? '#10b981' : '#dc2626'}
+                                >
+                                    {result ? 'インスタンスです' : 'インスタンスではありません'}
+                                </text>
+
+                                <text
+                                    x="300"
+                                    y="220"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="18"
+                                    fill="#64748b"
+                                >
+                                    {result
+                                        ? `${value} は ${classFunc} のインスタンスとして扱えます`
+                                        : `${value} は ${classFunc} のインスタンスではありません`}
+                                </text>
+                            </svg>
+                        </div>
+                    );
+                }
+
+                return null;
+            }
+
+            function App() {
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '入力と型確認',
+                        desc: 'obj = 5, classFunction = Number の場合を例として、まず入力値の型を確認します。',
+                        visual: {
+                            type: 'input',
+                            value: '5',
+                            classFunc: 'Number',
+                            isPrimitive: true,
+                        },
+                    },
+                    {
+                        step: 2,
+                        title: 'null/undefined チェック',
+                        desc: 'obj が null または undefined でないことを確認します。== null により両方を同時チェック。',
+                        visual: {
+                            type: 'input',
+                            value: '5',
+                            classFunc: 'Number',
+                            isPrimitive: true,
+                        },
+                    },
+                    {
+                        step: 3,
+                        title: 'classFunction の検証',
+                        desc: 'classFunction が関数であることを typeof で確認します。関数でなければ false を返します。',
+                        visual: {
+                            type: 'input',
+                            value: '5',
+                            classFunc: 'Number',
+                            isPrimitive: true,
+                        },
+                    },
+                    {
+                        step: 4,
+                        title: 'プリミティブのボックス化',
+                        desc: '5 はプリミティブなので、Object(5) により Number {5} というラッパーオブジェクトに変換します。',
+                        visual: {
+                            type: 'boxing',
+                            value: '5',
+                            boxed: 'Number {5}',
+                        },
+                    },
+                    {
+                        step: 5,
+                        title: 'prototype 取得',
+                        desc: 'classFunction.prototype を取得します。Number.prototype が取得されます。',
+                        visual: {
+                            type: 'input',
+                            value: '5',
+                            classFunc: 'Number',
+                            isPrimitive: true,
+                        },
+                    },
+                    {
+                        step: 6,
+                        title: 'isPrototypeOf() で検証',
+                        desc: 'Number.prototype.isPrototypeOf(Number {5}) を呼び出し、プロトタイプチェーンを走査します。',
+                        visual: {
+                            type: 'prototype',
+                            value: '5',
+                            boxed: 'Number {5}',
+                            classFunc: 'Number',
+                            protoChain: ['Number.prototype', 'Object.prototype', 'null'],
+                        },
+                    },
+                    {
+                        step: 7,
+                        title: '結果: true',
+                        desc: 'Number.prototype がチェーン内に見つかったため、true を返します。',
+                        visual: {
+                            type: 'result',
+                            value: '5',
+                            classFunc: 'Number',
+                            result: true,
+                        },
+                    },
+                ];
+
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        // 最終ステップに到達したら次のタイマーで停止してStep 1に戻る
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            // 最終ステップの次はStep 1に戻る
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    setActiveStep(1);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.getElementById('react-root'));
+        </script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    </body>
+</html>

@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1117: Building H2O - マルチスレッド同期</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js -->
+        <link
+            href="/vendor/prismjs/themes/prism.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <!-- ヘッダー -->
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Building H2O</h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">
+                Semaphore + Barrier による O(1) マルチスレッド同期
+            </p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >概要</a
+                >
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >ステップ解説</a
+                >
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >コード例</a
+                >
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >フローチャート</a
+                >
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >計算量</a
+                >
+            </nav>
+        </header>
+
+        <!-- アルゴリズム概要 -->
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+            <p class="mb-4">
+                2種類のスレッド（<code class="px-2 py-1 bg-slate-100 rounded">oxygen</code> と
+                <code class="px-2 py-1 bg-slate-100 rounded">hydrogen</code
+                >）を同期させ、H2O分子を形成します。各分子は
+                <strong>水素2つ + 酸素1つ</strong>
+                の3スレッドで構成され、次のグループが形成される前に必ず1グループが完了しなければなりません。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="font-semibold mb-2">Example 1:</p>
+                <pre class="bg-white p-3 rounded border border-slate-200"><code>Input: water = "HOH"
+Output: "HHO"
+説明: "HOH" や "OHH" も正解</code></pre>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="font-semibold mb-2">Example 2:</p>
+                <pre
+                    class="bg-white p-3 rounded border border-slate-200"
+                ><code>Input: water = "OOHHHH"
+Output: "HHOHHO"
+説明: 順序は不定だが、必ず3文字単位(2H+1O)でグループ化</code></pre>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+            <ul class="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                <li><code class="px-2 py-1 bg-slate-100 rounded">3 * n == water.length</code></li>
+                <li>
+                    <code class="px-2 py-1 bg-slate-100 rounded">1 <= n <= 20</code>
+                    (最大60スレッド)
+                </li>
+                <li>水素は必ず酸素の2倍存在</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+            <p class="mb-4">
+                <strong>Semaphore + Barrier</strong> を組み合わせたマルチスレッド同期を実装します。
+            </p>
+            <ul class="space-y-2 text-slate-700">
+                <li>
+                    <strong>h_sem (Semaphore)</strong>: 水素スレッドの入場制御（初期値2 →
+                    2つまで同時入場）
+                </li>
+                <li><strong>o_sem (Semaphore)</strong>: 酸素への通知用（初期値0 → 水素が通知）</li>
+                <li><strong>barrier (Barrier)</strong>: 3スレッドの同期バリア</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+            <ul class="space-y-2 text-slate-700">
+                <li><strong>時間計算量</strong>: O(1) per thread operation</li>
+                <li><strong>空間計算量</strong>: O(1) - 固定サイズの同期オブジェクトのみ</li>
+                <li>
+                    <strong>デッドロック回避</strong>: Barrierによる3スレッド同期 + セマフォチェーン
+                </li>
+            </ul>
+        </section>
+
+        <!-- ステップバイステップ解説 -->
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="step-visualization-root"></div>
+        </section>
+
+        <!-- コード例 -->
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+            <pre
+                class="line-numbers"
+            ><code class="language-python">from __future__ import annotations
+from typing import Callable
+from threading import Semaphore, Barrier
+
+
+class H2O:
+    """
+    H2O分子形成の同期制御
+
+    Time Complexity: O(1) per thread
+    Space Complexity: O(1)
+
+    LeetCode実績: Runtime 45-55ms, Memory 20.2-20.4MB
+    """
+
+    def __init__(self) -> None:
+        """
+        同期機構の初期化
+
+        - h_sem: 水素入場制御(初期値2 → 2つまで同時入場)
+        - o_sem: 酸素通知用(初期値0 → 水素が通知)
+        - barrier: 3スレッド同期バリア
+        """
+        # 水素入場制御: 2つまで許可
+        self.h_sem: Semaphore = Semaphore(2)
+        # 酸素待機: 水素が通知するまで0
+        self.o_sem: Semaphore = Semaphore(0)
+        # 3スレッド同期バリア
+        self.barrier: Barrier = Barrier(3)
+
+    def hydrogen(self, releaseHydrogen: Callable[[], None]) -> None:
+        """
+        水素スレッドの同期処理
+
+        Args:
+            releaseHydrogen: "H"を出力するコールバック
+
+        処理フロー:
+        1. h_sem取得(2つまで入場)
+        2. o_semリリース(酸素に到着通知)
+        3. バリア待機(3つ揃うまで)
+        4. 出力
+        5. h_semリリース(次のグループ用)
+        """
+        # 入場制御: 最大2スレッドまで
+        self.h_sem.acquire()
+
+        # 酸素に到着を通知
+        self.o_sem.release()
+
+        # 3スレッド揃うまで待機
+        self.barrier.wait()
+
+        # 水素出力
+        releaseHydrogen()
+
+        # 次のグループ用にリリース
+        self.h_sem.release()
+
+    def oxygen(self, releaseOxygen: Callable[[], None]) -> None:
+        """
+        酸素スレッドの同期処理
+
+        Args:
+            releaseOxygen: "O"を出力するコールバック
+
+        処理フロー:
+        1. o_sem取得×2(水素2つの到着待ち)
+        2. バリア待機(3つ揃うまで)
+        3. 出力
+        """
+        # 水素2つの到着を待機
+        self.o_sem.acquire()
+        self.o_sem.acquire()
+
+        # 3スレッド揃うまで待機
+        self.barrier.wait()
+
+        # 酸素出力
+        releaseOxygen()</code></pre>
+        </section>
+
+        <!-- フローチャート -->
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 840 1000"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="Building H2O flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                        <marker
+                            id="arrowPurple"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+
+                    <!-- 開始 -->
+                    <ellipse
+                        cx="420"
+                        cy="50"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="50"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始
+                    </text>
+
+                    <!-- スレッド種別判定 -->
+                    <path
+                        d="M 420 150 L 520 210 L 420 270 L 320 210 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="210"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">Thread type</tspan>
+                        <tspan x="420" dy="18">H or O?</tspan>
+                    </text>
+                    <path
+                        d="M 420 85 L 420 150"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- Hydrogen分岐 -->
+                    <rect
+                        x="120"
+                        y="330"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="220"
+                        y="360"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="220" dy="-8">h_sem.acquire()</tspan>
+                        <tspan x="220" dy="18">水素入場制御</tspan>
+                    </text>
+                    <path
+                        d="M 320 210 L 220 210 L 220 330"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <text
+                        x="250"
+                        y="205"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#0284c7"
+                    >
+                        Hydrogen
+                    </text>
+
+                    <!-- Oxygen分岐 -->
+                    <rect
+                        x="520"
+                        y="330"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="620"
+                        y="360"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="620" dy="-8">o_sem.acquire() × 2</tspan>
+                        <tspan x="620" dy="18">水素2つ待機</tspan>
+                    </text>
+                    <path
+                        d="M 520 210 L 620 210 L 620 330"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <text
+                        x="590"
+                        y="205"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        Oxygen
+                    </text>
+
+                    <!-- H: o_sem通知 -->
+                    <rect
+                        x="120"
+                        y="440"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="220"
+                        y="470"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="220" dy="-8">o_sem.release()</tspan>
+                        <tspan x="220" dy="18">酸素に通知</tspan>
+                    </text>
+                    <path
+                        d="M 220 390 L 220 440"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- Barrier -->
+                    <rect
+                        x="320"
+                        y="570"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#f1f5f9"
+                        stroke="#64748b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="600"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">barrier.wait()</tspan>
+                        <tspan x="420" dy="18">3スレッド同期</tspan>
+                    </text>
+
+                    <!-- HからBarrier -->
+                    <path
+                        d="M 220 500 L 220 540 L 340 540 L 340 570"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <!-- OからBarrier -->
+                    <path
+                        d="M 620 390 L 620 540 L 500 540 L 500 570"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- H: releaseHydrogen -->
+                    <rect
+                        x="120"
+                        y="700"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="220"
+                        y="730"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="220" dy="-8">releaseHydrogen()</tspan>
+                        <tspan x="220" dy="18">出力 "H"</tspan>
+                    </text>
+                    <path
+                        d="M 320 600 L 220 600 L 220 700"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- O: releaseOxygen -->
+                    <rect
+                        x="520"
+                        y="700"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="620"
+                        y="730"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="620" dy="-8">releaseOxygen()</tspan>
+                        <tspan x="620" dy="18">出力 "O"</tspan>
+                    </text>
+                    <path
+                        d="M 520 600 L 620 600 L 620 700"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- H: h_sem.release -->
+                    <rect
+                        x="120"
+                        y="810"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="220"
+                        y="840"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="220" dy="-8">h_sem.release()</tspan>
+                        <tspan x="220" dy="18">次のグループ許可</tspan>
+                    </text>
+                    <path
+                        d="M 220 760 L 220 810"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- 終了 -->
+                    <ellipse
+                        cx="420"
+                        cy="940"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="940"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        終了
+                    </text>
+
+                    <!-- HからEnd -->
+                    <path
+                        d="M 220 870 L 220 900 L 340 900 L 340 920"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <!-- OからEnd -->
+                    <path
+                        d="M 620 760 L 620 900 L 500 900 L 500 920"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. スレッドが到着すると、種別（H or O）を判定<br />
+                2. <span class="text-cyan-700">Hydrogen</span>: h_semで入場制御 → o_semで酸素に通知
+                → Barrier待機 → 出力 → h_semリリース<br />
+                3. <span class="text-red-600">Oxygen</span>: o_sem取得×2で水素2つ待機 → Barrier待機
+                → 出力<br />
+                4. <span class="text-slate-600">Barrier</span>:
+                3スレッド揃うまで全員ブロック、揃った瞬間に全員リリース<br />
+                5. <span class="text-emerald-600">完了</span>:
+                各スレッドが出力後、次のグループが形成可能
+            </p>
+        </section>
+
+        <!-- 計算量説明 -->
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">時間計算量</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="border border-slate-300 px-4 py-2 text-left">操作</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">計算量</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2">
+                                <code>h_sem.acquire()</code>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">
+                                セマフォ取得(ブロック可能)
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <code>o_sem.release()</code>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">セマフォリリース</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2">
+                                <code>o_sem.acquire() × 2</code>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">セマフォ取得×2</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <code>barrier.wait()</code>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">バリア待機</td>
+                        </tr>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <strong>Total per thread</strong>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2"><strong>O(1)</strong></td>
+                            <td class="border border-slate-300 px-4 py-2">固定操作のみ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">空間計算量</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="border border-slate-300 px-4 py-2 text-left">構造</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">サイズ</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2"><code>h_sem</code></td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">Semaphoreオブジェクト</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-300 px-4 py-2"><code>o_sem</code></td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">Semaphoreオブジェクト</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2"><code>barrier</code></td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">
+                                Barrierオブジェクト(3スレッド固定)
+                            </td>
+                        </tr>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <strong>Total</strong>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2"><strong>O(1)</strong></td>
+                            <td class="border border-slate-300 px-4 py-2">
+                                入力サイズに依存しない
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">最適化の比較</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="border border-slate-300 px-4 py-2 text-left">実装方式</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">時間</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">空間</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left">備考</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-300 px-4 py-2">
+                                <strong>本実装 (Semaphore + Barrier)</strong>
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">
+                                デッドロックなし、簡潔
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2">
+                                Lock + Counter (手動実装)
+                            </td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">バグリスク高、複雑</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-300 px-4 py-2">Condition Variable</td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">O(1)</td>
+                            <td class="border border-slate-300 px-4 py-2">Barrierより複雑</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- React + Babel -->
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期化',
+                    desc: 'H2Oオブジェクトを生成し、同期機構を初期化します。h_sem=2（水素2つまで）、o_sem=0（酸素待機）、barrier=3（3スレッド同期）',
+                    visual: {
+                        type: 'init',
+                        hSem: 2,
+                        oSem: 0,
+                        barrier: 3,
+                    },
+                },
+                {
+                    step: 2,
+                    title: '水素スレッド1到着',
+                    desc: '最初の水素スレッドが到着し、h_sem.acquire()で入場。h_sem=1に減少。',
+                    visual: {
+                        type: 'h_acquire',
+                        hSem: 1,
+                        oSem: 0,
+                        barrier: 3,
+                        arrived: ['H1'],
+                    },
+                },
+                {
+                    step: 3,
+                    title: '水素スレッド1が通知',
+                    desc: 'H1がo_sem.release()で酸素に到着を通知。o_sem=1に増加。H1はbarrier.wait()で待機開始。',
+                    visual: {
+                        type: 'h_notify',
+                        hSem: 1,
+                        oSem: 1,
+                        barrier: 3,
+                        arrived: ['H1'],
+                        waiting: ['H1'],
+                    },
+                },
+                {
+                    step: 4,
+                    title: '水素スレッド2到着',
+                    desc: '2番目の水素スレッドが到着し、h_sem.acquire()で入場。h_sem=0に減少（満杯）。',
+                    visual: {
+                        type: 'h_acquire',
+                        hSem: 0,
+                        oSem: 1,
+                        barrier: 3,
+                        arrived: ['H1', 'H2'],
+                        waiting: ['H1'],
+                    },
+                },
+                {
+                    step: 5,
+                    title: '水素スレッド2が通知',
+                    desc: 'H2がo_sem.release()で酸素に到着を通知。o_sem=2に増加。H2もbarrier.wait()で待機開始。',
+                    visual: {
+                        type: 'h_notify',
+                        hSem: 0,
+                        oSem: 2,
+                        barrier: 3,
+                        arrived: ['H1', 'H2'],
+                        waiting: ['H1', 'H2'],
+                    },
+                },
+                {
+                    step: 6,
+                    title: '酸素スレッド到着',
+                    desc: '酸素スレッドが到着し、o_sem.acquire()×2で水素2つの到着を確認。o_sem=0に減少。',
+                    visual: {
+                        type: 'o_acquire',
+                        hSem: 0,
+                        oSem: 0,
+                        barrier: 3,
+                        arrived: ['H1', 'H2', 'O'],
+                        waiting: ['H1', 'H2'],
+                    },
+                },
+                {
+                    step: 7,
+                    title: 'バリア同期',
+                    desc: '3スレッドが揃い、barrier.wait()が全員をリリース。全員が同時に出力可能に。',
+                    visual: {
+                        type: 'barrier_release',
+                        hSem: 0,
+                        oSem: 0,
+                        barrier: 3,
+                        arrived: ['H1', 'H2', 'O'],
+                        waiting: [],
+                        releasing: ['H1', 'H2', 'O'],
+                    },
+                },
+                {
+                    step: 8,
+                    title: '出力完了',
+                    desc: '各スレッドがreleaseHydrogen()/releaseOxygen()を実行。出力は「HHO」「HOH」「OHH」のいずれか。',
+                    visual: {
+                        type: 'output',
+                        hSem: 0,
+                        oSem: 0,
+                        barrier: 3,
+                        output: ['H', 'H', 'O'],
+                    },
+                },
+                {
+                    step: 9,
+                    title: '次のグループ準備',
+                    desc: '水素スレッドがh_sem.release()を実行し、次のグループ用にセマフォをリセット。h_sem=2に戻る。',
+                    visual: {
+                        type: 'reset',
+                        hSem: 2,
+                        oSem: 0,
+                        barrier: 3,
+                        output: ['H', 'H', 'O'],
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                const { type, hSem, oSem, barrier, arrived, waiting, releasing, output } = visual;
+
+                return (
+                    <div style={{ marginTop: '20px' }}>
+                        <svg viewBox="0 0 600 400" style={{ maxWidth: '100%', height: 'auto' }}>
+                            {/* 背景 */}
+                            <rect x="0" y="0" width="600" height="400" fill="#f8fafc" />
+
+                            {/* タイトル */}
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                同期状態: {type}
+                            </text>
+
+                            {/* セマフォ表示 */}
+                            <g>
+                                {/* h_sem */}
+                                <rect
+                                    x="50"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="8"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="125"
+                                    y="105"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#0c4a6e"
+                                >
+                                    h_sem
+                                </text>
+                                <text
+                                    x="125"
+                                    y="140"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="24"
+                                    fontWeight="600"
+                                    fill="#0284c7"
+                                >
+                                    {hSem}
+                                </text>
+
+                                {/* o_sem */}
+                                <rect
+                                    x="225"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="8"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="300"
+                                    y="105"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#92400e"
+                                >
+                                    o_sem
+                                </text>
+                                <text
+                                    x="300"
+                                    y="140"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="24"
+                                    fontWeight="600"
+                                    fill="#f59e0b"
+                                >
+                                    {oSem}
+                                </text>
+
+                                {/* barrier */}
+                                <rect
+                                    x="400"
+                                    y="80"
+                                    width="150"
+                                    height="80"
+                                    rx="8"
+                                    fill="#f1f5f9"
+                                    stroke="#64748b"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="475"
+                                    y="105"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#334155"
+                                >
+                                    barrier
+                                </text>
+                                <text
+                                    x="475"
+                                    y="140"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="24"
+                                    fontWeight="600"
+                                    fill="#64748b"
+                                >
+                                    {barrier}
+                                </text>
+                            </g>
+
+                            {/* スレッド到着状態 */}
+                            {arrived && arrived.length > 0 && (
+                                <g>
+                                    <text
+                                        x="50"
+                                        y="200"
+                                        textAnchor="start"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        到着したスレッド:
+                                    </text>
+                                    {arrived.map((thread, idx) => (
+                                        <g key={idx}>
+                                            <circle
+                                                cx={50 + idx * 80 + 40}
+                                                cy={240}
+                                                r={25}
+                                                fill={
+                                                    thread.startsWith('H') ? '#bfdbfe' : '#fecaca'
+                                                }
+                                                stroke={
+                                                    thread.startsWith('H') ? '#0284c7' : '#dc2626'
+                                                }
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x={50 + idx * 80 + 40}
+                                                y={240}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="18"
+                                                fontWeight="600"
+                                            >
+                                                {thread}
+                                            </text>
+                                        </g>
+                                    ))}
+                                </g>
+                            )}
+
+                            {/* バリア待機中 */}
+                            {waiting && waiting.length > 0 && (
+                                <g>
+                                    <text
+                                        x="300"
+                                        y="200"
+                                        textAnchor="start"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#a855f7"
+                                    >
+                                        バリア待機中:
+                                    </text>
+                                    {waiting.map((thread, idx) => (
+                                        <g key={idx}>
+                                            <rect
+                                                x={300 + idx * 80}
+                                                y={220}
+                                                width={60}
+                                                height={40}
+                                                rx="6"
+                                                fill="#f3e8ff"
+                                                stroke="#a855f7"
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x={300 + idx * 80 + 30}
+                                                y={240}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="600"
+                                            >
+                                                {thread}
+                                            </text>
+                                        </g>
+                                    ))}
+                                </g>
+                            )}
+
+                            {/* リリース中 */}
+                            {releasing && releasing.length > 0 && (
+                                <g>
+                                    <text
+                                        x="50"
+                                        y="300"
+                                        textAnchor="start"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        バリアリリース:
+                                    </text>
+                                    {releasing.map((thread, idx) => (
+                                        <g key={idx}>
+                                            <rect
+                                                x={50 + idx * 80}
+                                                y={320}
+                                                width={60}
+                                                height={40}
+                                                rx="6"
+                                                fill="#d1fae5"
+                                                stroke="#059669"
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x={50 + idx * 80 + 30}
+                                                y={340}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="600"
+                                            >
+                                                {thread}
+                                            </text>
+                                        </g>
+                                    ))}
+                                </g>
+                            )}
+
+                            {/* 出力結果 */}
+                            {output && output.length > 0 && (
+                                <g>
+                                    <text
+                                        x="300"
+                                        y="300"
+                                        textAnchor="start"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        出力:
+                                    </text>
+                                    <rect
+                                        x="300"
+                                        y="320"
+                                        width="200"
+                                        height="50"
+                                        rx="8"
+                                        fill="#d1fae5"
+                                        stroke="#059669"
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="400"
+                                        y="345"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="24"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        {output.join('')}
+                                    </text>
+                                </g>
+                            )}
+                        </svg>
+                    </div>
+                );
+            }
+
+            function StepByStep() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep >= stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('step-visualization-root'));
+            root.render(<StepByStep />);
+        </script>
+    </body>
+</html>

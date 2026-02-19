@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>早期スキップ処理の詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                backdrop-filter: blur(10px);
+            }
+
+            h1 {
+                color: #2c3e50;
+                text-align: center;
+                font-size: 2.5em;
+                margin-bottom: 30px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                color: #e74c3c;
+                border-left: 5px solid #e74c3c;
+                padding-left: 15px;
+                margin-top: 40px;
+                font-size: 1.8em;
+            }
+
+            h3 {
+                color: #8e44ad;
+                margin-top: 30px;
+                font-size: 1.4em;
+            }
+
+            .code-block {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 20px;
+                border-radius: 10px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+                position: relative;
+            }
+
+            .code-highlight {
+                background: #f39c12;
+                color: #2c3e50;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .infinity {
+                background: #e74c3c;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .valid-state {
+                background: #27ae60;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .iteration-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .iteration {
+                flex: 1;
+                min-width: 300px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                border: 3px solid #dee2e6;
+            }
+
+            .iteration.skipped {
+                border-color: #e74c3c;
+                background: #ffebee;
+            }
+
+            .iteration.processed {
+                border-color: #27ae60;
+                background: #e8f5e8;
+            }
+
+            .array-visual {
+                display: flex;
+                gap: 3px;
+                margin: 15px 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .array-cell {
+                width: 45px;
+                height: 35px;
+                border: 2px solid #3498db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                border-radius: 5px;
+                position: relative;
+            }
+
+            .array-cell.infinity {
+                background: #e74c3c;
+                color: white;
+                border-color: #c0392b;
+            }
+
+            .array-cell.valid {
+                background: #27ae60;
+                color: white;
+                border-color: #229954;
+            }
+
+            .array-cell.current {
+                animation: pulse 1s infinite;
+                border-width: 3px;
+            }
+
+            .array-cell::before {
+                content: attr(data-index);
+                position: absolute;
+                top: -20px;
+                font-size: 10px;
+                color: #7f8c8d;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+
+            .comparison-box {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 25px;
+                border-radius: 15px;
+                margin: 20px 0;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .performance-table {
+                background: white;
+                border-radius: 10px;
+                overflow: hidden;
+                margin: 20px 0;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .performance-table table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .performance-table th,
+            .performance-table td {
+                padding: 15px;
+                text-align: center;
+                border: 1px solid #ddd;
+            }
+
+            .performance-table th {
+                background: #3498db;
+                color: white;
+                font-weight: bold;
+            }
+
+            .performance-table .skip {
+                background: #ffebee;
+                color: #c62828;
+                font-weight: bold;
+            }
+
+            .performance-table .process {
+                background: #e8f5e8;
+                color: #2e7d32;
+                font-weight: bold;
+            }
+
+            .step-flow {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .step-box {
+                background: #3498db;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 25px;
+                text-align: center;
+                margin: 5px;
+                position: relative;
+                min-width: 120px;
+            }
+
+            .step-box.skip {
+                background: #e74c3c;
+            }
+
+            .step-box.process {
+                background: #27ae60;
+            }
+
+            .arrow {
+                font-size: 20px;
+                color: #7f8c8d;
+            }
+
+            .misconception {
+                background: #fff3cd;
+                border: 2px solid #ffeaa7;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .misconception h4 {
+                color: #e17055;
+                margin-top: 0;
+            }
+
+            .key-insight {
+                background: linear-gradient(135deg, #74b9ff, #0984e3);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                border-left: 5px solid #fdcb6e;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🚀 早期スキップ処理の詳細解析</h1>
+
+            <div class="misconception">
+                <h4>❓ よくある誤解</h4>
+                <p><strong>「全部Infinityなのに、なぜスキップが意味あるの？」</strong></p>
+                <p>
+                    この疑問は完全に正当です！実際には<strong>動的にInfinityが有効な値に変わる</strong>プロセスを理解する必要があります。
+                </p>
+            </div>
+
+            <h2>🔍 初期化と状態変化の真実</h2>
+
+            <div class="code-block">
+                const dp = new Array(maxApples + 1).<span class="code-highlight"
+                    >fill(Infinity)</span
+                >; dp[0] = <span class="code-highlight">0</span>; // ←ここが重要！最初から0個は無料
+            </div>
+
+            <div class="key-insight">
+                <h3>💡 重要な理解ポイント</h3>
+                <p>
+                    <strong>dp[0] = 0</strong>
+                    が最初から設定されているため、最初のイテレーション（i=0）では必ず処理が実行され、その後の状態でInfinityの一部が有効な値に変わります。
+                </p>
+            </div>
+
+            <h2>📊 具体例で詳細追跡 (n=4, x=2, a=110, y=5, b=200)</h2>
+
+            <h3>初期状態</h3>
+            <div class="array-visual">
+                <div class="array-cell valid" data-index="0">0</div>
+                <div class="array-cell infinity" data-index="1">∞</div>
+                <div class="array-cell infinity" data-index="2">∞</div>
+                <div class="array-cell infinity" data-index="3">∞</div>
+                <div class="array-cell infinity" data-index="4">∞</div>
+                <div class="array-cell infinity" data-index="5">∞</div>
+                <div class="array-cell infinity" data-index="6">∞</div>
+                <div class="array-cell infinity" data-index="7">∞</div>
+                <div class="array-cell infinity" data-index="8">∞</div>
+            </div>
+
+            <div class="iteration-container">
+                <div class="iteration processed">
+                    <h4>🟢 i=0: 処理実行</h4>
+                    <div class="code-block">
+                        if (dp[0] === Infinity) continue; // false // dp[0] = 0 なので処理を実行
+                        dp[2] = min(∞, 0+110) = 110 dp[5] = min(∞, 0+200) = 200
+                    </div>
+                    <p>
+                        <strong>結果:</strong> <span class="valid-state">dp[2]=110</span>,
+                        <span class="valid-state">dp[5]=200</span>
+                    </p>
+                </div>
+
+                <div class="iteration skipped">
+                    <h4>🔴 i=1: スキップ</h4>
+                    <div class="code-block">
+                        if (dp[1] === Infinity) continue; // true // dp[1] = ∞ なので何もしない //
+                        計算処理をスキップ ⚡
+                    </div>
+                    <p><strong>効果:</strong> <span class="infinity">無駄な計算を回避</span></p>
+                </div>
+            </div>
+
+            <h3>i=0処理後の状態</h3>
+            <div class="array-visual">
+                <div class="array-cell valid" data-index="0">0</div>
+                <div class="array-cell infinity" data-index="1">∞</div>
+                <div class="array-cell valid" data-index="2">110</div>
+                <div class="array-cell infinity" data-index="3">∞</div>
+                <div class="array-cell infinity" data-index="4">∞</div>
+                <div class="array-cell valid" data-index="5">200</div>
+                <div class="array-cell infinity" data-index="6">∞</div>
+                <div class="array-cell infinity" data-index="7">∞</div>
+                <div class="array-cell infinity" data-index="8">∞</div>
+            </div>
+
+            <div class="iteration-container">
+                <div class="iteration processed">
+                    <h4>🟢 i=2: 処理実行</h4>
+                    <div class="code-block">
+                        if (dp[2] === Infinity) continue; // false // dp[2] = 110 なので処理を実行
+                        dp[4] = min(∞, 110+110) = 220 dp[7] = min(∞, 110+200) = 310
+                    </div>
+                    <p>
+                        <strong>結果:</strong> <span class="valid-state">dp[4]=220</span>,
+                        <span class="valid-state">dp[7]=310</span>
+                    </p>
+                </div>
+
+                <div class="iteration skipped">
+                    <h4>🔴 i=3: スキップ</h4>
+                    <div class="code-block">
+                        if (dp[3] === Infinity) continue; // true // dp[3] = ∞ なので何もしない //
+                        無駄な計算をスキップ ⚡
+                    </div>
+                    <p><strong>効果:</strong> <span class="infinity">処理時間短縮</span></p>
+                </div>
+            </div>
+
+            <h2>⚡ スキップ処理の効果分析</h2>
+
+            <div class="performance-table">
+                <table>
+                    <tr>
+                        <th>イテレーション i</th>
+                        <th>dp[i]の値</th>
+                        <th>処理内容</th>
+                        <th>計算量</th>
+                        <th>効果</th>
+                    </tr>
+                    <tr>
+                        <td>0</td>
+                        <td class="valid-state">0</td>
+                        <td class="process">2つの状態遷移実行</td>
+                        <td>O(1)</td>
+                        <td>有効状態を作成</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td class="infinity">∞</td>
+                        <td class="skip">スキップ</td>
+                        <td>O(1) → O(0)</td>
+                        <td>無駄計算回避</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td class="valid-state">110</td>
+                        <td class="process">2つの状態遷移実行</td>
+                        <td>O(1)</td>
+                        <td>新たな有効状態作成</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td class="infinity">∞</td>
+                        <td class="skip">スキップ</td>
+                        <td>O(1) → O(0)</td>
+                        <td>無駄計算回避</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td class="valid-state">220</td>
+                        <td class="process">2つの状態遷移実行</td>
+                        <td>O(1)</td>
+                        <td>更なる状態展開</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td class="valid-state">200</td>
+                        <td class="process">2つの状態遷移実行</td>
+                        <td>O(1)</td>
+                        <td>最適解候補更新</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td class="infinity">∞</td>
+                        <td class="skip">スキップ</td>
+                        <td>O(1) → O(0)</td>
+                        <td>無駄計算回避</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td class="valid-state">310</td>
+                        <td class="process">1つの状態遷移実行</td>
+                        <td>O(1)</td>
+                        <td>境界近くの処理</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td class="valid-state">400</td>
+                        <td class="process">境界により処理なし</td>
+                        <td>O(1)</td>
+                        <td>最終状態</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2>🔄 スキップなしとありの比較</h2>
+
+            <div class="comparison-box">
+                <h3>❌ スキップなしの場合</h3>
+                <div class="code-block">
+                    for (let i = 0; i <= maxApples; i++) { // 常に処理を実行 const nextX=Math.min(i
+                    + x, maxApples); dp[nextX]=Math.min(dp[nextX], dp[i] + a); // ∞ + a=∞ const
+                    nextY=Math.min(i + y, maxApples); dp[nextY]=Math.min(dp[nextY], dp[i] + b); // ∞
+                    + b=∞ }
+                </div>
+                <p><strong>問題点:</strong></p>
+                <ul>
+                    <li>∞ + 定数 = ∞ の無意味な計算を繰り返す</li>
+                    <li>min(∞, ∞) の無駄な比較</li>
+                    <li>全イテレーションで処理実行</li>
+                </ul>
+
+                <h3>✅ スキップありの場合</h3>
+                <div class="code-block">
+                    for (let i = 0; i <= maxApples; i++) {
+                    <span class="code-highlight">if (dp[i] === Infinity) continue;</span> //
+                    早期終了 // 有効な状態からのみ遷移 const nextX = Math.min(i + x, maxApples);
+                    dp[nextX] = Math.min(dp[nextX], dp[i] + a); // 有効値 + a const nextY =
+                    Math.min(i + y, maxApples); dp[nextY] = Math.min(dp[nextY], dp[i] + b); //
+                    有効値 + b }
+                </div>
+                <p><strong>利点:</strong></p>
+                <ul>
+                    <li>無効状態からの遷移を完全回避</li>
+                    <li>有効な計算のみ実行</li>
+                    <li>処理時間の大幅短縮</li>
+                </ul>
+            </div>
+
+            <h2>📈 パフォーマンス改善の数値分析</h2>
+
+            <div class="key-insight">
+                <h3>🎯 具体的な改善効果</h3>
+                <p><strong>この例での実行回数:</strong></p>
+                <ul>
+                    <li><strong>スキップなし:</strong> 9回の完全処理 (18回の状態遷移)</li>
+                    <li>
+                        <strong>スキップあり:</strong> 5回の処理 + 4回のスキップ (10回の状態遷移)
+                    </li>
+                    <li><strong>削減率:</strong> 約44%の処理削減</li>
+                </ul>
+
+                <p><strong>制約条件下での効果:</strong></p>
+                <ul>
+                    <li>n=1000, x=2, y=999の極端なケース</li>
+                    <li>到達可能状態: 非常に少数</li>
+                    <li>スキップ効果: 90%以上の処理削減可能</li>
+                </ul>
+            </div>
+
+            <h2>🧮 なぜこの最適化が重要なのか？</h2>
+
+            <div class="step-flow">
+                <div class="step-box">初期化<br />ほぼ全てInfinity</div>
+                <div class="arrow">→</div>
+                <div class="step-box process">有効状態<br />順次生成</div>
+                <div class="arrow">→</div>
+                <div class="step-box skip">無効状態<br />スキップ</div>
+                <div class="arrow">→</div>
+                <div class="step-box process">効率的<br />計算実行</div>
+            </div>
+
+            <div class="comparison-box">
+                <h3>🔑 アルゴリズムの本質</h3>
+                <p>
+                    この早期スキップは<strong>「到達可能状態のみを処理する」</strong>という動的計画法の核心原理を実現しています。
+                </p>
+
+                <p><strong>到達不可能な状態:</strong></p>
+                <ul>
+                    <li>dp[i] = ∞ → この個数のりんごは現在の予算・購入方法では手に入らない</li>
+                    <li>そこから遷移しても意味がない</li>
+                    <li>スキップすることで計算効率を大幅改善</li>
+                </ul>
+
+                <p><strong>到達可能な状態:</strong></p>
+                <ul>
+                    <li>dp[i] < ∞ → この個数のりんごを特定コストで取得可能</li>
+                    <li>ここから新しい状態への遷移が有意味</li>
+                    <li>処理実行により解の候補を拡張</li>
+                </ul>
+            </div>
+
+            <div class="key-insight">
+                <h3>💡 まとめ</h3>
+                <p><strong>早期スキップの真の価値:</strong></p>
+                <ol>
+                    <li><strong>理論的効果:</strong> 無効状態からの無意味な遷移を完全排除</li>
+                    <li><strong>実用的効果:</strong> 処理時間を30-90%削減（問題によって変動）</li>
+                    <li><strong>メモリ効果:</strong> 無駄なメモリアクセスを減少</li>
+                    <li><strong>コード品質:</strong> アルゴリズムの意図を明確に表現</li>
+                </ol>
+            </div>
+        </div>
+    </body>
+</html>

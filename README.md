@@ -28,26 +28,26 @@ graph TB
         A1[Claude Sonnet 4.5]
         A2[GPT-5.1 Thinking Customized]
     end
-    
+
     subgraph "次元2: プログラミング言語 (×3)"
         L1[Python 3.11.10]
         L2[TypeScript 5.9.3]
         L3[JavaScript ES2017]
     end
-    
+
     subgraph "次元3: ドキュメント階層 (×3)"
         D1[Static - README.md]
         D2[Interactive - README.html]
         D3[Dynamic - README_react.html]
     end
-    
+
     A1 --> L1
     A1 --> L2
     A1 --> L3
     A2 --> L1
     A2 --> L2
     A2 --> L3
-    
+
     L1 --> D1
     L1 --> D2
     L1 --> D3
@@ -57,7 +57,7 @@ graph TB
     L3 --> D1
     L3 --> D2
     L3 --> D3
-    
+
     style A1 fill:#e1f5ff
     style A2 fill:#e1f5ff
     style L1 fill:#fff4e1
@@ -70,16 +70,16 @@ graph TB
 
 ### マトリックス次元仕様
 
-| 次元 | 値 | ファイルパターン | コード構造 |
-|------|-----|------------------|------------|
-| **AIプロバイダー** | Claude Sonnet 4.5 | `claude sonnet 4.5/` | 競技最適化、型アノテーション信頼、50-150 LOC |
-| | GPT-5.1 Thinking Customized | `gpt 5.1 thinking customized/` | 本番環境の堅牢性、ランタイム検証、80-200 LOC |
-| **言語** | Python 3.11.10 | `*.py` | `class Solution: def methodName(self, ...) -> ...` |
-| | TypeScript 5.9.3 | `*.ts` | `function functionName(...): ReturnType { ... }` |
-| | JavaScript ES2017 | `*.js` | `var functionName = function(...) { ... }` |
-| **ドキュメント** | Static | `README.md` | 3000-5000語、5セクション、純粋なMarkdown |
-| | Interactive | `README.html` | Prism.js構文ハイライト、Tailwind CSS、ステップコントロール |
-| | Dynamic | `README_react.html` | React 18 UMD、Babel Standalone、リアルタイム入力操作 |
+| 次元               | 値                          | ファイルパターン               | コード構造                                                 |
+| ------------------ | --------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| **AIプロバイダー** | Claude Sonnet 4.5           | `claude sonnet 4.5/`           | 競技最適化、型アノテーション信頼、50-150 LOC               |
+|                    | GPT-5.1 Thinking Customized | `gpt 5.1 thinking customized/` | 本番環境の堅牢性、ランタイム検証、80-200 LOC               |
+| **言語**           | Python 3.11.10              | `*.py`                         | `class Solution: def methodName(self, ...) -> ...`         |
+|                    | TypeScript 5.9.3            | `*.ts`                         | `function functionName(...): ReturnType { ... }`           |
+|                    | JavaScript ES2017           | `*.js`                         | `var functionName = function(...) { ... }`                 |
+| **ドキュメント**   | Static                      | `README.md`                    | 3000-5000語、5セクション、純粋なMarkdown                   |
+|                    | Interactive                 | `README.html`                  | Prism.js構文ハイライト、Tailwind CSS、ステップコントロール |
+|                    | Dynamic                     | `README_react.html`            | React 18 UMD、Babel Standalone、リアルタイム入力操作       |
 
 ## デュアルAI実装哲学
 
@@ -94,7 +94,7 @@ graph LR
         C4[高速実行 44ms]
         C5[メモリ効率 91.38%]
     end
-    
+
     subgraph "GPT実装"
         G1[本番環境の堅牢性]
         G2[ランタイム検証]
@@ -102,12 +102,12 @@ graph LR
         G4[安定実行 42ms]
         G5[バランス型 66.05%]
     end
-    
+
     C1 --> C4
     C2 --> C5
     G1 --> G4
     G2 --> G5
-    
+
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
@@ -124,13 +124,13 @@ graph LR
 
 Python実装の例:
 
-| 側面 | Claude実装 | GPT実装 |
-|------|------------|---------|
-| **メソッド数** | 単一メソッド: `def isInterleave(self, s1: str, s2: str, s3: str) -> bool` | 複数メソッド: `isInterleave()`, `isInterleave_production()`, `_isInterleave_competitive()` |
-| **検証** | アノテーション信頼: `if n1 + n2 != n3: return False` | ランタイムチェック: `if not isinstance(s1, str): raise TypeError("s1 must be str")` |
-| **制約** | 有効性を仮定: 境界チェックなし | 明示的検証: `if len(s1) > 100: raise ValueError("Exceeds constraint")` |
-| **実行時間(LeetCode)** | 44ms (60.43%) - Python<br>42ms (98.45%) - TypeScript | 42ms (70.90%) - Python<br>54ms (60.46%) - TypeScript |
-| **メモリ効率** | 91.38パーセンタイル | 66.05パーセンタイル |
+| 側面                   | Claude実装                                                                | GPT実装                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **メソッド数**         | 単一メソッド: `def isInterleave(self, s1: str, s2: str, s3: str) -> bool` | 複数メソッド: `isInterleave()`, `isInterleave_production()`, `_isInterleave_competitive()` |
+| **検証**               | アノテーション信頼: `if n1 + n2 != n3: return False`                      | ランタイムチェック: `if not isinstance(s1, str): raise TypeError("s1 must be str")`        |
+| **制約**               | 有効性を仮定: 境界チェックなし                                            | 明示的検証: `if len(s1) > 100: raise ValueError("Exceeds constraint")`                     |
+| **実行時間(LeetCode)** | 44ms (60.43%) - Python<br>42ms (98.45%) - TypeScript                      | 42ms (70.90%) - Python<br>54ms (60.46%) - TypeScript                                       |
+| **メモリ効率**         | 91.38パーセンタイル                                                       | 66.05パーセンタイル                                                                        |
 
 ## O(1)ルックアップのための6階層ファイル構造
 
@@ -144,13 +144,13 @@ graph TD
     L4[レベル4: 問題<br/>97. Interleaving String, 99. Recover Binary Search Tree]
     L5[レベル5: AIプロバイダー<br/>claude sonnet 4.5, gpt 5.1 thinking customized]
     L6[レベル6: 成果物<br/>*.py, *.ts, *.js, README.md, README.html, README_react.html]
-    
+
     L1 --> L2
     L2 --> L3
     L3 --> L4
     L4 --> L5
     L5 --> L6
-    
+
     style L1 fill:#e1f5ff
     style L2 fill:#fff4e1
     style L3 fill:#f0ffe1
@@ -161,14 +161,14 @@ graph TD
 
 ### 階層レベル仕様
 
-| レベル | 目的 | 例 | カーディナリティ |
-|--------|------|-----|------------------|
-| 1. ドメイン | トップレベル問題カテゴリ | `Algorithm/`, `DataStructures/`, `Mathematics/`, `SQL/`, `Shell/`, `Concurrency/` | 6ディレクトリ |
-| 2. サブカテゴリ | アルゴリズム技術 | `DynamicProgramming/`, `BinarySearch/`, `Map/`, `Palindrome/` | ドメインごとに可変(2-10) |
-| 3. プラットフォーム | 問題ソース | `leetcode/`, `hackerrank/`, `atcoder/`, `codeforces/` | サブカテゴリごとに2-4 |
-| 4. 問題 | 特定の問題 | `97. Interleaving String/`, `99. Recover Binary Search Tree/` | N問題 |
-| 5. AIプロバイダー | 実装アプローチ | `claude sonnet 4.5/`, `gpt 5.1 thinking customized/` | 常に2ディレクトリ |
-| 6. 成果物 | 生成ファイル | `*.py`, `*.ts`, `*.js`, `README.md`, `README.html`, `README_react.html` | AIごとに常に6ファイル |
+| レベル              | 目的                     | 例                                                                                | カーディナリティ         |
+| ------------------- | ------------------------ | --------------------------------------------------------------------------------- | ------------------------ |
+| 1. ドメイン         | トップレベル問題カテゴリ | `Algorithm/`, `DataStructures/`, `Mathematics/`, `SQL/`, `Shell/`, `Concurrency/` | 6ディレクトリ            |
+| 2. サブカテゴリ     | アルゴリズム技術         | `DynamicProgramming/`, `BinarySearch/`, `Map/`, `Palindrome/`                     | ドメインごとに可変(2-10) |
+| 3. プラットフォーム | 問題ソース               | `leetcode/`, `hackerrank/`, `atcoder/`, `codeforces/`                             | サブカテゴリごとに2-4    |
+| 4. 問題             | 特定の問題               | `97. Interleaving String/`, `99. Recover Binary Search Tree/`                     | N問題                    |
+| 5. AIプロバイダー   | 実装アプローチ           | `claude sonnet 4.5/`, `gpt 5.1 thinking customized/`                              | 常に2ディレクトリ        |
+| 6. 成果物           | 生成ファイル             | `*.py`, `*.ts`, `*.js`, `README.md`, `README.html`, `README_react.html`           | AIごとに常に6ファイル    |
 
 ### SQLドメインの例外
 
@@ -194,24 +194,24 @@ graph LR
         T1_2[3000-5000語]
         T1_3[依存関係なし]
     end
-    
+
     subgraph "階層2: Interactive"
         T2[README.html]
         T2_1[Prism.js + Tailwind]
         T2_2[ステップコントロール]
         T2_3[状態可視化]
     end
-    
+
     subgraph "階層3: Dynamic"
         T3[README_react.html]
         T3_1[React 18 Hooks]
         T3_2[リアルタイム入力]
         T3_3[AI比較]
     end
-    
+
     T1 --> T2
     T2 --> T3
-    
+
     style T1 fill:#e1f5ff
     style T2 fill:#fff4e1
     style T3 fill:#f0ffe1
@@ -228,11 +228,11 @@ graph LR
 
 ### ドキュメント階層技術仕様
 
-| 階層 | ファイル | 対象 | 技術スタック | 主要機能 | ファイルサイズ |
-|------|---------|------|-------------|----------|---------------|
-| **1. Static** | README.md | CS学習者、初心者 | 純粋なMarkdown、依存関係なし | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論 | ~1KB、200-400行 |
-| **2. Interactive** | README.html | 競技プログラマー | Prism.js、Tailwind CSS | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画 | ~50KB、1000-2000行 |
-| **3. Dynamic** | README_react.html | パフォーマンスエンジニア | React 18 UMD、Babel Standalone | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
+| 階層               | ファイル          | 対象                     | 技術スタック                   | 主要機能                                                                            | ファイルサイズ      |
+| ------------------ | ----------------- | ------------------------ | ------------------------------ | ----------------------------------------------------------------------------------- | ------------------- |
+| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
+| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
+| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD、Babel Standalone | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
 
 ### 静的ドキュメント構造(階層1)
 
@@ -258,7 +258,7 @@ graph TB
         D5[Shell<br/>シェルスクリプト]
         D6[Concurrency<br/>並行処理]
     end
-    
+
     style D1 fill:#e1f5ff
     style D2 fill:#fff4e1
     style D3 fill:#f0ffe1
@@ -269,14 +269,14 @@ graph TB
 
 ### ドメイン固有のコードエンティティパターン
 
-| ドメイン | Pythonシグネチャ | TypeScript/JavaScriptシグネチャ | 例題 | パスパターン |
-|---------|------------------|--------------------------------|------|--------------|
-| **Algorithm** | `class Solution:`<br>`def isInterleave(self, s1: str, s2: str, s3: str) -> bool:` | `function isInterleave(s1: string, s2: string, s3: string): boolean` | 97. Interleaving String | `Algorithm/{Subcategory}/leetcode/{N}. {Title}/` |
-| **DataStructures** | `class Solution:`<br>`def twoSum(self, nums: List[int], target: int) -> List[int]:` | `function twoSum(nums: number[], target: number): number[]` | 1. Two Sum | `DataStructures/{Subcategory}/leetcode/{N}. {Title}/` |
-| **Mathematics** | `class Solution:`<br>`def isPalindrome(self, x: int) -> bool:` | `function isPalindrome(x: number): boolean` | 9. Palindrome Number | `Mathematics/{Subcategory}/leetcode/{N}. {Title}/` |
-| **SQL** | `def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:` | N/A (SQLクエリのみ) | 1141. User Activity | `SQL/Leetcode/{Subcategory}/{N}. {Title}/gpt/` |
-| **Shell** | N/A (Bashスクリプト) | N/A (Bashスクリプト) | 193. Valid Phone Numbers | `Shell/leetcode/{N}. {Title}/` |
-| **Concurrency** | `class Solution:`<br>(threadingモジュール使用) | N/A (通常Go実装) | 1115. FooBar Alternately | `Concurrency/leetcode/{N}. {Title}/` |
+| ドメイン           | Pythonシグネチャ                                                                    | TypeScript/JavaScriptシグネチャ                                      | 例題                     | パスパターン                                          |
+| ------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------- |
+| **Algorithm**      | `class Solution:`<br>`def isInterleave(self, s1: str, s2: str, s3: str) -> bool:`   | `function isInterleave(s1: string, s2: string, s3: string): boolean` | 97. Interleaving String  | `Algorithm/{Subcategory}/leetcode/{N}. {Title}/`      |
+| **DataStructures** | `class Solution:`<br>`def twoSum(self, nums: List[int], target: int) -> List[int]:` | `function twoSum(nums: number[], target: number): number[]`          | 1. Two Sum               | `DataStructures/{Subcategory}/leetcode/{N}. {Title}/` |
+| **Mathematics**    | `class Solution:`<br>`def isPalindrome(self, x: int) -> bool:`                      | `function isPalindrome(x: number): boolean`                          | 9. Palindrome Number     | `Mathematics/{Subcategory}/leetcode/{N}. {Title}/`    |
+| **SQL**            | `def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:`                   | N/A (SQLクエリのみ)                                                  | 1141. User Activity      | `SQL/Leetcode/{Subcategory}/{N}. {Title}/gpt/`        |
+| **Shell**          | N/A (Bashスクリプト)                                                                | N/A (Bashスクリプト)                                                 | 193. Valid Phone Numbers | `Shell/leetcode/{N}. {Title}/`                        |
+| **Concurrency**    | `class Solution:`<br>(threadingモジュール使用)                                      | N/A (通常Go実装)                                                     | 1115. FooBar Alternately | `Concurrency/leetcode/{N}. {Title}/`                  |
 
 ## 技術スタックと依存関係ポリシー
 
@@ -289,19 +289,19 @@ graph TB
         C2[外部依存なし]
         C3[Algorithm/DataStructures/Mathematics]
     end
-    
+
     subgraph "ドキュメントレイヤー"
         D1[CDN経由の外部ライブラリ]
         D2[Prism.js, Tailwind, React]
         D3[README.html, README_react.html]
     end
-    
+
     subgraph "例外: SQLドメイン"
         S1[Pandas 2.2.2]
         S2[NumPy 2.3.4]
         S3[SQL問題のみ]
     end
-    
+
     style C1 fill:#d4edda
     style C2 fill:#d4edda
     style C3 fill:#d4edda
@@ -315,16 +315,16 @@ graph TB
 
 ### 開発環境仕様
 
-| コンポーネント | バージョン | 目的 | 設定ファイル |
-|---------------|-----------|------|-------------|
-| Python | CPython 3.11.10 | アルゴリズム実装 | `.python-version` |
-| Node.js | v22.14.0 | TypeScript/JavaScriptランタイム | `package.json` |
-| TypeScript | 5.9.3 | 型安全な実装 | `package.json` |
-| Bun | Lockfile v1 | パッケージ管理 | `bun.lock` |
-| Pandas | 2.2.2 | SQLドメインのみ | `requirements.lock.txt` |
-| NumPy | 2.3.4 | SQLドメインのみ | `requirements.lock.txt` |
-| Prettier | 3.6.2 | コードフォーマット | `package.json` |
-| ESLint | 9.38.0 | リント | `package.json` |
+| コンポーネント | バージョン      | 目的                            | 設定ファイル            |
+| -------------- | --------------- | ------------------------------- | ----------------------- |
+| Python         | CPython 3.11.10 | アルゴリズム実装                | `.python-version`       |
+| Node.js        | v22.14.0        | TypeScript/JavaScriptランタイム | `package.json`          |
+| TypeScript     | 5.9.3           | 型安全な実装                    | `package.json`          |
+| Bun            | Lockfile v1     | パッケージ管理                  | `bun.lock`              |
+| Pandas         | 2.2.2           | SQLドメインのみ                 | `requirements.lock.txt` |
+| NumPy          | 2.3.4           | SQLドメインのみ                 | `requirements.lock.txt` |
+| Prettier       | 3.6.2           | コードフォーマット              | `package.json`          |
+| ESLint         | 9.38.0          | リント                          | `package.json`          |
 
 ### コア実装制約
 
@@ -375,14 +375,14 @@ def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:
 
 ### ファイルタイプ仕様
 
-| ファイルタイプ | 命名パターン | コード構造 | ファイルサイズ | パス例 |
-|--------------|-------------|-----------|--------------|--------|
-| **Python実装** | `{ProblemName}.py` (Claude)<br>`{ProblemName}_py.ipynb` (GPT) | `class Solution:`<br>`def {methodName}(self, ...) -> ...:`<br>ヘルパーメソッドを含む場合あり | ~50-200行 | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.py` |
-| **TypeScript実装** | `{ProblemName}.ts` (Claude)<br>`{ProblemName}_ts.ipynb` (GPT) | `function {functionName}(...): ReturnType { ... }`<br>または<br>`class Solution { {methodName}(...): ReturnType { ... } }` | ~50-200行 | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/gpt 5.1 thinking customized/Interleaving_String_ts.ipynb` |
-| **JavaScript実装** | `{ProblemName}.js` (Claude)<br>`{ProblemName}_js.ipynb` (GPT) | `var {functionName} = function(...) { ... };`<br>`module.exports = { {functionName} };` | ~50-200行 | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.js` |
-| **静的ドキュメント** | `README.md` | 5セクションMarkdown:<br>1. Overview (`<h2 id="overview">`)<br>2. Algorithm (`<h2 id="tldr">`)<br>3. Complexity (`<h2 id="complexity">`)<br>4. Implementation (`<h2 id="impl">`)<br>5. Optimization (`<h2 id="cpython">`) | 3000-5000語<br>(~200-400行) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.md` |
-| **対話型HTML** | `README.html` | 埋め込みJavaScriptを含むHTML:<br>`<script src="...prism.js"></script>`<br>`<script src="...tailwindcss.com"></script>`<br>ボタン付きステップコントロールシステム | 1000-2000行<br>(~50KB) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.html` |
-| **React可視化** | `README_react.html` | React CDNを含むHTML:<br>`<script src="...react.development.js"></script>`<br>`<script src="...babel.standalone.js"></script>`<br>`<script type="text/babel">`内のJSXコンポーネント | 2000-4000行<br>(~100KB) | `Algorithm/BinarySearch/leetcode/99. Recover Binary Search Tree/Claude Opus 4.5/README_react.html` |
+| ファイルタイプ       | 命名パターン                                                  | コード構造                                                                                                                                                                                                               | ファイルサイズ              | パス例                                                                                                                   |
+| -------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Python実装**       | `{ProblemName}.py` (Claude)<br>`{ProblemName}_py.ipynb` (GPT) | `class Solution:`<br>`def {methodName}(self, ...) -> ...:`<br>ヘルパーメソッドを含む場合あり                                                                                                                             | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.py`                 |
+| **TypeScript実装**   | `{ProblemName}.ts` (Claude)<br>`{ProblemName}_ts.ipynb` (GPT) | `function {functionName}(...): ReturnType { ... }`<br>または<br>`class Solution { {methodName}(...): ReturnType { ... } }`                                                                                               | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/gpt 5.1 thinking customized/Interleaving_String_ts.ipynb` |
+| **JavaScript実装**   | `{ProblemName}.js` (Claude)<br>`{ProblemName}_js.ipynb` (GPT) | `var {functionName} = function(...) { ... };`<br>`module.exports = { {functionName} };`                                                                                                                                  | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.js`                 |
+| **静的ドキュメント** | `README.md`                                                   | 5セクションMarkdown:<br>1. Overview (`<h2 id="overview">`)<br>2. Algorithm (`<h2 id="tldr">`)<br>3. Complexity (`<h2 id="complexity">`)<br>4. Implementation (`<h2 id="impl">`)<br>5. Optimization (`<h2 id="cpython">`) | 3000-5000語<br>(~200-400行) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.md`                              |
+| **対話型HTML**       | `README.html`                                                 | 埋め込みJavaScriptを含むHTML:<br>`<script src="...prism.js"></script>`<br>`<script src="...tailwindcss.com"></script>`<br>ボタン付きステップコントロールシステム                                                         | 1000-2000行<br>(~50KB)      | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.html`                            |
+| **React可視化**      | `README_react.html`                                           | React CDNを含むHTML:<br>`<script src="...react.development.js"></script>`<br>`<script src="...babel.standalone.js"></script>`<br>`<script type="text/babel">`内のJSXコンポーネント                                       | 2000-4000行<br>(~100KB)     | `Algorithm/BinarySearch/leetcode/99. Recover Binary Search Tree/Claude Opus 4.5/README_react.html`                       |
 
 ### コード構造ブリッジ: クラスと関数パターン
 
@@ -405,7 +405,7 @@ class Solution:
     def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
         # 競技バージョン
         ...
-    
+
     def isInterleave_production(self, s1: Any, s2: Any, s3: Any) -> bool:
         # 検証付き本番バージョン
         if not isinstance(s1, str):
@@ -428,7 +428,7 @@ function isInterleave(s1: string, s2: string, s3: string): boolean {
 **JavaScriptパターン:**
 
 ```javascript
-var isInterleave = function(s1, s2, s3) {
+var isInterleave = function (s1, s2, s3) {
     const n1 = s1.length;
     if (n1 + n2 !== n3) return false;
     // 実装...
@@ -440,24 +440,24 @@ module.exports = { isInterleave };
 
 ### 問題ごとのファイル数
 
-| ファイルタイプ | 問題ごとの数 | 目的 |
-|--------------|-------------|------|
-| Python実装(`.py`, `.ipynb`) | 2 (Claude + GPT) | アルゴリズム実装を含む`class Solution` |
-| TypeScript実装(`.ts`, `.ipynb`) | 2 (Claude + GPT) | 型安全な関数実装 |
-| JavaScript実装(`.js`, `.ipynb`) | 2 (Claude + GPT) | `module.exports`を含むランタイム実装 |
-| 静的ドキュメント(`README.md`) | 2 (Claude + GPT) | 3000-5000語の説明 |
-| 対話型HTML(`README.html`) | 2 (Claude + GPT) | Prism.js + Tailwind可視化 |
-| 動的React(`README_react.html`) | 2 (Claude + GPT) | React 18対話型デモ |
-| **問題ごとの合計** | **18ファイル** | 完全な学習成果物セット |
+| ファイルタイプ                  | 問題ごとの数     | 目的                                   |
+| ------------------------------- | ---------------- | -------------------------------------- |
+| Python実装(`.py`, `.ipynb`)     | 2 (Claude + GPT) | アルゴリズム実装を含む`class Solution` |
+| TypeScript実装(`.ts`, `.ipynb`) | 2 (Claude + GPT) | 型安全な関数実装                       |
+| JavaScript実装(`.js`, `.ipynb`) | 2 (Claude + GPT) | `module.exports`を含むランタイム実装   |
+| 静的ドキュメント(`README.md`)   | 2 (Claude + GPT) | 3000-5000語の説明                      |
+| 対話型HTML(`README.html`)       | 2 (Claude + GPT) | Prism.js + Tailwind可視化              |
+| 動的React(`README_react.html`)  | 2 (Claude + GPT) | React 18対話型デモ                     |
+| **問題ごとの合計**              | **18ファイル**   | 完全な学習成果物セット                 |
 
 ### パフォーマンス比較: Interleaving String (LeetCode 97)
 
-| 実装 | 実行時間 | 上位% | メモリ | 上位% |
-|------|---------|-------|--------|-------|
-| Claude Python | 44ms | 60.43% | 高 | 91.38% |
-| GPT Python | 42ms | 70.90% | 低 | 66.05% |
-| Claude TypeScript | 42ms | 98.45% | 効率的 | 高 |
-| GPT TypeScript | 54ms | 60.46% | 中程度 | 中程度 |
+| 実装              | 実行時間 | 上位%  | メモリ | 上位%  |
+| ----------------- | -------- | ------ | ------ | ------ |
+| Claude Python     | 44ms     | 60.43% | 高     | 91.38% |
+| GPT Python        | 42ms     | 70.90% | 低     | 66.05% |
+| Claude TypeScript | 42ms     | 98.45% | 効率的 | 高     |
+| GPT TypeScript    | 54ms     | 60.46% | 中程度 | 中程度 |
 
 **観察:** Claude実装は信頼ベースの最適化により平均10-15%高速な実行時間を達成。GPT実装は検証オーバーヘッドにもかかわらず、明示的な割り当てパターンにより5-10%優れたメモリ効率を示します。
 
@@ -472,7 +472,7 @@ graph LR
     A[1. プラットフォーム選択] --> B[2. 問題カテゴリ選択]
     B --> C[3. 特定の問題選択]
     C --> D[4. AI実装を並べて比較]
-    
+
     style A fill:#e1f5ff
     style B fill:#fff4e1
     style C fill:#f0ffe1
@@ -480,6 +480,7 @@ graph LR
 ```
 
 **パス例:**
+
 ```
 leetcode/ → DynamicProgramming/ → 97. Interleaving String/
   ├── claude sonnet 4.5/     # 速度最適化
@@ -492,13 +493,14 @@ leetcode/ → DynamicProgramming/ → 97. Interleaving String/
 graph LR
     A[1. ドメインディレクトリ] --> B[2. アルゴリズムサブカテゴリ]
     B --> C[3. パターンを使用する問題を閲覧]
-    
+
     style A fill:#e1f5ff
     style B fill:#fff4e1
     style C fill:#f0ffe1
 ```
 
 **パス例:**
+
 ```
 Algorithm/ → DynamicProgramming/ → leetcode/
   ├── 97. Interleaving String/
@@ -512,12 +514,15 @@ Algorithm/ → DynamicProgramming/ → leetcode/
 3. APIシグネチャは言語間で一貫
 
 **ファイル例:**
+
 ```python
 Interleaving_String.py     # class Solution: def isInterleave(...)
 ```
+
 ```typescript
 Interleaving_String.ts     # function isInterleave(...): boolean
 ```
+
 ```javascript
 Interleaving_String.js     # var isInterleave = function(...) {}
 ```
@@ -529,7 +534,7 @@ graph TD
     A[学習目標に基づいて階層を選択] --> B[階層1: README.md<br/>テキストベースの説明]
     A --> C[階層2: README.html<br/>対話型ステップコントロール]
     A --> D[階層3: README_react.html<br/>リアルタイム入力テスト]
-    
+
     style A fill:#e1f5ff
     style B fill:#d4edda
     style C fill:#fff3cd
@@ -537,6 +542,14 @@ graph TD
 ```
 
 各AIプロバイダーフォルダには3つの階層すべてが含まれます。
+
+---
+
+## インデックスメンテナンス
+
+リポジトリのドキュメントインデックス(`public/index.html`)は自動生成されます。開発者は、新しい問題を追加した後にインデックスを最新の状態に保つために、Gitプレコミットフックを設定することが推奨されます。
+
+詳細なセットアップ手順については、[INDEX_MAINTENANCE.md](INDEX_MAINTENANCE.md)を参照してください。
 
 ---
 

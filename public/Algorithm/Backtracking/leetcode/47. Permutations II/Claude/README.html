@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Unique Permutations Algorithm Analysis</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.95);
+                margin-top: 20px;
+                margin-bottom: 20px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #4a5568;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            h2 {
+                color: #2d3748;
+                margin: 30px 0 15px 0;
+                padding-bottom: 10px;
+                border-bottom: 3px solid #667eea;
+                font-size: 1.8em;
+            }
+
+            .section {
+                margin: 30px 0;
+                padding: 25px;
+                background: #f7fafc;
+                border-radius: 12px;
+                border-left: 5px solid #667eea;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            }
+
+            .visualization {
+                background: white;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 10px;
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            }
+
+            .step {
+                margin: 15px 0;
+                padding: 15px;
+                background: linear-gradient(90deg, #f0fff4, #e6fffa);
+                border-left: 4px solid #38a169;
+                border-radius: 8px;
+            }
+
+            .array-display {
+                display: flex;
+                gap: 5px;
+                margin: 10px 0;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .array-item {
+                padding: 8px 12px;
+                background: #4299e1;
+                color: white;
+                border-radius: 6px;
+                font-weight: bold;
+                min-width: 40px;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+
+            .array-item.used {
+                background: #f56565;
+                transform: scale(0.9);
+            }
+
+            .array-item.current {
+                background: #48bb78;
+                animation: pulse 1s infinite;
+            }
+
+            .array-item.duplicate {
+                background: #ed8936;
+                position: relative;
+            }
+
+            .array-item.duplicate::after {
+                content: 'DUP';
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 10px;
+                background: #e53e3e;
+                padding: 2px 4px;
+                border-radius: 3px;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+
+            .tree-container {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .tree-node {
+                display: inline-block;
+                margin: 5px;
+                padding: 10px 15px;
+                background: #bee3f8;
+                border-radius: 8px;
+                border: 2px solid #3182ce;
+                font-weight: bold;
+                position: relative;
+            }
+
+            .tree-level {
+                margin: 20px 0;
+            }
+
+            .backtrack-arrow {
+                color: #e53e3e;
+                font-size: 1.5em;
+                margin: 0 10px;
+            }
+
+            .result-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .result-item {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
+                font-weight: bold;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease;
+            }
+
+            .result-item:hover {
+                transform: translateY(-5px);
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #ff9a9e, #fecfef);
+                padding: 20px;
+                border-radius: 12px;
+                margin: 20px 0;
+                border: 2px solid #f093fb;
+            }
+
+            .highlight {
+                background: #fef5e7;
+                padding: 3px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+                color: #744210;
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+            }
+
+            .interactive-demo {
+                background: #edf2f7;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+            }
+
+            button {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                margin: 5px;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .skip-explanation {
+                background: #fed7d7;
+                border: 2px solid #f56565;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔄 Unique Permutations Algorithm Analysis</h1>
+
+            <div class="section">
+                <h2>📋 アルゴリズム概要</h2>
+                <p>
+                    重複要素を含む配列から<span class="highlight">一意な順列</span
+                    >を生成するアルゴリズムです。バックトラッキングと重複スキップ技法を使用します。
+                </p>
+
+                <div class="complexity-box">
+                    <strong>計算量分析：</strong><br />
+                    • 時間計算量: <span class="highlight">O(n! × n)</span> - 最悪の場合<br />
+                    • 空間計算量: <span class="highlight">O(n)</span> - 再帰スタック + 補助配列
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 Step 1: 入力配列のソート</h2>
+                <p>重複要素を隣接させるため、まず配列をソートします。</p>
+
+                <div class="visualization">
+                    <h3>例: [1,1,2] の処理</h3>
+                    <div class="step">
+                        <strong>ソート前:</strong>
+                        <div class="array-display">
+                            <div class="array-item">1</div>
+                            <div class="array-item">1</div>
+                            <div class="array-item">2</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <strong>ソート後:</strong>
+                        <div class="array-display">
+                            <div class="array-item">1</div>
+                            <div class="array-item duplicate">1</div>
+                            <div class="array-item">2</div>
+                        </div>
+                        <p><em>同じ値の要素が隣接配置されます</em></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🌳 Step 2: バックトラッキング探索木</h2>
+                <p>各レベルで利用可能な要素を選択し、重複をスキップしながら順列を構築します。</p>
+
+                <div class="visualization">
+                    <div class="tree-container">
+                        <div class="tree-level">
+                            <strong>Level 0 (ROOT)</strong><br />
+                            <div class="tree-node">[]</div>
+                        </div>
+
+                        <div class="tree-level">
+                            <strong>Level 1</strong><br />
+                            <div class="tree-node">[1]</div>
+                            <div
+                                class="tree-node"
+                                style="background: #fed7d7; border-color: #e53e3e"
+                            >
+                                [1] <small>(スキップ)</small>
+                            </div>
+                            <div class="tree-node">[2]</div>
+                        </div>
+
+                        <div class="tree-level">
+                            <strong>Level 2</strong><br />
+                            <div class="tree-node">[1,1]</div>
+                            <div class="tree-node">[1,2]</div>
+                            <div class="tree-node">[2,1]</div>
+                        </div>
+
+                        <div class="tree-level">
+                            <strong>Level 3 (完成)</strong><br />
+                            <div class="tree-node result-item">[1,1,2]</div>
+                            <div class="tree-node result-item">[1,2,1]</div>
+                            <div class="tree-node result-item">[2,1,1]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚡ Step 3: 重複スキップのメカニズム</h2>
+                <p>同じ値を持つ要素群で、使用順序を制御することで重複順列を防ぎます。</p>
+
+                <div class="skip-explanation">
+                    <h3>🚫 重複スキップ条件:</h3>
+                    <div class="code-block">
+                        if (i > 0 && nums[i] === nums[i-1] && !used[i-1]) { continue; //
+                        この選択をスキップ }
+                    </div>
+
+                    <p><strong>条件の意味:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px">
+                        <li><code>nums[i] === nums[i-1]</code>: 前の要素と同じ値</li>
+                        <li><code>!used[i-1]</code>: 前の同じ値の要素がまだ未使用</li>
+                        <li>→ 同じ値の要素群は順番に使用することを強制</li>
+                    </ul>
+                </div>
+
+                <div class="visualization">
+                    <h3>具体例: [1a, 1b] の使用順序制御</h3>
+                    <div class="step">
+                        <strong>✅ 許可されるパターン:</strong>
+                        <div class="array-display">
+                            <div class="array-item current">1a</div>
+                            <span>→</span>
+                            <div class="array-item">1b</div>
+                            <span>: 順番通り</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <strong>❌ スキップされるパターン:</strong>
+                        <div class="array-display">
+                            <div class="array-item used">1a</div>
+                            <span>→</span>
+                            <div class="array-item" style="background: #e53e3e">1b</div>
+                            <span>: 1aが未使用なので1bはスキップ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔄 Step 4: バックトラッキングの動作</h2>
+                <p>選択→探索→取り消しのサイクルで全パターンを効率的に探索します。</p>
+
+                <div class="visualization">
+                    <h3>バックトラッキングの流れ</h3>
+                    <div class="step">
+                        <strong>1. 要素選択:</strong>
+                        <div class="array-display">
+                            <div class="array-item current">1</div>
+                            <div class="array-item">1</div>
+                            <div class="array-item">2</div>
+                        </div>
+                        <p>current = [1], used = [true, false, false]</p>
+                    </div>
+
+                    <div class="step">
+                        <strong>2. 次レベル探索:</strong>
+                        <div class="array-display">
+                            <div class="array-item used">1</div>
+                            <div class="array-item current">1</div>
+                            <div class="array-item">2</div>
+                        </div>
+                        <p>current = [1,1], used = [true, true, false]</p>
+                    </div>
+
+                    <div class="step">
+                        <strong>3. 完成 & バックトラック:</strong>
+                        <div class="array-display">
+                            <div class="array-item used">1</div>
+                            <div class="array-item used">1</div>
+                            <div class="array-item current">2</div>
+                        </div>
+                        <p>result.push([1,1,2]) → バックトラック開始</p>
+                    </div>
+
+                    <div class="step">
+                        <strong>4. 状態復元:</strong>
+                        <span class="backtrack-arrow">↩️</span>
+                        <div class="array-display">
+                            <div class="array-item current">1</div>
+                            <div class="array-item">1</div>
+                            <div class="array-item">2</div>
+                        </div>
+                        <p>current = [1], used = [true, false, false]</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 最終結果</h2>
+                <p>入力 [1,1,2] に対する全ての一意な順列:</p>
+
+                <div class="result-grid">
+                    <div class="result-item">[1, 1, 2]</div>
+                    <div class="result-item">[1, 2, 1]</div>
+                    <div class="result-item">[2, 1, 1]</div>
+                </div>
+
+                <p style="text-align: center; margin-top: 20px">
+                    <strong>総数: 3個</strong> (重複なし版では6個 → 重複除去により3個)
+                </p>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ アルゴリズムの効率性</h2>
+
+                <div class="complexity-box">
+                    <h3>🎯 最適化ポイント:</h3>
+                    <ul style="margin-left: 20px">
+                        <li><strong>事前ソート:</strong> O(n log n) - 重複スキップを可能にする</li>
+                        <li><strong>early pruning:</strong> 無効な枝を早期に切る</li>
+                        <li><strong>in-place操作:</strong> 追加の配列コピーを最小限に</li>
+                        <li><strong>used配列:</strong> O(1)でのアクセス・更新</li>
+                    </ul>
+                </div>
+
+                <div class="visualization">
+                    <h3>パフォーマンス比較</h3>
+                    <table style="width: 100%; border-collapse: collapse">
+                        <tr style="background: #4299e1; color: white">
+                            <th style="padding: 10px; border: 1px solid #ddd">手法</th>
+                            <th style="padding: 10px; border: 1px solid #ddd">時間計算量</th>
+                            <th style="padding: 10px; border: 1px solid #ddd">空間計算量</th>
+                            <th style="padding: 10px; border: 1px solid #ddd">重複処理</th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd">
+                                全順列生成 + Set除去
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd">O(n! × n)</td>
+                            <td style="padding: 10px; border: 1px solid #ddd">O(n! × n)</td>
+                            <td style="padding: 10px; border: 1px solid #ddd">後処理</td>
+                        </tr>
+                        <tr style="background: #c6f6d5">
+                            <td style="padding: 10px; border: 1px solid #ddd">
+                                <strong>本手法</strong>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd">
+                                <strong>O(n! × n)</strong>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd">
+                                <strong>O(n)</strong>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd">
+                                <strong>事前回避</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎮 インタラクティブデモ</h2>
+                <div class="interactive-demo">
+                    <p>異なる入力での動作を確認してみましょう:</p>
+                    <button onclick="runDemo([1,2,3])">Demo: [1,2,3]</button>
+                    <button onclick="runDemo([1,1,2,2])">Demo: [1,1,2,2]</button>
+                    <button onclick="runDemo([1,2,1,1])">Demo: [1,2,1,1]</button>
+
+                    <div id="demo-result" style="margin-top: 20px"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function permuteUnique(nums) {
+                const result = [];
+                const current = [];
+                const used = new Array(nums.length).fill(false);
+
+                nums.sort((a, b) => a - b);
+
+                function backtrack() {
+                    if (current.length === nums.length) {
+                        result.push([...current]);
+                        return;
+                    }
+
+                    for (let i = 0; i < nums.length; i++) {
+                        if (used[i]) continue;
+
+                        if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) {
+                            continue;
+                        }
+
+                        current.push(nums[i]);
+                        used[i] = true;
+
+                        backtrack();
+
+                        current.pop();
+                        used[i] = false;
+                    }
+                }
+
+                backtrack();
+                return result;
+            }
+
+            function runDemo(input) {
+                const result = permuteUnique([...input]);
+                const demoDiv = document.getElementById('demo-result');
+
+                let html = `
+                <div class="step">
+                    <strong>入力: [${input.join(', ')}]</strong><br>
+                    <strong>ソート後: [${[...input].sort((a, b) => a - b).join(', ')}]</strong>
+                </div>
+                <div class="step">
+                    <strong>一意な順列 (${result.length}個):</strong>
+                    <div class="result-grid">
+            `;
+
+                result.forEach((perm) => {
+                    html += `<div class="result-item">[${perm.join(', ')}]</div>`;
+                });
+
+                html += `
+                    </div>
+                </div>
+            `;
+
+                demoDiv.innerHTML = html;
+            }
+
+            // 初期デモ実行
+            runDemo([1, 1, 2]);
+        </script>
+    </body>
+</html>

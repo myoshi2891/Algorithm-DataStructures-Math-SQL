@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Edit Distance (Levenshtein Distance) 技術解説</title>
+
+        <!-- CDN Links -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/fontawesome/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --bg-primary: #0f0f17;
+                --bg-secondary: #1a1a2e;
+                --bg-tertiary: #16213e;
+                --accent-blue: #00d4ff;
+                --accent-purple: #8b5cf6;
+                --accent-green: #10b981;
+                --text-primary: #ffffff;
+                --text-secondary: #a1a1aa;
+                --text-muted: #71717a;
+                --border-color: #27272a;
+                --code-bg: #1e1e2e;
+                --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+                --glow: 0 0 20px rgba(0, 212, 255, 0.3);
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+                color: var(--text-primary);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 2rem;
+            }
+
+            /* Header */
+            .header {
+                background: linear-gradient(
+                    135deg,
+                    var(--bg-secondary) 0%,
+                    var(--bg-tertiary) 100%
+                );
+                padding: 4rem 0;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+                animation: rotate 20s linear infinite;
+            }
+
+            @keyframes rotate {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .header-content {
+                position: relative;
+                z-index: 2;
+            }
+
+            h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: var(--glow);
+            }
+
+            .subtitle {
+                font-size: 1.3rem;
+                color: var(--text-secondary);
+                margin-bottom: 2rem;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                background: linear-gradient(45deg, var(--accent-purple), var(--accent-blue));
+                border-radius: 2rem;
+                font-weight: 500;
+                margin: 0 0.5rem;
+            }
+
+            /* Main Content */
+            .main {
+                padding: 4rem 0;
+            }
+
+            .section {
+                background: var(--bg-secondary);
+                border-radius: 1rem;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow);
+                opacity: 0;
+                transform: translateY(20px);
+                animation: slideInUp 0.8s ease-out forwards;
+            }
+
+            .section:nth-child(odd) {
+                animation-delay: 0.2s;
+            }
+
+            .section:nth-child(even) {
+                animation-delay: 0.4s;
+            }
+
+            @keyframes slideInUp {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .section-title {
+                font-size: 2rem;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+                color: var(--accent-blue);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .section-title i {
+                color: var(--accent-purple);
+            }
+
+            /* Code Blocks */
+            .code-container {
+                position: relative;
+                margin: 1.5rem 0;
+                border-radius: 0.5rem;
+                overflow: hidden;
+                box-shadow: var(--shadow);
+            }
+
+            .code-header {
+                background: var(--bg-tertiary);
+                padding: 0.8rem 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .code-title {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
+
+            .copy-btn {
+                background: transparent;
+                border: 1px solid var(--accent-blue);
+                color: var(--accent-blue);
+                padding: 0.3rem 0.8rem;
+                border-radius: 0.3rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.8rem;
+            }
+
+            .copy-btn:hover {
+                background: var(--accent-blue);
+                color: var(--bg-primary);
+                box-shadow: var(--glow);
+            }
+
+            pre[class*='language-'] {
+                margin: 0 !important;
+                background: var(--code-bg) !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 0.9rem !important;
+                line-height: 1.5 !important;
+                padding: 1.5rem !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid var(--border-color) !important;
+            }
+
+            /* DP Table Visualization */
+            .dp-table {
+                display: grid;
+                gap: 2px;
+                justify-content: center;
+                margin: 2rem 0;
+                padding: 2rem;
+                background: var(--bg-tertiary);
+                border-radius: 1rem;
+            }
+
+            .dp-cell {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 0.3rem;
+                font-family: 'JetBrains Mono', monospace;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .dp-cell:hover {
+                background: var(--accent-blue);
+                color: var(--bg-primary);
+                transform: scale(1.1);
+                box-shadow: var(--glow);
+            }
+
+            .dp-cell.highlighted {
+                background: var(--accent-purple);
+                color: white;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+
+            /* Step by Step */
+            .step {
+                background: var(--bg-tertiary);
+                border-radius: 0.8rem;
+                padding: 1.5rem;
+                margin: 1rem 0;
+                border-left: 4px solid var(--accent-green);
+                transition: all 0.3s ease;
+            }
+
+            .step:hover {
+                transform: translateX(5px);
+                box-shadow: var(--shadow);
+            }
+
+            .step-number {
+                display: inline-block;
+                width: 2rem;
+                height: 2rem;
+                background: var(--accent-green);
+                color: white;
+                border-radius: 50%;
+                text-align: center;
+                line-height: 2rem;
+                font-weight: 600;
+                margin-right: 1rem;
+            }
+
+            .step-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                color: var(--accent-green);
+            }
+
+            /* Complexity Analysis */
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }
+
+            .complexity-card {
+                background: var(--bg-tertiary);
+                padding: 1.5rem;
+                border-radius: 0.8rem;
+                text-align: center;
+                border: 1px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .complexity-card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow);
+            }
+
+            .complexity-value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: var(--accent-blue);
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            .complexity-label {
+                color: var(--text-secondary);
+                margin-top: 0.5rem;
+            }
+
+            /* Interactive Controls */
+            .controls {
+                display: flex;
+                gap: 1rem;
+                margin: 2rem 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .btn {
+                background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+                border: none;
+                color: white;
+                padding: 0.8rem 1.5rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--glow);
+            }
+
+            .btn:disabled {
+                opacity: 0.6 !important;
+                cursor: not-allowed !important;
+                transform: none !important;
+            }
+
+            .btn:disabled:hover {
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            /* Algorithm Flow */
+            .flow-diagram {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                margin: 2rem 0;
+            }
+
+            .flow-step {
+                background: var(--bg-tertiary);
+                padding: 1rem 2rem;
+                border-radius: 2rem;
+                border: 2px solid var(--accent-blue);
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .flow-step:hover {
+                transform: scale(1.05);
+                box-shadow: var(--glow);
+            }
+
+            .flow-step::after {
+                content: '↓';
+                position: absolute;
+                bottom: -2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                color: var(--accent-purple);
+                font-size: 1.5rem;
+                animation: bounce 2s infinite;
+            }
+
+            .flow-step:last-child::after {
+                display: none;
+            }
+
+            @keyframes bounce {
+                0%,
+                20%,
+                50%,
+                80%,
+                100% {
+                    transform: translateX(-50%) translateY(0);
+                }
+                40% {
+                    transform: translateX(-50%) translateY(-5px);
+                }
+                60% {
+                    transform: translateX(-50%) translateY(-3px);
+                }
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 0 1rem;
+                }
+
+                h1 {
+                    font-size: 2.5rem;
+                }
+
+                .section {
+                    padding: 1.5rem;
+                }
+
+                .dp-cell {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 0.8rem;
+                }
+
+                .controls {
+                    justify-content: stretch;
+                }
+
+                .btn {
+                    flex: 1;
+                    justify-content: center;
+                }
+            }
+
+            /* Loading Animation */
+            .loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100px;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--border-color);
+                border-top: 4px solid var(--accent-blue);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <h1><i class="fas fa-exchange-alt"></i> Edit Distance</h1>
+                    <p class="subtitle">
+                        Levenshtein Distance Algorithm -
+                        文字列間の最小編集距離を求める動的プログラミングアルゴリズム
+                    </p>
+                    <div>
+                        <span class="badge">Dynamic Programming</span>
+                        <span class="badge">O(m×n)</span>
+                        <span class="badge">Python</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <!-- Algorithm Overview -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        アルゴリズム概要
+                    </h2>
+                    <p>
+                        Edit
+                        Distance（編集距離）は、2つの文字列間の類似度を測定するアルゴリズムです。一つの文字列を別の文字列に変換するために必要な最小の操作回数を計算します。
+                    </p>
+
+                    <h3 style="color: var(--accent-green); margin: 1.5rem 0 1rem 0">
+                        許可される操作
+                    </h3>
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div>
+                            <div class="step-title">挿入 (Insertion)</div>
+                            <p>文字列に1文字を挿入する</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div>
+                            <div class="step-title">削除 (Deletion)</div>
+                            <p>文字列から1文字を削除する</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div>
+                            <div class="step-title">置換 (Substitution)</div>
+                            <p>文字列の1文字を別の文字に置き換える</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Step by Step Explanation -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-list-ol"></i>
+                        ステップバイステップ解説
+                    </h2>
+
+                    <div class="flow-diagram">
+                        <div class="flow-step">DPテーブル初期化</div>
+                        <div class="flow-step">ベースケース設定</div>
+                        <div class="flow-step">文字比較とDP更新</div>
+                        <div class="flow-step">最小コスト計算</div>
+                        <div class="flow-step">結果取得</div>
+                    </div>
+
+                    <h3 style="color: var(--accent-blue); margin: 2rem 0 1rem 0">
+                        具体例: "horse" → "ros"
+                    </h3>
+                    <div id="dpTableContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button class="btn" onclick="animateDP()">
+                            <i class="fas fa-play"></i>
+                            アニメーション開始
+                        </button>
+                        <button class="btn" onclick="resetDP()">
+                            <i class="fas fa-refresh"></i>
+                            リセット
+                        </button>
+                        <button class="btn" onclick="showSolution()">
+                            <i class="fas fa-lightbulb"></i>
+                            解答表示
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Code Implementation -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-code"></i>
+                        実装コード
+                    </h2>
+
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Python Implementation</span>
+                            <button class="copy-btn" onclick="copyCode('mainCode')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre
+                            class="line-numbers"
+                        ><code id="mainCode" class="language-python">def minDistance(word1: str, word2: str) -> int:
+    """
+    Edit Distance (Levenshtein Distance) の計算
+
+    Args:
+        word1: 変換元文字列
+        word2: 変換先文字列
+
+    Returns:
+        最小編集距離
+
+    Time Complexity: O(m*n)
+    Space Complexity: O(m*n)
+    """
+    m, n = len(word1), len(word2)
+
+    # エッジケース処理
+    if m == 0:
+        return n
+    if n == 0:
+        return m
+
+    # DPテーブル初期化
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    # ベースケース初期化
+    for i in range(m + 1):
+        dp[i][0] = i  # word1[0:i] -> "" の削除コスト
+    for j in range(n + 1):
+        dp[0][j] = j  # "" -> word2[0:j] の挿入コスト
+
+    # DPテーブル構築
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if word1[i - 1] == word2[j - 1]:
+                # 文字が一致する場合、コスト変化なし
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                # 3つの操作の最小コストを選択
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,      # 削除
+                    dp[i][j - 1] + 1,      # 挿入
+                    dp[i - 1][j - 1] + 1   # 置換
+                )
+
+    return dp[m][n]
+
+
+# 使用例
+if __name__ == "__main__":
+    # Example 1: "horse" -> "ros"
+    result1 = minDistance("horse", "ros")
+    print(f"horse -> ros: {result1}")  # Output: 3
+
+    # Example 2: "intention" -> "execution"
+    result2 = minDistance("intention", "execution")
+    print(f"intention -> execution: {result2}")  # Output: 5</code></pre>
+                    </div>
+
+                    <h3 style="color: var(--accent-purple); margin: 2rem 0 1rem 0">空間最適化版</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Space Optimized O(min(m,n))</span>
+                            <button class="copy-btn" onclick="copyCode('optimizedCode')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre
+                            class="line-numbers"
+                        ><code id="optimizedCode" class="language-python">def minDistance_optimized(word1: str, word2: str) -> int:
+    """
+    空間計算量最適化版 - O(min(m,n))
+    """
+    # 短い方を列、長い方を行にして空間効率化
+    if len(word1) > len(word2):
+        word1, word2 = word2, word1
+
+    m, n = len(word1), len(word2)
+
+    # 前の行と現在の行のみ保持
+    prev_row = list(range(m + 1))
+    curr_row = [0] * (m + 1)
+
+    for i in range(1, n + 1):
+        curr_row[0] = i
+
+        for j in range(1, m + 1):
+            if word2[i - 1] == word1[j - 1]:
+                curr_row[j] = prev_row[j - 1]
+            else:
+                curr_row[j] = min(
+                    prev_row[j] + 1,      # 削除
+                    curr_row[j - 1] + 1,  # 挿入
+                    prev_row[j - 1] + 1   # 置換
+                )
+
+        # 行の入れ替え
+        prev_row, curr_row = curr_row, prev_row
+
+    return prev_row[m]</code></pre>
+                    </div>
+                </section>
+
+                <!-- Complexity Analysis -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        計算量解析
+                    </h2>
+
+                    <div class="complexity-grid">
+                        <div class="complexity-card">
+                            <div class="complexity-value">O(m×n)</div>
+                            <div class="complexity-label">時間計算量</div>
+                            <p style="margin-top: 1rem; color: var(--text-secondary)">
+                                各DPセルを1回ずつ計算<br />
+                                m = len(word1), n = len(word2)
+                            </p>
+                        </div>
+
+                        <div class="complexity-card">
+                            <div class="complexity-value">O(m×n)</div>
+                            <div class="complexity-label">空間計算量（標準版）</div>
+                            <p style="margin-top: 1rem; color: var(--text-secondary)">
+                                2次元DPテーブルの保存<br />
+                                (m+1) × (n+1) の配列
+                            </p>
+                        </div>
+
+                        <div class="complexity-card">
+                            <div class="complexity-value">O(min(m,n))</div>
+                            <div class="complexity-label">空間計算量（最適化版）</div>
+                            <p style="margin-top: 1rem; color: var(--text-secondary)">
+                                2行のみを保持<br />
+                                大幅なメモリ削減
+                            </p>
+                        </div>
+                    </div>
+
+                    <h3 style="color: var(--accent-green); margin: 2rem 0 1rem 0">
+                        Python固有の最適化ポイント
+                    </h3>
+                    <ul style="color: var(--text-secondary); margin-left: 1.5rem">
+                        <li>
+                            組み込み<code style="color: var(--accent-blue)">min()</code
+                            >関数によるC実装の高速化
+                        </li>
+                        <li>リスト内包表記による効率的な初期化</li>
+                        <li>事前サイズ確保によるメモリ再割り当て回避</li>
+                        <li>インデックス直接アクセスによる高速化</li>
+                    </ul>
+                </section>
+
+                <!-- Applications -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-rocket"></i>
+                        応用例・用途
+                    </h2>
+
+                    <div class="complexity-grid">
+                        <div class="complexity-card" style="text-align: left">
+                            <h3 style="color: var(--accent-blue); margin-bottom: 1rem">
+                                <i class="fas fa-spell-check"></i> 文字列処理
+                            </h3>
+                            <ul style="color: var(--text-secondary)">
+                                <li>スペルチェッカー</li>
+                                <li>文字列類似度計算</li>
+                                <li>自動補完機能</li>
+                            </ul>
+                        </div>
+
+                        <div class="complexity-card" style="text-align: left">
+                            <h3 style="color: var(--accent-purple); margin-bottom: 1rem">
+                                <i class="fas fa-dna"></i> バイオインフォマティクス
+                            </h3>
+                            <ul style="color: var(--text-secondary)">
+                                <li>DNA配列アライメント</li>
+                                <li>タンパク質配列比較</li>
+                                <li>系統解析</li>
+                            </ul>
+                        </div>
+
+                        <div class="complexity-card" style="text-align: left">
+                            <h3 style="color: var(--accent-green); margin-bottom: 1rem">
+                                <i class="fas fa-language"></i> 自然言語処理
+                            </h3>
+                            <ul style="color: var(--text-secondary)">
+                                <li>機械翻訳評価</li>
+                                <li>文書類似度計算</li>
+                                <li>校正支援ツール</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <script>
+            let dpTable = [];
+            let animationState = {
+                isRunning: false,
+                currentStep: 0,
+                word1: 'horse',
+                word2: 'ros',
+            };
+
+            function createDPTable() {
+                const word1 = animationState.word1;
+                const word2 = animationState.word2;
+                const m = word1.length;
+                const n = word2.length;
+
+                // Initialize DP table
+                dpTable = Array(m + 1)
+                    .fill(null)
+                    .map(() => Array(n + 1).fill(0));
+
+                // Base cases
+                for (let i = 0; i <= m; i++) dpTable[i][0] = i;
+                for (let j = 0; j <= n; j++) dpTable[0][j] = j;
+
+                // Create HTML table
+                const container = document.getElementById('dpTableContainer');
+                container.innerHTML = '';
+
+                const table = document.createElement('div');
+                table.className = 'dp-table';
+                table.style.gridTemplateColumns = `repeat(${n + 2}, 1fr)`;
+
+                // Header row
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'dp-cell';
+                emptyCell.textContent = '';
+                table.appendChild(emptyCell);
+
+                const emptyCell2 = document.createElement('div');
+                emptyCell2.className = 'dp-cell';
+                emptyCell2.textContent = 'ε';
+                table.appendChild(emptyCell2);
+
+                for (let j = 0; j < n; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'dp-cell';
+                    cell.textContent = word2[j];
+                    cell.style.background = 'var(--accent-purple)';
+                    cell.style.color = 'white';
+                    table.appendChild(cell);
+                }
+
+                // Data rows
+                for (let i = 0; i <= m; i++) {
+                    // Row header
+                    const rowHeader = document.createElement('div');
+                    rowHeader.className = 'dp-cell';
+                    rowHeader.textContent = i === 0 ? 'ε' : word1[i - 1];
+                    if (i > 0) {
+                        rowHeader.style.background = 'var(--accent-blue)';
+                        rowHeader.style.color = 'white';
+                    }
+                    table.appendChild(rowHeader);
+
+                    // Data cells
+                    for (let j = 0; j <= n; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'dp-cell';
+                        cell.id = `cell-${i}-${j}`;
+                        cell.textContent = dpTable[i][j];
+                        cell.addEventListener('click', () => showCellExplanation(i, j));
+                        table.appendChild(cell);
+                    }
+                }
+
+                container.appendChild(table);
+            }
+
+            function showCellExplanation(i, j) {
+                const word1 = animationState.word1;
+                const word2 = animationState.word2;
+
+                let explanation = '';
+                if (i === 0 && j === 0) {
+                    explanation = 'dp[0][0] = 0 (両方とも空文字列)';
+                } else if (i === 0) {
+                    explanation = `dp[0][${j}] = ${j} (空文字列 → "${word2.substring(
+                        0,
+                        j,
+                    )}" への挿入コスト)`;
+                } else if (j === 0) {
+                    explanation = `dp[${i}][0] = ${i} ("${word1.substring(
+                        0,
+                        i,
+                    )}" → 空文字列 への削除コスト)`;
+                } else {
+                    const char1 = word1[i - 1];
+                    const char2 = word2[j - 1];
+                    const value = dpTable[i][j];
+
+                    if (char1 === char2) {
+                        explanation = `dp[${i}][${j}] = ${value} (文字 '${char1}' が一致、dp[${
+                            i - 1
+                        }][${j - 1}] = ${dpTable[i - 1][j - 1]} をそのまま使用)`;
+                    } else {
+                        const del = dpTable[i - 1][j] + 1;
+                        const ins = dpTable[i][j - 1] + 1;
+                        const sub = dpTable[i - 1][j - 1] + 1;
+                        explanation = `dp[${i}][${j}] = ${value} (文字 '${char1}' ≠ '${char2}')\n`;
+                        explanation += `min(削除: ${del}, 挿入: ${ins}, 置換: ${sub}) = ${value}`;
+                    }
+                }
+
+                alert(explanation);
+            }
+
+            async function animateDP() {
+                if (animationState.isRunning) return;
+
+                animationState.isRunning = true;
+                const word1 = animationState.word1;
+                const word2 = animationState.word2;
+                const m = word1.length;
+                const n = word2.length;
+
+                // Reset all cells
+                for (let i = 0; i <= m; i++) {
+                    for (let j = 0; j <= n; j++) {
+                        const cell = document.getElementById(`cell-${i}-${j}`);
+                        if (cell) {
+                            cell.classList.remove('highlighted');
+                        }
+                    }
+                }
+
+                // Animate DP calculation
+                for (let i = 1; i <= m; i++) {
+                    for (let j = 1; j <= n; j++) {
+                        const cell = document.getElementById(`cell-${i}-${j}`);
+                        if (cell) {
+                            cell.classList.add('highlighted');
+
+                            // Calculate value
+                            if (word1[i - 1] === word2[j - 1]) {
+                                dpTable[i][j] = dpTable[i - 1][j - 1];
+                            } else {
+                                dpTable[i][j] = Math.min(
+                                    dpTable[i - 1][j] + 1,
+                                    dpTable[i][j - 1] + 1,
+                                    dpTable[i - 1][j - 1] + 1,
+                                );
+                            }
+
+                            cell.textContent = dpTable[i][j];
+
+                            await new Promise((resolve) => setTimeout(resolve, 800));
+                            cell.classList.remove('highlighted');
+                        }
+                    }
+                }
+
+                // Highlight final answer
+                const finalCell = document.getElementById(`cell-${m}-${n}`);
+                if (finalCell) {
+                    finalCell.style.background = 'var(--accent-green)';
+                    finalCell.style.color = 'white';
+                    finalCell.style.transform = 'scale(1.2)';
+                }
+
+                animationState.isRunning = false;
+            }
+
+            function resetDP() {
+                createDPTable();
+            }
+
+            function showSolution() {
+                const word1 = animationState.word1;
+                const word2 = animationState.word2;
+                const m = word1.length;
+                const n = word2.length;
+
+                // Calculate complete solution
+                for (let i = 1; i <= m; i++) {
+                    for (let j = 1; j <= n; j++) {
+                        if (word1[i - 1] === word2[j - 1]) {
+                            dpTable[i][j] = dpTable[i - 1][j - 1];
+                        } else {
+                            dpTable[i][j] = Math.min(
+                                dpTable[i - 1][j] + 1,
+                                dpTable[i][j - 1] + 1,
+                                dpTable[i - 1][j - 1] + 1,
+                            );
+                        }
+
+                        const cell = document.getElementById(`cell-${i}-${j}`);
+                        if (cell) {
+                            cell.textContent = dpTable[i][j];
+                        }
+                    }
+                }
+
+                // Highlight final answer
+                const finalCell = document.getElementById(`cell-${m}-${n}`);
+                if (finalCell) {
+                    finalCell.style.background = 'var(--accent-green)';
+                    finalCell.style.color = 'white';
+                    finalCell.style.transform = 'scale(1.2)';
+                }
+            }
+
+            function copyCode(codeId) {
+                const codeElement = document.getElementById(codeId);
+                if (!codeElement) {
+                    console.error('Code element not found:', codeId);
+                    return;
+                }
+
+                const code = codeElement.textContent;
+
+                // イベントターゲットを正しく取得
+                const btn = document.querySelector(`button[onclick="copyCode('${codeId}')"]`);
+                if (!btn) {
+                    console.error('Copy button not found for:', codeId);
+                    return;
+                }
+
+                navigator.clipboard
+                    .writeText(code)
+                    .then(() => {
+                        // Show success feedback
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        btn.style.background = 'var(--accent-green)';
+                        btn.style.borderColor = 'var(--accent-green)';
+
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.style.background = 'transparent';
+                            btn.style.borderColor = 'var(--accent-blue)';
+                        }, 2000);
+                    })
+                    .catch((err) => {
+                        console.error('Failed to copy: ', err);
+
+                        // Fallback: 従来のコピー方法
+                        try {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = code;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+
+                            // Show success feedback
+                            const originalText = btn.innerHTML;
+                            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                            btn.style.background = 'var(--accent-green)';
+                            btn.style.borderColor = 'var(--accent-green)';
+
+                            setTimeout(() => {
+                                btn.innerHTML = originalText;
+                                btn.style.background = 'transparent';
+                                btn.style.borderColor = 'var(--accent-blue)';
+                            }, 2000);
+                        } catch (fallbackErr) {
+                            console.error('Fallback copy failed: ', fallbackErr);
+                            alert(
+                                'コードのコピーに失敗しました。手動でコードを選択してコピーしてください。',
+                            );
+                        }
+                    });
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                createDPTable();
+
+                // Add smooth scrolling
+                document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                            });
+                        }
+                    });
+                });
+
+                // Add intersection observer for animations
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.animationPlayState = 'running';
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.section').forEach((section) => {
+                    observer.observe(section);
+                });
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'r' && e.ctrlKey) {
+                    e.preventDefault();
+                    resetDP();
+                } else if (e.key === 's' && e.ctrlKey) {
+                    e.preventDefault();
+                    showSolution();
+                } else if (e.key === 'a' && e.ctrlKey) {
+                    e.preventDefault();
+                    animateDP();
+                }
+            });
+
+            // Add touch support for mobile
+            let touchStartY = 0;
+            document.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                const touchY = e.touches[0].clientY;
+                const touchDiff = touchStartY - touchY;
+
+                if (Math.abs(touchDiff) > 50) {
+                    // Handle swipe gestures if needed
+                }
+            });
+        </script>
+    </body>
+</html>

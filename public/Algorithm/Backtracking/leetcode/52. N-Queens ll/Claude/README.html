@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>N-Queens問題 - ビット操作による高速化アルゴリズム解析</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                color: white;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 10px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.9;
+            }
+
+            .section {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .section h2 {
+                color: #2c3e50;
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 3px solid #3498db;
+            }
+
+            .code-container {
+                position: relative;
+                margin: 20px 0;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+                transition: transform 0.3s ease;
+            }
+
+            .code-container:hover {
+                transform: translateY(-2px);
+            }
+
+            .code-header {
+                background: #2d3748;
+                padding: 15px 20px;
+                color: white;
+                font-weight: 600;
+                font-size: 0.9rem;
+                border-bottom: 1px solid #4a5568;
+            }
+
+            pre {
+                margin: 0 !important;
+                background: #1a202c !important;
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+            pre code {
+                font-family: 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+                font-feature-settings: "calt" 1, "liga" 1;
+            }
+
+            .line-numbers {
+                color: #718096 !important;
+                user-select: none;
+            }
+
+            .chess-board {
+                display: grid;
+                grid-template-columns: repeat(4, 50px);
+                grid-template-rows: repeat(4, 50px);
+                gap: 2px;
+                margin: 20px auto;
+                border: 2px solid #2c3e50;
+                width: fit-content;
+            }
+
+            .chess-square {
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .chess-square.white {
+                background-color: #f0d9b5;
+            }
+
+            .chess-square.black {
+                background-color: #b58863;
+            }
+
+            .chess-square.queen {
+                background-color: #e74c3c;
+                color: white;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            }
+
+            .chess-square.attacked {
+                background-color: #ffeb3b;
+                opacity: 0.7;
+            }
+
+            .bit-visualization {
+                font-family: 'Fira Code', monospace;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+                border-left: 4px solid #3498db;
+            }
+
+            .bit-row {
+                display: flex;
+                align-items: center;
+                margin: 8px 0;
+                font-size: 14px;
+            }
+
+            .bit-label {
+                min-width: 120px;
+                font-weight: 600;
+                color: #2c3e50;
+            }
+
+            .bit-value {
+                font-family: 'Fira Code', monospace;
+                background: #2c3e50;
+                color: white;
+                padding: 2px 8px;
+                border-radius: 4px;
+                margin: 0 5px;
+            }
+
+            .explanation {
+                background: #e8f4f8;
+                padding: 20px;
+                border-radius: 10px;
+                border-left: 5px solid #3498db;
+                margin: 20px 0;
+            }
+
+            .explanation h3 {
+                color: #2c3e50;
+                margin-bottom: 10px;
+            }
+
+            .step-by-step {
+                counter-reset: step-counter;
+            }
+
+            .step {
+                counter-increment: step-counter;
+                padding: 15px;
+                margin: 10px 0;
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border-radius: 10px;
+                position: relative;
+                padding-left: 60px;
+            }
+
+            .step::before {
+                content: counter(step-counter);
+                position: absolute;
+                left: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.2);
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+
+            .algorithm-flow {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .flow-step {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 12px;
+                text-align: center;
+                font-weight: 500;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease;
+            }
+
+            .flow-step:hover {
+                transform: scale(1.02);
+            }
+
+            .complexity-analysis {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-card {
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                padding: 20px;
+                border-radius: 12px;
+                text-align: center;
+                color: #2c3e50;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-card h4 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
+                font-weight: 600;
+            }
+
+            .complexity-value {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #e74c3c;
+                font-family: 'Fira Code', monospace;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+
+                .header h1 {
+                    font-size: 2rem;
+                }
+
+                .chess-board {
+                    grid-template-columns: repeat(4, 40px);
+                    grid-template-rows: repeat(4, 40px);
+                }
+
+                .chess-square {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 20px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🏰 N-Queens問題解析</h1>
+                <p>ビット操作による高速化アルゴリズムの詳細解説</p>
+            </div>
+
+            <div class="section">
+                <h2>💡 問題の概要</h2>
+                <p>N-Queens問題は、n×nのチェスボード上にn個のクイーンを配置し、どのクイーンも他のクイーンを攻撃できない状態にする問題です。クイーンは縦・横・斜めに移動できるため、同じ行、列、対角線上に複数のクイーンを配置することはできません。</p>
+
+                <div class="explanation">
+                    <h3>4×4ボードでの解の例</h3>
+                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                        <div>
+                            <h4>解1</h4>
+                            <div class="chess-board">
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white queen">♛</div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black queen">♛</div>
+                                <div class="chess-square black queen">♛</div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white queen">♛</div>
+                                <div class="chess-square black"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>解2</h4>
+                            <div class="chess-board">
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black queen">♛</div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square white queen">♛</div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                                <div class="chess-square white queen">♛</div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black queen">♛</div>
+                                <div class="chess-square white"></div>
+                                <div class="chess-square black"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🚀 解法コード（ビット操作最適化版）</h2>
+                <div class="code-container">
+                    <div class="code-header">
+                        Python - N-Queens Solution with Bit Manipulation
+                    </div>
+                    <pre class="line-numbers"><code class="language-python">class Solution:
+    def totalNQueens(self, n: int) -> int:
+        """
+        N-Queens問題の解の数を求めるメソッド
+        
+        Args:
+            n: チェスボードのサイズ (n x n)
+            
+        Returns:
+            N-Queens問題の解の総数
+        """
+        def backtrack(row: int, cols: int, diag1: int, diag2: int) -> int:
+            """
+            バックトラッキングを用いてN-Queens問題を解く再帰関数
+            
+            Args:
+                row: 現在処理中の行
+                cols: 列の使用状況をビットマスクで表現
+                diag1: 左上から右下への対角線の使用状況をビットマスクで表現
+                diag2: 右上から左下への対角線の使用状況をビットマスクで表現
+                
+            Returns:
+                現在の状態から可能な解の数
+            """
+            # 全ての行にクイーンを配置できた場合、解を1つカウント
+            if row == n:
+                return 1
+                
+            count: int = 0
+            # 現在の行で使用可能な位置を計算（ビット演算で高速化）
+            available_positions: int = ((1 << n) - 1) & ~(cols | diag1 | diag2)
+            
+            # 使用可能な各位置にクイーンを配置して再帰的に探索
+            while available_positions:
+                # 最下位の1ビットを取得（次に配置可能な位置）
+                position: int = available_positions & -available_positions
+                # その位置のビットをクリア
+                available_positions ^= position
+                
+                # 次の行で再帰的に探索し、解の数を加算
+                # diag1とdiag2は対角線の制約を表現（ビットシフトで位置調整）
+                count += backtrack(
+                    row + 1,
+                    cols | position,           # 列の制約を更新
+                    (diag1 | position) << 1,  # 左上-右下対角線の制約を更新
+                    (diag2 | position) >> 1   # 右上-左下対角線の制約を更新
+                )
+                
+            return count
+            
+        # 最初の行から探索開始
+        return backtrack(0, 0, 0, 0)</code></pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔧 ビット操作の詳細解析</h2>
+
+                <div class="explanation">
+                    <h3>ビットマスクによる制約表現</h3>
+                    <p>このアルゴリズムの核心は、クイーンの配置制約をビットマスクで効率的に表現することです。</p>
+                </div>
+
+                <div class="step-by-step">
+                    <div class="step">
+                        <strong>cols（列の制約）:</strong> どの列にクイーンが配置されているかを記録
+                    </div>
+                    <div class="step">
+                        <strong>diag1（左上-右下対角線）:</strong> 各対角線の使用状況を記録（左シフトで位置調整）
+                    </div>
+                    <div class="step">
+                        <strong>diag2（右上-左下対角線）:</strong> 各対角線の使用状況を記録（右シフトで位置調整）
+                    </div>
+                </div>
+
+                <div class="bit-visualization">
+                    <h4>4×4ボードでのビット表現例（行2でクイーンを配置する場合）</h4>
+                    <div class="bit-row">
+                        <span class="bit-label">現在の行:</span>
+                        <span class="bit-value">row = 2</span>
+                    </div>
+                    <div class="bit-row">
+                        <span class="bit-label">列制約 (cols):</span>
+                        <span class="bit-value">0010</span>
+                        <span>← 1列目にクイーン配置済み</span>
+                    </div>
+                    <div class="bit-row">
+                        <span class="bit-label">対角線1 (diag1):</span>
+                        <span class="bit-value">1000</span>
+                        <span>← 左上-右下対角線制約</span>
+                    </div>
+                    <div class="bit-row">
+                        <span class="bit-label">対角線2 (diag2):</span>
+                        <span class="bit-value">0001</span>
+                        <span>← 右上-左下対角線制約</span>
+                    </div>
+                    <div class="bit-row">
+                        <span class="bit-label">全制約 OR:</span>
+                        <span class="bit-value">1011</span>
+                        <span>← 使用不可位置</span>
+                    </div>
+                    <div class="bit-row">
+                        <span class="bit-label">利用可能位置:</span>
+                        <span class="bit-value">0100</span>
+                        <span>← ~(cols | diag1 | diag2) & ((1<<4)-1)< /span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 核心的なビット演算テクニック</h2>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        Key Bit Manipulation Techniques
+                    </div>
+                    <pre class="line-numbers"><code class="language-python"># 1. 利用可能な位置の計算
+available_positions = ((1 << n) - 1) & ~(cols | diag1 | diag2)
+# ((1 << n) - 1): n個の1からなるマスク (例: n=4 → 1111)
+# ~(cols | diag1 | diag2): 制約のある位置を反転
+# &: 有効範囲内での利用可能位置
+
+# 2. 最下位ビットの取得
+position = available_positions & -available_positions
+# -available_positions: 2の補数（ビット反転+1）
+# &演算で最下位の1ビットのみを抽出
+
+# 3. ビットのクリア
+available_positions ^= position
+# XOR演算で該当ビットを0にセット
+
+# 4. 対角線制約の更新
+(diag1 | position) << 1  # 左上-右下: 左シフトで次行の制約
+(diag2 | position) >> 1  # 右上-左下: 右シフトで次行の制約</code></pre>
+                </div>
+
+                <div class="explanation">
+                    <h3>最下位ビット抽出の仕組み</h3>
+                    <div class="bit-visualization">
+                        <div class="bit-row">
+                            <span class="bit-label">available_positions:</span>
+                            <span class="bit-value">1100</span>
+                        </div>
+                        <div class="bit-row">
+                            <span class="bit-label">-available_positions:</span>
+                            <span class="bit-value">0100</span>
+                            <span>← 2の補数</span>
+                        </div>
+                        <div class="bit-row">
+                            <span class="bit-label">& 演算結果:</span>
+                            <span class="bit-value">0100</span>
+                            <span>← 最下位の1ビットのみ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 アルゴリズムの実行フロー</h2>
+                <div class="algorithm-flow">
+                    <div class="flow-step">
+                        <strong>Step 1: 初期化</strong><br>
+                        backtrack(0, 0, 0, 0) - 最初の行から開始
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 2: 終了条件チェック</strong><br>
+                        row == n なら解を1つカウントして終了
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 3: 利用可能位置計算</strong><br>
+                        ビット演算で配置可能な位置を高速計算
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 4: 各位置を試行</strong><br>
+                        最下位ビットから順番に各位置でクイーンを配置
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 5: 制約更新と再帰</strong><br>
+                        列と対角線の制約を更新して次行を探索
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 6: 解の数を累積</strong><br>
+                        各枝から返された解の数を合計
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚡ 計算量解析</h2>
+                <div class="complexity-analysis">
+                    <div class="complexity-card">
+                        <h4>時間計算量</h4>
+                        <div class="complexity-value">O(N!)</div>
+                        <p>バックトラッキングの本質的な複雑さ。ただし、ビット演算により定数倍が大幅に改善される。</p>
+                    </div>
+                    <div class="complexity-card">
+                        <h4>空間計算量</h4>
+                        <div class="complexity-value">O(N)</div>
+                        <p>再帰スタックの深さがNに比例。ビットマスクにより追加のデータ構造が不要。</p>
+                    </div>
+                    <div class="complexity-card">
+                        <h4>最適化効果</h4>
+                        <div class="complexity-value">10-50x</div>
+                        <p>従来の配列ベースの実装と比較して、10倍から50倍の速度向上が期待できる。</p>
+                    </div>
+                </div>
+
+                <div class="explanation">
+                    <h3>ビット演算による最適化のメリット</h3>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>メモリ効率:</strong> 制約情報を整数1つで表現</li>
+                        <li><strong>高速な制約チェック:</strong> ビット演算は非常に高速</li>
+                        <li><strong>分岐削減:</strong> 利用不可能な位置を事前に除外</li>
+                        <li><strong>キャッシュ効率:</strong> データサイズが小さくCPUキャッシュを有効活用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎓 学習ポイント</h2>
+                <div class="step-by-step">
+                    <div class="step">
+                        <strong>バックトラッキング + ビット演算:</strong> 古典的なアルゴリズムに現代的な最適化を適用
+                    </div>
+                    <div class="step">
+                        <strong>制約の効率的表現:</strong> 複雑な制約をシンプルなビットマスクで表現
+                    </div>
+                    <div class="step">
+                        <strong>2の補数の活用:</strong> 最下位ビット抽出に2の補数を巧妙に利用
+                    </div>
+                    <div class="step">
+                        <strong>メモリとCPUの最適化:</strong> 理論的複雑さは同じでも実行時間を大幅短縮
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <script>
+            // コードブロックにホバー効果を追加
+            document.querySelectorAll('.code-container').forEach(container => {
+                container.addEventListener('mouseenter', () => {
+                    container.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    container.style.boxShadow = '0 5px 20px rgba(0,0,0,0.15)';
+                });
+            });
+
+            // チェスボードの駒にホバー効果
+            document.querySelectorAll('.chess-square.queen').forEach(square => {
+                square.addEventListener('mouseenter', () => {
+                    square.style.transform = 'scale(1.1)';
+                    square.style.zIndex = '10';
+                });
+
+                square.addEventListener('mouseleave', () => {
+                    square.style.transform = 'scale(1)';
+                    square.style.zIndex = '1';
+                });
+            });
+
+            // スムーズスクロール効果
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        </script>
+    </body>
+
+</html>

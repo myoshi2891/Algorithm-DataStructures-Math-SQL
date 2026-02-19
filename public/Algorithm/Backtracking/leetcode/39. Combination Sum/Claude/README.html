@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Combination Sum アルゴリズム解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 30px;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                margin-bottom: 40px;
+                font-size: 2.5em;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                color: #34495e;
+                border-left: 5px solid #3498db;
+                padding-left: 15px;
+                margin-top: 40px;
+                background: linear-gradient(90deg, #ecf0f1 0%, transparent 100%);
+                padding: 10px 15px;
+                border-radius: 5px;
+            }
+
+            .section {
+                margin-bottom: 40px;
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 10px;
+                border: 1px solid #dee2e6;
+            }
+
+            .tree-container {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                overflow-x: auto;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .tree-node {
+                display: inline-block;
+                background: linear-gradient(145deg, #3498db, #2980b9);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 8px;
+                margin: 5px;
+                font-weight: bold;
+                box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+                transition: all 0.3s ease;
+            }
+
+            .tree-node:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+            }
+
+            .success-node {
+                background: linear-gradient(145deg, #27ae60, #229954);
+                box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+            }
+
+            .fail-node {
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+            }
+
+            .step-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .step-box {
+                background: linear-gradient(145deg, #ffffff, #f8f9fa);
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                padding: 15px;
+                flex: 1;
+                min-width: 250px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            .step-box:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+                border-color: #3498db;
+            }
+
+            .step-title {
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 10px;
+                font-size: 1.1em;
+            }
+
+            .code-block {
+                background: #2c3e50;
+                color: #ecf0f1;
+                padding: 15px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                overflow-x: auto;
+                margin: 15px 0;
+                box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .highlight {
+                background: rgba(241, 196, 15, 0.3);
+                padding: 2px 4px;
+                border-radius: 3px;
+                font-weight: bold;
+            }
+
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .complexity-table th {
+                background: linear-gradient(145deg, #34495e, #2c3e50);
+                color: white;
+                padding: 12px;
+                text-align: left;
+            }
+
+            .complexity-table td {
+                padding: 12px;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .complexity-table tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            .complexity-table tr:hover {
+                background: rgba(52, 152, 219, 0.1);
+            }
+
+            .algorithm-flow {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .flow-step {
+                display: inline-block;
+                background: linear-gradient(145deg, #e8f4fd, #d4edda);
+                border: 2px solid #3498db;
+                border-radius: 50px;
+                padding: 10px 20px;
+                margin: 10px;
+                font-weight: bold;
+                color: #2c3e50;
+                box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+                transition: all 0.3s ease;
+            }
+
+            .flow-step:hover {
+                transform: scale(1.05);
+                background: linear-gradient(145deg, #3498db, #2980b9);
+                color: white;
+            }
+
+            .arrow {
+                font-size: 2em;
+                color: #3498db;
+                margin: 0 10px;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                }
+
+                .step-container {
+                    flex-direction: column;
+                }
+
+                .step-box {
+                    min-width: auto;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🔍 Combination Sum アルゴリズム詳細解析</h1>
+
+            <div class="section">
+                <h2>📊 アルゴリズムの全体フロー</h2>
+                <div class="algorithm-flow">
+                    <div class="flow-step">入力検証</div>
+                    <span class="arrow">→</span>
+                    <div class="flow-step">配列ソート</div>
+                    <span class="arrow">→</span>
+                    <div class="flow-step">バックトラッキング開始</div>
+                    <span class="arrow">→</span>
+                    <div class="flow-step">解の探索</div>
+                    <span class="arrow">→</span>
+                    <div class="flow-step">結果返却</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🌳 具体例での探索木構造 (candidates=[2,3,6,7], target=7)</h2>
+                <div class="tree-container">
+                    <div style="font-family: monospace; font-size: 14px; line-height: 2">
+                        <div style="text-align: center; margin-bottom: 20px">
+                            <div class="tree-node">Start: [] (target=7)</div>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 15px">
+                            <div class="tree-node">Choose 2: [2] (target=5)</div>
+                            <div class="tree-node" style="margin-left: 50px">
+                                Choose 3: [3] (target=4)
+                            </div>
+                            <div class="tree-node" style="margin-left: 50px">
+                                Choose 6: [6] (target=1)
+                            </div>
+                            <div class="tree-node success-node" style="margin-left: 50px">
+                                Choose 7: [7] (target=0) ✅
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 15px">
+                            <div class="tree-node">├─ Choose 2: [2,2] (target=3)</div>
+                            <div class="tree-node" style="margin-left: 100px">
+                                ├─ Choose 3: [3,3] (target=1)
+                            </div>
+                            <div class="tree-node fail-node" style="margin-left: 100px">
+                                ├─ Choose 6: [6,6] (target=-5) ❌
+                            </div>
+                            <div class="tree-node fail-node" style="margin-left: 100px">
+                                └─ Choose 7: [6,7] (target=-6) ❌
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 15px">
+                            <div class="tree-node">│ ├─ Choose 2: [2,2,2] (target=1)</div>
+                            <div class="tree-node success-node" style="margin-left: 150px">
+                                │ │ └─ Choose 3: [2,2,3] (target=0) ✅
+                            </div>
+                        </div>
+                        <div style="text-align: center">
+                            <div class="tree-node">│ └─ Choose 3: [2,3] (target=2)</div>
+                            <div class="tree-node fail-node" style="margin-left: 150px">
+                                │ └─ Choose 2: [2,3,2] (target=0) - Skip (順序)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚙️ 主要処理の詳細解析</h2>
+                <div class="step-container">
+                    <div class="step-box">
+                        <div class="step-title">1. 前処理：ソート</div>
+                        <div class="code-block">candidates.sort((a, b) => a - b)</div>
+                        <p><span class="highlight">目的</span>: 早期終了を可能にする</p>
+                        <p>
+                            <span class="highlight">効果</span>: candidate > remainingTargetで枝刈り
+                        </p>
+                        <p><span class="highlight">時間計算量</span>: O(N log N)</p>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">2. バックトラッキング開始</div>
+                        <div class="code-block">backtrack(0, [], target)</div>
+                        <p><span class="highlight">パラメータ</span>:</p>
+                        <ul>
+                            <li>startIndex: 0 (最初の要素から)</li>
+                            <li>currentCombination: [] (空配列)</li>
+                            <li>remainingTarget: 7 (目標値)</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">3. 終了条件チェック</div>
+                        <div class="code-block">
+                            if (remainingTarget === 0) { result.push([...currentCombination]);
+                            return; }
+                        </div>
+                        <p><span class="highlight">条件</span>: 残り目標値が0になった時</p>
+                        <p><span class="highlight">処理</span>: 現在の組み合わせを結果に追加</p>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">4. 枝刈り最適化</div>
+                        <div class="code-block">if (candidate > remainingTarget) { break; }</div>
+                        <p><span class="highlight">条件</span>: 候補値が残り目標値を超過</p>
+                        <p>
+                            <span class="highlight">効果</span>:
+                            以降の探索をスキップ（ソート済みのため）
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔄 再帰呼び出しのスタック構造</h2>
+                <div class="tree-container">
+                    <div style="font-family: monospace">
+                        <h4>例: [2,2,3]の組み合わせ発見まで</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px">
+                            <div>📱 <strong>Call 1</strong>: backtrack(0, [], 7)</div>
+                            <div style="margin-left: 20px">├─ Choose candidate[0] = 2</div>
+                            <div style="margin-left: 20px">├─ Push 2 to combination: [2]</div>
+                            <div style="margin-left: 20px">
+                                └─ 📱 <strong>Call 2</strong>: backtrack(0, [2], 5)
+                            </div>
+
+                            <div style="margin-left: 40px">├─ Choose candidate[0] = 2 again</div>
+                            <div style="margin-left: 40px">├─ Push 2 to combination: [2,2]</div>
+                            <div style="margin-left: 40px">
+                                └─ 📱 <strong>Call 3</strong>: backtrack(0, [2,2], 3)
+                            </div>
+
+                            <div style="margin-left: 60px">├─ Choose candidate[1] = 3</div>
+                            <div style="margin-left: 60px">├─ Push 3 to combination: [2,2,3]</div>
+                            <div style="margin-left: 60px">
+                                └─ 📱 <strong>Call 4</strong>: backtrack(1, [2,2,3], 0)
+                            </div>
+
+                            <div style="margin-left: 80px; color: #27ae60; font-weight: bold">
+                                ✅ remainingTarget === 0 → Add [2,2,3] to result
+                            </div>
+                            <div style="margin-left: 80px">🔙 Return from Call 4</div>
+
+                            <div style="margin-left: 60px">🔙 Pop 3 from combination: [2,2]</div>
+                            <div style="margin-left: 60px">🔙 Return from Call 3</div>
+
+                            <div style="margin-left: 40px">🔙 Pop 2 from combination: [2]</div>
+                            <div style="margin-left: 40px">🔙 Return from Call 2</div>
+
+                            <div style="margin-left: 20px">🔙 Pop 2 from combination: []</div>
+                            <div style="margin-left: 20px">Continue with next candidate...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📈 計算量分析</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>計算量</th>
+                            <th>説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>時間計算量</strong></td>
+                            <td>O(N^(T/M))</td>
+                            <td>N=配列長, T=target値, M=最小候補値</td>
+                        </tr>
+                        <tr>
+                            <td><strong>空間計算量</strong></td>
+                            <td>O(T/M)</td>
+                            <td>再帰スタックの最大深度</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ソート処理</strong></td>
+                            <td>O(N log N)</td>
+                            <td>一回だけの前処理</td>
+                        </tr>
+                        <tr>
+                            <td><strong>最悪ケース探索数</strong></td>
+                            <td>O(2^T)</td>
+                            <td>candidates=[1], target=Tの場合</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>⚡ パフォーマンス最適化ポイント</h2>
+                <div class="step-container">
+                    <div class="step-box">
+                        <div class="step-title">1. 早期終了</div>
+                        <p>ソート済み配列により、候補値が目標値を超えた時点で以降の探索を停止</p>
+                        <div class="code-block">if (candidate > remainingTarget) break;</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">2. インデックス管理</div>
+                        <p>同一要素の重複使用を許可しつつ、順序を保って重複組み合わせを防止</p>
+                        <div class="code-block">backtrack(i, ...); // i番目以降から選択</div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">3. メモリ効率</div>
+                        <p>配列の動的構築・削除によりメモリ使用量を最小化</p>
+                        <div class="code-block">
+                            currentCombination.push(candidate); // 処理後 currentCombination.pop();
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <div class="step-title">4. 型安全性</div>
+                        <p>
+                            TypeScriptの型システムによりランタイムエラーを防止し、最適化されたコードを生成
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 実行例での詳細追跡</h2>
+                <div class="tree-container">
+                    <h4>candidates = [2,3,6,7], target = 7</h4>
+                    <div style="background: #f1f2f6; padding: 20px; border-radius: 10px">
+                        <div style="margin-bottom: 15px">
+                            <strong>結果: [[2,2,3], [7]]</strong>
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 1</span>: ソート → [2,3,6,7]
+                            (既にソート済み)
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 2</span>: backtrack(0, [], 7) 開始
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 3</span>: i=0, candidate=2, 2 ≤ 7 →
+                            [2]で再帰
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 4</span>: i=0, candidate=2, 2 ≤ 5 →
+                            [2,2]で再帰
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 5</span>: i=1, candidate=3, 3 ≤ 3 →
+                            [2,2,3]で再帰
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 6</span>: remainingTarget=0 →
+                            <strong>[2,2,3]を結果に追加 ✅</strong>
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 7</span>: バックトラック、他の候補を探索...
+                        </div>
+
+                        <div style="margin-bottom: 10px">
+                            <span class="highlight">Step 8</span>: i=3, candidate=7, 7 ≤ 7 →
+                            [7]で再帰
+                        </div>
+
+                        <div>
+                            <span class="highlight">Step 9</span>: remainingTarget=0 →
+                            <strong>[7]を結果に追加 ✅</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

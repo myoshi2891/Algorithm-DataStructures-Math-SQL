@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Minimum Window Substring - アルゴリズム解説</title>
+
+        <!-- CDN Links -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/fontawesome/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --bg-primary: #0f0f23;
+                --bg-secondary: #1a1a2e;
+                --bg-tertiary: #16213e;
+                --text-primary: #e6e6e6;
+                --text-secondary: #b3b3b3;
+                --accent-blue: #00d4aa;
+                --accent-purple: #9333ea;
+                --accent-orange: #ff6b35;
+                --border: #333333;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --code-bg: #1e1e1e;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+                color: var(--text-primary);
+                line-height: 1.6;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .hero {
+                text-align: center;
+                padding: 60px 0;
+                background: linear-gradient(45deg, var(--accent-purple), var(--accent-blue));
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+                margin-bottom: 40px;
+            }
+
+            .hero h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                margin-bottom: 20px;
+                animation: fadeInUp 1s ease-out;
+            }
+
+            .hero p {
+                font-size: 1.3rem;
+                color: var(--text-secondary);
+                animation: fadeInUp 1s ease-out 0.3s both;
+            }
+
+            .section {
+                background: var(--bg-secondary);
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 10px 30px var(--shadow);
+                border: 1px solid var(--border);
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px var(--shadow);
+            }
+
+            .section h2 {
+                color: var(--accent-blue);
+                font-size: 2rem;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .section h3 {
+                color: var(--accent-orange);
+                font-size: 1.4rem;
+                margin: 25px 0 15px 0;
+            }
+
+            .code-container {
+                position: relative;
+                background: var(--code-bg);
+                border-radius: 10px;
+                overflow: hidden;
+                margin: 20px 0;
+                border: 1px solid var(--border);
+            }
+
+            .code-header {
+                background: var(--bg-tertiary);
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .code-title {
+                color: var(--text-primary);
+                font-weight: 500;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .copy-btn {
+                background: var(--accent-blue);
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background 0.3s ease;
+            }
+
+            .copy-btn:hover {
+                background: #00b894;
+            }
+
+            .copy-btn.copied {
+                background: #00b894;
+            }
+
+            pre {
+                margin: 0 !important;
+                padding: 20px !important;
+                background: var(--code-bg) !important;
+                font-family: 'Fira Code', monospace !important;
+                font-size: 14px;
+                line-height: 1.5;
+                overflow-x: auto;
+            }
+
+            .algorithm-steps {
+                display: grid;
+                gap: 20px;
+                margin: 30px 0;
+            }
+
+            .step {
+                background: var(--bg-tertiary);
+                padding: 25px;
+                border-radius: 10px;
+                border-left: 4px solid var(--accent-orange);
+                transition: all 0.3s ease;
+                opacity: 0;
+                transform: translateX(-20px);
+                animation: slideInLeft 0.6s ease forwards;
+            }
+
+            .step:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .step:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            .step:nth-child(4) {
+                animation-delay: 0.6s;
+            }
+
+            .step-number {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                background: var(--accent-orange);
+                color: white;
+                border-radius: 50%;
+                font-weight: bold;
+                margin-right: 15px;
+            }
+
+            .complexity-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+
+            .complexity-card {
+                background: var(--bg-tertiary);
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+                border: 2px solid transparent;
+                transition: all 0.3s ease;
+            }
+
+            .complexity-card:hover {
+                border-color: var(--accent-purple);
+                transform: scale(1.05);
+            }
+
+            .complexity-value {
+                font-size: 2rem;
+                font-weight: bold;
+                color: var(--accent-purple);
+                font-family: 'Fira Code', monospace;
+            }
+
+            .visualization {
+                background: var(--bg-tertiary);
+                padding: 30px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+            }
+
+            .sliding-window-demo {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                margin: 20px 0;
+                font-family: 'Fira Code', monospace;
+                font-size: 1.2rem;
+            }
+
+            .char-box {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid var(--border);
+                border-radius: 5px;
+                background: var(--bg-secondary);
+                transition: all 0.3s ease;
+            }
+
+            .char-box.in-window {
+                border-color: var(--accent-blue);
+                background: rgba(0, 212, 170, 0.2);
+            }
+
+            .char-box.target {
+                border-color: var(--accent-orange);
+                background: rgba(255, 107, 53, 0.2);
+            }
+
+            .window-controls {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .control-btn {
+                background: var(--accent-purple);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 25px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .control-btn:hover {
+                background: #7c3aed;
+                transform: scale(1.05);
+            }
+
+            .highlight-box {
+                background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+                padding: 2px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+
+            .highlight-content {
+                background: var(--bg-secondary);
+                padding: 20px;
+                border-radius: 8px;
+            }
+
+            .floating-elements {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: -1;
+            }
+
+            .floating-circle {
+                position: absolute;
+                border-radius: 50%;
+                background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+                opacity: 0.1;
+                animation: float 6s ease-in-out infinite;
+            }
+
+            .floating-circle:nth-child(1) {
+                width: 100px;
+                height: 100px;
+                top: 20%;
+                left: 10%;
+                animation-delay: 0s;
+            }
+
+            .floating-circle:nth-child(2) {
+                width: 150px;
+                height: 150px;
+                top: 60%;
+                right: 10%;
+                animation-delay: 2s;
+            }
+
+            .floating-circle:nth-child(3) {
+                width: 80px;
+                height: 80px;
+                bottom: 20%;
+                left: 20%;
+                animation-delay: 4s;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes slideInLeft {
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0px) rotate(0deg);
+                }
+                50% {
+                    transform: translateY(-20px) rotate(180deg);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .hero h1 {
+                    font-size: 2.5rem;
+                }
+
+                .container {
+                    padding: 15px;
+                }
+
+                .section {
+                    padding: 20px;
+                }
+
+                .sliding-window-demo {
+                    font-size: 1rem;
+                }
+
+                .char-box {
+                    width: 30px;
+                    height: 30px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="floating-elements">
+            <div class="floating-circle"></div>
+            <div class="floating-circle"></div>
+            <div class="floating-circle"></div>
+        </div>
+
+        <div class="container">
+            <div class="hero">
+                <h1>Minimum Window Substring</h1>
+                <p>スライディングウィンドウ法による効率的な部分文字列検索アルゴリズム</p>
+            </div>
+
+            <section class="section">
+                <h2><i class="fas fa-info-circle"></i> アルゴリズム概要</h2>
+                <p>
+                    Minimum Window
+                    Substring問題は、文字列<code>s</code>の中から文字列<code>t</code>のすべての文字を含む最小の部分文字列を見つける問題です。
+                    この問題は<strong>スライディングウィンドウ法</strong>と<strong>2ポインタ法</strong>を組み合わせることで、O(m+n)の時間計算量で効率的に解くことができます。
+                </p>
+
+                <div class="highlight-box">
+                    <div class="highlight-content">
+                        <h3><i class="fas fa-lightbulb"></i> 核心アイデア</h3>
+                        <ul>
+                            <li>ウィンドウを拡張して条件を満たす</li>
+                            <li>条件を満たしたらウィンドウを収縮して最小化</li>
+                            <li>文字頻度をハッシュマップで効率的に管理</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2><i class="fas fa-list-ol"></i> ステップバイステップ解説</h2>
+                <div class="algorithm-steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div>
+                            <h3>初期化</h3>
+                            <p>
+                                文字列<code>t</code>の文字頻度をハッシュマップ<code>need</code>に記録し、現在のウィンドウの状態を追跡する変数を初期化します。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div>
+                            <h3>ウィンドウ拡張</h3>
+                            <p>
+                                右ポインタを移動して文字を追加し、<code>have</code>ハッシュマップを更新。追加した文字が条件を満たすかチェックします。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div>
+                            <h3>条件判定</h3>
+                            <p>
+                                <code>formed == required</code
+                                >の時、現在のウィンドウは有効。この状態でウィンドウの最小化を試みます。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">4</span>
+                        <div>
+                            <h3>ウィンドウ収縮</h3>
+                            <p>
+                                左ポインタを移動してウィンドウを縮小。有効な間は最小ウィンドウを更新し、無効になったら拡張に戻ります。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2><i class="fas fa-code"></i> 実装コード</h2>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">Python実装 - 業務用バージョン</span>
+                        <button class="copy-btn" onclick="copyCode('business-code', event)">
+                            <i class="fas fa-copy"></i> コピー
+                        </button>
+                    </div>
+                    <pre><code id="business-code" class="language-python">from typing import Dict, Optional
+from collections import defaultdict
+
+class Solution:
+    def minWindow(self, s: str, t: str) -> str:
+        """
+        最小ウィンドウ部分文字列を返す
+        Args:
+            s (str): 探索対象文字列
+            t (str): 必要文字列
+        Returns:
+            str: 条件を満たす最小部分文字列。存在しない場合は空文字。
+        """
+        # 入力検証
+        if not isinstance(s, str) or not isinstance(t, str):
+            raise TypeError("Both s and t must be strings")
+        if not t:
+            raise ValueError("String t must not be empty")
+        if len(s) < len(t):
+            return ""
+
+        # t の文字頻度を記録
+        need: Dict[str, int] = defaultdict(int)
+        for ch in t:
+            need[ch] += 1
+
+        # ウィンドウ状態の管理
+        have: Dict[str, int] = defaultdict(int)
+        required = len(need)  # 必要な文字種類数
+        formed = 0            # 現在満たしている文字種類数
+        res: Optional[tuple[int, int]] = None  # 結果のインデックス
+        l = 0                 # 左ポインタ
+
+        # スライディングウィンドウ
+        for r, ch in enumerate(s):
+            # ウィンドウを右に拡張
+            have[ch] += 1
+            if ch in need and have[ch] == need[ch]:
+                formed += 1
+
+            # 有効なウィンドウの間、左端を縮める
+            while formed == required:
+                # 最小ウィンドウを更新
+                if res is None or (r - l) < (res[1] - res[0]):
+                    res = (l, r)
+
+                # 左端の文字を除去
+                left_ch = s[l]
+                have[left_ch] -= 1
+                if left_ch in need and have[left_ch] < need[left_ch]:
+                    formed -= 1
+                l += 1
+
+        return "" if res is None else s[res[0]:res[1]+1]</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title">Python実装 - 競技プログラミング用最適化版</span>
+                        <button class="copy-btn" onclick="copyCode('optimized-code', event)">
+                            <i class="fas fa-copy"></i> コピー
+                        </button>
+                    </div>
+                    <pre><code id="optimized-code" class="language-python">def minWindow_optimized(s: str, t: str) -> str:
+    """競技プログラミング向け高速版"""
+    need = defaultdict(int)
+    for ch in t:
+        need[ch] += 1
+
+    have = defaultdict(int)
+    required, formed = len(need), 0
+    res, l = None, 0
+
+    for r, ch in enumerate(s):
+        have[ch] += 1
+        if ch in need and have[ch] == need[ch]:
+            formed += 1
+
+        while formed == required:
+            if res is None or (r - l) < (res[1] - res[0]):
+                res = (l, r)
+            left_ch = s[l]
+            have[left_ch] -= 1
+            if left_ch in need and have[left_ch] < need[left_ch]:
+                formed -= 1
+            l += 1
+
+    return "" if res is None else s[res[0]:res[1]+1]</code></pre>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2><i class="fas fa-play-circle"></i> 視覚的デモンストレーション</h2>
+                <div class="visualization">
+                    <h3>例: s = "ADOBECODEBANC", t = "ABC"</h3>
+
+                    <div class="sliding-window-demo" id="demo-string">
+                        <!-- デモ用の文字列がここに動的に生成されます -->
+                    </div>
+
+                    <div class="window-controls">
+                        <button class="control-btn" onclick="startDemo()">
+                            <i class="fas fa-play"></i> デモ開始
+                        </button>
+                        <button class="control-btn" onclick="resetDemo()">
+                            <i class="fas fa-undo"></i> リセット
+                        </button>
+                    </div>
+
+                    <div
+                        id="demo-status"
+                        style="margin-top: 20px; font-family: 'Fira Code', monospace"
+                    >
+                        状態: 待機中
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2><i class="fas fa-chart-line"></i> 計算量解析</h2>
+
+                <div class="complexity-grid">
+                    <div class="complexity-card">
+                        <h3>時間計算量</h3>
+                        <div class="complexity-value">O(m + n)</div>
+                        <p>各文字は最大2回処理される（右ポインタと左ポインタで各1回）</p>
+                    </div>
+
+                    <div class="complexity-card">
+                        <h3>空間計算量</h3>
+                        <div class="complexity-value">O(1)</div>
+                        <p>英字のみの制約により、ハッシュマップのサイズは最大52で定数</p>
+                    </div>
+                </div>
+
+                <h3><i class="fas fa-cogs"></i> Python固有の最適化ポイント</h3>
+                <ul>
+                    <li><strong>defaultdict(int)</strong>: KeyErrorを回避し、簡潔なコード</li>
+                    <li><strong>enumerate()</strong>: インデックスと値を同時取得</li>
+                    <li><strong>文字列の最後切り出し</strong>: 部分文字列生成を最小限に</li>
+                    <li><strong>型ヒント</strong>: コードの可読性と保守性向上</li>
+                </ul>
+            </section>
+
+            <section class="section">
+                <h2><i class="fas fa-tools"></i> 実装のポイント</h2>
+
+                <h3>効率化テクニック</h3>
+                <div class="highlight-box">
+                    <div class="highlight-content">
+                        <p>
+                            <strong>文字種類数での判定:</strong>
+                            全文字頻度を毎回比較するのではなく、<code>formed</code>変数で満たした文字種類数を追跡することで高速化
+                        </p>
+                    </div>
+                </div>
+
+                <h3>エラーハンドリング</h3>
+                <ul>
+                    <li>業務用: 型チェック、値検証、適切な例外発生</li>
+                    <li>競技プログラミング用: 最小限のチェックでパフォーマンス重視</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+        <script>
+            let demoInterval;
+            let currentStep = 0;
+            const demoString = 'ADOBECODEBANC';
+            const targetString = 'ABC';
+
+            function initDemo() {
+                const container = document.getElementById('demo-string');
+                container.innerHTML = '';
+
+                for (let i = 0; i < demoString.length; i++) {
+                    const charBox = document.createElement('div');
+                    charBox.className = 'char-box';
+                    charBox.textContent = demoString[i];
+                    charBox.id = `char-${i}`;
+                    container.appendChild(charBox);
+                }
+            }
+
+            function updateDemoStatus(left, right, window, isValid) {
+                const status = document.getElementById('demo-status');
+                status.innerHTML = `
+                状態: L=${left}, R=${right}<br>
+                ウィンドウ: "${window}"<br>
+                有効: ${isValid ? 'Yes' : 'No'}
+            `;
+            }
+
+            function highlightWindow(left, right, isValid) {
+                // すべてリセット
+                for (let i = 0; i < demoString.length; i++) {
+                    const charBox = document.getElementById(`char-${i}`);
+                    charBox.className = 'char-box';
+                    if (targetString.includes(demoString[i])) {
+                        charBox.classList.add('target');
+                    }
+                }
+
+                // ウィンドウをハイライト
+                for (let i = left; i <= right; i++) {
+                    const charBox = document.getElementById(`char-${i}`);
+                    charBox.classList.add('in-window');
+                }
+
+                const window = demoString.substring(left, right + 1);
+                updateDemoStatus(left, right, window, isValid);
+            }
+
+            function startDemo() {
+                resetDemo();
+
+                // デモのステップを定義
+                const steps = [
+                    { left: 0, right: 0, valid: false }, // A
+                    { left: 0, right: 3, valid: false }, // ADOB
+                    { left: 0, right: 5, valid: true }, // ADOBEC
+                    { left: 1, right: 5, valid: false }, // DOBEC
+                    { left: 1, right: 8, valid: true }, // DOBECODEB
+                    { left: 4, right: 8, valid: false }, // ECODEB
+                    { left: 4, right: 9, valid: true }, // ECODEBA
+                    { left: 9, right: 12, valid: true }, // BANC (最終答え)
+                ];
+
+                let stepIndex = 0;
+
+                demoInterval = setInterval(() => {
+                    if (stepIndex >= steps.length) {
+                        clearInterval(demoInterval);
+                        return;
+                    }
+
+                    const step = steps[stepIndex];
+                    highlightWindow(step.left, step.right, step.valid);
+                    stepIndex++;
+                }, 2000);
+            }
+
+            function resetDemo() {
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                }
+                initDemo();
+                updateDemoStatus('-', '-', '', false);
+            }
+
+            function copyCode(elementId, event) {
+                const codeElement = document.getElementById(elementId);
+                const text = codeElement.textContent;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = event.target.closest('.copy-btn');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> コピー完了';
+                    btn.classList.add('copied');
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                initDemo();
+
+                // アニメーション効果
+                const sections = document.querySelectorAll('.section');
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.style.opacity = '1';
+                                entry.target.style.transform = 'translateY(0)';
+                            }
+                        });
+                    },
+                    { threshold: 0.1 },
+                );
+
+                sections.forEach((section) => {
+                    section.style.opacity = '0';
+                    section.style.transform = 'translateY(20px)';
+                    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    observer.observe(section);
+                });
+            });
+        </script>
+    </body>
+</html>

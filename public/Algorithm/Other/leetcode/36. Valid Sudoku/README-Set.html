@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>数独検証アルゴリズム解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+                margin-bottom: 30px;
+                font-size: 2.5em;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            h2 {
+                color: #34495e;
+                border-left: 5px solid #3498db;
+                padding-left: 15px;
+                margin-top: 30px;
+                font-size: 1.5em;
+            }
+
+            .sudoku-board {
+                display: grid;
+                grid-template-columns: repeat(9, 40px);
+                grid-template-rows: repeat(9, 40px);
+                gap: 2px;
+                margin: 20px auto;
+                width: fit-content;
+                background: #2c3e50;
+                padding: 10px;
+                border-radius: 10px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .cell {
+                background: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 16px;
+                border-radius: 3px;
+                transition: all 0.3s ease;
+            }
+
+            .cell.empty {
+                background: #ecf0f1;
+                color: #bdc3c7;
+            }
+
+            .cell.highlight-row {
+                background: #e74c3c;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .cell.highlight-col {
+                background: #f39c12;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .cell.highlight-box {
+                background: #27ae60;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .cell.current {
+                background: #9b59b6;
+                color: white;
+                transform: scale(1.2);
+                z-index: 10;
+                box-shadow: 0 5px 15px rgba(155, 89, 182, 0.5);
+            }
+
+            .analysis-section {
+                background: #f8f9fa;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 10px;
+                border: 1px solid #e9ecef;
+            }
+
+            .step-container {
+                display: flex;
+                align-items: center;
+                margin: 15px 0;
+                padding: 15px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .step-number {
+                background: #3498db;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 15px;
+                flex-shrink: 0;
+            }
+
+            .controls {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            button {
+                background: linear-gradient(45deg, #3498db, #2980b9);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                margin: 0 10px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            }
+
+            button:disabled {
+                background: #bdc3c7;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .legend {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 15px;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .legend-color {
+                width: 20px;
+                height: 20px;
+                border-radius: 3px;
+            }
+
+            .status {
+                text-align: center;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 1.1em;
+            }
+
+            .status.valid {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            .status.invalid {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+            .code-section {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                overflow-x: auto;
+            }
+
+            .code-section pre {
+                margin: 0;
+                font-family: 'Courier New', monospace;
+                line-height: 1.4;
+            }
+
+            .highlight-line {
+                background: rgba(56, 178, 172, 0.2);
+                padding: 2px 0;
+                margin: 0 -20px;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🧩 数独検証アルゴリズム解析</h1>
+
+            <h2>📋 アルゴリズム概要</h2>
+            <div class="analysis-section">
+                <p><strong>目的:</strong> 9×9の数独ボードが有効かどうかを判定する</p>
+                <p><strong>制約:</strong></p>
+                <ul>
+                    <li>各行に1-9の数字が重複なく含まれる</li>
+                    <li>各列に1-9の数字が重複なく含まれる</li>
+                    <li>各3×3ボックスに1-9の数字が重複なく含まれる</li>
+                </ul>
+                <p><strong>時間計算量:</strong> O(1) - 固定サイズ（9×9）のため定数時間</p>
+                <p><strong>空間計算量:</strong> O(1) - 最大81個の要素を格納する定数空間</p>
+            </div>
+
+            <h2>🎯 視覚的デモンストレーション</h2>
+            <div class="controls">
+                <button onclick="startDemo()">デモ開始</button>
+                <button onclick="resetDemo()">リセット</button>
+                <button onclick="toggleSpeed()">速度: <span id="speed-text">普通</span></button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9b59b6"></div>
+                    <span>現在のセル</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c"></div>
+                    <span>同じ行</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12"></div>
+                    <span>同じ列</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60"></div>
+                    <span>同じ3×3ボックス</span>
+                </div>
+            </div>
+
+            <div class="sudoku-board" id="sudoku-board"></div>
+
+            <div class="status" id="status" style="display: none"></div>
+
+            <h2>🔍 ステップバイステップ解析</h2>
+            <div id="step-analysis" class="analysis-section">
+                <div class="step-container">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>初期化:</strong> 各行、列、3×3ボックス用のSetを作成<br />
+                        <small>rows[9], cols[9], boxes[9] - 各Setで重複チェックを効率化</small>
+                    </div>
+                </div>
+                <div class="step-container">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>ボードスキャン:</strong> 左上から右下へ順次処理<br />
+                        <small>二重ループで全81セルを一度だけ訪問</small>
+                    </div>
+                </div>
+                <div class="step-container">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>空セルスキップ:</strong> '.'の場合は処理をスキップ<br />
+                        <small>計算量を削減し、効率性を向上</small>
+                    </div>
+                </div>
+                <div class="step-container">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>ボックスインデックス計算:</strong> (i // 3) * 3 + (j // 3)<br />
+                        <small>各セルがどの3×3ボックスに属するかを数学的に計算</small>
+                    </div>
+                </div>
+                <div class="step-container">
+                    <div class="step-number">5</div>
+                    <div>
+                        <strong>重複チェック:</strong> 同じ数字が既に存在するかチェック<br />
+                        <small>Set.has()でO(1)時間での高速検索</small>
+                    </div>
+                </div>
+                <div class="step-container">
+                    <div class="step-number">6</div>
+                    <div>
+                        <strong>早期終了 or 継続:</strong>
+                        重複があればfalse、なければSetに追加<br />
+                        <small>無効な場合は即座に処理を終了して効率化</small>
+                    </div>
+                </div>
+            </div>
+
+            <h2>💻 コード解析</h2>
+            <div class="code-section">
+                <pre><code>def isValidSudoku(self, board: List[List[str]]) -> bool:
+    # <span class="highlight-line">Set初期化 - O(1)空間、各Setは最大9要素</span>
+    rows: List[set[str]] = [set() for _ in range(9)]
+    cols: List[set[str]] = [set() for _ in range(9)]
+    boxes: List[set[str]] = [set() for _ in range(9)]
+    
+    # <span class="highlight-line">二重ループ - 固定81回の反復</span>
+    for i in range(9):
+        for j in range(9):
+            cell: str = board[i][j]
+            
+            # <span class="highlight-line">空セルスキップ - 計算量削減</span>
+            if cell == '.':
+                continue
+            
+            # <span class="highlight-line">3×3ボックスインデックス - O(1)計算</span>
+            box_index: int = (i // 3) * 3 + (j // 3)
+            
+            # <span class="highlight-line">重複チェック - 各Set.has()はO(1)</span>
+            if cell in rows[i] or cell in cols[j] or cell in boxes[box_index]:
+                return False  # <span class="highlight-line">早期終了</span>
+            
+            # <span class="highlight-line">Set追加 - 各Set.add()はO(1)</span>
+            rows[i].add(cell)
+            cols[j].add(cell)
+            boxes[box_index].add(cell)
+    
+    return True</code></pre>
+            </div>
+
+            <h2>⚡ 性能分析</h2>
+            <div class="analysis-section">
+                <h3>時間計算量: O(1)</h3>
+                <ul>
+                    <li><strong>固定反復:</strong> 9×9 = 81回の固定ループ</li>
+                    <li><strong>Set操作:</strong> has()とadd()は平均O(1)</li>
+                    <li><strong>数学計算:</strong> ボックスインデックス計算はO(1)</li>
+                    <li><strong>早期終了:</strong> 最悪でも81回で終了</li>
+                </ul>
+
+                <h3>空間計算量: O(1)</h3>
+                <ul>
+                    <li><strong>固定サイズ:</strong> 27個のSet（各最大9要素）</li>
+                    <li><strong>最大要素数:</strong> 9×9 = 81個の数字</li>
+                    <li><strong>追加変数:</strong> インデックス用の定数個の変数</li>
+                </ul>
+
+                <h3>最適化ポイント</h3>
+                <ul>
+                    <li><strong>一回スキャン:</strong> 3つの制約を同時にチェック</li>
+                    <li><strong>Set使用:</strong> O(1)での重複検出</li>
+                    <li><strong>早期終了:</strong> 無効が判明した時点で即座に終了</li>
+                    <li><strong>効率的インデックス:</strong> 数学的計算でボックス特定</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            // サンプルボード（Example 1から）
+            const sampleBoard = [
+                ['5', '3', '.', '.', '7', '.', '.', '.', '.'],
+                ['6', '.', '.', '1', '9', '5', '.', '.', '.'],
+                ['.', '9', '8', '.', '.', '.', '.', '6', '.'],
+                ['8', '.', '.', '.', '6', '.', '.', '.', '3'],
+                ['4', '.', '.', '8', '.', '3', '.', '.', '1'],
+                ['7', '.', '.', '.', '2', '.', '.', '.', '6'],
+                ['.', '6', '.', '.', '.', '.', '2', '8', '.'],
+                ['.', '.', '.', '4', '1', '9', '.', '.', '5'],
+                ['.', '.', '.', '.', '8', '.', '.', '7', '9'],
+            ];
+
+            let currentStep = -1;
+            let demoRunning = false;
+            let demoSpeed = 1000; // ミリ秒
+            let speedLevel = 1; // 1: 遅い, 2: 普通, 3: 速い
+
+            // ボードを描画
+            function renderBoard() {
+                const board = document.getElementById('sudoku-board');
+                board.innerHTML = '';
+
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.id = `cell-${i}-${j}`;
+
+                        if (sampleBoard[i][j] === '.') {
+                            cell.className += ' empty';
+                            cell.textContent = '';
+                        } else {
+                            cell.textContent = sampleBoard[i][j];
+                        }
+
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            // セルをハイライト
+            function highlightCell(i, j, type) {
+                const cell = document.getElementById(`cell-${i}-${j}`);
+                if (cell) {
+                    cell.className = cell.className.replace(/highlight-\w+|current/g, '').trim();
+                    cell.className += ` ${type}`;
+                }
+            }
+
+            // ハイライトをクリア
+            function clearHighlights() {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = document.getElementById(`cell-${i}-${j}`);
+                        if (cell) {
+                            cell.className = cell.className
+                                .replace(/highlight-\w+|current/g, '')
+                                .trim();
+                            if (sampleBoard[i][j] === '.') {
+                                cell.className += ' empty';
+                            }
+                        }
+                    }
+                }
+            }
+
+            // デモを開始
+            async function startDemo() {
+                if (demoRunning) return;
+
+                demoRunning = true;
+                document.querySelector('button').disabled = true;
+                clearHighlights();
+
+                const status = document.getElementById('status');
+                status.style.display = 'block';
+                status.className = 'status';
+                status.textContent = 'デモンストレーション実行中...';
+
+                // 数独検証のシミュレーション
+                const rows = Array.from({ length: 9 }, () => new Set());
+                const cols = Array.from({ length: 9 }, () => new Set());
+                const boxes = Array.from({ length: 9 }, () => new Set());
+
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = sampleBoard[i][j];
+
+                        // 現在のセルをハイライト
+                        highlightCell(i, j, 'current');
+
+                        if (cell !== '.') {
+                            // 同じ行、列、ボックスをハイライト
+                            for (let k = 0; k < 9; k++) {
+                                if (k !== j) highlightCell(i, k, 'highlight-row');
+                                if (k !== i) highlightCell(k, j, 'highlight-col');
+                            }
+
+                            // 3×3ボックスをハイライト
+                            const boxStartRow = Math.floor(i / 3) * 3;
+                            const boxStartCol = Math.floor(j / 3) * 3;
+                            const boxIndex = Math.floor(i / 3) * 3 + Math.floor(j / 3);
+
+                            for (let r = boxStartRow; r < boxStartRow + 3; r++) {
+                                for (let c = boxStartCol; c < boxStartCol + 3; c++) {
+                                    if (r !== i || c !== j) {
+                                        highlightCell(r, c, 'highlight-box');
+                                    }
+                                }
+                            }
+
+                            // 重複チェック
+                            if (
+                                rows[i].has(cell) ||
+                                cols[j].has(cell) ||
+                                boxes[boxIndex].has(cell)
+                            ) {
+                                status.className = 'status invalid';
+                                status.textContent = `無効: セル(${i + 1}, ${j + 1})で数字"${cell}"が重複しています`;
+                                demoRunning = false;
+                                document.querySelector('button').disabled = false;
+                                return;
+                            }
+
+                            // Setに追加
+                            rows[i].add(cell);
+                            cols[j].add(cell);
+                            boxes[boxIndex].add(cell);
+
+                            status.textContent = `チェック中: セル(${i + 1}, ${j + 1}) = "${cell}" - OK`;
+                        } else {
+                            status.textContent = `スキップ: セル(${i + 1}, ${j + 1}) は空セル`;
+                        }
+
+                        await new Promise((resolve) => setTimeout(resolve, demoSpeed));
+                        clearHighlights();
+                    }
+                }
+
+                // 検証完了
+                status.className = 'status valid';
+                status.textContent = '✅ 数独ボードは有効です！すべての制約が満たされています。';
+
+                demoRunning = false;
+                document.querySelector('button').disabled = false;
+            }
+
+            // リセット
+            function resetDemo() {
+                demoRunning = false;
+                clearHighlights();
+                document.getElementById('status').style.display = 'none';
+                document.querySelector('button').disabled = false;
+            }
+
+            // 速度切り替え
+            function toggleSpeed() {
+                speedLevel = (speedLevel % 3) + 1;
+                const speedText = document.getElementById('speed-text');
+
+                switch (speedLevel) {
+                    case 1:
+                        demoSpeed = 1500;
+                        speedText.textContent = '遅い';
+                        break;
+                    case 2:
+                        demoSpeed = 1000;
+                        speedText.textContent = '普通';
+                        break;
+                    case 3:
+                        demoSpeed = 500;
+                        speedText.textContent = '速い';
+                        break;
+                }
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                renderBoard();
+            });
+        </script>
+    </body>
+</html>

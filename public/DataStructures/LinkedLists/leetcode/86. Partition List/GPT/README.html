@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+        <title>Partition List 技術解説（Python / 可視化 / インタラクティブ）</title>
+
+        <!-- Tailwind -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism (light) + plugins -->
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <!-- Icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        />
+
+        <style>
+            :root {
+                --brand: #10b981;
+                --brand-600: #059669;
+                --ink: #0f172a;
+                --muted: #475569;
+                --card: #ffffff;
+                --code-lh: 1.6;
+            }
+            html,
+            body {
+                font-family:
+                    Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    'Noto Sans JP',
+                    'Hiragino Sans',
+                    'Hiragino Kaku Gothic ProN',
+                    Meiryo,
+                    sans-serif;
+                color: var(--ink);
+                background: #f8fafc;
+            }
+            .card {
+                background: var(--card);
+                border: 1px solid #eef2f7;
+                box-shadow: 0 10px 28px rgba(2, 6, 23, 0.06);
+            }
+            .pill {
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+                color: #065f46;
+                border: 1px solid #a7f3d0;
+            }
+
+            /* ----- Code block: monospace + line numbers sync + copy toolbar ----- */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    'Liberation Mono', 'Courier New', monospace;
+                font-size: 0.95rem;
+            }
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin-top: 1rem;
+                margin-right: 1rem;
+                font:
+                    600 1rem/1.2 Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s ease,
+                    box-shadow 0.15s ease,
+                    background 0.15s ease;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* ----- Steps ----- */
+            .step-card {
+                transition:
+                    transform 0.18s ease,
+                    box-shadow 0.18s ease,
+                    border-color 0.18s ease,
+                    background 0.18s ease;
+                border: 1px solid #e5e7eb;
+                background: #fff;
+            }
+            .step-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 32px rgba(2, 6, 23, 0.08);
+                border-color: #d1fae5;
+                background: #f0fdf4;
+            }
+            .step-card[aria-current='step'] {
+                border-color: var(--brand);
+                box-shadow: 0 12px 32px rgba(16, 185, 129, 0.18);
+                background: #ecfdf5;
+            }
+
+            /* ----- SVG stages (for fade) ----- */
+            .stage {
+                transition:
+                    opacity 220ms ease,
+                    transform 220ms ease;
+                transform-origin: center left;
+            }
+            .stage.hidden {
+                opacity: 0;
+                transform: translateY(6px);
+                pointer-events: none;
+            }
+
+            /* ----- Nav links: larger & obvious ----- */
+            .topnav a {
+                color: var(--muted);
+                transition:
+                    color 0.15s ease,
+                    transform 0.15s ease,
+                    background 0.15s ease,
+                    box-shadow 0.15s ease;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 0.45rem 0.85rem;
+                box-shadow: 0 3px 10px rgba(2, 6, 23, 0.04);
+            }
+            .topnav a:hover {
+                color: var(--brand-600);
+                transform: translateY(-1px);
+                background: #f0fdf4;
+                box-shadow: 0 10px 24px rgba(16, 185, 129, 0.12);
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- ======================= Header / Hero ======================= -->
+        <header
+            class="relative bg-gradient-to-b from-white to-emerald-50/70 border-b border-emerald-100"
+        >
+            <div class="mx-auto max-w-7xl px-6 py-10 md:py-14">
+                <span
+                    class="inline-flex items-center gap-2 pill px-3 py-1 rounded-full text-sm mb-3"
+                >
+                    <i class="fa-solid fa-diagram-project"></i>
+                    対象アルゴリズム：Stable Partition via Two Dummy Lists（Pure / Non-destructive）
+                </span>
+
+                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-emerald-900">
+                    Partition List を徹底解説（Python / 可視化 / インタラクティブ）
+                </h1>
+
+                <p class="mt-3 text-slate-600 max-w-3xl">
+                    連結リストをしきい値 <code class="font-mono">x</code> で <em>安定</em> に 2
+                    分割。番兵（ダミー）ノードと
+                    テール参照で実装をシンプルにし、相対順序を維持します。
+                </p>
+
+                <!-- ======= ナビゲーション（指定の位置・大きめのリンク） ======= -->
+                <nav
+                    class="topnav mt-5 flex flex-wrap items-center gap-3 text-xl"
+                    role="navigation"
+                    aria-label="セクションナビゲーション"
+                >
+                    <a href="#overview" class="inline-flex items-center gap-2"
+                        ><i class="fa-regular fa-lightbulb"></i> 概要</a
+                    >
+                    <a href="#steps" class="inline-flex items-center gap-2"
+                        ><i class="fa-solid fa-shoe-prints"></i> ステップ</a
+                    >
+                    <a href="#code" class="inline-flex items-center gap-2"
+                        ><i class="fa-solid fa-code"></i> コード</a
+                    >
+                    <a href="#diagram" class="inline-flex items-center gap-2"
+                        ><i class="fa-solid fa-sitemap"></i> 図解</a
+                    >
+                    <a href="#complexity" class="inline-flex items-center gap-2"
+                        ><i class="fa-solid fa-gauge-high"></i> 計算量</a
+                    >
+                </nav>
+            </div>
+        </header>
+
+        <!-- ======================= Main ======================= -->
+        <main class="mx-auto max-w-7xl px-6 py-10 md:py-14 space-y-14">
+            <!-- ===== 1. 概要 ===== -->
+            <section id="overview" class="card rounded-2xl p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-3 text-emerald-800">1. アルゴリズム概要</h2>
+                <p class="text-slate-700 leading-relaxed">
+                    単方向連結リスト <span class="font-mono">head</span> を 1 回だけ走査し、値が
+                    <span class="font-mono">&lt; x</span> のノードを <em>less</em>、それ以外を
+                    <em>ge</em> に 末尾追加（安定）。最後に <em>less</em> の末尾を
+                    <em>ge</em> の先頭へ連結します。
+                </p>
+                <ul class="mt-4 grid gap-3 md:grid-cols-3">
+                    <li class="step-card rounded-xl p-4">
+                        <p class="font-semibold text-emerald-700 mb-1">O(n) / 単一走査</p>
+                        <p class="text-sm text-slate-600">比較と末尾追加のみ。</p>
+                    </li>
+                    <li class="step-card rounded-xl p-4">
+                        <p class="font-semibold text-emerald-700 mb-1">安定パーティション</p>
+                        <p class="text-sm text-slate-600">相対順序を保持。</p>
+                    </li>
+                    <li class="step-card rounded-xl p-4">
+                        <p class="font-semibold text-emerald-700 mb-1">Pure（非破壊）</p>
+                        <p class="text-sm text-slate-600">入力ノードは変更しない。</p>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- ===== 2. ステップ（視覚化付き） ===== -->
+            <section id="steps" class="card rounded-2xl p-6 md:p-8">
+                <div class="flex flex-col gap-6">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold text-emerald-800">
+                            2. ステップバイステップ解説（視覚化付き）
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button
+                                id="btn-play"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:shadow transition"
+                                aria-label="Play steps"
+                            >
+                                <i class="fa-solid fa-play text-emerald-600"></i> Play
+                            </button>
+                            <button
+                                id="btn-prev"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:shadow transition"
+                                aria-label="Previous step"
+                            >
+                                <i class="fa-solid fa-arrow-left"></i> Prev
+                            </button>
+                            <button
+                                id="btn-next"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:shadow transition"
+                                aria-label="Next step"
+                            >
+                                Next <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button
+                                id="btn-reset"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:shadow transition"
+                                aria-label="Reset"
+                            >
+                                <i class="fa-solid fa-rotate-right"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 md:grid-cols-5">
+                        <!-- Step list -->
+                        <ol id="stepper" class="md:col-span-2 space-y-3">
+                            <li
+                                class="step-card rounded-xl p-4 cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                aria-current="step"
+                                data-step="1"
+                                data-desc="初期化：番兵（lessDummy / geDummy）とテール参照を用意。"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold"
+                                        >1</span
+                                    >
+                                    <div>
+                                        <p class="font-semibold">Init dummies & tails</p>
+                                        <p class="text-sm text-slate-600">空の less / ge を作成</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li
+                                class="step-card rounded-xl p-4 cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                data-step="2"
+                                data-desc="単一走査：cur を前進しつつ値を読み出す。"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold"
+                                        >2</span
+                                    >
+                                    <div>
+                                        <p class="font-semibold">Single pass</p>
+                                        <p class="text-sm text-slate-600">cur を進めて分配を判断</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li
+                                class="step-card rounded-xl p-4 cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                data-step="3"
+                                data-desc="v &lt; x：less に末尾追加（相対順序保持）。"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold"
+                                        >3</span
+                                    >
+                                    <div>
+                                        <p class="font-semibold">Append to less (&lt; x)</p>
+                                        <p class="text-sm text-slate-600">1, 2, 2 が less に入る</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li
+                                class="step-card rounded-xl p-4 cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                data-step="4"
+                                data-desc="v &ge; x：ge に末尾追加（相対順序保持）。"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold"
+                                        >4</span
+                                    >
+                                    <div>
+                                        <p class="font-semibold">Append to ge (&ge; x)</p>
+                                        <p class="text-sm text-slate-600">4, 3, 5 が ge に入る</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li
+                                class="step-card rounded-xl p-4 cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                data-step="5"
+                                data-desc="連結：less の末尾を ge の先頭へ接続して完成。"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center font-bold"
+                                        >5</span
+                                    >
+                                    <div>
+                                        <p class="font-semibold">Connect lists</p>
+                                        <p class="text-sm text-slate-600">less → ge</p>
+                                    </div>
+                                </div>
+                            </li>
+                        </ol>
+
+                        <!-- Visualization (SVG) -->
+                        <div class="md:col-span-3 card rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-slate-600">
+                                    入力: <span class="font-mono">[1, 4, 3, 2, 5, 2], x = 3</span>
+                                </p>
+                                <span class="text-xs text-slate-500"
+                                    >ステップをクリック / Play でアニメーション</span
+                                >
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <svg
+                                    id="svg-steps"
+                                    class="w-[980px] max-w-none"
+                                    viewBox="0 0 980 260"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <defs>
+                                        <linearGradient id="g-less" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#ecfdf5" />
+                                            <stop offset="100%" stop-color="#d1fae5" />
+                                        </linearGradient>
+                                        <linearGradient id="g-ge" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#eff6ff" />
+                                            <stop offset="100%" stop-color="#dbeafe" />
+                                        </linearGradient>
+                                        <style>
+                                            .box {
+                                                fill: url(#g-less);
+                                                stroke: #10b981;
+                                                stroke-width: 1.5;
+                                                rx: 10;
+                                            }
+                                            .box2 {
+                                                fill: url(#g-ge);
+                                                stroke: #60a5fa;
+                                                stroke-width: 1.5;
+                                                rx: 10;
+                                            }
+                                            .txt {
+                                                font:
+                                                    600 12px Inter,
+                                                    sans-serif;
+                                                fill: #0f172a;
+                                            }
+                                            .caption {
+                                                font:
+                                                    700 13px Inter,
+                                                    sans-serif;
+                                                fill: #065f46;
+                                            }
+                                            .arrow {
+                                                stroke: #94a3b8;
+                                                stroke-width: 1.5;
+                                                marker-end: url(#m);
+                                            }
+                                        </style>
+                                        <marker
+                                            id="m"
+                                            markerWidth="12"
+                                            markerHeight="12"
+                                            refX="10"
+                                            refY="6"
+                                            orient="auto"
+                                        >
+                                            <path d="M0,0 L12,6 L0,12 z" fill="#94a3b8"></path>
+                                        </marker>
+                                    </defs>
+
+                                    <!-- Stage 1 -->
+                                    <g id="stage-1" class="stage">
+                                        <text x="30" y="24" class="caption">Input</text>
+                                        <rect x="30" y="36" width="50" height="28" class="box2" />
+                                        <text x="55" y="54" text-anchor="middle" class="txt">
+                                            1
+                                        </text>
+                                        <line x1="80" y1="50" x2="110" y2="50" class="arrow" />
+                                        <rect x="110" y="36" width="50" height="28" class="box2" />
+                                        <text x="135" y="54" text-anchor="middle" class="txt">
+                                            4
+                                        </text>
+                                        <line x1="160" y1="50" x2="190" y2="50" class="arrow" />
+                                        <rect x="190" y="36" width="50" height="28" class="box2" />
+                                        <text x="215" y="54" text-anchor="middle" class="txt">
+                                            3
+                                        </text>
+                                        <line x1="240" y1="50" x2="270" y2="50" class="arrow" />
+                                        <rect x="270" y="36" width="50" height="28" class="box2" />
+                                        <text x="295" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="320" y1="50" x2="350" y2="50" class="arrow" />
+                                        <rect x="350" y="36" width="50" height="28" class="box2" />
+                                        <text x="375" y="54" text-anchor="middle" class="txt">
+                                            5
+                                        </text>
+                                        <line x1="400" y1="50" x2="430" y2="50" class="arrow" />
+                                        <rect x="430" y="36" width="50" height="28" class="box2" />
+                                        <text x="455" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <!-- Stage 2 -->
+                                    <g id="stage-2" class="stage hidden">
+                                        <text x="30" y="24" class="caption">
+                                            Build less (&lt; x)
+                                        </text>
+                                        <rect x="30" y="36" width="50" height="28" class="box" />
+                                        <text x="55" y="54" text-anchor="middle" class="txt">
+                                            1
+                                        </text>
+                                        <line x1="80" y1="50" x2="110" y2="50" class="arrow" />
+                                        <rect x="110" y="36" width="50" height="28" class="box" />
+                                        <text x="135" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="160" y1="50" x2="190" y2="50" class="arrow" />
+                                        <rect x="190" y="36" width="50" height="28" class="box" />
+                                        <text x="215" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <!-- Stage 3 -->
+                                    <g id="stage-3" class="stage hidden">
+                                        <text x="30" y="24" class="caption">Build ge (&ge; x)</text>
+                                        <rect x="30" y="36" width="50" height="28" class="box2" />
+                                        <text x="55" y="54" text-anchor="middle" class="txt">
+                                            4
+                                        </text>
+                                        <line x1="80" y1="50" x2="110" y2="50" class="arrow" />
+                                        <rect x="110" y="36" width="50" height="28" class="box2" />
+                                        <text x="135" y="54" text-anchor="middle" class="txt">
+                                            3
+                                        </text>
+                                        <line x1="160" y1="50" x2="190" y2="50" class="arrow" />
+                                        <rect x="190" y="36" width="50" height="28" class="box2" />
+                                        <text x="215" y="54" text-anchor="middle" class="txt">
+                                            5
+                                        </text>
+                                    </g>
+
+                                    <!-- Stage 4 -->
+                                    <g id="stage-4" class="stage hidden">
+                                        <text x="30" y="24" class="caption">Concatenate</text>
+                                        <rect x="30" y="80" width="50" height="28" class="box" />
+                                        <text x="55" y="98" text-anchor="middle" class="txt">
+                                            1
+                                        </text>
+                                        <line x1="80" y1="94" x2="110" y2="94" class="arrow" />
+                                        <rect x="110" y="80" width="50" height="28" class="box" />
+                                        <text x="135" y="98" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="160" y1="94" x2="190" y2="94" class="arrow" />
+                                        <rect x="190" y="80" width="50" height="28" class="box" />
+                                        <text x="215" y="98" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="250" y1="94" x2="310" y2="94" class="arrow" />
+                                        <rect x="310" y="80" width="50" height="28" class="box2" />
+                                        <text x="335" y="98" text-anchor="middle" class="txt">
+                                            4
+                                        </text>
+                                        <line x1="360" y1="94" x2="390" y2="94" class="arrow" />
+                                        <rect x="390" y="80" width="50" height="28" class="box2" />
+                                        <text x="415" y="98" text-anchor="middle" class="txt">
+                                            3
+                                        </text>
+                                        <line x1="440" y1="94" x2="470" y2="94" class="arrow" />
+                                        <rect x="470" y="80" width="50" height="28" class="box2" />
+                                        <text x="495" y="98" text-anchor="middle" class="txt">
+                                            5
+                                        </text>
+                                    </g>
+
+                                    <!-- Stage 5 -->
+                                    <g id="stage-5" class="stage hidden">
+                                        <text x="30" y="24" class="caption">Final</text>
+                                        <rect x="30" y="36" width="50" height="28" class="box" />
+                                        <text x="55" y="54" text-anchor="middle" class="txt">
+                                            1
+                                        </text>
+                                        <line x1="80" y1="50" x2="110" y2="50" class="arrow" />
+                                        <rect x="110" y="36" width="50" height="28" class="box" />
+                                        <text x="135" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="160" y1="50" x2="190" y2="50" class="arrow" />
+                                        <rect x="190" y="36" width="50" height="28" class="box" />
+                                        <text x="215" y="54" text-anchor="middle" class="txt">
+                                            2
+                                        </text>
+                                        <line x1="240" y1="50" x2="270" y2="50" class="arrow" />
+                                        <rect x="270" y="36" width="50" height="28" class="box2" />
+                                        <text x="295" y="54" text-anchor="middle" class="txt">
+                                            4
+                                        </text>
+                                        <line x1="320" y1="50" x2="350" y2="50" class="arrow" />
+                                        <rect x="350" y="36" width="50" height="28" class="box2" />
+                                        <text x="375" y="54" text-anchor="middle" class="txt">
+                                            3
+                                        </text>
+                                        <line x1="400" y1="50" x2="430" y2="50" class="arrow" />
+                                        <rect x="430" y="36" width="50" height="28" class="box2" />
+                                        <text x="455" y="54" text-anchor="middle" class="txt">
+                                            5
+                                        </text>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <p id="step-desc" class="mt-4 text-sm text-slate-700">
+                                初期化：番兵（lessDummy / geDummy）とテール参照を用意。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 3. コード（同幅・連動なし） ===== -->
+            <section id="code" class="card rounded-2xl p-0 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-3 border-b bg-emerald-50/60">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-code text-emerald-600"></i>
+                        <h2 class="font-bold text-emerald-800">
+                            3. コード例（Python / LeetCode形式）
+                        </h2>
+                    </div>
+                </div>
+                <pre
+                    class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto m-0"
+                ><code class="language-python">from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
+
+# Type-checking fallback (LeetCode env already provides ListNode)
+if TYPE_CHECKING:
+    class ListNode:
+        def __init__(self, val: int = 0, next: Optional["ListNode"] = None) -&gt; None: ...
+        val: int
+        next: Optional["ListNode"]
+
+try:
+    ListNode  # type: ignore[name-defined]
+except NameError:
+    class ListNode:
+        __slots__ = ("val", "next")
+        def __init__(self, val: int = 0, next: Optional["ListNode"] = None) -&gt; None:
+            self.val = val
+            self.next = next
+
+class Solution:
+    def partition(self, head: Optional[ListNode], x: int) -&gt; Optional[ListNode]:
+        """Stable partition of linked list around x (pure, non-destructive)."""
+        # 1) create dummies and tails
+        less_dummy = ListNode(0)
+        ge_dummy = ListNode(0)
+        lt_tail = less_dummy
+        ge_tail = ge_dummy
+
+        # 2) single pass: append new nodes
+        cur = head
+        while cur is not None:
+            v = cur.val
+            if v &lt; x:
+                lt_tail.next = ListNode(v)
+                lt_tail = lt_tail.next
+            else:
+                ge_tail.next = ListNode(v)
+                ge_tail = ge_tail.next
+            cur = cur.next
+
+        # 3) connect less -&gt; ge
+        lt_tail.next = ge_dummy.next
+        ge_tail.next = None
+        return less_dummy.next</code></pre>
+            </section>
+
+            <!-- ===== 4. 図解（静的） ===== -->
+            <section id="diagram" class="card rounded-2xl p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-4 text-emerald-800">
+                    4. 視覚的図解・フローチャート
+                </h2>
+                <div class="overflow-x-auto">
+                    <!-- 省略: 先の SVG と同構成（静的） -->
+                    <svg
+                        class="w-[920px] max-w-none"
+                        viewBox="0 0 920 240"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <defs>
+                            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#ecfdf5" />
+                                <stop offset="100%" stop-color="#d1fae5" />
+                            </linearGradient>
+                            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#eff6ff" />
+                                <stop offset="100%" stop-color="#dbeafe" />
+                            </linearGradient>
+                            <style>
+                                .box {
+                                    fill: url(#g1);
+                                    stroke: #10b981;
+                                    stroke-width: 1.5;
+                                    rx: 10;
+                                }
+                                .box2 {
+                                    fill: url(#g2);
+                                    stroke: #60a5fa;
+                                    stroke-width: 1.5;
+                                    rx: 10;
+                                }
+                                .txt {
+                                    font:
+                                        600 12px Inter,
+                                        sans-serif;
+                                    fill: #0f172a;
+                                }
+                                .caption {
+                                    font:
+                                        700 13px Inter,
+                                        sans-serif;
+                                    fill: #065f46;
+                                }
+                                .arrow {
+                                    stroke: #94a3b8;
+                                    stroke-width: 1.5;
+                                    marker-end: url(#m2);
+                                }
+                            </style>
+                            <marker
+                                id="m2"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                            >
+                                <path d="M0,0 L12,6 L0,12 z" fill="#94a3b8"></path>
+                            </marker>
+                        </defs>
+                        <text x="30" y="24" class="caption">Input</text>
+                        <rect x="30" y="36" width="50" height="28" class="box2" />
+                        <text x="55" y="54" text-anchor="middle" class="txt">1</text>
+                        <line x1="80" y1="50" x2="110" y2="50" class="arrow" />
+                        <rect x="110" y="36" width="50" height="28" class="box2" />
+                        <text x="135" y="54" text-anchor="middle" class="txt">4</text>
+                        <line x1="160" y1="50" x2="190" y2="50" class="arrow" />
+                        <rect x="190" y="36" width="50" height="28" class="box2" />
+                        <text x="215" y="54" text-anchor="middle" class="txt">3</text>
+                        <line x1="240" y1="50" x2="270" y2="50" class="arrow" />
+                        <rect x="270" y="36" width="50" height="28" class="box2" />
+                        <text x="295" y="54" text-anchor="middle" class="txt">2</text>
+                        <line x1="320" y1="50" x2="350" y2="50" class="arrow" />
+                        <rect x="350" y="36" width="50" height="28" class="box2" />
+                        <text x="375" y="54" text-anchor="middle" class="txt">5</text>
+                        <line x1="400" y1="50" x2="430" y2="50" class="arrow" />
+                        <rect x="430" y="36" width="50" height="28" class="box2" />
+                        <text x="455" y="54" text-anchor="middle" class="txt">2</text>
+
+                        <text x="30" y="110" class="caption">Build less (&lt; x)</text>
+                        <rect x="30" y="122" width="50" height="28" class="box" />
+                        <text x="55" y="140" text-anchor="middle" class="txt">1</text>
+                        <line x1="80" y1="136" x2="110" y2="136" class="arrow" />
+                        <rect x="110" y="122" width="50" height="28" class="box" />
+                        <text x="135" y="140" text-anchor="middle" class="txt">2</text>
+                        <line x1="160" y1="136" x2="190" y2="136" class="arrow" />
+                        <rect x="190" y="122" width="50" height="28" class="box" />
+                        <text x="215" y="140" text-anchor="middle" class="txt">2</text>
+
+                        <text x="30" y="196" class="caption">Build ge (&ge; x)</text>
+                        <rect x="30" y="208" width="50" height="28" class="box2" />
+                        <text x="55" y="226" text-anchor="middle" class="txt">4</text>
+                        <line x1="80" y1="222" x2="110" y2="222" class="arrow" />
+                        <rect x="110" y="208" width="50" height="28" class="box2" />
+                        <text x="135" y="226" text-anchor="middle" class="txt">3</text>
+                        <line x1="160" y1="222" x2="190" y2="222" class="arrow" />
+                        <rect x="190" y="208" width="50" height="28" class="box2" />
+                        <text x="215" y="226" text-anchor="middle" class="txt">5</text>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- ===== 5. 計算量 ===== -->
+            <section id="complexity" class="card rounded-2xl p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-3 text-emerald-800">5. 時間計算量</h2>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div class="rounded-xl p-5 border bg-white">
+                        <p class="text-sm text-slate-500">Time</p>
+                        <p class="text-2xl font-extrabold text-emerald-700">O(n)</p>
+                        <p class="text-slate-600 mt-2">各ノードは 1 回だけ処理。</p>
+                    </div>
+                    <div class="rounded-xl p-5 border bg-white">
+                        <p class="text-sm text-slate-500">Space（本実装 / Pure）</p>
+                        <p class="text-2xl font-extrabold text-emerald-700">O(n)</p>
+                        <p class="text-slate-600 mt-2">入力不変のため新ノードを構築。</p>
+                    </div>
+                    <div class="rounded-xl p-5 border bg-white">
+                        <p class="text-sm text-slate-500">Space（参考 in-place）</p>
+                        <p class="text-2xl font-extrabold text-emerald-700">O(1)</p>
+                        <p class="text-slate-600 mt-2">破壊的再配線なら追加メモリは定数。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="py-10">
+            <div class="mx-auto max-w-7xl px-6 text-center text-xs text-slate-500">
+                © Partition List Guide — Crafted with Tailwind, Prism, and love for clean code.
+            </div>
+        </footer>
+
+        <!-- Prism -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- Interactions: stepper ↔ SVG (Play は 1→5 を一度だけ実行し、その後リセット) -->
+        <script>
+            (function () {
+                const stepper = document.getElementById('stepper');
+                const desc = document.getElementById('step-desc');
+                const stages = [
+                    document.getElementById('stage-1'),
+                    document.getElementById('stage-2'),
+                    document.getElementById('stage-3'),
+                    document.getElementById('stage-4'),
+                    document.getElementById('stage-5'),
+                ];
+
+                let current = 1;
+                let isPlaying = false;
+                let playTimer = null;
+
+                function showStage(idx) {
+                    stages.forEach((g, i) => {
+                        if (!g) return;
+                        if (i === idx - 1) g.classList.remove('hidden');
+                        else g.classList.add('hidden');
+                    });
+                }
+                function setActive(stepEl) {
+                    stepper
+                        .querySelectorAll("[aria-current='step']")
+                        .forEach((n) => n.removeAttribute('aria-current'));
+                    stepEl.setAttribute('aria-current', 'step');
+                }
+                function goto(step) {
+                    if (step < 1) step = 1;
+                    if (step > 5) step = 5;
+                    current = step;
+                    const card = stepper.querySelector(`[data-step="${step}"]`);
+                    if (card) {
+                        setActive(card);
+                        desc.textContent = card.getAttribute('data-desc') || '';
+                    }
+                    showStage(step);
+                }
+
+                // Click / keyboard on steps
+                stepper.querySelectorAll('[data-step]').forEach((card) => {
+                    card.addEventListener('click', () => {
+                        if (!isPlaying) goto(Number(card.dataset.step));
+                    });
+                    card.addEventListener('keydown', (ev) => {
+                        if ((ev.key === 'Enter' || ev.key === ' ') && !isPlaying) {
+                            ev.preventDefault();
+                            goto(Number(card.dataset.step));
+                        }
+                    });
+                });
+
+                // Controls
+                document.getElementById('btn-prev').addEventListener('click', () => {
+                    if (!isPlaying) goto(current - 1);
+                });
+                document.getElementById('btn-next').addEventListener('click', () => {
+                    if (!isPlaying) goto(current + 1);
+                });
+                document.getElementById('btn-reset').addEventListener('click', () => {
+                    clearTimeout(playTimer);
+                    playTimer = null;
+                    isPlaying = false;
+                    goto(1);
+                });
+
+                // Play once: 1→5 を一度だけ再生し、その後 1 にリセット（ループしない）
+                document.getElementById('btn-play').addEventListener('click', () => {
+                    if (isPlaying) return;
+                    isPlaying = true;
+                    goto(1);
+                    const delay = 1200;
+                    let i = 1;
+
+                    function tick() {
+                        if (i >= 5) {
+                            // 終了後、少し待ってからリセット
+                            playTimer = setTimeout(() => {
+                                goto(1);
+                                isPlaying = false;
+                                playTimer = null;
+                            }, delay);
+                            return;
+                        }
+                        i += 1;
+                        goto(i);
+                        playTimer = setTimeout(tick, delay);
+                    }
+                    playTimer = setTimeout(tick, delay);
+                });
+
+                // init
+                goto(1);
+            })();
+        </script>
+    </body>
+</html>

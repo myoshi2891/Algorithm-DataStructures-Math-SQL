@@ -1,0 +1,2048 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 2625 - Flatten Deeply Nested Array | 再帰的配列平坦化</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            integrity="sha384-wFjoQjtV1y5jVHbt0p35Ui8aV8GVpEZkyF99OXWqP/eNJDU93D3Ugxkoyh6Y2I4A"
+            crossorigin="anonymous"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            integrity="sha384-nUkTNLI8COlMCRJ0FHIdX76If83145OTCLUx4gQyfnO0gGeO/sD9czGEUBxtkcUv"
+            crossorigin="anonymous"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+            integrity="sha384-EUzJ34/1CCeefTGUKLgvA5Z/vYIwi+Jyu8aAaCfFDxfwZ3Xs3OfkkIeegsLRM11e"
+            crossorigin="anonymous"
+        />
+
+        <!-- React & ReactDOM (Production) -->
+        <script
+            crossorigin="anonymous"
+            src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"
+            integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"
+        ></script>
+        <script
+            crossorigin="anonymous"
+            src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"
+            integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script
+            src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"
+            integrity="sha384-pKNXKj7jF9BNMkQyGWg5YLfoPyqBa/gf7wjTSoTGQlwxbZB+sabJuKyOHR6JQvTd"
+            crossorigin="anonymous"
+        ></script>
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                color: #1e293b;
+                line-height: 1.6;
+                padding: 20px;
+            }
+
+            code,
+            pre {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            .code-toolbar > .toolbar {
+                opacity: 1 !important;
+                top: 8px;
+                right: 8px;
+            }
+
+            .code-toolbar > .toolbar button {
+                background: #10b981 !important;
+                color: white !important;
+                padding: 6px 12px !important;
+                border-radius: 6px !important;
+                font-size: 13px !important;
+                font-weight: 600 !important;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+                transition: all 0.2s !important;
+            }
+
+            .code-toolbar > .toolbar button:hover {
+                background: #059669 !important;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="max-width: 1400px; margin: 0 auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Flatten Deeply Nested Array
+                </h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    再帰的深さ優先探索による O(N) 実装
+                </p>
+                <p class="text-lg text-slate-600 mt-3">
+                    LeetCode 2625 - 多次元配列を指定深度まで平坦化するアルゴリズム
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        概要
+                    </a>
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        ステップ解説
+                    </a>
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        コード
+                    </a>
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        フローチャート
+                    </a>
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >
+                        計算量
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">問題定義</h3>
+                <p class="text-slate-700 leading-7 mb-4">
+                    多次元配列
+                    <code class="px-2 py-1 bg-slate-100 rounded text-emerald-700">arr</code> と深さ
+                    <code class="px-2 py-1 bg-slate-100 rounded text-emerald-700">n</code>
+                    を受け取り、指定された深さまで平坦化した配列を返します。平坦化は現在のネスト深度が
+                    <code class="px-2 py-1 bg-slate-100 rounded text-emerald-700">n</code>
+                    未満の場合にのみ実行されます。最初の配列の要素は深度 0 とみなされます。
+                </p>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <div class="bg-slate-50 rounded-lg p-4 mb-4 border-l-4 border-emerald-500">
+                    <p class="font-semibold text-slate-800 mb-2">Example 1:</p>
+                    <pre
+                        class="text-sm"
+                    ><code class="language-javascript">入力: arr = [1, 2, 3, [4, 5, 6], [7, 8, [9, 10, 11], 12], [13, 14, 15]], n = 0
+出力: [1, 2, 3, [4, 5, 6], [7, 8, [9, 10, 11], 12], [13, 14, 15]]
+説明: n=0 の場合、平坦化されません</code></pre>
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-4 mb-4 border-l-4 border-cyan-500">
+                    <p class="font-semibold text-slate-800 mb-2">Example 2:</p>
+                    <pre
+                        class="text-sm"
+                    ><code class="language-javascript">入力: arr = [1, 2, 3, [4, 5, 6], [7, 8, [9, 10, 11], 12], [13, 14, 15]], n = 1
+出力: [1, 2, 3, 4, 5, 6, 7, 8, [9, 10, 11], 12, 13, 14, 15]
+説明: 深度0のサブ配列のみ平坦化されます</code></pre>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="list-disc list-inside text-slate-700 space-y-2 ml-4">
+                    <li>配列内の数値の数: 0 ≤ count ≤ 10<sup>5</sup></li>
+                    <li>サブ配列の数: 0 ≤ count ≤ 10<sup>5</sup></li>
+                    <li>最大深度 maxDepth ≤ 1000</li>
+                    <li>各数値: -1000 ≤ number ≤ 1000</li>
+                    <li>平坦化深度: 0 ≤ n ≤ 1000</li>
+                    <li><strong>Array.flat の使用は禁止</strong></li>
+                </ul>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">アルゴリズム戦略</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="bg-emerald-50 rounded-lg p-5 border-2 border-emerald-200">
+                        <h4 class="font-bold text-emerald-900 mb-2">✅ 主要アプローチ</h4>
+                        <ul class="text-sm text-slate-700 space-y-1 ml-4 list-disc list-inside">
+                            <li>再帰的な深さ優先探索</li>
+                            <li>クロージャで結果配列を共有</li>
+                            <li>1要素ずつpushで効率化</li>
+                            <li>型安全な再帰型定義</li>
+                        </ul>
+                    </div>
+                    <div class="bg-sky-50 rounded-lg p-5 border-2 border-sky-200">
+                        <h4 class="font-bold text-sky-900 mb-2">⚡ 最適化ポイント</h4>
+                        <ul class="text-sm text-slate-700 space-y-1 ml-4 list-disc list-inside">
+                            <li>スプレッド演算子を排除</li>
+                            <li>concat()を使わない</li>
+                            <li>配列の再生成を回避</li>
+                            <li>定数時間push操作</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-6 mb-3">性能</h3>
+                <div
+                    class="bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-lg p-5 border-2 border-emerald-300"
+                >
+                    <p class="text-lg font-semibold text-slate-800">
+                        🚀 Runtime: <span class="text-emerald-700">80ms (84.88%)</span> | Memory:
+                        <span class="text-cyan-700">76.02MB (85.12%)</span>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Interactive Steps Section -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- Code Section -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    TypeScript実装
+                </h2>
+                <pre
+                    class="line-numbers"
+                ><code class="language-typescript">type MultiDimensionalArray = (number | MultiDimensionalArray)[];
+
+/**
+ * 多次元配列を指定された深さまで平坦化する
+ *
+ * @param arr - 平坦化する多次元配列
+ * @param n - 平坦化する深さ（0の場合は平坦化しない）
+ * @returns 平坦化された配列
+ *
+ * @complexity
+ * Time: O(N) - N は全要素数
+ * Space: O(N + D) - N は結果配列、D はコールスタック深度
+ *
+ * @example
+ * flat([1, 2, [3, 4]], 1) // [1, 2, 3, 4]
+ * flat([1, [2, [3]]], 1) // [1, 2, [3]]
+ */
+var flat = function (arr: MultiDimensionalArray, n: number): MultiDimensionalArray {
+    // 結果配列を初期化（クロージャで共有）
+    const result: MultiDimensionalArray = [];
+
+    /**
+     * 内部再帰関数：配列を深さ制限付きで平坦化
+     * @param items - 処理対象の配列
+     * @param depth - 残りの平坦化可能深度
+     */
+    function flatten(items: MultiDimensionalArray, depth: number): void {
+        for (const item of items) {
+            // 配列かつ深度制限内の場合、再帰的に展開
+            if (Array.isArray(item) && depth > 0) {
+                flatten(item, depth - 1);
+            } else {
+                // プリミティブまたは深度制限到達の配列をそのまま追加
+                result.push(item);
+            }
+        }
+    }
+
+    // 初期呼び出し
+    flatten(arr, n);
+
+    return result;
+};</code></pre>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-3">実装のポイント</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                        <h4 class="font-bold text-slate-800 mb-2">1. クロージャの活用</h4>
+                        <p class="text-sm text-slate-700">
+                            外部で<code class="px-1 py-0.5 bg-slate-200 rounded text-xs"
+                                >result</code
+                            >を宣言し、内部関数から参照することで配列の再生成を回避
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-cyan-500">
+                        <h4 class="font-bold text-slate-800 mb-2">2. 型安全性</h4>
+                        <p class="text-sm text-slate-700">
+                            再帰型定義により任意深度の配列を表現し、コンパイル時に型エラーを検出
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-purple-500">
+                        <h4 class="font-bold text-slate-800 mb-2">3. イミュータブル</h4>
+                        <p class="text-sm text-slate-700">
+                            元の配列を変更せず、新しい結果配列を構築するPure function
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-4 border-l-4 border-orange-500">
+                        <h4 class="font-bold text-slate-800 mb-2">4. エッジケース</h4>
+                        <p class="text-sm text-slate-700">
+                            n=0、空配列、深い入れ子などを正しく処理
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flowchart Section -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 900 920"
+                        style="max-width: 100%; height: auto; color: #333"
+                        aria-labelledby="flowchart-title flowchart-desc"
+                    >
+                        <title id="flowchart-title">Flatten Deeply Nested Array Flowchart</title>
+                        <desc id="flowchart-desc">
+                            A flowchart diagram showing the algorithm flow for flattening a deeply
+                            nested array with depth control
+                        </desc>
+                        <defs>
+                            <!-- 矢印マーカー（サイズを大きく、より明確に） -->
+                            <marker
+                                id="arrow"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#475569" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="12"
+                                markerHeight="12"
+                                refX="10"
+                                refY="6"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,12 L10,6 z" fill="#9333ea" />
+                            </marker>
+                            <!-- ドロップシャドウフィルター -->
+                            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                                <feOffset dx="2" dy="2" result="offsetblur" />
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.3" />
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- 開始ノード -->
+                        <ellipse
+                            cx="450"
+                            cy="50"
+                            rx="140"
+                            ry="40"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="45"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#047857"
+                        >
+                            開始
+                        </text>
+                        <text
+                            x="450"
+                            y="65"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#059669"
+                        >
+                            flatten(arr, n)
+                        </text>
+
+                        <!-- 開始 → 初期化 -->
+                        <path
+                            d="M 450 90 L 450 135"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 結果配列を初期化 -->
+                        <rect
+                            x="330"
+                            y="135"
+                            width="240"
+                            height="70"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="160"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            結果配列を初期化
+                        </text>
+                        <text
+                            x="450"
+                            y="185"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            fill="#475569"
+                            font-family="monospace"
+                        >
+                            result = []
+                        </text>
+
+                        <!-- 初期化 → 内部関数定義 -->
+                        <path
+                            d="M 450 205 L 450 245"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 内部flatten関数を定義 -->
+                        <rect
+                            x="305"
+                            y="245"
+                            width="290"
+                            height="70"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="270"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            内部flatten関数を定義
+                        </text>
+                        <text
+                            x="450"
+                            y="295"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                            font-family="monospace"
+                        >
+                            function flatten(items, depth)
+                        </text>
+
+                        <!-- 内部関数定義 → ループ判定 -->
+                        <path
+                            d="M 450 315 L 450 365"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 各要素を走査（ループ判定） -->
+                        <path
+                            d="M 450 365 L 570 430 L 450 495 L 330 430 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="415"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            各要素を走査
+                        </text>
+                        <text
+                            x="450"
+                            y="440"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#78350f"
+                            font-family="monospace"
+                        >
+                            for (const item of items)
+                        </text>
+
+                        <!-- ループ終了 → resultを返す -->
+                        <path
+                            d="M 570 430 L 720 430 L 720 725 L 670 725"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="670"
+                            y="460"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            終了
+                        </text>
+
+                        <!-- 要素あり → 配列判定 -->
+                        <path
+                            d="M 450 495 L 450 550"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="470"
+                            y="522"
+                            text-anchor="start"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            要素あり
+                        </text>
+
+                        <!-- 配列かつdepth > 0? -->
+                        <path
+                            d="M 450 550 L 570 615 L 450 680 L 330 615 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="450"
+                            y="600"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            配列 かつ
+                        </text>
+                        <text
+                            x="450"
+                            y="625"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            depth &gt; 0?
+                        </text>
+
+                        <!-- はい → 再帰呼び出し -->
+                        <path
+                            d="M 330 615 L 290 615"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="245"
+                            y="600"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- 再帰呼び出し -->
+                        <rect
+                            x="30"
+                            y="580"
+                            width="260"
+                            height="70"
+                            rx="12"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="160"
+                            y="605"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#475569"
+                        >
+                            再帰呼び出し
+                        </text>
+                        <text
+                            x="160"
+                            y="630"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#64748b"
+                            font-family="monospace"
+                        >
+                            flatten(item, depth - 1)
+                        </text>
+
+                        <!-- 再帰 → ループバック -->
+                        <path
+                            d="M 160 580 L 160 340 L 305 340"
+                            stroke="#9333ea"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                            stroke-dasharray="8,4"
+                        />
+                        <rect
+                            x="165"
+                            y="450"
+                            width="120"
+                            height="32"
+                            rx="6"
+                            fill="#fae8ff"
+                            stroke="#9333ea"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="225"
+                            y="466"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#7e22ce"
+                        >
+                            次の要素へ
+                        </text>
+
+                        <!-- いいえ → 直接追加 -->
+                        <path
+                            d="M 570 615 L 700 615"
+                            stroke="#dc2626"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="635"
+                            y="600"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- 直接追加 -->
+                        <rect
+                            x="700"
+                            y="580"
+                            width="180"
+                            height="70"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="790"
+                            y="605"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            直接追加
+                        </text>
+                        <text
+                            x="790"
+                            y="630"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                            font-family="monospace"
+                        >
+                            result.push(item)
+                        </text>
+
+                        <!-- 直接追加 → ループバック -->
+                        <path
+                            d="M 750 580 L 750 340 L 595 340"
+                            stroke="#9333ea"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                            stroke-dasharray="8,4"
+                        />
+                        <rect
+                            x="755"
+                            y="450"
+                            width="120"
+                            height="32"
+                            rx="6"
+                            fill="#fae8ff"
+                            stroke="#9333ea"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="815"
+                            y="466"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#7e22ce"
+                        >
+                            次の要素へ
+                        </text>
+
+                        <!-- resultを返す -->
+                        <rect
+                            x="470"
+                            y="685"
+                            width="200"
+                            height="70"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="570"
+                            y="730"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="17"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            resultを返す
+                        </text>
+                        <text
+                            x="570"
+                            y="710"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            fill="#475569"
+                            font-family="monospace"
+                        >
+                            return result
+                        </text>
+
+                        <!-- resultを返す → 終了 -->
+                        <path
+                            d="M 570 750 L 570 795"
+                            stroke="#475569"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 終了ノード -->
+                        <ellipse
+                            cx="570"
+                            cy="830"
+                            rx="90"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                            filter="url(#shadow)"
+                        />
+                        <text
+                            x="570"
+                            y="830"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#047857"
+                        >
+                            終了
+                        </text>
+                    </svg>
+                </div>
+
+                <div
+                    class="bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-xl p-6 mt-8 border-l-4 border-emerald-500"
+                >
+                    <h3 class="text-xl font-bold text-emerald-900 mb-4">📊 フローの説明</h3>
+                    <div class="space-y-3 text-slate-700">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700"
+                            >
+                                1
+                            </div>
+                            <p class="pt-1">
+                                <strong class="text-emerald-900">初期化：</strong
+                                >結果配列を空配列で初期化し、内部flatten関数を定義します
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center font-bold text-cyan-700"
+                            >
+                                2
+                            </div>
+                            <p class="pt-1">
+                                <strong class="text-cyan-900">ループ処理：</strong
+                                >各要素についてループで走査します（for...of）
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-700"
+                            >
+                                3
+                            </div>
+                            <p class="pt-1">
+                                <strong class="text-orange-900">分岐判定：</strong>配列かつdepth
+                                &gt; 0の場合は再帰的に展開、そうでなければ直接追加
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700"
+                            >
+                                4
+                            </div>
+                            <p class="pt-1">
+                                <strong class="text-purple-900">ループバック：</strong
+                                >紫の破線矢印は次の要素への遷移を示します
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700"
+                            >
+                                5
+                            </div>
+                            <p class="pt-1">
+                                <strong class="text-emerald-900">完了：</strong
+                                >すべての要素を処理後、結果配列を返して終了します
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t-2 border-emerald-200">
+                        <h4 class="font-bold text-slate-800 mb-3">🎨 色分けルール</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded bg-emerald-500"></div>
+                                <span>緑：開始/終了/成功パス</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded bg-cyan-500"></div>
+                                <span>青：処理ステップ</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded bg-orange-500"></div>
+                                <span>オレンジ：条件分岐</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 rounded bg-purple-500"></div>
+                                <span>紫：ループバック</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complexity Section -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-300">
+                        <h3 class="text-xl font-bold text-emerald-900 mb-3">⏱️ 時間計算量</h3>
+                        <p class="text-3xl font-bold text-emerald-700 mb-2">O(N)</p>
+                        <p class="text-slate-700 text-sm leading-6">
+                            N = 配列内の全要素数（プリミティブ値 + サブ配列の総数）<br />
+                            各要素を1回ずつ訪問し、配列判定とpush()はO(1)のため全体でO(N)
+                        </p>
+                    </div>
+
+                    <div class="bg-cyan-50 rounded-lg p-6 border-2 border-cyan-300">
+                        <h3 class="text-xl font-bold text-cyan-900 mb-3">💾 空間計算量</h3>
+                        <p class="text-3xl font-bold text-cyan-700 mb-2">O(N + D)</p>
+                        <p class="text-slate-700 text-sm leading-6">
+                            結果配列: O(N) - 全要素を格納<br />
+                            コールスタック: O(D) - 最大深度までの再帰呼び出し（D ≤ 1000）
+                        </p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-teal-800 mt-8 mb-4">アプローチ比較</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-emerald-100 to-cyan-100">
+                                <th
+                                    class="border-2 border-slate-300 px-4 py-3 text-left font-bold text-slate-800"
+                                >
+                                    実装方式
+                                </th>
+                                <th
+                                    class="border-2 border-slate-300 px-4 py-3 text-left font-bold text-slate-800"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border-2 border-slate-300 px-4 py-3 text-left font-bold text-slate-800"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border-2 border-slate-300 px-4 py-3 text-left font-bold text-slate-800"
+                                >
+                                    可読性
+                                </th>
+                                <th
+                                    class="border-2 border-slate-300 px-4 py-3 text-left font-bold text-slate-800"
+                                >
+                                    性能（実測）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50">
+                                <td
+                                    class="border-2 border-slate-300 px-4 py-3 font-semibold text-emerald-900"
+                                >
+                                    最適化再帰版（推奨）
+                                </td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N + D)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">★★★★★</td>
+                                <td
+                                    class="border-2 border-slate-300 px-4 py-3 font-bold text-emerald-700"
+                                >
+                                    80ms (84.88%)
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="border-2 border-slate-300 px-4 py-3">
+                                    スプレッド再帰版
+                                </td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N + D)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">★★★★☆</td>
+                                <td class="border-2 border-slate-300 px-4 py-3 text-orange-700">
+                                    156ms (38.84%)
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="border-2 border-slate-300 px-4 py-3">reduce版</td>
+                                <td class="border-2 border-slate-300 px-4 py-3 text-red-700">
+                                    O(N²)
+                                </td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N² + D)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">★★★☆☆</td>
+                                <td class="border-2 border-slate-300 px-4 py-3 text-red-700">
+                                    TLE
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="border-2 border-slate-300 px-4 py-3">スタック反復版</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">O(N + D)</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">★★★☆☆</td>
+                                <td class="border-2 border-slate-300 px-4 py-3">100ms (73.26%)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div
+                    class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-5 mt-6 border-l-4 border-orange-500"
+                >
+                    <h4 class="font-bold text-orange-900 mb-2">💡 最適化の考察</h4>
+                    <ul class="text-sm text-slate-700 space-y-2 ml-4 list-disc list-inside">
+                        <li>
+                            スプレッド演算子<code class="px-1 py-0.5 bg-slate-200 rounded">...</code
+                            >は大規模配列で非効率（内部コピーのコスト）
+                        </li>
+                        <li>
+                            <code class="px-1 py-0.5 bg-slate-200 rounded">concat()</code
+                            >は毎回新配列を生成しO(N²)に劣化
+                        </li>
+                        <li>最適化再帰版は可読性と性能を両立</li>
+                        <li>クロージャによる配列共有がメモリ効率の鍵</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-slate-600 mt-12 pb-8">
+                <p class="text-sm">
+                    Created: 2026-02-08 |
+                    <a
+                        href="https://leetcode.com/problems/flatten-deeply-nested-array/"
+                        target="_blank"
+                        rel="noopener"
+                        class="text-emerald-600 hover:text-emerald-800 font-semibold no-underline"
+                    >
+                        LeetCode 2625
+                    </a>
+                </p>
+                <p class="text-xs mt-2">Runtime: 80ms (84.88%) | Memory: 76.02MB (85.12%)</p>
+            </footer>
+        </div>
+
+        <!-- Prism.js Scripts -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"
+            integrity="sha384-6QJu8apxMmB9TiPVWzYKF5pRgKcz7snO0/QU+MrWmgBLECQjoa6erxX2VQ5t41Jd"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"
+            integrity="sha384-jC1G68eGEXJpPwMDNqyIUQsQlcUCdCU+a7GGuoV4TUZvM1gLYTMJUDvqBnxtZLWA"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"
+            integrity="sha384-ZdEfx8sYX8i4IVXU1tUbqwOp4PBUCCmnpagpiHchnstXkEczkzPfUd9fvBrntM+F"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"
+            integrity="sha384-PeOqKNW/piETaCg8rqKFy+Pm6KEk7e36/5YZE5XO/OaFdO+/Aw3O8qZ9qDPKVUgx"
+            crossorigin="anonymous"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"
+            integrity="sha384-D44bgYYKvaiDh4cOGlj1dbSDpSctn2FSUj118HZGmZEShZcO2v//Q5vvhNy206pp"
+            crossorigin="anonymous"
+        ></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力と初期化',
+                    desc: 'arr = [1, 2, [3, 4], [5, [6]]] と n = 2 を例とします。結果配列を初期化し、内部flatten関数を定義します。',
+                    visual: {
+                        type: 'init',
+                        arr: [1, 2, [3, 4], [5, [6]]],
+                        n: 2,
+                        result: [],
+                        depth: 2,
+                    },
+                },
+                {
+                    step: 2,
+                    title: '要素1を処理（数値）',
+                    desc: '要素1（数値）は配列ではないので、直接result.push(1)します。',
+                    visual: {
+                        type: 'process',
+                        arr: [1, 2, [3, 4], [5, [6]]],
+                        currentIdx: 0,
+                        currentValue: 1,
+                        depth: 2,
+                        isArray: false,
+                        result: [1],
+                    },
+                },
+                {
+                    step: 3,
+                    title: '要素2を処理（数値）',
+                    desc: '要素2（数値）も配列ではないので、result.push(2)します。',
+                    visual: {
+                        type: 'process',
+                        arr: [1, 2, [3, 4], [5, [6]]],
+                        currentIdx: 1,
+                        currentValue: 2,
+                        depth: 2,
+                        isArray: false,
+                        result: [1, 2],
+                    },
+                },
+                {
+                    step: 4,
+                    title: '要素[3, 4]を処理（配列・深度OK）',
+                    desc: '要素[3, 4]は配列で、depth=2 > 0なので、flatten([3, 4], 1)を再帰呼び出しします。',
+                    visual: {
+                        type: 'recurse',
+                        arr: [1, 2, [3, 4], [5, [6]]],
+                        currentIdx: 2,
+                        currentValue: [3, 4],
+                        depth: 2,
+                        isArray: true,
+                        result: [1, 2],
+                        recursiveArr: [3, 4],
+                        recursiveDepth: 1,
+                    },
+                },
+                {
+                    step: 5,
+                    title: '再帰: [3, 4]の要素3を処理',
+                    desc: '再帰内で要素3（数値）をresult.push(3)します。',
+                    visual: {
+                        type: 'recursiveProcess',
+                        arr: [3, 4],
+                        currentIdx: 0,
+                        currentValue: 3,
+                        depth: 1,
+                        isArray: false,
+                        result: [1, 2, 3],
+                    },
+                },
+                {
+                    step: 6,
+                    title: '再帰: [3, 4]の要素4を処理',
+                    desc: '要素4（数値）をresult.push(4)します。再帰呼び出しが完了し、元の階層に戻ります。',
+                    visual: {
+                        type: 'recursiveProcess',
+                        arr: [3, 4],
+                        currentIdx: 1,
+                        currentValue: 4,
+                        depth: 1,
+                        isArray: false,
+                        result: [1, 2, 3, 4],
+                    },
+                },
+                {
+                    step: 7,
+                    title: '要素[5, [6]]を処理（配列・深度OK）',
+                    desc: '要素[5, [6]]は配列で、depth=2 > 0なので、flatten([5, [6]], 1)を再帰呼び出しします。',
+                    visual: {
+                        type: 'recurse',
+                        arr: [1, 2, [3, 4], [5, [6]]],
+                        currentIdx: 3,
+                        currentValue: [5, [6]],
+                        depth: 2,
+                        isArray: true,
+                        result: [1, 2, 3, 4],
+                        recursiveArr: [5, [6]],
+                        recursiveDepth: 1,
+                    },
+                },
+                {
+                    step: 8,
+                    title: '再帰: [5, [6]]の要素5を処理',
+                    desc: '再帰内で要素5（数値）をresult.push(5)します。',
+                    visual: {
+                        type: 'recursiveProcess',
+                        arr: [5, [6]],
+                        currentIdx: 0,
+                        currentValue: 5,
+                        depth: 1,
+                        isArray: false,
+                        result: [1, 2, 3, 4, 5],
+                    },
+                },
+                {
+                    step: 9,
+                    title: '再帰: [5, [6]]の要素[6]を処理（配列・深度OK）',
+                    desc: '要素[6]は配列で、depth=1 > 0なので、flatten([6], 0)をさらに再帰呼び出しします。',
+                    visual: {
+                        type: 'deepRecurse',
+                        arr: [5, [6]],
+                        currentIdx: 1,
+                        currentValue: [6],
+                        depth: 1,
+                        isArray: true,
+                        result: [1, 2, 3, 4, 5],
+                        recursiveArr: [6],
+                        recursiveDepth: 0,
+                    },
+                },
+                {
+                    step: 10,
+                    title: '再帰: [6]の要素6を処理（深度制限）',
+                    desc: 'depth=0なので、要素6は配列でも展開されず、result.push(6)します。すべての再帰が完了します。',
+                    visual: {
+                        type: 'recursiveProcess',
+                        arr: [6],
+                        currentIdx: 0,
+                        currentValue: 6,
+                        depth: 0,
+                        isArray: false,
+                        result: [1, 2, 3, 4, 5, 6],
+                    },
+                },
+                {
+                    step: 11,
+                    title: '完了',
+                    desc: 'すべての要素を処理し、平坦化された配列 [1, 2, 3, 4, 5, 6] を返します。',
+                    visual: {
+                        type: 'result',
+                        result: [1, 2, 3, 4, 5, 6],
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 200"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#0369a1"
+                            >
+                                初期状態
+                            </text>
+
+                            <text x="50" y="70" fontSize="16" fill="#475569">
+                                入力配列:
+                            </text>
+                            <text x="50" y="95" fontSize="14" fontFamily="monospace" fill="#059669">
+                                {JSON.stringify(visual.arr)}
+                            </text>
+
+                            <text x="50" y="130" fontSize="16" fill="#475569">
+                                深度制限:
+                            </text>
+                            <text
+                                x="50"
+                                y="155"
+                                fontSize="14"
+                                fontFamily="monospace"
+                                fill="#059669"
+                            >
+                                n = {visual.n}
+                            </text>
+
+                            <rect
+                                x="400"
+                                y="60"
+                                width="250"
+                                height="110"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="525"
+                                y="85"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                result配列
+                            </text>
+                            <text
+                                x="525"
+                                y="110"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontFamily="monospace"
+                                fill="#64748b"
+                            >
+                                []
+                            </text>
+                            <text x="525" y="140" textAnchor="middle" fontSize="12" fill="#64748b">
+                                （空配列で初期化）
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'process') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 250"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#0369a1"
+                            >
+                                プリミティブ値の処理
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="60"
+                                width="280"
+                                height="60"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text x="190" y="80" textAnchor="middle" fontSize="14" fill="#78350f">
+                                現在の要素: インデックス {visual.currentIdx}
+                            </text>
+                            <text
+                                x="190"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                                fill="#b45309"
+                            >
+                                値 = {visual.currentValue}
+                            </text>
+
+                            <rect
+                                x="370"
+                                y="60"
+                                width="280"
+                                height="60"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text x="510" y="80" textAnchor="middle" fontSize="14" fill="#0369a1">
+                                操作: result.push({visual.currentValue})
+                            </text>
+                            <text x="510" y="105" textAnchor="middle" fontSize="12" fill="#475569">
+                                配列ではないので直接追加
+                            </text>
+
+                            <path
+                                d="M 330 90 L 370 90"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                                fill="none"
+                                markerEnd="url(#arrowGreen)"
+                            />
+
+                            <rect
+                                x="50"
+                                y="150"
+                                width="600"
+                                height="80"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="350"
+                                y="175"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                現在のresult配列
+                            </text>
+                            <text
+                                x="350"
+                                y="205"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontFamily="monospace"
+                                fill="#064e3b"
+                            >
+                                {JSON.stringify(visual.result)}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'recurse') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#0369a1"
+                            >
+                                配列要素の再帰処理
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="60"
+                                width="280"
+                                height="70"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text x="190" y="80" textAnchor="middle" fontSize="14" fill="#78350f">
+                                現在の要素: インデックス {visual.currentIdx}
+                            </text>
+                            <text
+                                x="190"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                                fill="#b45309"
+                            >
+                                {JSON.stringify(visual.currentValue)}
+                            </text>
+
+                            <rect
+                                x="370"
+                                y="60"
+                                width="280"
+                                height="70"
+                                rx="8"
+                                fill="#ddd6fe"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="510"
+                                y="80"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#7c3aed"
+                            >
+                                再帰呼び出し
+                            </text>
+                            <text
+                                x="510"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="13"
+                                fontFamily="monospace"
+                                fill="#6b21a8"
+                            >
+                                flatten({JSON.stringify(visual.recursiveArr)},{' '}
+                                {visual.recursiveDepth})
+                            </text>
+
+                            <path
+                                d="M 330 95 L 370 95"
+                                stroke="#a855f7"
+                                strokeWidth="3"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+
+                            <rect
+                                x="100"
+                                y="160"
+                                width="500"
+                                height="50"
+                                rx="8"
+                                fill="#fce7f3"
+                                stroke="#ec4899"
+                                strokeWidth="2"
+                            />
+                            <text x="350" y="185" textAnchor="middle" fontSize="14" fill="#9f1239">
+                                depth = {visual.depth} &gt; 0 かつ Array.isArray = true
+                            </text>
+                            <text x="350" y="205" textAnchor="middle" fontSize="12" fill="#64748b">
+                                ⇒ 配列を再帰的に展開
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="240"
+                                width="600"
+                                height="50"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="350"
+                                y="265"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                現在のresult: {JSON.stringify(visual.result)}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'recursiveProcess') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 250"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#7c3aed"
+                            >
+                                再帰内での処理
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="60"
+                                width="280"
+                                height="60"
+                                rx="8"
+                                fill="#ddd6fe"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                            />
+                            <text x="190" y="80" textAnchor="middle" fontSize="14" fill="#6b21a8">
+                                処理中の配列: {JSON.stringify(visual.arr)}
+                            </text>
+                            <text
+                                x="190"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                                fill="#7c3aed"
+                            >
+                                要素[{visual.currentIdx}] = {visual.currentValue}
+                            </text>
+
+                            <rect
+                                x="370"
+                                y="60"
+                                width="280"
+                                height="60"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text x="510" y="80" textAnchor="middle" fontSize="14" fill="#0369a1">
+                                操作: result.push({visual.currentValue})
+                            </text>
+                            <text x="510" y="105" textAnchor="middle" fontSize="12" fill="#475569">
+                                深度 = {visual.depth}
+                            </text>
+
+                            <path
+                                d="M 330 90 L 370 90"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                                fill="none"
+                                markerEnd="url(#arrowGreen)"
+                            />
+
+                            <rect
+                                x="50"
+                                y="150"
+                                width="600"
+                                height="80"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="350"
+                                y="175"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                現在のresult配列
+                            </text>
+                            <text
+                                x="350"
+                                y="205"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontFamily="monospace"
+                                fill="#064e3b"
+                            >
+                                {JSON.stringify(visual.result)}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'deepRecurse') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 320"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#7c3aed"
+                            >
+                                さらなる再帰呼び出し
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="60"
+                                width="280"
+                                height="70"
+                                rx="8"
+                                fill="#ddd6fe"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                            />
+                            <text x="190" y="80" textAnchor="middle" fontSize="14" fill="#6b21a8">
+                                現在処理中: {JSON.stringify(visual.arr)}
+                            </text>
+                            <text
+                                x="190"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                                fill="#7c3aed"
+                            >
+                                要素[{visual.currentIdx}] = {JSON.stringify(visual.currentValue)}
+                            </text>
+
+                            <rect
+                                x="370"
+                                y="60"
+                                width="280"
+                                height="70"
+                                rx="8"
+                                fill="#fae8ff"
+                                stroke="#c026d3"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="510"
+                                y="80"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#a21caf"
+                            >
+                                2段階目の再帰
+                            </text>
+                            <text
+                                x="510"
+                                y="105"
+                                textAnchor="middle"
+                                fontSize="13"
+                                fontFamily="monospace"
+                                fill="#86198f"
+                            >
+                                flatten({JSON.stringify(visual.recursiveArr)},{' '}
+                                {visual.recursiveDepth})
+                            </text>
+
+                            <path
+                                d="M 330 95 L 370 95"
+                                stroke="#c026d3"
+                                strokeWidth="3"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+
+                            <rect
+                                x="100"
+                                y="160"
+                                width="500"
+                                height="60"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="350"
+                                y="180"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="bold"
+                                fill="#b45309"
+                            >
+                                depth = {visual.depth} &gt; 0
+                            </text>
+                            <text x="350" y="205" textAnchor="middle" fontSize="12" fill="#78350f">
+                                配列 {JSON.stringify(visual.currentValue)} をさらに展開
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="250"
+                                width="600"
+                                height="50"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="350"
+                                y="275"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                現在のresult: {JSON.stringify(visual.result)}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 700 200"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="350"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                ✅ 平坦化完了
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="60"
+                                width="600"
+                                height="120"
+                                rx="12"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="350"
+                                y="95"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#064e3b"
+                            >
+                                最終結果
+                            </text>
+                            <text
+                                x="350"
+                                y="130"
+                                textAnchor="middle"
+                                fontSize="24"
+                                fontFamily="monospace"
+                                fontWeight="bold"
+                                fill="#047857"
+                            >
+                                {JSON.stringify(visual.result)}
+                            </text>
+                            <text x="350" y="160" textAnchor="middle" fontSize="14" fill="#059669">
+                                すべての要素が正しく平坦化されました
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function InteractiveSteps() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep, stepsData.length]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep === stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    if (activeStep > 1) setActiveStep(activeStep - 1);
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    if (activeStep < stepsData.length) setActiveStep(activeStep + 1);
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-300"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(239,68,68,0.30)] bg-[linear-gradient(135deg,#ef4444,#dc2626)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<InteractiveSteps />);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>同じ値の組 (i,j) を数える — 詳細解説 (TypeScript + 図)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN',Meiryo,Arial;line-height:1.6;margin:24px}
+    h1{font-size:1.6rem;margin-bottom:0.2rem}
+    h2{margin-top:1.2rem}
+    pre{background:#0f172a;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto}
+    code{font-family:monospace}
+    .row{display:flex;gap:20px;align-items:flex-start}
+    .panel{flex:1;min-width:240px;background:#fbfbfb;border:1px solid #e6e6e6;padding:12px;border-radius:8px}
+    .array{display:flex;gap:6px;flex-wrap:wrap}
+    .cell{width:56px;height:48px;border-radius:6px;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;background:white}
+    .cell.current{box-shadow:0 0 0 3px rgba(0,153,68,0.12);border-color:#009944}
+    .cell.index{font-size:0.7rem;color:#666}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #e6e6e6;padding:6px;text-align:left}
+    .controls{margin-top:10px}
+    button{padding:6px 10px;border-radius:6px;border:1px solid #cbd5e1;background:white;cursor:pointer}
+    button:active{transform:translateY(1px)}
+    .summary{background:#f1fdf6;border:1px solid #c7f1d8;padding:10px;border-radius:8px}
+    .metric{font-weight:700;color:#007028}
+    .note{font-size:0.9rem;color:#555}
+  </style>
+</head>
+<body>
+  <h1>問題の要約</h1>
+  <p>整数列 A<sub>1..N</sub> が与えられます。 1 ≤ j &lt; i ≤ N かつ A<sub>j</sub> = A<sub>i</sub> を満たす組 (i, j) の総数を求めてください。</p>
+
+  <h2>解法のアイデア（高レベル）</h2>
+  <p>配列を先頭から順に走査し、各値 v について「これまでに v が何回出現したか」を保持する Map（または連想配列）を使います。<br>
+    現在の位置 i の値 v を見ると、過去に v が k 回出現していれば、(i, j) の組はちょうど k 個増えます。走査を最後まで行うと合計が答えになります。</p>
+
+  <p class="summary">式で書くと、最終的な答えは各値 v の出現回数 c<sub>v</sub> に対して
+    <strong>sum_v C(c_v, 2)</strong>（= sum_v c_v*(c_v-1)/2）と等価です。これは上の逐次加算の結果と一致します。</p>
+
+  <h2>ステップ実行デモ（図で理解する）</h2>
+  <div class="row">
+    <div class="panel">
+      <h3>配列（入力例）</h3>
+      <div id="inputArray" class="array"></div>
+      <div class="controls">
+        <button id="prevBtn">◀ 前へ</button>
+        <button id="nextBtn">次へ ▶</button>
+        <button id="resetBtn">リセット</button>
+      </div>
+      <p class="note">このデモは配列 <code>[30,10,30,20,10,30]</code> を例に、各ステップで Map と合計がどう変化するかを示します。</p>
+    </div>
+
+    <div class="panel">
+      <h3>状態（Map と合計）</h3>
+      <table>
+        <thead><tr><th>値 (v)</th><th>出現回数</th></tr></thead>
+        <tbody id="mapBody"></tbody>
+      </table>
+      <p style="margin-top:8px">現在の合計 (組数): <span id="totalCount" class="metric">0</span></p>
+      <p class="note">次の要素を処理する際、もしその値 v の現在のカウントが k なら、合計は k 増え、その後 v のカウントを k+1 に更新します。</p>
+    </div>
+  </div>
+
+  <h2>Step-by-step の説明（例）</h2>
+  <ol>
+    <li>初期: Map は空、合計=0。</li>
+    <li>1 番目（30）: Map[30]=0 → 合計 += 0 → Map[30]=1。</li>
+    <li>2 番目（10）: Map[10]=0 → 合計 += 0 → Map[10]=1。</li>
+    <li>3 番目（30）: Map[30]=1 → 合計 += 1 → Map[30]=2。</li>
+    <li>4 番目（20）: Map[20]=0 → 合計 += 0 → Map[20]=1。</li>
+    <li>5 番目（10）: Map[10]=1 → 合計 += 1 → Map[10]=2。</li>
+    <li>6 番目（30）: Map[30]=2 → 合計 += 2 → Map[30]=3。最終合計 = 4。</li>
+  </ol>
+
+  <h2>TypeScript 実装（提出用）</h2>
+  <pre><code class="language-typescript">// TypeScript 5.1 / Node.js 18.16.1
+// 高速入出力: fs
+import * as fs from 'fs';
+
+const input = fs.readFileSync(0, 'utf8').trim().split(/\s+/).map(Number);
+
+/**
+ * 条件を満たす (i, j) の組数を数える関数
+ * @param N - 配列の要素数
+ * @param arr - 整数配列 A1...AN
+ * @returns 組の総数（number）
+ *
+ * 時間計算量: O(N)（Map の get/set は平均 O(1)）
+ * 空間計算量: O(U)（U は異なる値の個数。最悪で N）
+ */
+function countPairs(N: number, arr: number[]): number {
+  const freq: Map<number, number> = new Map();
+  let count = 0;
+  for (let i = 0; i < N; i++) {
+    const v = arr[i];
+    const prev = freq.get(v) ?? 0; // これまでの出現数
+    count += prev; // prev 個だけ (i, j) の組が追加される
+    freq.set(v, prev + 1);
+  }
+  return count;
+}
+
+const N = input[0];
+const arr = input.slice(1);
+console.log(countPairs(N, arr));
+</code></pre>
+
+  <h2>正当性の証明（簡潔に）</h2>
+  <p>ある値 v の出現回数を c_v とすると、v によって作られる (i, j) の組の数は C(c_v, 2) = c_v*(c_v-1)/2 です。<br>
+    逐次加算法は各 v の第 k 回目の出現（k を 1..c_v とする）で、その時点で過去に k-1 回出現しているため合計に k-1 を足します。よって合計は sum_{k=1..c_v}(k-1) = C(c_v,2) に一致します。</p>
+
+  <h2>計算量と実装上の注意</h2>
+  <ul>
+    <li><strong>時間</strong>: 一度の走査で Map の参照/更新を行うため O(N)。N = 100,000 でも余裕で間に合います（2 秒制限内）。</li>
+    <li><strong>メモリ</strong>: Map に異なる値を保持します。最悪で N 個のエントリ。
+      実装依存ですが、目安として <em>100,000 個の異なる整数</em> を Map に格納しても数MB〜十数MB 程度で収まることが多く、1024 MiB の上限には程遠いです。</li>
+    <li><strong>Node.js + TypeScript 特有の注意</strong>: 標準入力の読み取りはまとめて行うのが高速です。fs.readFileSync(0, 'utf8') を使っています。</li>
+  </ul>
+
+  <h2>可視化 — インタラクティブ（内部実装）</h2>
+  <p>下はこのドキュメント内で動く簡易デモです。配列を順に処理すると Map と合計がどのように変化するかを表示します。</p>
+
+  <script>
+    // デモ用データ
+    const demo = [30,10,30,20,10,30];
+    const steps = [];
+    // 初期状態
+    let freq = new Map();
+    let total = 0;
+    steps.push({i:-1, val:null, freq:new Map(freq), total});
+    for (let i=0;i<demo.length;i++){
+      const v = demo[i];
+      const prev = freq.get(v) ?? 0;
+      total += prev;
+      freq.set(v, prev+1);
+      // deep copy of freq map for visualization
+      steps.push({i, val:v, freq:new Map(freq), total});
+    }
+
+    const inputArray = document.getElementById('inputArray');
+    const mapBody = document.getElementById('mapBody');
+    const totalCount = document.getElementById('totalCount');
+    let cur = 0;
+
+    function renderArray(activeIndex){
+      inputArray.innerHTML = '';
+      for (let i=0;i<demo.length;i++){
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (i===activeIndex? ' current':'');
+        cell.innerHTML = `<div><div class="index">${i+1}</div><div style="font-weight:700">${demo[i]}</div></div>`;
+        inputArray.appendChild(cell);
+      }
+    }
+
+    function renderMap(map){
+      mapBody.innerHTML = '';
+      // sort keys for stable display
+      const keys = Array.from(map.keys()).sort((a,b)=>a-b);
+      keys.forEach(k=>{
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td'); td1.textContent = String(k);
+        const td2 = document.createElement('td'); td2.textContent = String(map.get(k));
+        tr.appendChild(td1); tr.appendChild(td2);
+        mapBody.appendChild(tr);
+      });
+    }
+
+    function renderStep(idx){
+      const s = steps[idx];
+      renderArray(s.i);
+      renderMap(s.freq);
+      totalCount.textContent = String(s.total);
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', ()=>{ if (cur < steps.length-1) cur++; renderStep(cur); });
+    document.getElementById('prevBtn').addEventListener('click', ()=>{ if (cur>0) cur--; renderStep(cur); });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ cur=0; renderStep(cur); });
+
+    // 初期描画
+    renderStep(0);
+  </script>
+
+  <h2>まとめ</h2>
+  <p>本問は Map による走査で簡潔に解けます。逐次加算の観点と組合せ C(n,2) の観点は同値であり、TypeScript の実装は提出用としてそのまま使えます。</p>
+
+  <p>もし、この HTML を <strong>印刷用 PDF</strong> にしたり、別の入力例でインタラクティブに確認したければ、配列の部分を編集して試してみてください。追加で「異なる例のステップ図」や「より正確なメモリ見積もり」を入れることも可能です — ご希望あれば反映します。</p>
+</body>
+</html>

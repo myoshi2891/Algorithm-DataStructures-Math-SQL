@@ -1,0 +1,1307 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Array.prototype.last() - インタラクティブ解説</title>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+                font-family: 'Inter', sans-serif;
+            }
+            code,
+            pre {
+                font-family: 'JetBrains Mono', monospace;
+            }
+            .code-toolbar > .toolbar {
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body class="bg-[linear-gradient(135deg,#f0fdf4,#e0f2fe)] min-h-screen p-4 sm:p-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- ヘッダー -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Array.prototype.last()</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    プロトタイプ拡張による O(1) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <!-- アルゴリズム概要 -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <p class="text-slate-700 leading-7 mb-4">
+                    すべての配列に対して
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm">.last()</code>
+                    メソッドを呼び出せるように拡張し、配列の最後の要素を返します。配列が空の場合は
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm">-1</code> を返します。
+                </p>
+
+                <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                    <h3 class="font-bold text-teal-800 mb-2">入出力例</h3>
+                    <pre
+                        class="bg-slate-800 text-slate-100 p-4 rounded-lg overflow-x-auto"
+                    ><code>入力: nums = [null, {}, 3]
+出力: 3
+
+入力: nums = []
+出力: -1</code></pre>
+                </div>
+
+                <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                    <h3 class="font-bold text-cyan-800 mb-2">制約条件</h3>
+                    <ul class="list-disc list-inside text-slate-700 space-y-1">
+                        <li>
+                            <code class="bg-white px-2 py-1 rounded text-sm">arr</code>
+                            は有効なJSON配列
+                        </li>
+                        <li>
+                            <code class="bg-white px-2 py-1 rounded text-sm"
+                                >0 <= arr.length <= 1000</code
+                            >
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-emerald-50 rounded-lg p-4">
+                    <h3 class="font-bold text-emerald-800 mb-2">戦略のポイント</h3>
+                    <ul class="list-disc list-inside text-slate-700 space-y-2">
+                        <li>
+                            <strong>Array.prototype への直接拡張</strong>:
+                            すべての配列インスタンスで利用可能
+                        </li>
+                        <li>
+                            <strong>O(1) 時間計算量</strong>: length
+                            プロパティとインデックスアクセスのみ
+                        </li>
+                        <li>
+                            <strong>型安全性</strong>: TypeScript で
+                            <code class="bg-white px-2 py-1 rounded text-sm">T | -1</code>
+                            として表現
+                        </li>
+                        <li><strong>Pure な実装</strong>: 元の配列に副作用なし</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ステップバイステップ解説 -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-container"></div>
+            </section>
+
+            <!-- コード例 -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    TypeScript 実装
+                </h2>
+                <pre class="line-numbers"><code class="language-typescript">declare global {
+  interface Array&lt;T&gt; {
+    last(): T | -1;
+  }
+}
+
+Array.prototype.last = function&lt;T&gt;(this: T[]): T | -1 {
+  return this.length ? this[this.length - 1] : -1;
+};
+
+export {};</code></pre>
+            </section>
+
+            <!-- フローチャート -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 600"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Array.prototype.last() flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="80"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            開始
+                        </text>
+
+                        <!-- 下向き矢印 -->
+                        <path
+                            d="M 420 85 L 420 150"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 条件分岐: this.length truthy? -->
+                        <path
+                            d="M 420 150 L 510 200 L 420 250 L 330 200 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="190"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            this.length
+                        </text>
+                        <text
+                            x="420"
+                            y="210"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#92400e"
+                        >
+                            truthy?
+                        </text>
+
+                        <!-- いいえ（左）→ -1 を返す -->
+                        <path
+                            d="M 330 200 L 220 200"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="275"
+                            y="188"
+                            text-anchor="middle"
+                            font-size="13"
+                            fill="#dc2626"
+                            font-weight="bold"
+                        >
+                            いいえ
+                        </text>
+
+                        <rect
+                            x="100"
+                            y="170"
+                            width="120"
+                            height="60"
+                            rx="8"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="160"
+                            y="195"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="bold"
+                            fill="#991b1b"
+                        >
+                            -1 を返す
+                        </text>
+                        <text
+                            x="160"
+                            y="215"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            fill="#991b1b"
+                        >
+                            (空配列)
+                        </text>
+
+                        <!-- はい（右）→ インデックス計算 -->
+                        <path
+                            d="M 510 200 L 620 200"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="565"
+                            y="188"
+                            text-anchor="middle"
+                            font-size="13"
+                            fill="#059669"
+                            font-weight="bold"
+                        >
+                            はい
+                        </text>
+
+                        <rect
+                            x="620"
+                            y="170"
+                            width="140"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="690"
+                            y="192"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            インデックス計算
+                        </text>
+                        <text
+                            x="690"
+                            y="212"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#0369a1"
+                        >
+                            index = length - 1
+                        </text>
+
+                        <!-- インデックスアクセス -->
+                        <path
+                            d="M 690 230 L 690 300"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <rect
+                            x="620"
+                            y="300"
+                            width="140"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="690"
+                            y="322"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#0369a1"
+                        >
+                            要素アクセス
+                        </text>
+                        <text
+                            x="690"
+                            y="342"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#0369a1"
+                        >
+                            this[index]
+                        </text>
+
+                        <!-- 最後の要素を返す -->
+                        <path
+                            d="M 690 360 L 690 430"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <rect
+                            x="620"
+                            y="430"
+                            width="140"
+                            height="60"
+                            rx="8"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="690"
+                            y="452"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            要素を返す
+                        </text>
+                        <text
+                            x="690"
+                            y="472"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#059669"
+                        >
+                            (型 T)
+                        </text>
+
+                        <!-- -1からの下向き矢印 -->
+                        <path
+                            d="M 160 230 L 160 540"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                        />
+                        <path
+                            d="M 160 540 L 160 560 L 350 560"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+
+                        <!-- 要素を返すからの下向き矢印 -->
+                        <path
+                            d="M 690 490 L 690 540"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                        />
+                        <path
+                            d="M 690 540 L 690 560 L 490 560"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- 終了 -->
+                        <ellipse
+                            cx="420"
+                            cy="560"
+                            rx="70"
+                            ry="30"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="560"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#059669"
+                        >
+                            終了
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[JetBrains_Mono] text-[18px] leading-8">
+                    <strong class="text-2xl text-cyan-800">フローの説明：</strong><br />
+                    1. メソッド呼び出し時、配列の
+                    <code class="bg-slate-100 px-2 py-1 rounded">length</code>
+                    プロパティをチェック<br />
+                    2. <code class="bg-slate-100 px-2 py-1 rounded">length</code> が 0（falsy）なら
+                    <code class="bg-slate-100 px-2 py-1 rounded">-1</code> を返す<br />
+                    3. <code class="bg-slate-100 px-2 py-1 rounded">length</code> が正（truthy）なら
+                    <code class="bg-slate-100 px-2 py-1 rounded">length - 1</code>
+                    のインデックスで要素にアクセス<br />
+                    4. アクセスした要素を返す（型 T）
+                </p>
+            </section>
+
+            <!-- 計算量説明 -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-100">
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-bold text-emerald-900"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-bold text-emerald-900"
+                                >
+                                    本実装
+                                </th>
+                                <th
+                                    class="border-2 border-emerald-300 px-4 py-3 text-left font-bold text-emerald-900"
+                                >
+                                    説明
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-mono text-emerald-700 font-bold"
+                                >
+                                    O(1)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    length プロパティアクセスとインデックスアクセスのみ
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-mono text-emerald-700 font-bold"
+                                >
+                                    O(1)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    追加メモリ不要、一時変数なし
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    副作用
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 font-mono text-emerald-700 font-bold"
+                                >
+                                    なし
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3 text-slate-600">
+                                    完全に Pure、元の配列は不変
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                    <h3 class="font-bold text-cyan-800 mb-2">最適化ポイント</h3>
+                    <ul class="list-disc list-inside text-slate-700 space-y-1">
+                        <li>
+                            <strong>truthy チェック</strong>:
+                            <code class="bg-white px-2 py-1 rounded text-sm"
+                                >this.length === 0</code
+                            >
+                            よりも
+                            <code class="bg-white px-2 py-1 rounded text-sm">this.length</code>
+                            の方が微小に高速
+                        </li>
+                        <li>
+                            <strong>インデックス直接アクセス</strong>:
+                            <code class="bg-white px-2 py-1 rounded text-sm">this[index]</code> は
+                            V8 で最も最適化されたパス
+                        </li>
+                        <li><strong>型推論</strong>: TypeScript で配列の要素型を自動的に保持</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '型定義の拡張',
+                    desc: 'Array<T> インターフェースに .last() メソッドを追加。戻り値型を T | -1 として定義します。',
+                    visual: {
+                        type: 'type-definition',
+                        code: `declare global {\n  interface Array<T> {\n    last(): T | -1;\n  }\n}`,
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'プロトタイプへの実装',
+                    desc: 'Array.prototype.last に関数を代入。this の型を明示的に T[] として指定します。',
+                    visual: {
+                        type: 'prototype-assignment',
+                        code: `Array.prototype.last = function<T>(this: T[]): T | -1 {\n  // 実装はStep 3以降で説明\n}`,
+                    },
+                },
+                {
+                    step: 3,
+                    title: '空配列のチェック',
+                    desc: 'this.length が 0（falsy）かどうかをチェックします。',
+                    visual: {
+                        type: 'empty-check',
+                        array: [],
+                        highlight: 'length',
+                    },
+                },
+                {
+                    step: 4,
+                    title: '空配列の場合: -1 を返す',
+                    desc: 'length が 0 の場合、-1 を返します。',
+                    visual: {
+                        type: 'return-negative',
+                        array: [],
+                        result: -1,
+                    },
+                },
+                {
+                    step: 5,
+                    title: '非空配列のチェック',
+                    desc: 'this.length が正（truthy）の場合、最後の要素にアクセスします。',
+                    visual: {
+                        type: 'non-empty-check',
+                        array: [null, {}, 3],
+                        highlight: 'length',
+                    },
+                },
+                {
+                    step: 6,
+                    title: 'インデックス計算',
+                    desc: '最後の要素のインデックスを計算: length - 1',
+                    visual: {
+                        type: 'index-calculation',
+                        array: [null, {}, 3],
+                        length: 3,
+                        index: 2,
+                    },
+                },
+                {
+                    step: 7,
+                    title: '要素アクセス',
+                    desc: 'this[length - 1] で最後の要素にアクセスします。',
+                    visual: {
+                        type: 'element-access',
+                        array: [null, {}, 3],
+                        index: 2,
+                        element: 3,
+                    },
+                },
+                {
+                    step: 8,
+                    title: '最後の要素を返す',
+                    desc: 'アクセスした要素（型 T）を返します。',
+                    visual: {
+                        type: 'return-element',
+                        array: [null, {}, 3],
+                        result: 3,
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (!visual) return null;
+
+                if (visual.type === 'type-definition' || visual.type === 'prototype-assignment') {
+                    return (
+                        <div
+                            style={{ marginTop: '20px' }}
+                            className="bg-slate-800 text-slate-100 p-6 rounded-lg overflow-x-auto font-mono text-sm leading-relaxed"
+                        >
+                            {visual.code}
+                        </div>
+                    );
+                }
+
+                if (visual.type === 'empty-check') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 200"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="50"
+                                y="50"
+                                width="500"
+                                height="100"
+                                rx="8"
+                                fill="#334155"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#f1f5f9"
+                            >
+                                配列: []
+                            </text>
+                            <text
+                                x="300"
+                                y="110"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#4ade80"
+                                fontWeight="bold"
+                            >
+                                length = 0 (falsy)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'return-negative') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 200"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="50"
+                                y="50"
+                                width="500"
+                                height="100"
+                                rx="8"
+                                fill="#fee2e2"
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="bold"
+                                fill="#991b1b"
+                            >
+                                return -1
+                            </text>
+                            <text
+                                x="300"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#991b1b"
+                            >
+                                (空配列の場合)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'non-empty-check') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 200"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="100"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="140"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >
+                                null
+                            </text>
+
+                            <rect
+                                x="200"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="240"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >{`{}`}</text>
+
+                            <rect
+                                x="300"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="340"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >
+                                3
+                            </text>
+
+                            <text
+                                x="300"
+                                y="160"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                length = 3 (truthy)
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'index-calculation') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="100"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="140"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >
+                                null
+                            </text>
+                            <text x="140" y="50" textAnchor="middle" fontSize="12" fill="#64748b">
+                                index 0
+                            </text>
+
+                            <rect
+                                x="200"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="240"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >{`{}`}</text>
+                            <text x="240" y="50" textAnchor="middle" fontSize="12" fill="#64748b">
+                                index 1
+                            </text>
+
+                            <rect
+                                x="300"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="340"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                3
+                            </text>
+                            <text
+                                x="340"
+                                y="50"
+                                textAnchor="middle"
+                                fontSize="12"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                index 2
+                            </text>
+
+                            <text
+                                x="300"
+                                y="170"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                index = length - 1 = 3 - 1 = 2
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'element-access') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="100"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="140"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >
+                                null
+                            </text>
+
+                            <rect
+                                x="200"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="240"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#0369a1"
+                            >{`{}`}</text>
+
+                            <rect
+                                x="300"
+                                y="70"
+                                width="80"
+                                height="60"
+                                rx="4"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="340"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                3
+                            </text>
+
+                            <text
+                                x="300"
+                                y="170"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                this[2] = 3 にアクセス
+                            </text>
+
+                            <circle
+                                cx="340"
+                                cy="100"
+                                r="50"
+                                fill="none"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                                strokeDasharray="5,5"
+                            />
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'return-element') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="200"
+                                y="50"
+                                width="200"
+                                height="100"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="300"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="bold"
+                                fill="#059669"
+                            >
+                                return 3
+                            </text>
+                            <text
+                                x="300"
+                                y="115"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#059669"
+                            >
+                                (型: number)
+                            </text>
+
+                            <text
+                                x="300"
+                                y="180"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#1e293b"
+                            >
+                                最後の要素を正常に返却
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function StepContainer() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep(activeStep - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep(activeStep + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(14,165,233,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(100,116,139,0.20)] bg-white border-2 border-slate-200"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<StepContainer />, document.getElementById('step-container'));
+            Prism.highlightAll();
+        </script>
+    </body>
+</html>

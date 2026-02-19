@@ -1,0 +1,1583 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 6: Zigzag Conversion - 周期式による行別直接抽出</title>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js -->
+        <link
+            href="/vendor/prismjs/themes/prism.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+            rel="stylesheet"
+        />
+
+        <!-- React & ReactDOM -->
+        <script crossorigin src="/vendor/react/react.development.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.development.js"
+        ></script>
+
+        <!-- Babel Standalone -->
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <!-- Header -->
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Zigzag Conversion</h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">
+                周期式による行別直接抽出 - O(n) 時間 / O(1) 空間実装
+            </p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    概要
+                </a>
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    ステップ解説
+                </a>
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    コード
+                </a>
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    フローチャート
+                </a>
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                >
+                    計算量
+                </a>
+            </nav>
+        </header>
+
+        <!-- Overview -->
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <p class="mb-4 text-lg">
+                文字列を指定された行数のジグザグパターンで配置し、各行を左から右へ読み出して連結した文字列を返す問題です。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題例</h3>
+            <div class="bg-slate-50 p-4 rounded-lg mb-4">
+                <p class="font-mono text-sm mb-2">
+                    <strong>入力:</strong> s = "PAYPALISHIRING", numRows = 3
+                </p>
+                <pre class="font-mono text-sm text-slate-700 leading-relaxed">
+P   A   H   N
+A P L S I I G
+Y   I   R
+      </pre
+                >
+                <p class="font-mono text-sm"><strong>出力:</strong> "PAHNAPLSIIGYIR"</p>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約</h3>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li>1 ≤ s.length ≤ 1000</li>
+                <li>s は英字（大文字小文字）、カンマ、ピリオドで構成</li>
+                <li>1 ≤ numRows ≤ 1000</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li>
+                    <strong>周期式の発見:</strong> ジグザグの周期は
+                    <code class="bg-slate-100 px-2 py-1 rounded">cycle = 2 * (numRows - 1)</code>
+                </li>
+                <li>
+                    <strong>行別走査:</strong>
+                    各行について、縦成分と斜め成分（中間行のみ）を直接計算
+                </li>
+                <li><strong>端行の特殊処理:</strong> 0行目と最終行は斜め成分なし</li>
+                <li>
+                    <strong>効率的なメモリ使用:</strong>
+                    固定長リストに逐次代入し、最後に結合
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+            <div class="bg-emerald-50 p-4 rounded-lg">
+                <p class="mb-2">
+                    <strong class="text-emerald-800">時間計算量:</strong> O(n) - 各文字を1回ずつ走査
+                </p>
+                <p class="mb-2">
+                    <strong class="text-emerald-800">空間計算量:</strong> O(1) -
+                    出力バッファを除く補助領域は定数個
+                </p>
+                <p>
+                    <strong class="text-emerald-800">最適化手法:</strong>
+                    ローカル変数束縛、固定長リスト、ビットシフト演算
+                </p>
+            </div>
+        </section>
+
+        <!-- Steps Visualization -->
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="react-root"></div>
+        </section>
+
+        <!-- Code -->
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+            <pre
+                class="line-numbers"
+            ><code class="language-python">from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
+
+
+class Solution:
+    """
+    LeetCode 6. Zigzag Conversion
+    - 競技向け: convert() は高速版を直接呼び出し
+    - 実務向け: 必要に応じて _validate_inputs() を有効化
+    """
+
+    def convert(self, s: str, numRows: int) -> str:
+        """
+        文字列を numRows 行のジグザグ配置で並べ替え、行ごとに読み出す。
+
+        Args:
+            s: 変換対象の文字列（長さ 1..1000）
+            numRows: 行数（1..1000）
+
+        Returns:
+            変換後の文字列
+
+        Time: O(n), Space: O(1) (出力バッファ除く)
+        """
+        n: int = len(s)
+
+        # 基底条件: ジグザグ不要
+        if numRows == 1 or numRows >= n:
+            return s
+
+        # 周期: ジグザグの1サイクル = 2*(numRows-1)
+        cycle: int = (numRows - 1) * 2
+        out: list[str] = [""] * n
+        k: int = 0  # 出力リストの書き込み位置
+
+        # ローカル束縛で属性アクセスを削減
+        _s = s
+        _n = n
+        _out = out
+        _cycle = cycle
+        last_row = numRows - 1
+
+        for row in range(numRows):
+            i = row  # 現在行の縦成分の開始インデックス
+
+            if row == 0 or row == last_row:
+                # 端行: 斜め成分なし、周期刻みで縦成分のみ
+                while i < _n:
+                    _out[k] = _s[i]
+                    k += 1
+                    i += _cycle
+            else:
+                # 中間行: 縦成分 + 斜め成分
+                step_diag = _cycle - (row << 1)  # cycle - 2*row
+                while i < _n:
+                    # 縦成分
+                    _out[k] = _s[i]
+                    k += 1
+                    # 斜め成分（範囲内なら追加）
+                    diag_idx = i + step_diag
+                    if diag_idx < _n:
+                        _out[k] = _s[diag_idx]
+                        k += 1
+                    i += _cycle
+
+        return "".join(_out)</code></pre>
+        </section>
+
+        <!-- Diagram -->
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 840 980"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="Zigzag Conversion flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                        <marker
+                            id="arrowPurple"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+
+                    <!-- 開始 -->
+                    <ellipse
+                        cx="420"
+                        cy="60"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="60"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始
+                    </text>
+
+                    <!-- 基底条件チェック -->
+                    <path
+                        d="M 420 95 L 420 150"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 150 L 520 200 L 420 250 L 320 200 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="200"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">numRows == 1</tspan>
+                        <tspan x="420" dy="18">または numRows ≥ n</tspan>
+                    </text>
+
+                    <!-- はい → そのまま返却 -->
+                    <path
+                        d="M 520 200 L 650 200"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="580"
+                        y="190"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <rect
+                        x="650"
+                        y="170"
+                        width="140"
+                        height="60"
+                        rx="8"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="200"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        元の文字列を返却
+                    </text>
+
+                    <!-- いいえ → 周期計算 -->
+                    <path
+                        d="M 420 250 L 420 300"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="450"
+                        y="275"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+                    <rect
+                        x="320"
+                        y="300"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="330"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">周期計算</tspan>
+                        <tspan x="420" dy="18">cycle = 2*(numRows-1)</tspan>
+                    </text>
+
+                    <!-- 出力リスト初期化 -->
+                    <path
+                        d="M 420 360 L 420 400"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <rect
+                        x="320"
+                        y="400"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="430"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">出力リスト初期化</tspan>
+                        <tspan x="420" dy="18">out = [""] * n</tspan>
+                    </text>
+
+                    <!-- 行ループ開始 -->
+                    <path
+                        d="M 420 460 L 420 520"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 520 L 520 570 L 420 620 L 320 570 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="570"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">各行を走査</tspan>
+                        <tspan x="420" dy="18">row = 0 to numRows-1</tspan>
+                    </text>
+
+                    <!-- 端行チェック -->
+                    <path
+                        d="M 420 620 L 420 690"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <path
+                        d="M 420 690 L 520 740 L 420 790 L 320 740 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="740"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">端行か？</tspan>
+                        <tspan x="420" dy="18">(row==0 or row==last)</tspan>
+                    </text>
+
+                    <!-- はい → 縦成分のみ -->
+                    <path
+                        d="M 320 740 L 180 740"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="255"
+                        y="730"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+                    <rect
+                        x="50"
+                        y="710"
+                        width="130"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="115"
+                        y="740"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="115" dy="-8">縦成分のみ</tspan>
+                        <tspan x="115" dy="18">i += cycle</tspan>
+                    </text>
+
+                    <!-- いいえ → 縦+斜め -->
+                    <path
+                        d="M 520 740 L 660 740"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="585"
+                        y="730"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+                    <rect
+                        x="660"
+                        y="710"
+                        width="130"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="725"
+                        y="740"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="725" dy="-8">縦+斜め成分</tspan>
+                        <tspan x="725" dy="18">両方追加</tspan>
+                    </text>
+
+                    <!-- 次の行へ -->
+                    <path
+                        d="M 115 710 L 115 570 L 320 570"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+                    <path
+                        d="M 725 710 L 725 570 L 520 570"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+
+                    <!-- 全行完了 -->
+                    <path
+                        d="M 420 790 L 420 850"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="430"
+                        y="820"
+                        text-anchor="start"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        全行完了
+                    </text>
+
+                    <!-- 結合 -->
+                    <rect
+                        x="320"
+                        y="850"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="880"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">文字列結合</tspan>
+                        <tspan x="420" dy="18">"".join(out)</tspan>
+                    </text>
+
+                    <!-- 終了 -->
+                    <path
+                        d="M 520 880 L 650 880"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                    <ellipse
+                        cx="720"
+                        cy="880"
+                        rx="70"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="880"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        終了
+                    </text>
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. <strong>基底条件:</strong> numRows が 1 または n
+                以上の場合、ジグザグ不要なので元の文字列を返却<br />
+                2. <strong>周期計算:</strong> cycle = 2*(numRows-1) でジグザグの周期を計算<br />
+                3.
+                <strong>行別走査:</strong>
+                各行について、端行（0行目、最終行）は縦成分のみ、中間行は縦+斜め成分を追加<br />
+                4. <strong>結合:</strong> 出力リストを文字列に結合して返却
+            </p>
+        </section>
+
+        <!-- Complexity -->
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th
+                                class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                項目
+                            </th>
+                            <th
+                                class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                値
+                            </th>
+                            <th
+                                class="border border-emerald-200 px-4 py-3 text-left font-semibold text-teal-800"
+                            >
+                                備考
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                時間計算量
+                            </td>
+                            <td
+                                class="border border-slate-200 px-4 py-3 font-mono text-emerald-700 font-semibold"
+                            >
+                                O(n)
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3">各文字を1回ずつ走査</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                空間計算量
+                            </td>
+                            <td
+                                class="border border-slate-200 px-4 py-3 font-mono text-emerald-700 font-semibold"
+                            >
+                                O(1)
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                出力バッファを除く補助領域は定数個
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                最適化ポイント
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3" colspan="2">
+                                ローカル変数束縛、固定長リスト、ビットシフト演算
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-8 mb-4">代替手法との比較</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-sky-50">
+                            <th
+                                class="border border-sky-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                            >
+                                アプローチ
+                            </th>
+                            <th
+                                class="border border-sky-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                            >
+                                時間
+                            </th>
+                            <th
+                                class="border border-sky-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                            >
+                                空間
+                            </th>
+                            <th
+                                class="border border-sky-200 px-4 py-3 text-left font-semibold text-cyan-800"
+                            >
+                                評価
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                周期式・直接抽出（本実装）
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td
+                                class="border border-slate-200 px-4 py-3 text-emerald-700 font-semibold"
+                            >
+                                ✓ 最適
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3">行番号タグ付けソート</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n log n)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n)</td>
+                            <td class="border border-slate-200 px-4 py-3 text-slate-500">
+                                不要に重い
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-3">2D配置して読み出し</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n²)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n²)</td>
+                            <td class="border border-slate-200 px-4 py-3 text-slate-500">
+                                無駄セル多数で非現実的
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            function StepVisualization({ visual }) {
+                const { type, s, numRows, row, indices, result } = visual;
+
+                if (type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 800 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="400"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                入力文字列: "{s}"
+                            </text>
+                            <text
+                                x="400"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                行数: {numRows}
+                            </text>
+
+                            {/* ジグザグパターン表示 */}
+                            <text
+                                x="400"
+                                y="130"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                ジグザグパターン（視覚化）
+                            </text>
+
+                            {numRows === 3 && (
+                                <g>
+                                    {/* 0行目: P, A, H, N */}
+                                    <text
+                                        x="250"
+                                        y="180"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        P
+                                    </text>
+                                    <text
+                                        x="350"
+                                        y="180"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        A
+                                    </text>
+                                    <text
+                                        x="450"
+                                        y="180"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        H
+                                    </text>
+                                    <text
+                                        x="550"
+                                        y="180"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        N
+                                    </text>
+
+                                    {/* 1行目: A, P, L, S, I, I, G */}
+                                    <text
+                                        x="250"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        A
+                                    </text>
+                                    <text
+                                        x="300"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        P
+                                    </text>
+                                    <text
+                                        x="350"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        L
+                                    </text>
+                                    <text
+                                        x="400"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        S
+                                    </text>
+                                    <text
+                                        x="450"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        I
+                                    </text>
+                                    <text
+                                        x="500"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        I
+                                    </text>
+                                    <text
+                                        x="550"
+                                        y="230"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        G
+                                    </text>
+
+                                    {/* 2行目: Y, I, R */}
+                                    <text
+                                        x="250"
+                                        y="280"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        Y
+                                    </text>
+                                    <text
+                                        x="350"
+                                        y="280"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        I
+                                    </text>
+                                    <text
+                                        x="450"
+                                        y="280"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        R
+                                    </text>
+                                </g>
+                            )}
+
+                            {numRows === 4 && (
+                                <g>
+                                    {/* 簡略表示 */}
+                                    <text
+                                        x="400"
+                                        y="200"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fill="#64748b"
+                                    >
+                                        4行のジグザグパターン（周期=6）
+                                    </text>
+                                </g>
+                            )}
+                        </svg>
+                    );
+                }
+
+                if (type === 'cycle') {
+                    const cycle = 2 * (numRows - 1);
+                    return (
+                        <svg
+                            viewBox="0 0 800 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="400"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                周期計算
+                            </text>
+
+                            <rect
+                                x="200"
+                                y="100"
+                                width="400"
+                                height="80"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="400"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                cycle = 2 × (numRows - 1) = 2 × ({numRows} - 1) = {cycle}
+                            </text>
+
+                            <text
+                                x="400"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                ジグザグの1往復に必要なステップ数
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'rowScan') {
+                    const cycle = 2 * (numRows - 1);
+                    const isEdgeRow = row === 0 || row === numRows - 1;
+
+                    return (
+                        <svg
+                            viewBox="0 0 800 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrowGreen2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                                </marker>
+                                <marker
+                                    id="arrowPurple2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <text
+                                x="400"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                行 {row} の走査 {isEdgeRow ? '（端行）' : '（中間行）'}
+                            </text>
+
+                            {/* 文字列表示 */}
+                            <g>
+                                {s.split('').map((char, idx) => {
+                                    const x = 50 + idx * 50;
+                                    const isVertical = indices.vertical.includes(idx);
+                                    const isDiagonal = indices.diagonal.includes(idx);
+
+                                    return (
+                                        <g key={idx}>
+                                            <rect
+                                                x={x - 20}
+                                                y="100"
+                                                width="40"
+                                                height="40"
+                                                rx="6"
+                                                fill={
+                                                    isVertical
+                                                        ? '#d1fae5'
+                                                        : isDiagonal
+                                                          ? '#fae8ff'
+                                                          : '#f8fafc'
+                                                }
+                                                stroke={
+                                                    isVertical
+                                                        ? '#10b981'
+                                                        : isDiagonal
+                                                          ? '#a855f7'
+                                                          : '#cbd5e1'
+                                                }
+                                                strokeWidth="2"
+                                            />
+                                            <text
+                                                x={x}
+                                                y="120"
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="16"
+                                                fontWeight="600"
+                                            >
+                                                {char}
+                                            </text>
+                                            <text
+                                                x={x}
+                                                y="165"
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize="12"
+                                                fill="#64748b"
+                                            >
+                                                {idx}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </g>
+
+                            {/* 凡例 */}
+                            <g>
+                                <rect
+                                    x="150"
+                                    y="220"
+                                    width="30"
+                                    height="30"
+                                    rx="4"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    strokeWidth="2"
+                                />
+                                <text
+                                    x="190"
+                                    y="235"
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#059669"
+                                >
+                                    縦成分: i = {row} + k × {cycle}
+                                </text>
+
+                                {!isEdgeRow && (
+                                    <>
+                                        <rect
+                                            x="150"
+                                            y="270"
+                                            width="30"
+                                            height="30"
+                                            rx="4"
+                                            fill="#fae8ff"
+                                            stroke="#a855f7"
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x="190"
+                                            y="285"
+                                            textAnchor="start"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                            fill="#a855f7"
+                                        >
+                                            斜め成分: i + ({cycle} - 2 × {row})
+                                        </text>
+                                    </>
+                                )}
+                            </g>
+                        </svg>
+                    );
+                }
+
+                if (type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 800 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="400"
+                                y="50"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                最終結果
+                            </text>
+
+                            <rect
+                                x="100"
+                                y="100"
+                                width="600"
+                                height="80"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="400"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="22"
+                                fontWeight="700"
+                                fill="#065f46"
+                            >
+                                "{result}"
+                            </text>
+
+                            <text
+                                x="400"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                各行を順番に読み出して連結した結果
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '入力と初期確認',
+                        desc: 's = "PAYPALISHIRING", numRows = 3 の例で処理を開始。まずジグザグパターンを可視化します。',
+                        visual: {
+                            type: 'init',
+                            s: 'PAYPALISHIRING',
+                            numRows: 3,
+                        },
+                    },
+                    {
+                        step: 2,
+                        title: '周期計算',
+                        desc: 'ジグザグの周期を計算: cycle = 2 × (numRows - 1) = 2 × 2 = 4。この値を使って各行のインデックスを求めます。',
+                        visual: {
+                            type: 'cycle',
+                            numRows: 3,
+                        },
+                    },
+                    {
+                        step: 3,
+                        title: '行0の走査（端行）',
+                        desc: '0行目は端行なので、縦成分のみを取得: i = 0, 4, 8, 12 → P, A, H, N',
+                        visual: {
+                            type: 'rowScan',
+                            s: 'PAYPALISHIRING',
+                            numRows: 3,
+                            row: 0,
+                            indices: {
+                                vertical: [0, 4, 8, 12],
+                                diagonal: [],
+                            },
+                        },
+                    },
+                    {
+                        step: 4,
+                        title: '行1の走査（中間行）',
+                        desc: '1行目は中間行なので、縦成分 + 斜め成分を取得。縦: i = 1, 5, 9, 13、斜め: i + (4 - 2) = i + 2 → 3, 7, 11。結果: A, P, L, S, I, I, G',
+                        visual: {
+                            type: 'rowScan',
+                            s: 'PAYPALISHIRING',
+                            numRows: 3,
+                            row: 1,
+                            indices: {
+                                vertical: [1, 5, 9, 13],
+                                diagonal: [3, 7, 11],
+                            },
+                        },
+                    },
+                    {
+                        step: 5,
+                        title: '行2の走査（端行）',
+                        desc: '2行目は端行なので、縦成分のみを取得: i = 2, 6, 10 → Y, I, R',
+                        visual: {
+                            type: 'rowScan',
+                            s: 'PAYPALISHIRING',
+                            numRows: 3,
+                            row: 2,
+                            indices: {
+                                vertical: [2, 6, 10],
+                                diagonal: [],
+                            },
+                        },
+                    },
+                    {
+                        step: 6,
+                        title: '結果の結合',
+                        desc: '各行の文字を連結: "PAHNAPLSIIGYIR"。これが最終的な出力です。',
+                        visual: {
+                            type: 'result',
+                            result: 'PAHNAPLSIIGYIR',
+                        },
+                    },
+                ];
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep >= stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 60)}
+                                                {step.desc.length > 60 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep <= 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep >= stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↻ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>

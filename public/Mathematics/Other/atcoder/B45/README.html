@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>整数を全て0にする問題 - 可視化デモ</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .header {
+                text-align: center;
+                color: white;
+                margin-bottom: 30px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .card {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                padding: 25px;
+                margin-bottom: 25px;
+                transition: transform 0.3s ease;
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+            }
+
+            .card h2 {
+                color: #4a5568;
+                margin-bottom: 20px;
+                font-size: 1.5rem;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 10px;
+            }
+
+            .input-section {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+
+            .input-group {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .input-group label {
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #4a5568;
+            }
+
+            .input-group input {
+                padding: 12px;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                transition: border-color 0.3s ease;
+            }
+
+            .input-group input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            .button-group {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn-secondary {
+                background: #718096;
+                color: white;
+            }
+
+            .btn-secondary:hover {
+                background: #4a5568;
+                transform: translateY(-2px);
+            }
+
+            .btn-success {
+                background: #48bb78;
+                color: white;
+            }
+
+            .btn-success:hover {
+                background: #38a169;
+                transform: translateY(-2px);
+            }
+
+            .btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none !important;
+            }
+
+            .result-display {
+                text-align: center;
+                padding: 20px;
+                border-radius: 10px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 20px;
+            }
+
+            .result-possible {
+                background: linear-gradient(135deg, #48bb78, #38a169);
+                color: white;
+            }
+
+            .result-impossible {
+                background: linear-gradient(135deg, #f56565, #e53e3e);
+                color: white;
+            }
+
+            .math-explanation {
+                background: #f7fafc;
+                padding: 20px;
+                border-radius: 10px;
+                border-left: 4px solid #667eea;
+            }
+
+            .math-explanation h3 {
+                color: #2d3748;
+                margin-bottom: 10px;
+            }
+
+            .math-explanation .formula {
+                background: white;
+                padding: 15px;
+                border-radius: 5px;
+                font-family: 'Courier New', monospace;
+                border: 1px solid #e2e8f0;
+                margin: 10px 0;
+            }
+
+            .progress-container {
+                margin-bottom: 20px;
+            }
+
+            .progress-info {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+                color: #718096;
+            }
+
+            .progress-bar {
+                width: 100%;
+                height: 8px;
+                background: #e2e8f0;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #667eea, #764ba2);
+                transition: width 0.5s ease;
+                border-radius: 4px;
+            }
+
+            .current-state {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+                margin-bottom: 25px;
+            }
+
+            .state-box {
+                text-align: center;
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid;
+                transition: all 0.3s ease;
+            }
+
+            .state-box .label {
+                font-size: 0.9rem;
+                color: #718096;
+                margin-bottom: 8px;
+            }
+
+            .state-box .value {
+                font-size: 2.5rem;
+                font-weight: bold;
+            }
+
+            .state-zero {
+                background: #f0fff4;
+                border-color: #48bb78;
+                color: #38a169;
+            }
+
+            .state-positive {
+                background: #fef5e7;
+                border-color: #ed8936;
+                color: #c05621;
+            }
+
+            .state-negative {
+                background: #ebf8ff;
+                border-color: #4299e1;
+                color: #2b6cb0;
+            }
+
+            .state-sum {
+                background: #faf5ff;
+                border-color: #9f7aea;
+                color: #6b46c1;
+            }
+
+            .steps-container {
+                max-height: 400px;
+                overflow-y: auto;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+            }
+
+            .step-item {
+                padding: 15px;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                transition: all 0.3s ease;
+            }
+
+            .step-item:last-child {
+                border-bottom: none;
+            }
+
+            .step-current {
+                background: linear-gradient(90deg, #667eea20, #764ba220);
+                border-left: 4px solid #667eea;
+            }
+
+            .step-completed {
+                background: #f7fafc;
+                opacity: 0.8;
+            }
+
+            .step-number {
+                min-width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: #e2e8f0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: #4a5568;
+            }
+
+            .step-current .step-number {
+                background: #667eea;
+                color: white;
+            }
+
+            .step-state {
+                font-family: 'Courier New', monospace;
+                font-weight: bold;
+            }
+
+            .step-operation {
+                color: #718096;
+                flex: 1;
+            }
+
+            .step-sum {
+                color: #4a5568;
+                font-weight: 600;
+            }
+
+            .impossible-explanation {
+                background: #fed7d7;
+                border: 2px solid #f56565;
+                padding: 20px;
+                border-radius: 10px;
+                color: #c53030;
+            }
+
+            .impossible-explanation h3 {
+                margin-bottom: 15px;
+                color: #c53030;
+            }
+
+            .highlight {
+                background: #fef5e7;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .animation-controls {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            .speed-control {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .speed-control label {
+                font-weight: 600;
+                color: #4a5568;
+            }
+
+            .speed-control select {
+                padding: 8px 12px;
+                border: 2px solid #e2e8f0;
+                border-radius: 6px;
+                background: white;
+            }
+
+            @media (max-width: 768px) {
+                .input-section {
+                    grid-template-columns: 1fr;
+                }
+
+                .current-state {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .button-group {
+                    flex-direction: column;
+                }
+
+                .animation-controls {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+            }
+
+            .fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .pulse {
+                animation: pulse 1s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔢 整数を全て0にする問題</h1>
+                <p>可視化デモンストレーション</p>
+            </div>
+
+            <!-- 入力セクション -->
+            <div class="card fade-in">
+                <h2>📊 初期値設定</h2>
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="inputA">a の値</label>
+                        <input type="number" id="inputA" value="3" step="1" />
+                    </div>
+                    <div class="input-group">
+                        <label for="inputB">b の値</label>
+                        <input type="number" id="inputB" value="-4" step="1" />
+                    </div>
+                    <div class="input-group">
+                        <label for="inputC">c の値</label>
+                        <input type="number" id="inputC" value="1" step="1" />
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="updateAnalysis()">🔍 解析実行</button>
+                    <button class="btn btn-secondary" onclick="resetToDefault()">
+                        🔄 リセット
+                    </button>
+                </div>
+
+                <div id="resultDisplay" class="result-display result-possible">
+                    合計: 0 → 結果: Yes (可能)
+                </div>
+            </div>
+
+            <!-- 数学的説明 -->
+            <div class="card fade-in">
+                <h2>📚 数学的原理</h2>
+                <div class="math-explanation">
+                    <h3>🔑 重要な不変量</h3>
+                    <p>
+                        操作「片方に+1、もう片方に-1」では、<strong
+                            >3つの数の合計は絶対に変わりません</strong
+                        >
+                    </p>
+                    <div class="formula">
+                        操作前: a + b + c = S<br />
+                        操作後: (a±1) + (b∓1) + c = a + b + c ± 1 ∓ 1 = S
+                    </div>
+
+                    <h3>💡 結論</h3>
+                    <p>
+                        目標状態 (0, 0, 0) の合計は 0 です。<br />
+                        したがって、<span class="highlight"
+                            >初期合計が 0 でなければ絶対に不可能</span
+                        >です。<br />
+                        逆に初期合計が 0 なら、必ず可能です。
+                    </p>
+                </div>
+            </div>
+
+            <!-- アニメーション表示 -->
+            <div id="animationSection" class="card fade-in" style="display: none">
+                <div class="animation-controls">
+                    <h2>🎬 解の手順</h2>
+                    <div style="display: flex; gap: 15px; align-items: center">
+                        <div class="speed-control">
+                            <label for="speedSelect">速度:</label>
+                            <select id="speedSelect">
+                                <option value="2000">遅い</option>
+                                <option value="1000" selected>普通</option>
+                                <option value="500">速い</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" id="playButton" onclick="playAnimation()">
+                            ▶️ アニメーション開始
+                        </button>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span id="progressText">ステップ 1 / 1</span>
+                        <span id="operationText">操作: 初期状態</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- 現在の状態表示 -->
+                <div class="current-state">
+                    <div class="state-box state-positive">
+                        <div class="label">a</div>
+                        <div class="value" id="currentA">3</div>
+                    </div>
+                    <div class="state-box state-negative">
+                        <div class="label">b</div>
+                        <div class="value" id="currentB">-4</div>
+                    </div>
+                    <div class="state-box state-positive">
+                        <div class="label">c</div>
+                        <div class="value" id="currentC">1</div>
+                    </div>
+                    <div class="state-box state-sum">
+                        <div class="label">合計</div>
+                        <div class="value" id="currentSum">0</div>
+                    </div>
+                </div>
+
+                <!-- 手順一覧 -->
+                <div>
+                    <h3>📋 全手順</h3>
+                    <div class="steps-container" id="stepsContainer">
+                        <!-- 手順がここに動的に生成される -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 不可能な場合の説明 -->
+            <div id="impossibleSection" class="card fade-in" style="display: none">
+                <h2>❌ なぜ不可能なのか</h2>
+                <div class="impossible-explanation">
+                    <h3>数学的理由</h3>
+                    <p>現在の合計: <span class="highlight" id="currentSumValue">0</span></p>
+                    <p>目標の合計: <span class="highlight">0</span></p>
+                    <p>操作では合計が変わらないため、合計が 0 でない場合は絶対に不可能です。</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // グローバル状態
+            let currentHistory = [];
+            let currentStep = 0;
+            let isPlaying = false;
+            let animationInterval = null;
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                updateAnalysis();
+
+                // 入力フィールドのイベントリスナー
+                ['inputA', 'inputB', 'inputC'].forEach((id) => {
+                    document.getElementById(id).addEventListener('input', updateAnalysis);
+                });
+            });
+
+            // 現在の入力値を取得
+            function getCurrentValues() {
+                const a = parseInt(document.getElementById('inputA').value) || 0;
+                const b = parseInt(document.getElementById('inputB').value) || 0;
+                const c = parseInt(document.getElementById('inputC').value) || 0;
+                return { a, b, c };
+            }
+
+            // 可能かどうかを判定
+            function canMakeZero(a, b, c) {
+                return a + b + c === 0;
+            }
+
+            // 解の手順を生成
+            function generateSolution(startA, startB, startC) {
+                if (startA + startB + startC !== 0) return [];
+
+                const steps = [
+                    {
+                        a: startA,
+                        b: startB,
+                        c: startC,
+                        operation: '初期状態',
+                        sum: startA + startB + startC,
+                    },
+                ];
+
+                let [currA, currB, currC] = [startA, startB, startC];
+
+                // aを0にする処理
+                while (currA > 0 && currB < 0) {
+                    currA--;
+                    currB++;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'a-1, b+1',
+                        sum: currA + currB + currC,
+                    });
+                }
+                while (currA < 0 && currB > 0) {
+                    currA++;
+                    currB--;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'a+1, b-1',
+                        sum: currA + currB + currC,
+                    });
+                }
+                while (currA > 0 && currC < 0) {
+                    currA--;
+                    currC++;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'a-1, c+1',
+                        sum: currA + currB + currC,
+                    });
+                }
+                while (currA < 0 && currC > 0) {
+                    currA++;
+                    currC--;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'a+1, c-1',
+                        sum: currA + currB + currC,
+                    });
+                }
+
+                // bを0にする処理
+                while (currB > 0 && currC < 0) {
+                    currB--;
+                    currC++;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'b-1, c+1',
+                        sum: currA + currB + currC,
+                    });
+                }
+                while (currB < 0 && currC > 0) {
+                    currB++;
+                    currC--;
+                    steps.push({
+                        a: currA,
+                        b: currB,
+                        c: currC,
+                        operation: 'b+1, c-1',
+                        sum: currA + currB + currC,
+                    });
+                }
+
+                return steps;
+            }
+
+            // 状態ボックスのスタイルを更新
+            function updateStateBoxStyle(elementId, value) {
+                const element = document.getElementById(elementId);
+                const box = element.parentElement;
+
+                // 既存のクラスを削除
+                box.classList.remove('state-zero', 'state-positive', 'state-negative', 'state-sum');
+
+                if (elementId === 'currentSum') {
+                    box.classList.add('state-sum');
+                } else if (value === 0) {
+                    box.classList.add('state-zero');
+                } else if (value > 0) {
+                    box.classList.add('state-positive');
+                } else {
+                    box.classList.add('state-negative');
+                }
+
+                element.textContent = value;
+            }
+
+            // 現在の状態を表示
+            function updateCurrentState(step) {
+                updateStateBoxStyle('currentA', step.a);
+                updateStateBoxStyle('currentB', step.b);
+                updateStateBoxStyle('currentC', step.c);
+                updateStateBoxStyle('currentSum', step.sum);
+            }
+
+            // 手順一覧を生成
+            function generateStepsHTML(history) {
+                return history
+                    .map(
+                        (step, index) => `
+                <div class="step-item ${index === currentStep ? 'step-current' : index < currentStep ? 'step-completed' : ''}" 
+                     id="step-${index}">
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-state">(${step.a}, ${step.b}, ${step.c})</div>
+                    <div class="step-operation">${step.operation}</div>
+                    <div class="step-sum">合計: ${step.sum}</div>
+                </div>
+            `,
+                    )
+                    .join('');
+            }
+
+            // 進行状況を更新
+            function updateProgress() {
+                const progressText = document.getElementById('progressText');
+                const operationText = document.getElementById('operationText');
+                const progressFill = document.getElementById('progressFill');
+
+                if (currentHistory.length > 0) {
+                    const current = currentHistory[currentStep];
+                    progressText.textContent = `ステップ ${currentStep + 1} / ${currentHistory.length}`;
+                    operationText.textContent = `操作: ${current.operation}`;
+                    progressFill.style.width = `${((currentStep + 1) / currentHistory.length) * 100}%`;
+                }
+            }
+
+            // 解析を更新
+            function updateAnalysis() {
+                const { a, b, c } = getCurrentValues();
+                const sum = a + b + c;
+                const isPossible = canMakeZero(a, b, c);
+
+                // 結果表示を更新
+                const resultDisplay = document.getElementById('resultDisplay');
+                resultDisplay.textContent = `合計: ${sum} → 結果: ${isPossible ? 'Yes (可能)' : 'No (不可能)'}`;
+                resultDisplay.className = `result-display ${isPossible ? 'result-possible' : 'result-impossible'}`;
+
+                // アニメーションを停止
+                stopAnimation();
+
+                if (isPossible) {
+                    // 解の生成
+                    currentHistory = generateSolution(a, b, c);
+                    currentStep = 0;
+
+                    // アニメーションセクションを表示
+                    document.getElementById('animationSection').style.display = 'block';
+                    document.getElementById('impossibleSection').style.display = 'none';
+
+                    // 初期状態を表示
+                    if (currentHistory.length > 0) {
+                        updateCurrentState(currentHistory[0]);
+                        document.getElementById('stepsContainer').innerHTML =
+                            generateStepsHTML(currentHistory);
+                        updateProgress();
+                    }
+                } else {
+                    // 不可能セクションを表示
+                    document.getElementById('animationSection').style.display = 'none';
+                    document.getElementById('impossibleSection').style.display = 'block';
+                    document.getElementById('currentSumValue').textContent = sum;
+                }
+            }
+
+            // アニメーション再生
+            function playAnimation() {
+                if (isPlaying || currentHistory.length <= 1) return;
+
+                isPlaying = true;
+                currentStep = 0;
+
+                const playButton = document.getElementById('playButton');
+                playButton.textContent = '⏸️ 再生中...';
+                playButton.disabled = true;
+
+                const speed = parseInt(document.getElementById('speedSelect').value);
+
+                animationInterval = setInterval(() => {
+                    if (currentStep < currentHistory.length - 1) {
+                        currentStep++;
+
+                        // 状態を更新
+                        updateCurrentState(currentHistory[currentStep]);
+                        updateProgress();
+
+                        // 手順一覧の表示を更新
+                        document.getElementById('stepsContainer').innerHTML =
+                            generateStepsHTML(currentHistory);
+
+                        // 現在のステップをスクロール表示
+                        const currentStepElement = document.getElementById(`step-${currentStep}`);
+                        if (currentStepElement) {
+                            currentStepElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                            });
+                            currentStepElement.classList.add('pulse');
+                            setTimeout(() => currentStepElement.classList.remove('pulse'), 1000);
+                        }
+                    } else {
+                        stopAnimation();
+                    }
+                }, speed);
+            }
+
+            // アニメーション停止
+            function stopAnimation() {
+                if (animationInterval) {
+                    clearInterval(animationInterval);
+                    animationInterval = null;
+                }
+
+                isPlaying = false;
+                const playButton = document.getElementById('playButton');
+                playButton.textContent = '▶️ アニメーション開始';
+                playButton.disabled = false;
+            }
+
+            // デフォルト値にリセット
+            function resetToDefault() {
+                document.getElementById('inputA').value = '3';
+                document.getElementById('inputB').value = '-4';
+                document.getElementById('inputC').value = '1';
+                stopAnimation();
+                updateAnalysis();
+            }
+
+            // プリセット例を追加する関数（オプション）
+            function loadPreset(a, b, c) {
+                document.getElementById('inputA').value = a.toString();
+                document.getElementById('inputB').value = b.toString();
+                document.getElementById('inputC').value = c.toString();
+                updateAnalysis();
+            }
+
+            // キーボードショートカット
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    updateAnalysis();
+                } else if (e.key === ' ' && !isPlaying) {
+                    e.preventDefault();
+                    playAnimation();
+                } else if (e.key === 'Escape') {
+                    stopAnimation();
+                }
+            });
+        </script>
+    </body>
+</html>

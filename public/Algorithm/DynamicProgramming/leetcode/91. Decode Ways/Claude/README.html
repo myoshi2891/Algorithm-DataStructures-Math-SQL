@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="LeetCode 91 Decode Ways - ローリングDPによる数字文字列の復号方法カウントを視覚的に解説"
+    />
+    <title>Decode Ways - 動的計画法の視覚化 | LeetCode 91</title>
+
+    <!-- Tailwind CSS -->
+    <script src="/vendor/tailwindcss/script.js"></script>
+
+    <!-- Prism.js -->
+    <link
+      rel="stylesheet"
+      href="/vendor/prismjs/themes/prism.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --code-lh: 1.6;
+        --emerald-50: #ecfdf5;
+        --emerald-100: #d1fae5;
+        --emerald-500: #10b981;
+        --emerald-600: #059669;
+        --sky-50: #f0f9ff;
+        --sky-500: #0ea5e9;
+        --slate-700: #334155;
+        --slate-800: #1e293b;
+      }
+
+      * {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--slate-800);
+      }
+
+      /* Code styling */
+      pre[class*="language-"],
+      pre[class*="language-"] > code {
+        line-height: var(--code-lh) !important;
+        white-space: pre !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, monospace;
+      }
+
+      pre.line-numbers {
+        padding-left: 3.2em !important;
+        border-radius: 12px;
+      }
+
+      .line-numbers .line-numbers-rows {
+        width: 3.2em;
+      }
+
+      .line-numbers .line-numbers-rows > span {
+        height: calc(var(--code-lh) * 1em);
+      }
+
+      /* Prism toolbar */
+      div.code-toolbar > .toolbar .toolbar-item > button,
+      div.code-toolbar > .toolbar .toolbar-item > a {
+        background: #fff;
+        border: 1px solid #e6e8ef;
+        border-radius: 10px;
+        padding: 6px 10px;
+        font: 600 13px/1.2 Inter, system-ui, sans-serif;
+        color: #334155;
+        box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      }
+
+      div.code-toolbar > .toolbar .toolbar-item > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+        background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+      }
+
+      /* Card hover effects */
+      .card-hover {
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Step button active state */
+      .step-btn.active {
+        background: linear-gradient(
+          135deg,
+          var(--emerald-500),
+          var(--emerald-600)
+        );
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      /* SVG stage transitions */
+      .svg-stage {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+      }
+
+      .svg-stage.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Control buttons */
+      .control-btn {
+        transition: all 0.2s;
+      }
+
+      .control-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .control-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      /* Focus rings */
+      .focus-ring:focus {
+        outline: 2px solid var(--emerald-500);
+        outline-offset: 2px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-emerald-50 via-white to-sky-50 min-h-screen"
+  >
+    <!-- Header -->
+    <header
+      class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50"
+    >
+      <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+          Decode Ways - 数字文字列の復号方法カウント
+        </h1>
+        <p class="text-slate-600 mb-4">
+          ローリングDP（O(n) 時間 / O(1) 空間）で効率的に解く動的計画法の視覚化
+        </p>
+
+        <!-- Navigation -->
+        <nav class="flex flex-wrap gap-2" aria-label="ページ内ナビゲーション">
+          <a
+            href="#overview"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition focus-ring"
+            aria-label="概要セクションへ"
+            >概要</a
+          >
+          <a
+            href="#steps"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition focus-ring"
+            aria-label="ステップ解説セクションへ"
+            >ステップ</a
+          >
+          <a
+            href="#code"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition focus-ring"
+            aria-label="コード例セクションへ"
+            >コード</a
+          >
+          <a
+            href="#diagram"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition focus-ring"
+            aria-label="図解セクションへ"
+            >図解</a
+          >
+          <a
+            href="#complexity"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 transition focus-ring"
+            aria-label="計算量セクションへ"
+            >計算量</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <!-- Overview Section -->
+      <section id="overview" class="mb-12">
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8 card-hover"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-4">
+            📋 アルゴリズム概要
+          </h2>
+          <div class="space-y-4 text-slate-700">
+            <p>
+              <strong>問題</strong>: 数字文字列
+              <code class="px-2 py-1 bg-slate-100 rounded">s</code>
+              が与えられ、<code>1→A, 2→B, ..., 26→Z</code>
+              のマッピングでデコードできる方法の総数を返します。
+            </p>
+            <p>
+              <strong>制約</strong>: 1桁は <code>1～9</code> のみ有効（<code
+                >0</code
+              >
+              単独は無効）、2桁は <code>10～26</code> のみ有効（先頭0は不可）。
+            </p>
+            <p>
+              <strong>戦略</strong>:
+              <span class="font-semibold text-emerald-600"
+                >ローリング動的計画法</span
+              >を使用。各位置で「1桁として取る」「2桁として取る」の2通りを判定し、前2状態（<code>prev2</code>,
+              <code>prev1</code>）から現在の通り数を計算します。
+            </p>
+            <div
+              class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded"
+            >
+              <p class="font-semibold text-emerald-800">✨ 最適化ポイント</p>
+              <ul class="list-disc list-inside mt-2 space-y-1 text-emerald-700">
+                <li>
+                  配列不要: スカラー変数2個（<code>prev2</code>,
+                  <code>prev1</code>）のみで O(1) 空間
+                </li>
+                <li>早期終了: デコード不能を検知した時点で即座に 0 を返す</li>
+                <li>整数演算: 文字列スライス回避で高速化</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Steps Section -->
+      <section id="steps" class="mb-12">
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-6">
+            🎯 ステップバイステップ解説
+          </h2>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Left: Step List -->
+            <div class="space-y-3">
+              <div
+                class="step-btn bg-slate-50 border border-slate-300 rounded-lg p-4 cursor-pointer hover:bg-emerald-50 hover:border-emerald-400 transition focus-ring"
+                role="button"
+                tabindex="0"
+                data-step="1"
+                aria-label="ステップ1: 初期化"
+              >
+                <div class="font-bold text-slate-800">Step 1: 初期化</div>
+                <div class="text-sm text-slate-600 mt-1">
+                  先頭が '0' なら即座に 0 を返す。prev2=1, prev1=1 で開始。
+                </div>
+              </div>
+
+              <div
+                class="step-btn bg-slate-50 border border-slate-300 rounded-lg p-4 cursor-pointer hover:bg-emerald-50 hover:border-emerald-400 transition focus-ring"
+                role="button"
+                tabindex="0"
+                data-step="2"
+                aria-label="ステップ2: 位置1を処理"
+              >
+                <div class="font-bold text-slate-800">
+                  Step 2: 位置 1 を処理
+                </div>
+                <div class="text-sm text-slate-600 mt-1">
+                  d0='2', d1='2': 1桁（2）が有効、2桁（22）も有効 → cur = 1 + 1
+                  = 2
+                </div>
+              </div>
+
+              <div
+                class="step-btn bg-slate-50 border border-slate-300 rounded-lg p-4 cursor-pointer hover:bg-emerald-50 hover:border-emerald-400 transition focus-ring"
+                role="button"
+                tabindex="0"
+                data-step="3"
+                aria-label="ステップ3: 位置2を処理"
+              >
+                <div class="font-bold text-slate-800">
+                  Step 3: 位置 2 を処理
+                </div>
+                <div class="text-sm text-slate-600 mt-1">
+                  d0='2', d1='6': 1桁（6）が有効、2桁（26）も有効 → cur = 2 + 1
+                  = 3
+                </div>
+              </div>
+
+              <div
+                class="step-btn bg-slate-50 border border-slate-300 rounded-lg p-4 cursor-pointer hover:bg-emerald-50 hover:border-emerald-400 transition focus-ring"
+                role="button"
+                tabindex="0"
+                data-step="4"
+                aria-label="ステップ4: 結果を返す"
+              >
+                <div class="font-bold text-slate-800">Step 4: 結果を返す</div>
+                <div class="text-sm text-slate-600 mt-1">
+                  prev1 = 3 を返す（"226" のデコード方法は3通り）
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: SVG Visualization -->
+
+            <div
+              class="relative bg-slate-50 rounded-lg border border-slate-200 p-4 min-h-[400px] flex items-center justify-center"
+            >
+
+                  <svg class="svg-stage active absolute inset-0 w-full h-full" data-step="1" viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg">
+                    <text x="200" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e293b">
+                        段階 1: 初期化
+                    </text>
+
+                    <rect x="50" y="60" width="300" height="80" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+                    <text x="200" y="90" text-anchor="middle" font-size="14" fill="#334155">
+                        入力: s = "226"
+                    </text>
+                    <text x="200" y="115" text-anchor="middle" font-size="13" fill="#475569">
+                        最初の文字を確認: '2' (有効)
+                    </text>
+
+                    <rect x="80" y="170" width="100" height="60" rx="6" fill="#dbeafe" stroke="#0ea5e9" stroke-width="2"/>
+                    <text x="130" y="195" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">prev2</text>
+                    <text x="130" y="215" text-anchor="middle" font-size="18" fill="#0ea5e9">1</text>
+
+                    <rect x="220" y="170" width="100" height="60" rx="6" fill="#dbeafe" stroke="#0ea5e9" stroke-width="2"/>
+                    <text x="270" y="195" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">prev1</text>
+                    <text x="270" y="215" text-anchor="middle" font-size="18" fill="#0ea5e9">1</text>
+
+                    <text x="200" y="270" text-anchor="middle" font-size="12" fill="#64748b">
+                        位置: 0 | 方法数: 1
+                    </text>
+                </svg>
+
+                <!-- 段階 2 -->
+                <svg class="svg-stage absolute inset-0 w-full h-full" data-step="2" viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg">
+                    <text x="200" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e293b">
+                        段階 2: i=1を処理
+                    </text>
+
+                    <rect x="50" y="60" width="300" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="200" y="85" text-anchor="middle" font-size="14" fill="#334155">d0='2', d1='2'</text>
+                    <text x="200" y="105" text-anchor="middle" font-size="12" fill="#475569">
+                        1桁: 有効 (2) | 2桁: 有効 (22)
+                    </text>
+
+                    <rect x="50" y="145" width="90" height="50" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="95" y="165" text-anchor="middle" font-size="11" fill="#1e293b">prev2</text>
+                    <text x="95" y="183" text-anchor="middle" font-size="16" fill="#6366f1">1</text>
+
+                    <rect x="155" y="145" width="90" height="50" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="200" y="165" text-anchor="middle" font-size="11" fill="#1e293b">prev1</text>
+                    <text x="200" y="183" text-anchor="middle" font-size="16" fill="#6366f1">1</text>
+
+                    <text x="200" y="220" text-anchor="middle" font-size="14" font-weight="bold" fill="#10b981">
+                        cur = 1 + 1 = 2
+                    </text>
+
+                    <rect x="260" y="145" width="90" height="50" rx="6" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                    <text x="305" y="165" text-anchor="middle" font-size="11" fill="#1e293b">cur</text>
+                    <text x="305" y="183" text-anchor="middle" font-size="18" fill="#059669">2</text>
+
+                    <text x="200" y="250" text-anchor="middle" font-size="12" fill="#64748b">
+                        更新: prev2=1, prev1=2
+                    </text>
+                    <text x="200" y="270" text-anchor="middle" font-size="11" fill="#475569">
+                        デコード: "BB" (2,2) または "V" (22)
+                    </text>
+                </svg>
+
+                <!-- 段階 3 -->
+                <svg class="svg-stage absolute inset-0 w-full h-full" data-step="3" viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg">
+                    <text x="200" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e293b">
+                        段階 3: i=2を処理
+                    </text>
+
+                    <rect x="50" y="60" width="300" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="200" y="85" text-anchor="middle" font-size="14" fill="#334155">d0='2', d1='6'</text>
+                    <text x="200" y="105" text-anchor="middle" font-size="12" fill="#475569">
+                        1桁: 有効 (6) | 2桁: 有効 (26)
+                    </text>
+
+                    <rect x="50" y="145" width="90" height="50" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="95" y="165" text-anchor="middle" font-size="11" fill="#1e293b">prev2</text>
+                    <text x="95" y="183" text-anchor="middle" font-size="16" fill="#6366f1">1</text>
+
+                    <rect x="155" y="145" width="90" height="50" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="200" y="165" text-anchor="middle" font-size="11" fill="#1e293b">prev1</text>
+                    <text x="200" y="183" text-anchor="middle" font-size="16" fill="#6366f1">2</text>
+
+                    <text x="200" y="220" text-anchor="middle" font-size="14" font-weight="bold" fill="#10b981">
+                        cur = 2 + 1 = 3
+                    </text>
+
+                    <rect x="260" y="145" width="90" height="50" rx="6" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                    <text x="305" y="165" text-anchor="middle" font-size="11" fill="#1e293b">cur</text>
+                    <text x="305" y="183" text-anchor="middle" font-size="18" fill="#059669">3</text>
+
+                    <text x="200" y="250" text-anchor="middle" font-size="12" fill="#64748b">
+                        更新: prev2=2, prev1=3
+                    </text>
+                    <text x="200" y="270" text-anchor="middle" font-size="11" fill="#475569">
+                        デコード: "BBF", "VF", "BZ"
+                    </text>
+                </svg>
+
+                <!-- 段階 4 -->
+                <svg class="svg-stage absolute inset-0 w-full h-full" data-step="4" viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg">
+                    <text x="200" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e293b">
+                        段階 4: 結果を返す
+                    </text>
+
+                    <rect x="80" y="80" width="240" height="100" rx="12" fill="#d1fae5" stroke="#10b981" stroke-width="3"/>
+                    <text x="200" y="110" text-anchor="middle" font-size="18" font-weight="bold" fill="#059669">
+                        最終結果
+                    </text>
+                    <text x="200" y="140" text-anchor="middle" font-size="32" font-weight="bold" fill="#10b981">3</text>
+                    <text x="200" y="165" text-anchor="middle" font-size="13" fill="#475569">
+                        "226"をデコードする方法
+                    </text>
+
+                    <rect x="40" y="210" width="320" height="100" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                    <text x="200" y="235" text-anchor="middle" font-size="14" font-weight="bold" fill="#334155">
+                        3つの有効なデコード:
+                    </text>
+                    <text x="200" y="258" text-anchor="middle" font-size="12" fill="#475569">1. "BBF" (2, 2, 6)</text>
+                    <text x="200" y="278" text-anchor="middle" font-size="12" fill="#475569">2. "VF" (22, 6)</text>
+                    <text x="200" y="298" text-anchor="middle" font-size="12" fill="#475569">3. "BZ" (2, 26)</text>
+                </svg>
+            </div>
+          <!-- Controls -->
+          <div class="flex justify-center gap-3 mt-6">
+            <button
+              class="control-btn px-6 py-2 bg-emerald-500 text-white font-semibold rounded-lg shadow hover:bg-emerald-600 focus-ring"
+              data-action="play"
+            >
+              ▶ Play
+            </button>
+            <button
+              class="control-btn px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg shadow hover:bg-sky-600 focus-ring"
+              data-action="prev"
+            >
+              ← Prev
+            </button>
+            <button
+              class="control-btn px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg shadow hover:bg-sky-600 focus-ring"
+              data-action="next"
+            >
+              Next →
+            </button>
+            <button
+              class="control-btn px-4 py-2 bg-slate-500 text-white font-semibold rounded-lg shadow hover:bg-slate-600 focus-ring"
+              data-action="reset"
+            >
+              ↺ Reset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Code Section -->
+      <section id="code" class="mb-12">
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-4">
+            💻 Python コード実装
+          </h2>
+          <p class="text-slate-600 mb-4">
+            LeetCode 形式の Solution クラス。ローリングDP で O(n) 時間 / O(1)
+            空間を実現。
+          </p>
+
+          <pre
+            class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto"
+          ><code class="language-python">from __future__ import annotations
+from typing import Final
+
+
+class Solution:
+    """
+    Decode Ways (LeetCode 91)
+    数字文字列を A-Z ('1'-'26') にデコードする方法の総数を返す。
+
+    アルゴリズム:
+    - ローリングDP (prev2, prev1) で O(n) 時間 / O(1) 追加メモリ
+    - 1桁: '1'..'9' が有効
+    - 2桁: '10'..'26' が有効
+    - '0' 単独や先頭0は無効
+    """
+
+    def numDecodings(self, s: str) -> int:
+        """
+        Args:
+            s: 数字のみから成る文字列（長さ 1..100）
+
+        Returns:
+            デコード方法の総数（不能なら 0）
+
+        Complexity:
+            Time: O(n), Space: O(1)
+        """
+        n: Final[int] = len(s)
+
+        # 基底条件: 空文字列は不正
+        if n == 0:
+            return 0
+
+        # 先頭が '0' ならデコード不能
+        first_digit: int = ord(s[0]) - ord('0')
+        if first_digit == 0:
+            return 0
+
+        # DP初期値:
+        # prev2 = dp[-1] = 1 (空文字列の基数)
+        # prev1 = dp[0] = 1 (先頭1文字、'1'..'9' が確定)
+        prev2: int = 1
+        prev1: int = 1
+
+        # 位置 1 から n-1 まで処理
+        for i in range(1, n):
+            d1: int = ord(s[i]) - ord('0')        # 現在の1桁
+            d0: int = ord(s[i - 1]) - ord('0')    # 直前の1桁
+
+            cur: int = 0
+
+            # 遷移1: 1桁が有効 ('1'..'9')
+            if 1 <= d1 <= 9:
+                cur += prev1
+
+            # 遷移2: 2桁が有効 ('10'..'26')
+            two_digit: int = d0 * 10 + d1
+            if 10 <= two_digit <= 26:
+                cur += prev2
+
+            # どちらも不可 → デコード不能
+            if cur == 0:
+                return 0
+
+            # ローリング更新
+            prev2, prev1 = prev1, cur
+
+        return prev1
+</code></pre>
+        </div>
+      </section>
+
+      <!-- Diagram Section -->
+      <section id="diagram" class="mb-12">
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-4">
+            📊 視覚的フローチャート
+          </h2>
+          <p class="text-slate-600 mb-6">
+            アルゴリズムの処理フロー全体を俯瞰する静的図解。
+          </p>
+
+          <svg viewBox="0 0 600 750" xmlns="http://www.w3.org/2000/svg" class="w-full max-w-2xl mx-auto">
+                <!-- 開始 -->
+                <rect x="220" y="20" width="160" height="50" rx="25" fill="#10b981" stroke="#059669" stroke-width="2"/>
+                <text x="300" y="50" text-anchor="middle" font-size="16" font-weight="bold" fill="white">開始</text>
+
+                <line x1="300" y1="70" x2="300" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- 最初の文字チェック -->
+                <rect x="200" y="100" width="200" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                <text x="300" y="125" text-anchor="middle" font-size="14" fill="#334155">最初の文字が '0'?</text>
+
+                <line x1="300" y1="160" x2="300" y2="190" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <text x="320" y="180" font-size="12" fill="#059669">いいえ</text>
+
+                <line x1="400" y1="130" x2="480" y2="130" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <text x="420" y="125" font-size="12" fill="#dc2626">はい</text>
+
+                <!-- 0を返す（右） -->
+                <rect x="480" y="110" width="100" height="40" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+                <text x="530" y="135" text-anchor="middle" font-size="14" font-weight="bold" fill="#dc2626">0を返す</text>
+
+                <!-- 初期化 -->
+                <rect x="200" y="190" width="200" height="60" rx="8" fill="#dbeafe" stroke="#0ea5e9" stroke-width="2"/>
+                <text x="300" y="215" text-anchor="middle" font-size="13" fill="#334155">初期化</text>
+                <text x="300" y="235" text-anchor="middle" font-size="12" fill="#475569">prev2=1, prev1=1</text>
+
+                <line x1="300" y1="250" x2="300" y2="280" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- ループ -->
+                <rect x="200" y="280" width="200" height="60" rx="8" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+                <text x="300" y="305" text-anchor="middle" font-size="13" fill="#334155">i = 1 から n-1 まで</text>
+                <text x="300" y="325" text-anchor="middle" font-size="11" fill="#475569">位置 i を処理</text>
+
+                <line x1="300" y1="340" x2="300" y2="370" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- 数字を取得 -->
+                <rect x="200" y="370" width="200" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                <text x="300" y="390" text-anchor="middle" font-size="12" fill="#334155">d0 = s[i-1] を取得</text>
+                <text x="300" y="408" text-anchor="middle" font-size="12" fill="#334155">d1 = s[i]</text>
+
+                <line x1="300" y1="420" x2="300" y2="450" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- 1桁チェック -->
+                <rect x="200" y="450" width="200" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                <text x="300" y="472" text-anchor="middle" font-size="12" fill="#334155">1 ≤ d1 ≤ 9?</text>
+                <text x="300" y="490" text-anchor="middle" font-size="11" fill="#475569">cur += prev1</text>
+
+                <line x1="300" y1="500" x2="300" y2="530" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- 2桁チェック -->
+                <rect x="200" y="530" width="200" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                <text x="300" y="552" text-anchor="middle" font-size="12" fill="#334155">10 ≤ d0*10+d1 ≤ 26?</text>
+                <text x="300" y="570" text-anchor="middle" font-size="11" fill="#475569">cur += prev2</text>
+
+                <line x1="300" y1="580" x2="300" y2="610" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                <!-- cur == 0 チェック -->
+                <rect x="225" y="610" width="150" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                <text x="300" y="640" text-anchor="middle" font-size="13" fill="#334155">cur == 0?</text>
+
+                <line x1="375" y1="635" x2="480" y2="635" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <text x="410" y="630" font-size="12" fill="#dc2626">はい</text>
+
+                <!-- 0を返す（右下） -->
+                <rect x="480" y="615" width="100" height="40" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+                <text x="530" y="640" text-anchor="middle" font-size="14" font-weight="bold" fill="#dc2626">0を返す</text>
+
+                <line x1="225" y1="635" x2="150" y2="635" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"></line>
+                <text x="175" y="630" font-size="12" fill="#059669">いいえ</text>
+
+                <!-- 更新 -->
+                <rect x="50" y="610" width="100" height="50" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                <text x="100" y="630" text-anchor="middle" font-size="11" fill="#334155">更新</text>
+                <text x="100" y="648" text-anchor="middle" font-size="10" fill="#475569">prev2, prev1</text>
+
+                <line x1="100" y1="610" x2="100" y2="310" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4"/>
+                <line x1="100" y1="310" x2="200" y2="310" stroke="#64748b" stroke-width="2"stroke-dasharray="4,4" marker-end="url(#arrowhead)"/>
+
+                <!-- 結果を返す -->
+                <rect x="220" y="690" width="160" height="50" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+                <text x="300" y="720" text-anchor="middle" font-size="14" font-weight="bold" fill="#059669">prev1を返す</text>
+
+                <line x1="300" y1="660" x2="300" y2="690" stroke="#64748b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <text x="310" y="675" font-size="11" fill="#64748b">ループ終了</text>
+
+                <!-- 矢印マーカー定義 -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#64748b"/>
+                    </marker>
+                </defs>
+            </svg>
+
+
+          <p class="text-sm text-slate-600 mt-6 text-center">
+            各位置で1桁・2桁の有効性を判定し、通り数を累積。どちらも不可なら即座に
+            0 を返す。
+          </p>
+           <!-- アルゴリズム説明 -->
+        <div class="mt-2 p-6">
+            <h2 class="text-2xl font-bold text-slate-800 my-4">
+                💡 アルゴリズムの概要
+            </h2>
+            <div class="space-y-3 text-slate-700">
+                <p>
+                    <strong>動的計画法:</strong> 各位置での有効なデコード方法数を前の2つの位置から計算します。
+                </p>
+                <p>
+                    <strong>1桁の場合:</strong> 現在の文字が1〜9なら、前の位置の方法数を加算します。
+                </p>
+                <p>
+                    <strong>2桁の場合:</strong> 前の文字と現在の文字で10〜26の範囲なら、2つ前の位置の方法数を加算します。
+                </p>
+                <p>
+                    <strong>無効な場合:</strong> 1桁も2桁も有効でない場合、デコード不可能として0を返します。
+                </p>
+            </div>
+
+        <!-- 例の説明 -->
+            <h2 class="text-2xl font-bold text-slate-800 my-4">
+                📝 例: "226"のデコード
+            </h2>
+            <div class="space-y-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-bold text-blue-900 mb-2">方法1: BBF</h3>
+                    <p class="text-blue-800">2 → B, 2 → B, 6 → F</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="font-bold text-green-900 mb-2">方法2: VF</h3>
+                    <p class="text-green-800">22 → V, 6 → F</p>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 class="font-bold text-purple-900 mb-2">方法3: BZ</h3>
+                    <p class="text-purple-800">2 → B, 26 → Z</p>
+                </div>
+            </div>
+        </div>
+
+        </div>
+
+      </section>
+
+      <!-- Complexity Section -->
+      <section id="complexity" class="mb-12">
+        <div
+          class="bg-white rounded-xl shadow-md border border-slate-200 p-6 md:p-8"
+        >
+          <h2 class="text-2xl font-bold text-slate-800 mb-4">⚡ 計算量分析</h2>
+
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
+              <h3 class="text-lg font-bold text-emerald-800 mb-2">
+                ⏱️ 時間計算量
+              </h3>
+              <p class="text-3xl font-bold text-emerald-600 mb-2">O(n)</p>
+              <p class="text-sm text-slate-700">
+                各文字を1回ずつ処理。各ステップは定数時間の演算（整数加算、比較、更新）のみ。
+              </p>
+            </div>
+
+            <div class="bg-sky-50 border border-sky-200 rounded-lg p-5">
+              <h3 class="text-lg font-bold text-sky-800 mb-2">💾 空間計算量</h3>
+              <p class="text-3xl font-bold text-sky-600 mb-2">O(1)</p>
+              <p class="text-sm text-slate-700">
+                追加メモリはスカラー変数3個（<code
+                  class="px-1 py-0.5 bg-white rounded text-xs"
+                  >prev2, prev1, cur</code
+                >）のみ。配列不要。
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+            <h3 class="text-lg font-bold text-slate-800 mb-3">
+              📋 アプローチ比較
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-100 border-b-2 border-slate-300">
+                  <tr>
+                    <th
+                      class="px-4 py-2 text-left font-semibold text-slate-700"
+                    >
+                      手法
+                    </th>
+                    <th
+                      class="px-4 py-2 text-left font-semibold text-slate-700"
+                    >
+                      時間
+                    </th>
+                    <th
+                      class="px-4 py-2 text-left font-semibold text-slate-700"
+                    >
+                      空間
+                    </th>
+                    <th
+                      class="px-4 py-2 text-left font-semibold text-slate-700"
+                    >
+                      備考
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <tr class="bg-emerald-50">
+                    <td class="px-4 py-3 font-semibold text-slate-800">
+                      ローリングDP（採用）
+                    </td>
+                    <td class="px-4 py-3 text-emerald-600 font-semibold">
+                      O(n)
+                    </td>
+                    <td class="px-4 py-3 text-emerald-600 font-semibold">
+                      O(1)
+                    </td>
+                    <td class="px-4 py-3 text-slate-600">
+                      最小メモリ、実装簡潔
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold text-slate-800">
+                      配列DP
+                    </td>
+                    <td class="px-4 py-3 text-slate-600">O(n)</td>
+                    <td class="px-4 py-3 text-slate-600">O(n)</td>
+                    <td class="px-4 py-3 text-slate-600">学習用に明快</td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold text-slate-800">
+                      再帰+メモ化
+                    </td>
+                    <td class="px-4 py-3 text-slate-600">O(n)</td>
+                    <td class="px-4 py-3 text-slate-600">O(n)</td>
+                    <td class="px-4 py-3 text-slate-600">
+                      スタック深度+キャッシュ
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-8 mt-12">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <p class="text-sm">
+          LeetCode 91: Decode Ways - ローリング動的計画法の視覚的解説
+        </p>
+        <p class="text-xs mt-2 text-slate-400">
+          Created with Tailwind CSS, Prism.js | © 2025
+        </p>
+      </div>
+    </footer>
+
+    <!-- Prism.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <!-- Main Script -->
+    <script>
+      (function () {
+        "use strict";
+
+        const totalSteps = 4;
+        let currentStep = 1;
+        let isPlaying = false;
+
+        const stepButtons = document.querySelectorAll(".step-btn");
+        const svgStages = document.querySelectorAll(".svg-stage");
+        const playBtn = document.querySelector('[data-action="play"]');
+        const prevBtn = document.querySelector('[data-action="prev"]');
+        const nextBtn = document.querySelector('[data-action="next"]');
+        const resetBtn = document.querySelector('[data-action="reset"]');
+
+        // Initialize: show step 1
+        function init() {
+          showStep(1);
+        }
+
+        // Show specific step
+        function showStep(step) {
+          if (step < 1 || step > totalSteps) return;
+
+          currentStep = step;
+
+          // Update step buttons
+          stepButtons.forEach((btn, idx) => {
+            const btnStep = parseInt(btn.dataset.step);
+            if (btnStep === step) {
+              btn.classList.add("active");
+              btn.setAttribute("aria-pressed", "true");
+            } else {
+              btn.classList.remove("active");
+              btn.setAttribute("aria-pressed", "false");
+            }
+          });
+
+          // Update SVG stages
+          svgStages.forEach((svg) => {
+            const svgStep = parseInt(svg.dataset.step);
+            if (svgStep === step) {
+              svg.classList.add("active");
+              svg.setAttribute("aria-hidden", "false");
+            } else {
+              svg.classList.remove("active");
+              svg.setAttribute("aria-hidden", "true");
+            }
+          });
+
+          updateControlButtons();
+        }
+
+        // Update control button states
+        function updateControlButtons() {
+          prevBtn.disabled = currentStep === 1;
+          nextBtn.disabled = currentStep === totalSteps;
+        }
+
+        // Play animation (one cycle, then reset)
+        function playAnimation() {
+          if (isPlaying) return; // Prevent multiple plays
+
+          isPlaying = true;
+          playBtn.disabled = true;
+
+          let step = 1;
+          showStep(step);
+
+          const interval = setInterval(() => {
+            step++;
+            if (step > totalSteps) {
+              clearInterval(interval);
+              // Auto reset to step 1 after completion
+              setTimeout(() => {
+                showStep(1);
+                isPlaying = false;
+                playBtn.disabled = false;
+              }, 800);
+            } else {
+              showStep(step);
+            }
+          }, 1500);
+        }
+
+        // Event listeners for step buttons
+        stepButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const step = parseInt(btn.dataset.step);
+            showStep(step);
+          });
+
+          btn.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              const step = parseInt(btn.dataset.step);
+              showStep(step);
+            }
+          });
+        });
+
+        // Control buttons
+        playBtn.addEventListener("click", playAnimation);
+
+        prevBtn.addEventListener("click", () => {
+          if (currentStep > 1) {
+            showStep(currentStep - 1);
+          }
+        });
+
+        nextBtn.addEventListener("click", () => {
+          if (currentStep < totalSteps) {
+            showStep(currentStep + 1);
+          }
+        });
+
+        resetBtn.addEventListener("click", () => {
+          showStep(1);
+        });
+
+        // Initialize on load
+        init();
+      })();
+    </script>
+  </body>
+</html>

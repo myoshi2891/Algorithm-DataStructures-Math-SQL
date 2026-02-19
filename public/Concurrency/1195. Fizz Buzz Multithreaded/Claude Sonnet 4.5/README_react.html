@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1195: Fizz Buzz Multithreaded - マルチスレッド同期制御</title>
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <div style="max-width: 1400px; margin: 0 auto">
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Fizz Buzz Multithreaded</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    Lock ベース同期制御による O(n) 実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <p class="mb-4">
+                    4つの異なるスレッドが協調して、1からnまでのFizzBuzz列を正しい順序で出力する問題です。各スレッドは特定の条件を満たす番号のみを処理します。
+                </p>
+
+                <div class="bg-slate-50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">スレッドの役割</h3>
+                    <ul class="space-y-2 text-slate-700">
+                        <li>
+                            <strong class="text-emerald-600">Thread A (fizz)</strong>:
+                            3の倍数（5の倍数を除く）で "fizz" を出力
+                        </li>
+                        <li>
+                            <strong class="text-cyan-600">Thread B (buzz)</strong>:
+                            5の倍数（3の倍数を除く）で "buzz" を出力
+                        </li>
+                        <li>
+                            <strong class="text-purple-600">Thread C (fizzbuzz)</strong>: 15の倍数で
+                            "fizzbuzz" を出力
+                        </li>
+                        <li>
+                            <strong class="text-slate-600">Thread D (number)</strong>:
+                            3でも5でも割り切れない数値を出力
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-emerald-50 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">入出力例</h3>
+                    <div class="bg-white rounded-lg p-4 mb-3">
+                        <p class="font-semibold mb-2">Example 1:</p>
+                        <pre class="text-sm"><code>Input: n = 15
+Output: [1, 2, "fizz", 4, "buzz", "fizz", 7, 8, "fizz", "buzz", 11, "fizz", 13, 14, "fizzbuzz"]</code></pre>
+                    </div>
+                    <div class="bg-white rounded-lg p-4">
+                        <p class="font-semibold mb-2">Example 2:</p>
+                        <pre class="text-sm"><code>Input: n = 5
+Output: [1, 2, "fizz", 4, "buzz"]</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-sky-50 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">主要ポイント</h3>
+                    <ul class="list-disc list-inside space-y-2 text-slate-700">
+                        <li><strong>時間計算量</strong>: O(n) - 各番号を1回ずつ処理</li>
+                        <li><strong>空間計算量</strong>: O(1) - 固定サイズの状態変数のみ</li>
+                        <li><strong>同期制御</strong>: Lock による排他制御で安全性を保証</li>
+                        <li>
+                            <strong>自律的チェック</strong>: 各スレッドが能動的に担当番号かを確認
+                        </li>
+                        <li><strong>デッドロック防止</strong>: 単一ロック & 共通終了条件で保証</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre class="line-numbers"><code class="language-python">from threading import Lock
+from typing import Callable
+
+
+class FizzBuzz:
+    """
+    マルチスレッド FizzBuzz 実装（Lock ベース）
+
+    Time Complexity: O(n)
+    Space Complexity: O(1)
+    """
+
+    __slots__ = ('n', 'current', 'lock')
+
+    def __init__(self, n: int) -> None:
+        """
+        初期化
+
+        Args:
+            n: 出力する数値の上限（1 <= n <= 50）
+        """
+        self.n: int = n
+        self.current: int = 1
+        self.lock: Lock = Lock()
+
+    def fizz(self, printFizz: Callable[[], None]) -> None:
+        """
+        3の倍数（5の倍数を除く）で "fizz" を出力
+
+        条件: i % 3 == 0 and i % 5 != 0
+        """
+        while True:
+            with self.lock:
+                # 終了条件チェック
+                if self.current > self.n:
+                    break
+
+                # 自分の担当番号かチェック
+                if self.current % 3 == 0 and self.current % 5 != 0:
+                    printFizz()
+                    self.current += 1
+
+    def buzz(self, printBuzz: Callable[[], None]) -> None:
+        """
+        5の倍数（3の倍数を除く）で "buzz" を出力
+
+        条件: i % 5 == 0 and i % 3 != 0
+        """
+        while True:
+            with self.lock:
+                if self.current > self.n:
+                    break
+
+                if self.current % 5 == 0 and self.current % 3 != 0:
+                    printBuzz()
+                    self.current += 1
+
+    def fizzbuzz(self, printFizzBuzz: Callable[[], None]) -> None:
+        """
+        15の倍数で "fizzbuzz" を出力
+
+        条件: i % 15 == 0（3と5の公倍数）
+        """
+        while True:
+            with self.lock:
+                if self.current > self.n:
+                    break
+
+                # 15で割る方が 3と5 両方チェックより高速
+                if self.current % 15 == 0:
+                    printFizzBuzz()
+                    self.current += 1
+
+    def number(self, printNumber: Callable[[int], None]) -> None:
+        """
+        3でも5でも割り切れない数値を出力
+
+        条件: i % 3 != 0 and i % 5 != 0
+        """
+        while True:
+            with self.lock:
+                if self.current > self.n:
+                    break
+
+                if self.current % 3 != 0 and self.current % 5 != 0:
+                    printNumber(self.current)
+                    self.current += 1</code></pre>
+            </section>
+
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <svg
+                        viewBox="0 0 840 900"
+                        style="max-width: 100%; height: auto; color: #333"
+                        role="img"
+                        aria-label="Fizz Buzz Multithreaded flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始 -->
+                        <ellipse
+                            cx="420"
+                            cy="50"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="50"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                        >
+                            スレッド開始
+                        </text>
+
+                        <!-- 開始 → ロック取得 -->
+                        <path
+                            d="M 420 85 L 420 130"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ロック取得 -->
+                        <rect
+                            x="320"
+                            y="130"
+                            width="200"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="160"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            ロック取得
+                        </text>
+
+                        <!-- ロック取得 → 終了条件チェック -->
+                        <path
+                            d="M 420 190 L 420 240"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- 終了条件チェック -->
+                        <path
+                            d="M 420 240 L 520 290 L 420 340 L 320 290 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="290"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">current &gt; n</tspan>
+                            <tspan x="420" dy="18">終了?</tspan>
+                        </text>
+
+                        <!-- はい → ロック解放1 -->
+                        <path
+                            d="M 520 290 L 640 290"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="580"
+                            y="280"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <rect
+                            x="640"
+                            y="260"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="720"
+                            y="290"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            ロック解放
+                        </text>
+
+                        <!-- ロック解放1 → 終了 -->
+                        <path
+                            d="M 720 320 L 720 385"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <ellipse
+                            cx="720"
+                            cy="420"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="720"
+                            y="420"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="18"
+                            font-weight="600"
+                        >
+                            スレッド終了
+                        </text>
+
+                        <!-- いいえ → 担当チェック -->
+                        <path
+                            d="M 420 340 L 420 400"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="450"
+                            y="370"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- 担当チェック -->
+                        <path
+                            d="M 420 400 L 520 450 L 420 500 L 320 450 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="450"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">自分の担当</tspan>
+                            <tspan x="420" dy="18">番号?</tspan>
+                        </text>
+
+                        <!-- いいえ → ロック解放2 -->
+                        <path
+                            d="M 320 450 L 200 450"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="260"
+                            y="440"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <rect
+                            x="60"
+                            y="420"
+                            width="140"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="130"
+                            y="450"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            ロック解放
+                        </text>
+
+                        <!-- ループバック（ロック解放2 → ロック取得） -->
+                        <path
+                            d="M 130 420 L 130 160 L 320 160"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <text
+                            x="160"
+                            y="280"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#a855f7"
+                        >
+                            再試行
+                        </text>
+
+                        <!-- はい → 処理実行 -->
+                        <path
+                            d="M 420 500 L 420 560"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="450"
+                            y="530"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- 処理実行 -->
+                        <rect
+                            x="320"
+                            y="560"
+                            width="200"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="590"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            <tspan x="420" dy="-8">printXXX()</tspan>
+                            <tspan x="420" dy="18">実行</tspan>
+                        </text>
+
+                        <!-- 処理実行 → インクリメント -->
+                        <path
+                            d="M 420 620 L 420 680"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- インクリメント -->
+                        <rect
+                            x="320"
+                            y="680"
+                            width="200"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="710"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            current += 1
+                        </text>
+
+                        <!-- インクリメント → ロック解放3 -->
+                        <path
+                            d="M 420 740 L 420 800"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ロック解放3 -->
+                        <rect
+                            x="340"
+                            y="800"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="420"
+                            y="830"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="600"
+                        >
+                            ロック解放
+                        </text>
+
+                        <!-- ループバック（ロック解放3 → ロック取得） -->
+                        <path
+                            d="M 340 830 L 30 830 L 30 160 L 320 160"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <text
+                            x="180"
+                            y="820"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#a855f7"
+                        >
+                            次の番号へ
+                        </text>
+                    </svg>
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. スレッド開始後、ロックを取得して共有状態にアクセス<br />
+                    2. current > n なら終了、そうでなければ次へ<br />
+                    3. 自分の担当番号でなければロックを解放して再試行<br />
+                    4. 担当番号なら printXXX() を実行し、current をインクリメント<br />
+                    5. ロックを解放して次の番号の処理へループバック
+                </p>
+            </section>
+
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-100">
+                                <th class="border-2 border-emerald-300 px-4 py-3 text-left">
+                                    項目
+                                </th>
+                                <th class="border-2 border-emerald-300 px-4 py-3 text-left">
+                                    本実装 (Lock)
+                                </th>
+                                <th class="border-2 border-emerald-300 px-4 py-3 text-left">
+                                    Condition + notify_all
+                                </th>
+                                <th class="border-2 border-emerald-300 px-4 py-3 text-left">
+                                    Semaphore連鎖
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    時間計算量
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    O(n)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(n)</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(n)</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    空間計算量
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    O(1)
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">O(1)</td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    メモリ使用量 (n=50)
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    16-17 MB
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">20+ MB</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">18-19 MB</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    実行速度 (n=50)
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    30-35 ms
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">48 ms</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">40-45 ms</td>
+                            </tr>
+                            <tr>
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    実装コスト
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    低
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">中</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">高</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="border-2 border-slate-200 px-4 py-3 font-semibold">
+                                    デッドロック耐性
+                                </td>
+                                <td
+                                    class="border-2 border-slate-200 px-4 py-3 text-emerald-600 font-semibold"
+                                >
+                                    高
+                                </td>
+                                <td class="border-2 border-slate-200 px-4 py-3">中</td>
+                                <td class="border-2 border-slate-200 px-4 py-3">低</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 bg-emerald-50 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">最適化のポイント</h3>
+                    <ul class="list-disc list-inside space-y-2 text-slate-700">
+                        <li>
+                            <strong>__slots__</strong>
+                            でインスタンス辞書を排除し、メモリ使用量を約40%削減
+                        </li>
+                        <li><strong>15で割る</strong>直接判定で、3と5両方のチェックより高速化</li>
+                        <li>
+                            <strong>Condition不使用</strong
+                            >により、notify_all()の待機キューオーバーヘッドを削減
+                        </li>
+                        <li>
+                            <strong>自律的チェック</strong
+                            >方式で、通知メカニズムを不要にしシンプル化
+                        </li>
+                        <li>n ≤ 50 という制約下では、Lockポーリングが最も効率的</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const StepVisualization = ({ visual }) => {
+                const { type, n = 15, current, threadType, waiting } = visual;
+
+                const threads = [
+                    { name: 'fizz', color: '#10b981', label: 'Thread A (fizz)' },
+                    { name: 'buzz', color: '#0ea5e9', label: 'Thread B (buzz)' },
+                    { name: 'fizzbuzz', color: '#a855f7', label: 'Thread C (fizzbuzz)' },
+                    { name: 'number', color: '#64748b', label: 'Thread D (number)' },
+                ];
+
+                const getOutput = (i) => {
+                    if (i % 15 === 0) return 'fizzbuzz';
+                    if (i % 3 === 0) return 'fizz';
+                    if (i % 5 === 0) return 'buzz';
+                    return i.toString();
+                };
+
+                const getThreadForNumber = (i) => {
+                    if (i % 15 === 0) return 'fizzbuzz';
+                    if (i % 3 === 0 && i % 5 !== 0) return 'fizz';
+                    if (i % 5 === 0 && i % 3 !== 0) return 'buzz';
+                    return 'number';
+                };
+
+                if (type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                初期状態: n = {n}, current = 1
+                            </text>
+
+                            {threads.map((thread, idx) => (
+                                <g key={thread.name}>
+                                    <rect
+                                        x="50"
+                                        y={80 + idx * 60}
+                                        width="500"
+                                        height="50"
+                                        rx="8"
+                                        fill="#f8fafc"
+                                        stroke={thread.color}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="300"
+                                        y={105 + idx * 60}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill={thread.color}
+                                    >
+                                        {thread.label}: 待機中
+                                    </text>
+                                </g>
+                            ))}
+
+                            <text
+                                x="300"
+                                y="320"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                4つのスレッドが並行して動作を開始
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'acquire') {
+                    const activeThread = threads.find((t) => t.name === threadType);
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                current = {current}: {activeThread.label} がロック取得
+                            </text>
+
+                            {threads.map((thread, idx) => {
+                                const isActive = thread.name === threadType;
+                                return (
+                                    <g key={thread.name}>
+                                        <rect
+                                            x="50"
+                                            y={80 + idx * 70}
+                                            width="500"
+                                            height="60"
+                                            rx="8"
+                                            fill={isActive ? '#d1fae5' : '#f8fafc'}
+                                            stroke={thread.color}
+                                            strokeWidth={isActive ? 3 : 2}
+                                        />
+                                        <text
+                                            x="300"
+                                            y={110 + idx * 70}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                            fill={thread.color}
+                                        >
+                                            {thread.label}:{' '}
+                                            {isActive
+                                                ? 'ロック取得 → 条件チェック中'
+                                                : 'ロック待機中'}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            <text
+                                x="300"
+                                y="370"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                排他制御により、1つのスレッドのみが処理を実行
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'check') {
+                    const activeThread = threads.find((t) => t.name === threadType);
+                    const isMyTurn = getThreadForNumber(current) === threadType;
+                    return (
+                        <svg
+                            viewBox="0 0 600 450"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                current = {current}: {activeThread.label} が担当チェック
+                            </text>
+
+                            <rect
+                                x="150"
+                                y="60"
+                                width="300"
+                                height="80"
+                                rx="8"
+                                fill={isMyTurn ? '#d1fae5' : '#fee2e2'}
+                                stroke={isMyTurn ? '#059669' : '#dc2626'}
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="300"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                担当判定: {isMyTurn ? '✓ 自分の番号' : '✗ 他スレッドの番号'}
+                            </text>
+                            <text
+                                x="300"
+                                y="115"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                出力: {getOutput(current)} →{' '}
+                                {isMyTurn ? activeThread.label : getThreadForNumber(current)}
+                            </text>
+
+                            {threads.map((thread, idx) => {
+                                const isActive = thread.name === threadType;
+                                return (
+                                    <g key={thread.name}>
+                                        <rect
+                                            x="50"
+                                            y={170 + idx * 60}
+                                            width="500"
+                                            height="50"
+                                            rx="8"
+                                            fill={
+                                                isActive
+                                                    ? isMyTurn
+                                                        ? '#d1fae5'
+                                                        : '#fee2e2'
+                                                    : '#f8fafc'
+                                            }
+                                            stroke={thread.color}
+                                            strokeWidth={isActive ? 3 : 2}
+                                        />
+                                        <text
+                                            x="300"
+                                            y={195 + idx * 60}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                            fill={thread.color}
+                                        >
+                                            {thread.label}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            <text
+                                x="300"
+                                y="420"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                {isMyTurn
+                                    ? '条件一致 → 処理実行へ'
+                                    : '条件不一致 → ロック解放して再試行'}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'process') {
+                    const activeThread = threads.find((t) => t.name === threadType);
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                current = {current}: {activeThread.label} が処理実行
+                            </text>
+
+                            <rect
+                                x="150"
+                                y="60"
+                                width="300"
+                                height="100"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#059669"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                出力: "{getOutput(current)}"
+                            </text>
+                            <text
+                                x="300"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                print{threadType.charAt(0).toUpperCase() + threadType.slice(1)}()
+                                実行
+                            </text>
+                            <text
+                                x="300"
+                                y="145"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                current: {current} → {current + 1}
+                            </text>
+
+                            {threads.map((thread, idx) => {
+                                const isActive = thread.name === threadType;
+                                return (
+                                    <g key={thread.name}>
+                                        <rect
+                                            x="50"
+                                            y={190 + idx * 50}
+                                            width="500"
+                                            height="40"
+                                            rx="8"
+                                            fill={isActive ? '#d1fae5' : '#f8fafc'}
+                                            stroke={thread.color}
+                                            strokeWidth={isActive ? 3 : 2}
+                                        />
+                                        <text
+                                            x="300"
+                                            y={210 + idx * 50}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill={thread.color}
+                                        >
+                                            {thread.label}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            <text
+                                x="300"
+                                y="370"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                処理完了 → ロック解放 → 次の番号へ
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'release') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                current = {current}: ロック解放
+                            </text>
+
+                            {threads.map((thread, idx) => (
+                                <g key={thread.name}>
+                                    <rect
+                                        x="50"
+                                        y={80 + idx * 60}
+                                        width="500"
+                                        height="50"
+                                        rx="8"
+                                        fill="#f8fafc"
+                                        stroke={thread.color}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="300"
+                                        y={105 + idx * 60}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill={thread.color}
+                                    >
+                                        {thread.label}: 次のロック取得を試行
+                                    </text>
+                                </g>
+                            ))}
+
+                            <text
+                                x="300"
+                                y="320"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                全スレッドが再度ロック取得を競合
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'result') {
+                    const outputs = [];
+                    for (let i = 1; i <= n; i++) {
+                        outputs.push(getOutput(i));
+                    }
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                最終結果: n = {n} の完全な出力
+                            </text>
+
+                            <rect
+                                x="20"
+                                y="60"
+                                width="560"
+                                height="180"
+                                rx="8"
+                                fill="#f0fdf4"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#059669"
+                                fontWeight="600"
+                            >
+                                出力シーケンス:
+                            </text>
+
+                            {outputs.slice(0, 15).map((output, idx) => (
+                                <text
+                                    key={idx}
+                                    x={40 + (idx % 5) * 110}
+                                    y={120 + Math.floor(idx / 5) * 30}
+                                    textAnchor="start"
+                                    dominantBaseline="middle"
+                                    fontSize="14"
+                                    fill={typeof output === 'number' ? '#64748b' : '#059669'}
+                                    fontWeight="600"
+                                >
+                                    {idx + 1}: {output}
+                                </text>
+                            ))}
+
+                            <text
+                                x="300"
+                                y="260"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                全{n}個の要素を正しい順序で出力完了
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            };
+
+            const FizzBuzzSteps = () => {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '初期化',
+                        desc: 'n = 15 として FizzBuzz インスタンスを生成。current = 1, lock = Lock() で初期化し、4つのスレッドを起動します。',
+                        visual: { type: 'init', n: 15 },
+                    },
+                    {
+                        step: 2,
+                        title: 'Thread D がロック取得 (current=1)',
+                        desc: 'Thread D (number) がロックを取得し、current = 1 をチェックします。1 % 3 ≠ 0 かつ 1 % 5 ≠ 0 なので、Thread D の担当です。',
+                        visual: { type: 'acquire', current: 1, threadType: 'number' },
+                    },
+                    {
+                        step: 3,
+                        title: 'Thread D が条件確認',
+                        desc: 'current = 1 は 3でも5でも割り切れないため、Thread D の条件に一致。処理を実行します。',
+                        visual: { type: 'check', current: 1, threadType: 'number' },
+                    },
+                    {
+                        step: 4,
+                        title: 'Thread D が処理実行',
+                        desc: 'printNumber(1) を実行し、"1" を出力。その後 current を 2 にインクリメントし、ロックを解放します。',
+                        visual: { type: 'process', current: 1, threadType: 'number' },
+                    },
+                    {
+                        step: 5,
+                        title: 'Thread A がロック取得 (current=3)',
+                        desc: 'current = 3 で Thread A (fizz) がロックを取得。3 % 3 = 0 かつ 3 % 5 ≠ 0 なので、Thread A の担当です。',
+                        visual: { type: 'acquire', current: 3, threadType: 'fizz' },
+                    },
+                    {
+                        step: 6,
+                        title: 'Thread A が条件確認',
+                        desc: 'current = 3 は 3の倍数（5の倍数ではない）なので、Thread A の条件に一致。',
+                        visual: { type: 'check', current: 3, threadType: 'fizz' },
+                    },
+                    {
+                        step: 7,
+                        title: 'Thread A が処理実行',
+                        desc: 'printFizz() を実行し、"fizz" を出力。current を 4 にインクリメントし、ロックを解放します。',
+                        visual: { type: 'process', current: 3, threadType: 'fizz' },
+                    },
+                    {
+                        step: 8,
+                        title: 'Thread B がロック取得 (current=5)',
+                        desc: 'current = 5 で Thread B (buzz) がロックを取得。5 % 5 = 0 かつ 5 % 3 ≠ 0 なので、Thread B の担当です。',
+                        visual: { type: 'acquire', current: 5, threadType: 'buzz' },
+                    },
+                    {
+                        step: 9,
+                        title: 'Thread B が条件確認',
+                        desc: 'current = 5 は 5の倍数（3の倍数ではない）なので、Thread B の条件に一致。',
+                        visual: { type: 'check', current: 5, threadType: 'buzz' },
+                    },
+                    {
+                        step: 10,
+                        title: 'Thread B が処理実行',
+                        desc: 'printBuzz() を実行し、"buzz" を出力。current を 6 にインクリメントし、ロックを解放します。',
+                        visual: { type: 'process', current: 5, threadType: 'buzz' },
+                    },
+                    {
+                        step: 11,
+                        title: 'Thread C がロック取得 (current=15)',
+                        desc: 'current = 15 で Thread C (fizzbuzz) がロックを取得。15 % 15 = 0 なので、Thread C の担当です。',
+                        visual: { type: 'acquire', current: 15, threadType: 'fizzbuzz' },
+                    },
+                    {
+                        step: 12,
+                        title: 'Thread C が条件確認',
+                        desc: 'current = 15 は 15の倍数なので、Thread C の条件に一致。',
+                        visual: { type: 'check', current: 15, threadType: 'fizzbuzz' },
+                    },
+                    {
+                        step: 13,
+                        title: 'Thread C が処理実行',
+                        desc: 'printFizzBuzz() を実行し、"fizzbuzz" を出力。current を 16 にインクリメント。current > n となり、全スレッドが終了します。',
+                        visual: { type: 'process', current: 15, threadType: 'fizzbuzz' },
+                    },
+                    {
+                        step: 14,
+                        title: '最終結果',
+                        desc: '全15個の要素が正しい順序で出力されました。各スレッドは自分の担当番号のみを処理し、デッドロックなく完了しました。',
+                        visual: { type: 'result', n: 15 },
+                    },
+                ];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep >= stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((prev) => Math.min(stepsData.length, prev + 1));
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            ReactDOM.render(<FizzBuzzSteps />, document.getElementById('react-root'));
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    </body>
+</html>

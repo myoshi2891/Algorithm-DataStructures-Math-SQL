@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unix Path Simplifier - Technical Analysis</title>
+
+    <!-- CDN Libraries -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="/vendor/fontawesome/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Root Variables */
+      :root {
+        --primary-color: #2563eb;
+        --secondary-color: #1e40af;
+        --accent-color: #3b82f6;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --border-color: #e5e7eb;
+        --code-bg: #1a1b26;
+        --code-text: #a9b1d6;
+        --highlight-color: #fbbf24;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --line-number-color: #565f89;
+        --line-number-bg: #24283b;
+      }
+
+      /* Base Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background: linear-gradient(
+          135deg,
+          var(--bg-primary) 0%,
+          var(--bg-secondary) 100%
+        );
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 2rem 0;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      /* Navigation */
+      .nav {
+        background: var(--bg-primary);
+        padding: 1rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+        justify-content: center;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a.active {
+        color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.1);
+      }
+
+      /* Container */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Section Styles */
+      .section {
+        margin-bottom: 3rem;
+        background: var(--bg-primary);
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+      }
+
+      .section-title {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .section-title i {
+        font-size: 1.5rem;
+      }
+
+      /* Algorithm Flow Chart */
+      .algorithm-flow {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .flow-step {
+        background: linear-gradient(
+          135deg,
+          var(--bg-secondary),
+          var(--bg-primary)
+        );
+        border: 2px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .flow-step:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        border-color: var(--primary-color);
+      }
+
+      .flow-step-number {
+        background: var(--primary-color);
+        color: white;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto 1rem;
+      }
+
+      .flow-step h3 {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .flow-step p {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      /* Enhanced Code Block Container */
+      .code-container {
+        position: relative;
+        margin: 1.5rem 0;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: var(--code-bg);
+      }
+
+      /* Code Header */
+      .code-header {
+        background: #24283b;
+        color: var(--code-text);
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid #414868;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .code-language {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .copy-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.375rem 0.875rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+      }
+
+      .copy-btn:hover {
+        background: var(--secondary-color);
+        transform: scale(1.05);
+      }
+
+      /* Code Block with Line Numbers */
+      .code-wrapper {
+        display: flex;
+        background: var(--code-bg);
+        overflow-x: auto;
+        font-family: "Courier New", Consolas, "Liberation Mono", Menlo,
+          monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .line-numbers {
+        background: var(--line-number-bg);
+        color: var(--line-number-color);
+        padding: 1.5rem 1rem 1.5rem 1.5rem;
+        user-select: none;
+        text-align: right;
+        min-width: 3rem;
+        font-weight: 500;
+        border-right: 1px solid #414868;
+      }
+
+      .line-numbers span {
+        display: block;
+        line-height: 1.5;
+      }
+
+      pre {
+        background: transparent !important;
+        border-radius: 0;
+        padding: 1.5rem;
+        margin: 0;
+        flex: 1;
+        overflow-x: auto;
+      }
+
+      pre code {
+        background: transparent !important;
+        padding: 0 !important;
+        color: var(--code-text);
+        white-space: pre;
+      }
+
+      /* Interactive Demo */
+      .demo-container {
+        background: var(--bg-secondary);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin: 2rem 0;
+        border: 2px solid var(--border-color);
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .path-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-family: "Courier New", monospace;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .path-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .demo-btn {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+
+      .demo-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+      }
+
+      /* Visualization */
+      .visualization {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        border: 2px solid var(--border-color);
+        margin: 2rem 0;
+      }
+
+      .stack-visualization {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .stack-container {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+        min-height: 200px;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .stack-item {
+        background: linear-gradient(
+          135deg,
+          var(--accent-color),
+          var(--primary-color)
+        );
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        min-width: 120px;
+        text-align: center;
+      }
+
+      .stack-item.animate {
+        animation: stackPush 0.5s ease;
+      }
+
+      @keyframes stackPush {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* Step Display */
+      .step-display {
+        background: var(--bg-secondary);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .step-display h4 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .step-display p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      /* Complexity Analysis */
+      .complexity-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .complexity-card {
+        background: linear-gradient(
+          135deg,
+          var(--bg-primary),
+          var(--bg-secondary)
+        );
+        border: 2px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .complexity-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        border-color: var(--primary-color);
+      }
+
+      .complexity-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      .complexity-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .complexity-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      .complexity-description {
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      /* Results Display */
+      .result-display {
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+        font-family: "Courier New", monospace;
+        font-size: 1.1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .error-display {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+        font-family: "Courier New", monospace;
+        font-size: 1rem;
+      }
+
+      /* Loading Animation */
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .nav-links {
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+
+        .algorithm-flow {
+          grid-template-columns: 1fr;
+        }
+
+        .complexity-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .code-wrapper {
+          font-size: 0.8rem;
+        }
+
+        .line-numbers {
+          min-width: 2.5rem;
+          padding: 1rem 0.75rem 1rem 1rem;
+        }
+      }
+
+      /* Animation Classes */
+      .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Highlight Animation */
+      .highlight {
+        background: var(--highlight-color);
+        color: white;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.3rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <h1><i class="fas fa-route"></i> Unix Path Simplifier</h1>
+        <p>Technical Analysis & Algorithm Visualization</p>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-container">
+        <ul class="nav-links">
+          <li><a href="#overview" class="nav-link active">Overview</a></li>
+          <li><a href="#algorithm" class="nav-link">Algorithm</a></li>
+          <li><a href="#implementation" class="nav-link">Implementation</a></li>
+          <li><a href="#demo" class="nav-link">Interactive Demo</a></li>
+          <li><a href="#complexity" class="nav-link">Complexity</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Overview Section -->
+      <section id="overview" class="section fade-in">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Problem Overview
+        </h2>
+        <p>
+          The Unix Path Simplifier transforms absolute Unix-style paths into
+          their canonical form by processing path components and applying Unix
+          filesystem navigation rules.
+        </p>
+
+        <div class="algorithm-flow">
+          <div class="flow-step">
+            <div class="flow-step-number">1</div>
+            <h3>Input Validation</h3>
+            <p>Validate absolute path format and constraints</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-number">2</div>
+            <h3>Component Split</h3>
+            <p>Split path by '/' separator into components</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-number">3</div>
+            <h3>Stack Processing</h3>
+            <p>Process each component using stack operations</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-number">4</div>
+            <h3>Path Reconstruction</h3>
+            <p>Build canonical path from stack contents</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Algorithm Section -->
+      <section id="algorithm" class="section fade-in">
+        <h2 class="section-title">
+          <i class="fas fa-cogs"></i>
+          Algorithm Analysis
+        </h2>
+
+        <h3>Core Implementation (JavaScript)</h3>
+        <div class="code-container">
+          <div class="code-header">
+            <div class="code-language">
+              <i class="fab fa-js-square"></i>
+              JavaScript
+            </div>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="code-wrapper">
+            <div class="line-numbers"></div>
+            <pre><code class="language-javascript">/**
+ * @param {string} path
+ * @return {string}
+ */
+var simplifyPath = function (path) {
+  // 1. 入力検証（LeetCode環境では制約保証済み）
+  if (!path || path[0] !== "/") return "/";
+
+  // 2. パス構成要素分割（連続スラッシュも自動処理）
+  const components = path.split("/");
+
+  // 3. スタック初期化（事前サイズ確保でV8最適化）
+  const stack = [];
+  stack.length = 0; // V8: 配列長明示でメモリ最適化
+
+  // 4. 各構成要素処理（効率的ループ）
+  for (let i = 0; i < components.length; i++) {
+    const component = components[i];
+
+    // 空文字列・現在ディレクトリ指定をスキップ
+    if (component === "" || component === ".") {
+      continue;
+    }
+
+    // 親ディレクトリ指定処理
+    if (component === "..") {
+      // ルート以外で親に移動
+      if (stack.length > 0) {
+        stack.pop(); // V8最適化: length更新自動
+      }
+    } else {
+      // 有効なディレクトリ/ファイル名追加
+      stack.push(component);
+    }
+  }
+
+  // 5. 正規化パス構築
+  // ルートディレクトリ特別処理
+  if (stack.length === 0) {
+    return "/";
+  }
+
+  // パス結合（効率的文字列生成）
+  return "/" + stack.join("/");
+};
+
+/**
+ * 入力検証ヘルパー（開発環境用）
+ * @param {string} path - Unix絶対パス
+ * @throws {TypeError} - 不正な型
+ * @throws {RangeError} - 制約違反
+ */
+function validateInput(path) {
+  if (typeof path !== "string") {
+    throw new TypeError("Path must be a string");
+  }
+  if (path.length === 0 || path.length > 3000) {
+    throw new RangeError("Path length must be 1-3000 characters");
+  }
+  if (path[0] !== "/") {
+    throw new Error("Path must be absolute (start with /)");
+  }
+}
+</code></pre>
+          </div>
+        </div>
+
+        <h3>Processing Rules</h3>
+        <div class="step-display">
+          <h4>Rule 1: Empty Components & Current Directory ('.')</h4>
+          <p>
+            Skip empty strings from consecutive slashes and current directory
+            markers
+          </p>
+        </div>
+
+        <div class="step-display">
+          <h4>Rule 2: Parent Directory ('..')</h4>
+          <p>Pop from stack if not at root, otherwise ignore</p>
+        </div>
+
+        <div class="step-display">
+          <h4>Rule 3: Valid Names</h4>
+          <p>
+            Push valid directory/file names (including '...', '....', etc.) to
+            stack
+          </p>
+        </div>
+      </section>
+
+      <!-- Implementation Section -->
+      <section id="implementation" class="section fade-in">
+        <h2 class="section-title">
+          <i class="fas fa-code"></i>
+          Multi-Language Implementation
+        </h2>
+
+        <h3>TypeScript (Type-Safe Version)</h3>
+        <div class="code-container">
+          <div class="code-header">
+            <div class="code-language">
+              <i class="fab fa-js-square"></i>
+              TypeScript
+            </div>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="code-wrapper">
+            <div class="line-numbers">
+            </div>
+            <pre><code class="language-typescript">// 型定義セクション
+type UnixPath = string & { readonly __brand: unique symbol };
+type PathComponent = string;
+type PathStack = PathComponent[];
+
+// パス構成要素の型定義（Union Types活用）
+type SpecialComponent = "." | ".." | "";
+type ValidComponent = Exclude<PathComponent, SpecialComponent>;
+
+// アルゴリズムオプション
+interface PathSimplifyOptions {
+  readonly strictValidation?: boolean;
+  readonly preserveTrailingSlash?: boolean;
+}
+
+// メイン関数（LeetCode形式）
+function simplifyPath(path: string): string {
+  // 1. 入力型検証（型ガード）
+  if (!isValidUnixPath(path)) {
+    return "/";
+  }
+
+  // 2. パス構成要素分割（型安全な操作）
+  const components: PathComponent[] = path.split("/");
+
+  // 3. 型安全なスタック初期化
+  const stack: PathStack = [];
+
+  // 4. 構成要素処理（型ガード活用）
+  for (const component of components) {
+    processPathComponent(component, stack);
+  }
+
+  // 5. 正規化パス構築（型安全）
+  return buildCanonicalPath(stack);
+}
+
+/**
+ * Unix絶対パス判定（型ガード）
+ */
+function isValidUnixPath(path: string): path is UnixPath {
+  return (
+    typeof path === "string" &&
+    path.length > 0 &&
+    path.length <= 3000 &&
+    path[0] === "/"
+  );
+}
+
+/**
+ * パス構成要素処理（型安全 + インライン最適化）
+ */
+function processPathComponent(
+  component: PathComponent,
+  stack: PathStack
+): void {
+  // 型ガードによる効率的分岐
+  if (isEmptyOrCurrent(component)) {
+    return; // 早期リターンでV8最適化
+  }
+
+  if (isParentDirectory(component)) {
+    handleParentDirectory(stack);
+    return;
+  }
+
+  // 有効なディレクトリ/ファイル名
+  if (isValidComponent(component)) {
+    stack.push(component);
+  }
+}
+
+/**
+ * 空文字列・現在ディレクトリ判定（型ガード + インライン化）
+ */
+function isEmptyOrCurrent(component: PathComponent): component is "" | "." {
+  return component === "" || component === ".";
+}
+
+/**
+ * 親ディレクトリ判定（型ガード）
+ */
+function isParentDirectory(component: PathComponent): component is ".." {
+  return component === "..";
+}
+
+/**
+ * 有効な構成要素判定（型ガード）
+ */
+function isValidComponent(
+  component: PathComponent
+): component is ValidComponent {
+  return component !== "" && component !== "." && component !== "..";
+}
+
+/**
+ * 親ディレクトリ処理（型安全なスタック操作）
+ */
+function handleParentDirectory(stack: PathStack): void {
+  if (stack.length > 0) {
+    stack.pop(); // V8最適化: 型情報でlength更新最適化
+  }
+}
+
+/**
+ * 正規化パス構築（型安全な文字列操作）
+ */
+function buildCanonicalPath(stack: ReadonlyArray<PathComponent>): string {
+  // ルートディレクトリ特別処理（const assertion活用）
+  if (stack.length === 0) {
+    return "/" as const;
+  }
+
+  // 効率的パス結合（Template Literal活用可能性）
+  return `/${stack.join("/")}`;
+}
+
+/**
+ * 型安全な入力検証（開発環境用）
+ */
+function validateInput(path: unknown): asserts path is string {
+  if (typeof path !== "string") {
+    throw new TypeError(`Expected string, got ${typeof path}`);
+  }
+  if (path.length === 0 || path.length > 3000) {
+    throw new RangeError(`Path length must be 1-3000, got ${path.length}`);
+  }
+  if (!path.startsWith("/")) {
+    throw new Error("Path must be absolute (start with /)");
+  }
+}
+
+/**
+ * 高機能版実装（業務開発用、LeetCode提出時は削除）
+ */
+function simplifyPathAdvanced(
+  path: string,
+  options: PathSimplifyOptions = {}
+): string {
+  const { strictValidation = false } = options;
+
+  if (strictValidation) {
+    validateInput(path);
+  }
+
+  return simplifyPath(path);
+}
+</code></pre>
+          </div>
+        </div>
+
+        <h3>Python (Production Version)</h3>
+        <div class="code-container">
+          <div class="code-header">
+            <div class="code-language">
+              <i class="fab fa-python"></i>
+              Python
+            </div>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="code-wrapper">
+            <div class="line-numbers">
+            </div>
+            <pre><code class="language-python">from collections import deque
+from typing import Any, List, Optional
+
+# import sys
+
+
+class Solution:
+    """
+    Unix Path Simplifier
+
+    競技プログラミング向けと業務開発向けの2パターンを提供
+    """
+
+    def simplifyPath(self, path: str) -> str:
+        """
+        LeetCode提出用メソッド（競技プログラミング最適化）
+
+        Args:
+            path: Unix絶対パス文字列
+
+        Returns:
+            正規化された絶対パス
+
+        Time Complexity: O(n)
+        Space Complexity: O(n)
+        """
+        # CPython最適化：dequeによる高速スタック操作
+        stack: deque[str] = deque()
+
+        # 組み込み関数split()活用（C実装で高速）
+        components = path.split("/")
+
+        # リスト走査（CPythonで最適化済み）
+        for component in components:
+            # 早期継続でブランチ予測最適化
+            if component in ("", "."):
+                continue
+            elif component == "..":
+                # deque.pop()はO(1)（listより高速）
+                if stack:
+                    stack.pop()
+            else:
+                # 有効なディレクトリ/ファイル名
+                stack.append(component)
+
+        # 効率的文字列結合（join()のC実装活用）
+        return "/" + "/".join(stack) if stack else "/"
+
+    def simplify_path_production(
+        self, path: str, *, strict_validation: bool = True
+    ) -> str:
+        """
+        業務開発向け実装（型安全・エラーハンドリング重視）
+
+        Args:
+            path: Unix絶対パス文字列
+            strict_validation: 厳密な入力検証を行うかどうか
+
+        Returns:
+            正規化された絶対パス
+
+        Raises:
+            ValueError: パス形式が不正な場合
+            TypeError: 引数型が不正な場合
+
+        Time Complexity: O(n)
+        Space Complexity: O(n)
+        """
+        # 1. 型・制約検証
+        if strict_validation:
+            self._validate_input(path)
+
+        # 2. エッジケース処理
+        if self._is_root_only(path):
+            return "/"
+
+        # 3. メインアルゴリズム（型安全）
+        return self._normalize_path(path)
+
+    def _validate_input(self, path: Any) -> None:
+        """
+        型安全な入力検証
+
+        Args:
+            path: 検証対象のパス
+
+        Raises:
+            TypeError: 型が不正な場合
+            ValueError: 制約違反の場合
+        """
+        if not isinstance(path, str):
+            raise TypeError(f"Path must be a string, got {type(path).__name__}")
+
+        if not path:
+            raise ValueError("Path cannot be empty")
+
+        if len(path) > 3000:
+            raise ValueError(f"Path length exceeds limit: {len(path)} > 3000")
+
+        if not path.startswith("/"):
+            raise ValueError("Path must be absolute (start with '/')")
+
+        # 不正文字チェック
+        invalid_chars = set(path) - set(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./_"
+        )
+        if invalid_chars:
+            raise ValueError(f"Invalid characters in path: {invalid_chars}")
+
+    def _is_root_only(self, path: str) -> bool:
+        """
+        ルートディレクトリのみかどうか判定
+
+        Args:
+            path: 判定対象パス
+
+        Returns:
+            ルートのみの場合True
+        """
+        # 効率的な文字列チェック
+        return path.strip("/") == ""
+
+    def _normalize_path(self, path: str) -> str:
+        """
+        パス正規化のコアロジック
+
+        Args:
+            path: 正規化対象パス
+
+        Returns:
+            正規化されたパス
+        """
+        # 型ヒント付きスタック初期化
+        stack: deque[str] = deque()
+
+        # パス構成要素分割（組み込み関数活用）
+        components: List[str] = [c for c in path.split("/") if c]
+
+        # 構成要素処理（型安全なイテレーション）
+        for component in components:
+            if component == ".":
+                continue  # 現在ディレクトリは無視
+            elif component == "..":
+                # 親ディレクトリ処理（境界チェック）
+                if stack:
+                    stack.pop()
+            else:
+                # 有効なディレクトリ/ファイル名追加
+                stack.append(component)
+
+        # 結果構築（型安全な文字列操作）
+        if not stack:
+            return "/"
+
+        return "/" + "/".join(stack)
+
+
+# 型安全なヘルパー関数（業務開発用）
+def validate_unix_path(path: str) -> bool:
+    """
+    Unix絶対パスの妥当性検証
+
+    Args:
+        path: 検証対象パス
+
+    Returns:
+        妥当な場合True
+    """
+    try:
+        Solution()._validate_input(path)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def normalize_path_safe(path: str) -> Optional[str]:
+    """
+    例外安全なパス正規化
+
+    Args:
+        path: 正規化対象パス
+
+    Returns:
+        正規化されたパス、失敗時はNone
+    """
+    try:
+        solution = Solution()
+        return solution.simplify_path_production(path)
+    except (TypeError, ValueError):
+        return None
+</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive Demo Section -->
+      <section id="demo" class="section fade-in">
+        <h2 class="section-title">
+          <i class="fas fa-play-circle"></i>
+          Interactive Algorithm Demo
+        </h2>
+
+        <div class="demo-container">
+          <div class="input-group">
+            <label for="path-input">Enter Unix Absolute Path:</label>
+            <input
+              type="text"
+              id="path-input"
+              class="path-input"
+              value="/home/user/../documents/./../../root/file.txt"
+              placeholder="e.g., /home/user/../documents/./file.txt"
+            />
+          </div>
+
+          <button class="demo-btn" onclick="runDemo()">
+            <i class="fas fa-play"></i>
+            <span id="demo-btn-text">Analyze Path</span>
+          </button>
+
+          <div id="demo-result"></div>
+
+          <div class="visualization">
+            <h3>Stack Visualization</h3>
+            <div class="stack-visualization">
+              <div id="current-step" class="step-display" style="display: none">
+                <h4>Current Step</h4>
+                <p id="step-description"></p>
+              </div>
+
+              <div class="stack-container" id="stack-container">
+                <div style="color: #6b7280; font-style: italic; padding: 1rem">
+                  Stack will appear here during demonstration
+                </div>
+              </div>
+
+              <div
+                id="processing-info"
+                style="text-align: center; color: #6b7280; margin-top: 1rem"
+              >
+                Click "Analyze Path" to see step-by-step processing
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Complexity Analysis Section -->
+      <section id="complexity" class="section fade-in">
+        <h2 class="section-title">
+          <i class="fas fa-chart-line"></i>
+          Complexity Analysis
+        </h2>
+
+        <div class="complexity-grid">
+          <div class="complexity-card">
+            <div class="complexity-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="complexity-title">Time Complexity</div>
+            <div class="complexity-value">O(n)</div>
+            <div class="complexity-description">
+              Linear time where n is the length of the input path. Each
+              character is processed exactly once.
+            </div>
+          </div>
+
+          <div class="complexity-card">
+            <div class="complexity-icon">
+              <i class="fas fa-memory"></i>
+            </div>
+            <div class="complexity-title">Space Complexity</div>
+            <div class="complexity-value">O(n)</div>
+            <div class="complexity-description">
+              Linear space for storing path components in the stack and the
+              result string.
+            </div>
+          </div>
+
+          <div class="complexity-card">
+            <div class="complexity-icon">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="complexity-title">Stack Operations</div>
+            <div class="complexity-value">O(k)</div>
+            <div class="complexity-description">
+              Where k is the number of path components. Each component requires
+              at most one stack operation.
+            </div>
+          </div>
+
+          <div class="complexity-card">
+            <div class="complexity-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="complexity-title">Performance</div>
+            <div class="complexity-value">Optimal</div>
+            <div class="complexity-description">
+              Single pass algorithm with minimal memory overhead and optimal
+              time complexity.
+            </div>
+          </div>
+        </div>
+
+        <h3>Performance Characteristics</h3>
+        <div class="step-display">
+          <h4>Best Case: O(n)</h4>
+          <p>Path with no special components (., ..) - direct processing</p>
+        </div>
+
+        <div class="step-display">
+          <h4>Average Case: O(n)</h4>
+          <p>Mixed path with some navigation components</p>
+        </div>
+
+        <div class="step-display">
+          <h4>Worst Case: O(n)</h4>
+          <p>Path with maximum parent directory references - still linear</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+      // Core Algorithm Implementation
+      class PathSimplifierDemo {
+        constructor() {
+          this.steps = [];
+          this.currentStepIndex = 0;
+          this.isAnimating = false;
+        }
+
+        simplifyPath(path) {
+          this.steps = [];
+          this.currentStepIndex = 0;
+
+          if (!path || path[0] !== "/") {
+            this.addStep("Invalid path - returning root", [], "/");
+            return "/";
+          }
+
+          const components = path.split("/");
+          const stack = [];
+
+          this.addStep(
+            `Split path into components: [${components
+              .map((c) => `"${c}"`)
+              .join(", ")}]`,
+            [...stack],
+            null
+          );
+
+          for (let i = 0; i < components.length; i++) {
+            const component = components[i];
+
+            if (component === "" || component === ".") {
+              this.addStep(
+                `Skip "${component}" (empty/current dir)`,
+                [...stack],
+                null
+              );
+              continue;
+            } else if (component === "..") {
+              if (stack.length > 0) {
+                const popped = stack.pop();
+                this.addStep(
+                  `Pop "${popped}" (parent directory)`,
+                  [...stack],
+                  null
+                );
+              } else {
+                this.addStep(`Skip ".." (already at root)`, [...stack], null);
+              }
+            } else {
+              stack.push(component);
+              this.addStep(
+                `Push "${component}" (valid name)`,
+                [...stack],
+                null
+              );
+            }
+          }
+
+          const result = stack.length === 0 ? "/" : "/" + stack.join("/");
+          this.addStep(`Build final path`, [...stack], result);
+
+          return result;
+        }
+
+        addStep(description, stackState, result) {
+          this.steps.push({
+            description,
+            stackState: [...stackState],
+            result,
+          });
+        }
+
+        async animateSteps() {
+          this.isAnimating = true;
+          const stepDisplay = document.getElementById("current-step");
+          const stepDescription = document.getElementById("step-description");
+          const stackContainer = document.getElementById("stack-container");
+          const processingInfo = document.getElementById("processing-info");
+
+          stepDisplay.style.display = "block";
+          processingInfo.textContent = "";
+
+          for (let i = 0; i < this.steps.length; i++) {
+            const step = this.steps[i];
+
+            // Update step description
+            stepDescription.textContent = `Step ${i + 1}: ${step.description}`;
+
+            // Update stack visualization
+            this.updateStackVisualization(step.stackState, stackContainer);
+
+            // Show result if it's the final step
+            if (step.result !== null) {
+              this.showResult(step.result);
+            }
+
+            // Wait for animation
+            await this.sleep(1200);
+          }
+
+          this.isAnimating = false;
+          processingInfo.textContent = "Algorithm completed successfully!";
+        }
+
+        updateStackVisualization(stackState, container) {
+          container.innerHTML = "";
+
+          if (stackState.length === 0) {
+            const emptyMessage = document.createElement("div");
+            emptyMessage.style.cssText =
+              "color: #6b7280; font-style: italic; padding: 1rem;";
+            emptyMessage.textContent = "Stack is empty";
+            container.appendChild(emptyMessage);
+            return;
+          }
+
+          stackState.forEach((item, index) => {
+            const stackItem = document.createElement("div");
+            stackItem.className = "stack-item animate";
+            stackItem.textContent = item;
+            stackItem.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(stackItem);
+          });
+        }
+
+        showResult(result) {
+          const existingResult = document.getElementById("demo-result");
+          existingResult.innerHTML = "";
+
+          const resultDiv = document.createElement("div");
+          resultDiv.className = "result-display";
+          resultDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Canonical Path:</strong>
+                    </div>
+                    <div style="font-size: 1.3rem;">${result}</div>
+                `;
+          existingResult.appendChild(resultDiv);
+        }
+
+        sleep(ms) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+      }
+
+      // Global demo instance
+      const pathDemo = new PathSimplifierDemo();
+
+      // Event Handlers
+      async function runDemo() {
+        if (pathDemo.isAnimating) return;
+
+        const input = document.getElementById("path-input").value.trim();
+        const btnText = document.getElementById("demo-btn-text");
+        const originalText = btnText.textContent;
+
+        if (!input) {
+          showError("Please enter a path to analyze");
+          return;
+        }
+
+        // Update button state
+        btnText.innerHTML = '<span class="loading"></span> Analyzing...';
+        document.querySelector(".demo-btn").disabled = true;
+
+        try {
+          // Clear previous results
+          document.getElementById("demo-result").innerHTML = "";
+
+          // Run algorithm and animate
+          pathDemo.simplifyPath(input);
+          await pathDemo.animateSteps();
+        } catch (error) {
+          showError(`Error: ${error.message}`);
+        } finally {
+          // Restore button state
+          btnText.textContent = originalText;
+          document.querySelector(".demo-btn").disabled = false;
+        }
+      }
+
+      function showError(message) {
+        const resultDiv = document.getElementById("demo-result");
+        resultDiv.innerHTML = `
+                <div class="error-display">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${message}
+                </div>
+            `;
+      }
+
+      // Copy code functionality
+      function copyCode(button) {
+        const codeContainer = button.closest(".code-container");
+        const codeBlock = codeContainer.querySelector("code");
+        const code = codeBlock.textContent;
+
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            button.style.background = "#10b981";
+
+            setTimeout(() => {
+              button.innerHTML = originalHTML;
+              button.style.background = "";
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy code: ", err);
+
+            // Fallback for browsers that don't support clipboard API
+            const textArea = document.createElement("textarea");
+            textArea.value = code;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+              document.execCommand("copy");
+              const originalHTML = button.innerHTML;
+              button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+              button.style.background = "#10b981";
+
+              setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.style.background = "";
+              }, 2000);
+            } catch (err) {
+              console.error("Fallback copy failed: ", err);
+            } finally {
+              document.body.removeChild(textArea);
+            }
+          });
+      }
+
+      // Smooth scrolling for navigation
+      function initSmoothScroll() {
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        navLinks.forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // Update active state
+            navLinks.forEach((l) => l.classList.remove("active"));
+            link.classList.add("active");
+
+            // Smooth scroll to section
+            const targetId = link.getAttribute("href").substring(1);
+            const targetSection = document.getElementById(targetId);
+
+            if (targetSection) {
+              targetSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          });
+        });
+      }
+
+      // Intersection Observer for navigation highlighting
+      function initIntersectionObserver() {
+        const sections = document.querySelectorAll(".section");
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const currentId = entry.target.id;
+
+                navLinks.forEach((link) => {
+                  link.classList.remove("active");
+                  if (link.getAttribute("href") === `#${currentId}`) {
+                    link.classList.add("active");
+                  }
+                });
+              }
+            });
+          },
+          {
+            threshold: 0.3,
+            rootMargin: "-20% 0px -70% 0px",
+          }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      }
+
+      // Animation on scroll
+      function initScrollAnimations() {
+        const animationObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add(
+                  "animate__animated",
+                  "animate__fadeInUp"
+                );
+              }
+            });
+          },
+          {
+            threshold: 0.1,
+          }
+        );
+
+        document
+          .querySelectorAll(".flow-step, .complexity-card")
+          .forEach((el) => {
+            animationObserver.observe(el);
+          });
+      }
+
+      // Keyboard shortcuts
+      function initKeyboardShortcuts() {
+        document.addEventListener("keydown", (e) => {
+          // Ctrl/Cmd + Enter to run demo
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            runDemo();
+          }
+
+          // Escape to stop animation
+          if (e.key === "Escape" && pathDemo.isAnimating) {
+            e.preventDefault();
+            // Could implement animation stop functionality here
+          }
+        });
+      }
+
+      // Enhanced path input with validation
+      function initPathInputEnhancements() {
+        const pathInput = document.getElementById("path-input");
+
+        pathInput.addEventListener("input", (e) => {
+          const value = e.target.value;
+
+          // Visual feedback for path validity
+          if (value && !value.startsWith("/")) {
+            pathInput.style.borderColor = "#ef4444";
+            pathInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.1)";
+          } else {
+            pathInput.style.borderColor = "";
+            pathInput.style.boxShadow = "";
+          }
+        });
+
+        // Enter key to run demo
+        pathInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            runDemo();
+          }
+        });
+      }
+
+      // Predefined example paths
+      function initExamplePaths() {
+        const examples = [
+          "/home/user/../documents/./file.txt",
+          "/a//b////c/d//././/..",
+          "/../../../root/./app",
+          "/var/log/../lib/./config.json",
+          "/tmp/.../hidden/..../visible",
+        ];
+
+        // Add example buttons (optional enhancement)
+        const demoContainer = document.querySelector(".demo-container");
+        const exampleDiv = document.createElement("div");
+        exampleDiv.innerHTML = `
+                <div style="margin: 1rem 0;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        Try Examples:
+                    </label>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${examples
+                          .map(
+                            (example, index) =>
+                              `<button class="example-btn" onclick="setExample('${example}')"
+                                     style="background: #f3f4f6; border: 1px solid #d1d5db; padding: 0.25rem 0.5rem;
+                                            border-radius: 0.375rem; cursor: pointer; font-size: 0.8rem;
+                                            font-family: 'Courier New', monospace;">
+                                Example ${index + 1}
+                             </button>`
+                          )
+                          .join("")}
+                    </div>
+                </div>
+            `;
+
+        const inputGroup = demoContainer.querySelector(".input-group");
+        inputGroup.appendChild(exampleDiv);
+      }
+
+      function setExample(path) {
+        document.getElementById("path-input").value = path;
+        // Optional: auto-run the demo
+        setTimeout(() => runDemo(), 300);
+      }
+
+      // Performance monitoring (development helper)
+      function initPerformanceMonitoring() {
+        const originalSimplifyPath = pathDemo.simplifyPath;
+
+        pathDemo.simplifyPath = function (path) {
+          const startTime = performance.now();
+          const result = originalSimplifyPath.call(this, path);
+          const endTime = performance.now();
+
+          console.log(
+            `Path simplification took ${(endTime - startTime).toFixed(2)}ms`
+          );
+          console.log(`Input: "${path}" → Output: "${result}"`);
+          console.log(`Steps generated: ${this.steps.length}`);
+
+          return result;
+        };
+      }
+
+      // Initialize everything when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        // すべての code-container を対象にする
+        document.querySelectorAll(".code-container").forEach((container) => {
+          const codeBlock = container.querySelector("code");
+          const lineNumbersDiv = container.querySelector(".line-numbers");
+          if (!codeBlock || !lineNumbersDiv) return;
+
+          // 行数をカウント
+          const lines = codeBlock.textContent.trim().split("\n").length;
+
+          // 行番号を生成
+          lineNumbersDiv.innerHTML = "";
+          for (let i = 1; i <= lines; i++) {
+            const span = document.createElement("span");
+            span.textContent = i;
+            lineNumbersDiv.appendChild(span);
+          }
+        });
+        // Core functionality
+        initSmoothScroll();
+        initIntersectionObserver();
+        initScrollAnimations();
+        initKeyboardShortcuts();
+        initPathInputEnhancements();
+        initExamplePaths();
+
+        // Development helpers
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        ) {
+          initPerformanceMonitoring();
+        }
+
+        // Focus input for immediate use
+        document.getElementById("path-input").focus();
+
+        console.log("Unix Path Simplifier Demo initialized successfully!");
+      });
+
+      // Export for potential external use
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = { PathSimplifierDemo };
+      }
+    </script>
+  </body>
+</html>

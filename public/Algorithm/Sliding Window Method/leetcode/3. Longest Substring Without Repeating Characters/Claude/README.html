@@ -1,0 +1,1929 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Longest Substring Without Repeating Characters - スライディングウィンドウ＋高速位置管理
+        </title>
+
+        <!-- React + ReactDOM + Babel -->
+        <script crossorigin src="/vendor/react/react.development.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.development.js"
+        ></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <!-- Tailwind CSS -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Prism.js -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <!-- Google Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --code-lh: 1.6;
+                --primary: #10b981;
+                --primary-dark: #059669;
+                --secondary: #0ea5e9;
+                --bg-card: #ffffff;
+                --text-primary: #1e293b;
+                --text-secondary: #64748b;
+                --border: #e2e8f0;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    'Inter',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif;
+                color: var(--text-primary);
+                line-height: 1.7;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 1.5rem;
+            }
+
+            /* Header */
+            header {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 3rem 0 2rem;
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+            }
+
+            header h1 {
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 0.75rem;
+                letter-spacing: -0.025em;
+            }
+
+            header p {
+                font-size: 1.125rem;
+                opacity: 0.95;
+                font-weight: 500;
+            }
+
+            /* Navigation */
+            nav {
+                background: white;
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            }
+
+            nav ul {
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 1rem 0;
+            }
+
+            nav a {
+                display: block;
+                padding: 0.625rem 1.25rem;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.9375rem;
+                border-radius: 0.5rem;
+                transition: all 0.2s;
+            }
+
+            nav a:hover {
+                color: var(--primary);
+                background: #f0fdf4;
+            }
+
+            /* Section */
+            section {
+                padding: 3.5rem 0;
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            section:last-of-type {
+                border-bottom: none;
+            }
+
+            section h2 {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 1.5rem;
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            section h2::before {
+                content: '';
+                width: 4px;
+                height: 2rem;
+                background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+                border-radius: 2px;
+            }
+
+            /* Card */
+            .card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                transition: all 0.3s;
+            }
+
+            .card:hover {
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                transform: translateY(-2px);
+            }
+
+            /* Code */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    monospace;
+                font-size: 0.875rem;
+            }
+
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+                border-radius: 12px !important;
+                margin: 1.5rem 0 !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+                line-height: var(--code-lh);
+            }
+
+            div.code-toolbar {
+                margin: 1.5rem 0;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* Interactive Demo */
+            .demo-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            @media (min-width: 768px) {
+                .demo-grid {
+                    grid-template-columns: 520px 1fr;
+                }
+            }
+
+            .step-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .step-button {
+                padding: 1rem 1.25rem;
+                text-align: left;
+                background: white;
+                border: 2px solid var(--border);
+                border-radius: 0.75rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: 'Inter', sans-serif;
+                font-weight: 800;
+            }
+
+            .step-button:hover:not(:disabled) {
+                border-color: var(--primary);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+                transform: translateX(4px);
+            }
+
+            .step-button.active {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border-color: var(--primary-dark);
+                color: white;
+                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+            }
+
+            .step-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .step-title {
+                font-weight: 700;
+                font-size: 0.9375rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .step-desc {
+                font-size: 0.8125rem;
+                opacity: 0.85;
+            }
+
+            .visualization-panel {
+                background: white;
+                border: 2px solid var(--border);
+                border-radius: 1rem;
+                padding: 2rem;
+                min-height: 400px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .controls {
+                display: flex;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                margin-top: 1.5rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid var(--border);
+            }
+
+            .btn {
+                padding: 0.625rem 1.25rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                font-size: 0.9375rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .btn-primary {
+                background: var(--primary);
+                color: white;
+            }
+
+            .btn-primary:hover:not(:disabled) {
+                background: var(--primary-dark);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .btn-secondary {
+                background: white;
+                color: var(--text-primary);
+                border: 2px solid var(--border);
+            }
+
+            .btn-secondary:hover:not(:disabled) {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+            .btn:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                transform: none !important;
+            }
+
+            /* Table */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.5rem 0;
+                background: white;
+                border-radius: 0.75rem;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            }
+
+            th,
+            td {
+                padding: 1rem 1.25rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+            }
+
+            th {
+                background: #f8fafc;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            tr:hover {
+                background: #f9fafb;
+            }
+
+            /* List */
+            ul,
+            ol {
+                margin: 1rem 0 1rem 1.5rem;
+            }
+
+            li {
+                margin: 0.5rem 0;
+            }
+
+            /* Footer */
+            footer {
+                background: #f8fafc;
+                padding: 2rem 0;
+                text-align: center;
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                margin-top: 3rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 767px) {
+                header h1 {
+                    font-size: 1.75rem;
+                }
+
+                section h2 {
+                    font-size: 1.5rem;
+                }
+
+                .card {
+                    padding: 1.25rem;
+                }
+            }
+        </style>
+    </head>
+    <body class="bg-gradient-to-br from-emerald-50 via-white to-sky-50">
+        <header>
+            <div class="container">
+                <h1>Longest Substring Without Repeating Characters</h1>
+                <p>スライディングウィンドウ＋高速位置管理によるO(n)解法</p>
+            </div>
+        </header>
+
+        <nav>
+            <div class="container">
+                <ul>
+                    <li><a href="#overview">概要</a></li>
+                    <li><a href="#steps">ステップ</a></li>
+                    <li><a href="#code">コード</a></li>
+                    <li><a href="#diagram">図解</a></li>
+                    <li><a href="#complexity">計算量</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main>
+            <section id="overview">
+                <div class="container">
+                    <h2>概要</h2>
+                    <div class="card">
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem">
+                            問題
+                        </h3>
+                        <p style="margin-bottom: 1rem">
+                            文字列
+                            <code>s</code>
+                            が与えられたとき、<strong>重複文字を含まない最長の連続部分文字列</strong>の長さを求めます。
+                        </p>
+
+                        <h4 style="font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem">
+                            例
+                        </h4>
+                        <ul>
+                            <li><code>s = "abcabcbb"</code> → 出力: <code>3</code>（"abc"）</li>
+                            <li><code>s = "bbbbb"</code> → 出力: <code>1</code>（"b"）</li>
+                            <li><code>s = "pwwkew"</code> → 出力: <code>3</code>（"wke"）</li>
+                        </ul>
+
+                        <h4 style="font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem">
+                            制約
+                        </h4>
+                        <ul>
+                            <li>入力長: <code>0 ≤ n ≤ 5×10⁴</code></li>
+                            <li>文字種: 英字・数字・記号・空白（ASCII + 非ASCII混在可能）</li>
+                            <li>部分文字列（substring）であり、部分列（subsequence）ではない</li>
+                        </ul>
+
+                        <h4 style="font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem">
+                            アルゴリズム要点
+                        </h4>
+                        <ul>
+                            <li>
+                                <strong>スライディングウィンドウ</strong>:
+                                右端を進めつつ、左端を必要に応じて前進
+                            </li>
+                            <li>
+                                <strong>ASCII高速化</strong>:
+                                <code>array('I', 128)</code> で固定・高速アクセス
+                            </li>
+                            <li>
+                                <strong>非ASCII対応</strong>: <code>dict</code> でメモリ削減（BMP
+                                65536配列を回避）
+                            </li>
+                            <li><strong>Time</strong>: O(n) — 各文字を高々1回走査</li>
+                            <li>
+                                <strong>Space</strong>: O(1)
+                                相当（ASCII固定128、非ASCIIは出現数に比例）
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="steps">
+                <div class="container">
+                    <h2>ステップバイステップ解説</h2>
+                    <div id="interactive-demo"></div>
+                </div>
+            </section>
+
+            <section id="code">
+                <div class="container">
+                    <h2>Python実装（LeetCode形式）</h2>
+                    <div class="card">
+                        <p style="margin-bottom: 1rem">
+                            以下は、メモリ削減版の実装です。ASCIIは固定配列、非ASCIIは辞書で管理します。
+                        </p>
+                        <pre
+                            class="line-numbers"
+                        ><code class="language-python">from __future__ import annotations
+
+from array import array
+from typing import Dict, Final
+
+
+class Solution:
+    """
+    Longest Substring Without Repeating Characters
+
+    メモリ削減版：
+    - ASCII (0..127) は array('I', 128) の軽量表（未出現=0, 出現は index+1）
+    - 非ASCII (>=128) は dict に格納（BMP 65536表は使わない）
+      → 65536 要素配列(約256KB) の確保を完全に回避してピークメモリを下げる
+    """
+
+    _MAX_LEN: Final[int] = 5 * 10**4
+
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        """
+        Args:
+            s: 入力文字列
+
+        Returns:
+            重複のない最長連続部分文字列の長さ
+
+        Raises:
+            TypeError: s が str でない場合
+            ValueError: 入力長が仕様上限を超える場合
+
+        Complexity:
+            Time: O(n)
+            Space: O(1) 相当（ASCIIは固定128、非ASCIIは出現数に比例）
+        """
+        # 入力検証
+        if not isinstance(s, str):
+            raise TypeError("Input must be a string")
+        n: int = len(s)
+        if n > self._MAX_LEN:
+            raise ValueError("Input length exceeds allowed maximum")
+
+        # 基底条件: 空文字列
+        if n == 0:
+            return 0
+
+        # ASCII 用（0..127）だけ固定確保：極小＆高速
+        last_ascii: array = array("I", [0]) * 128
+        # 非ASCII は dict にのみ格納（BMP 65536表は作らない）
+        last_other: Dict[int, int] = {}
+
+        left: int = 0  # ウィンドウ左端
+        best: int = 0  # 最大長
+
+        for i, ch in enumerate(s):
+            code: int = ord(ch)
+
+            # 分岐: ASCIIか非ASCIIか
+            if code < 128:
+                prev: int = last_ascii[code]
+                # 重複検出: 前回出現がウィンドウ内なら左端を前進
+                if prev > left:
+                    left = prev
+                # 現在位置を記録（1-indexed: 0 は未出現）
+                last_ascii[code] = i + 1
+            else:
+                prev = last_other.get(code, 0)
+                if prev > left:
+                    left = prev
+                last_other[code] = i + 1
+
+            # 現在ウィンドウの長さを計算
+            curr_len: int = i - left + 1
+            if curr_len > best:
+                best = curr_len
+
+        return best</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="diagram">
+                <div class="container">
+                    <h2>視覚的図解</h2>
+                    <div class="card">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem">
+                            アルゴリズムフローチャート
+                        </h3>
+                        <svg
+                            viewBox="0 0 800 1150"
+                            style="max-width: 100%; height: auto; color: #333"
+                        >
+                            <defs>
+                                <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop
+                                        offset="0%"
+                                        style="stop-color: #10b981; stop-opacity: 1"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        style="stop-color: #059669; stop-opacity: 1"
+                                    />
+                                </linearGradient>
+                                <filter id="shadow">
+                                    <feDropShadow
+                                        dx="0"
+                                        dy="2"
+                                        stdDeviation="4"
+                                        flood-opacity="0.15"
+                                    />
+                                </filter>
+                                <marker
+                                    id="arrow"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            <!-- Start -->
+                            <rect
+                                x="300"
+                                y="20"
+                                width="200"
+                                height="60"
+                                rx="30"
+                                fill="url(#grad1)"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="55"
+                                text-anchor="middle"
+                                fill="white"
+                                font-weight="700"
+                                font-size="16"
+                            >
+                                開始
+                            </text>
+
+                            <!-- Validate -->
+                            <path
+                                d="M 400 80 L 400 150"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <path
+                                d="M 350 150 L 450 150 L 400 220 L 350 150"
+                                fill="#fff"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="172"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                入力は
+                            </text>
+                            <text
+                                x="400"
+                                y="190"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                有効か？
+                            </text>
+
+                            <!-- Raise (左側) -->
+                            <path
+                                d="M 370 185 L 200 185"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="275"
+                                y="180"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                No
+                            </text>
+                            <rect
+                                x="100"
+                                y="165"
+                                width="100"
+                                height="40"
+                                rx="8"
+                                fill="#fef2f2"
+                                stroke="#ef4444"
+                                stroke-width="2"
+                            />
+                            <text
+                                x="150"
+                                y="190"
+                                text-anchor="middle"
+                                fill="#ef4444"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                エラー
+                            </text>
+
+                            <!-- Empty check -->
+                            <path
+                                d="M 400 220 L 400 290"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text x="420" y="245" text-anchor="start" fill="#64748b" font-size="11">
+                                Yes
+                            </text>
+                            <path
+                                d="M 350 290 L 450 290 L 400 360 L 350 290"
+                                fill="#fff"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="318"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                n == 0?
+                            </text>
+
+                            <!-- Return 0 (右側) -->
+                            <path
+                                d="M 430 325 L 550 325"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="490"
+                                y="320"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                Yes
+                            </text>
+                            <rect
+                                x="550"
+                                y="305"
+                                width="100"
+                                height="40"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                            />
+                            <text
+                                x="600"
+                                y="330"
+                                text-anchor="middle"
+                                fill="#059669"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                0を返す
+                            </text>
+
+                            <!-- Init -->
+                            <path
+                                d="M 400 360 L 400 400"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text x="420" y="385" text-anchor="start" fill="#64748b" font-size="11">
+                                No
+                            </text>
+                            <rect
+                                x="280"
+                                y="400"
+                                width="240"
+                                height="60"
+                                rx="8"
+                                fill="#fff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="425"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                初期化
+                            </text>
+                            <text
+                                x="400"
+                                y="445"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="12"
+                            >
+                                left=0, best=0
+                            </text>
+
+                            <!-- Loop -->
+                            <path
+                                d="M 400 460 L 400 530"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <path
+                                d="M 350 530 L 450 530 L 400 600 L 350 530"
+                                fill="#fff"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="555"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                各文字 i, ch
+                            </text>
+                            <text
+                                x="400"
+                                y="573"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                を処理
+                            </text>
+
+                            <!-- Check ASCII -->
+                            <path
+                                d="M 400 600 L 400 670"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <path
+                                d="M 350 670 L 450 670 L 400 740 L 350 670"
+                                fill="#fff"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="700"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                code &lt; 128?
+                            </text>
+
+                            <!-- Get ASCII (左側) -->
+                            <path
+                                d="M 350 705 L 200 705 L 200 780"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="265"
+                                y="700"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                Yes
+                            </text>
+                            <rect
+                                x="110"
+                                y="780"
+                                width="180"
+                                height="50"
+                                rx="8"
+                                fill="#f0f9ff"
+                                stroke="#0ea5e9"
+                                stroke-width="2"
+                            />
+                            <text
+                                x="200"
+                                y="800"
+                                text-anchor="middle"
+                                fill="#0369a1"
+                                font-weight="600"
+                                font-size="12"
+                            >
+                                配列から取得
+                            </text>
+                            <text
+                                x="200"
+                                y="818"
+                                text-anchor="middle"
+                                fill="#0369a1"
+                                font-size="10"
+                            >
+                                last_ascii[code]
+                            </text>
+
+                            <!-- Get Dict (右側) -->
+                            <path
+                                d="M 430 705 L 600 705 L 600 780"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="535"
+                                y="700"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                No
+                            </text>
+                            <rect
+                                x="510"
+                                y="780"
+                                width="180"
+                                height="50"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                stroke-width="2"
+                            />
+                            <text
+                                x="600"
+                                y="800"
+                                text-anchor="middle"
+                                fill="#d97706"
+                                font-weight="600"
+                                font-size="12"
+                            >
+                                辞書から取得
+                            </text>
+                            <text
+                                x="600"
+                                y="818"
+                                text-anchor="middle"
+                                fill="#d97706"
+                                font-size="10"
+                            >
+                                last_other.get()
+                            </text>
+
+                            <!-- Merge paths -->
+                            <path
+                                d="M 200 830 L 200 870 L 350 870"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                            />
+                            <path
+                                d="M 600 830 L 600 870 L 400 870"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                            />
+                            <path
+                                d="M 350 870 L 400 870 L 400 930"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+
+                            <!-- Check prev > left -->
+                            <path
+                                d="M 350 930 L 450 930 L 400 1000 L 350 930"
+                                fill="#fff"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="958"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="10"
+                            >
+                                prev &gt; left?
+                            </text>
+
+                            <!-- Update left (右側) -->
+                            <path
+                                d="M 430 965 L 600 965"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="515"
+                                y="960"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                Yes
+                            </text>
+                            <rect
+                                x="600"
+                                y="945"
+                                width="120"
+                                height="40"
+                                rx="8"
+                                fill="#fef2f2"
+                                stroke="#ef4444"
+                                stroke-width="2"
+                            />
+                            <text
+                                x="660"
+                                y="970"
+                                text-anchor="middle"
+                                fill="#ef4444"
+                                font-weight="600"
+                                font-size="12"
+                            >
+                                left = prev
+                            </text>
+
+                            <!-- Store position and calc length -->
+                            <path
+                                d="M 400 1000 L 400 1040"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="420"
+                                y="1025"
+                                text-anchor="start"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                No
+                            </text>
+                            <path
+                                d="M 660 985 L 660 1075 L 520 1075"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <rect
+                                x="280"
+                                y="1040"
+                                width="240"
+                                height="60"
+                                rx="8"
+                                fill="#fff"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="400"
+                                y="1063"
+                                text-anchor="middle"
+                                font-weight="600"
+                                font-size="12"
+                            >
+                                位置を記録
+                            </text>
+                            <text
+                                x="400"
+                                y="1083"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                長さ計算、best更新
+                            </text>
+
+                            <!-- Loop back -->
+                            <path
+                                d="M 280 1070 L 80 1070 L 80 565 L 350 565"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                stroke-dasharray="5,5"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="200"
+                                y="1060"
+                                text-anchor="start"
+                                fill="#64748b"
+                                font-size="11"
+                            >
+                                次の文字へ
+                            </text>
+
+                            <!-- Return best (右上) -->
+                            <path
+                                d="M 450 565 L 720 565 L 720 150 L 650 150"
+                                stroke="#64748b"
+                                stroke-width="2"
+                                stroke-dasharray="5,5"
+                                fill="none"
+                                marker-end="url(#arrow)"
+                            />
+                            <text
+                                x="660"
+                                y="560"
+                                text-anchor="middle"
+                                fill="#64748b"
+                                font-size="10"
+                            >
+                                全文字処理完了
+                            </text>
+                            <rect
+                                x="550"
+                                y="130"
+                                width="100"
+                                height="40"
+                                rx="8"
+                                fill="#ecfdf5"
+                                stroke="#10b981"
+                                stroke-width="2"
+                                filter="url(#shadow)"
+                            />
+                            <text
+                                x="600"
+                                y="155"
+                                text-anchor="middle"
+                                fill="#059669"
+                                font-weight="600"
+                                font-size="12"
+                            >
+                                bestを返す
+                            </text>
+                        </svg>
+
+                        <p
+                            style="
+                                margin-top: 0.5rem;
+                                color: var(--text-secondary);
+                                line-height: 1.8;
+                                font-family: 'Source Code Pro', monospace;
+                                font-size: 20px;
+                                font-weight: 600;
+                            "
+                        >
+                            <strong style="font-size: 24px">フローの説明：</strong><br />
+                            1. 入力検証（型チェック・長さチェック）→ エラーなら例外を発生<br />
+                            2. 空文字列なら0を返して終了<br />
+                            3. 初期化：left=0（ウィンドウ左端）、best=0（最大長）<br />
+                            4. 各文字について：<br />
+                            　・ASCII（code&lt;128）なら配列から、非ASCIIなら辞書から前回出現位置を取得<br />
+                            　・前回位置がウィンドウ内（prev&gt;left）なら、leftを前進して重複を排除<br />
+                            　・現在位置を記録し、ウィンドウ長を計算してbestを更新<br />
+                            5. 全文字を処理したら、bestを返して終了
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section id="complexity">
+                <div class="container">
+                    <h2>計算量</h2>
+                    <div class="card">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem">
+                            時間計算量: O(n)
+                        </h3>
+                        <ul>
+                            <li>各文字を高々1回走査</li>
+                            <li>ASCIIは配列で O(1) アクセス、非ASCIIは辞書で平均 O(1)</li>
+                            <li>左端 <code>left</code> は単調増加（最大 n まで）</li>
+                        </ul>
+
+                        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 1.5rem 0 1rem">
+                            空間計算量: O(1) 相当
+                        </h3>
+                        <ul>
+                            <li>ASCII部分: <code>array('I', 128)</code> → 512バイト固定</li>
+                            <li>
+                                非ASCII部分:
+                                <code>dict</code> は出現種類数に比例（実際は小規模）
+                            </li>
+                        </ul>
+
+                        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 1.5rem 0 1rem">
+                            実装比較
+                        </h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>実装</th>
+                                    <th>Time</th>
+                                    <th>Space (ASCII)</th>
+                                    <th>Space (非ASCII)</th>
+                                    <th>メモリ順位</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>修正前（BMP 65536配列）</td>
+                                    <td>O(n)</td>
+                                    <td>512B</td>
+                                    <td>約256KB（BMP表）</td>
+                                    <td>中程度</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>修正後（dict）</strong></td>
+                                    <td>O(n)</td>
+                                    <td>512B</td>
+                                    <td>出現種類数に比例</td>
+                                    <td><strong>改善</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>
+                    &copy; 2025 Algorithm Visualizer. LeetCode Problem 3 - Longest Substring Without
+                    Repeating Characters
+                </p>
+            </div>
+        </footer>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // 定数定義
+            const STEP_AUTO_ADVANCE_DELAY = 1800;
+            const INITIAL_STEP = 1;
+
+            // ステップデータ
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期化',
+                    desc: "文字列 s='abcabcbb' を処理開始",
+                    visual: {
+                        type: 'init',
+                        s: 'abcabcbb',
+                        left: 0,
+                        i: -1,
+                        best: 0,
+                        lastSeen: {},
+                    },
+                },
+                {
+                    step: 2,
+                    title: "i=0: 'a'",
+                    desc: "'a' を初めて見る。ウィンドウ [0,0]、長さ=1",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 0,
+                        i: 0,
+                        ch: 'a',
+                        best: 1,
+                        lastSeen: { a: 0 },
+                        window: 'a',
+                    },
+                },
+                {
+                    step: 3,
+                    title: "i=1: 'b'",
+                    desc: "'b' を初めて見る。ウィンドウ [0,1]、長さ=2",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 0,
+                        i: 1,
+                        ch: 'b',
+                        best: 2,
+                        lastSeen: { a: 0, b: 1 },
+                        window: 'ab',
+                    },
+                },
+                {
+                    step: 4,
+                    title: "i=2: 'c'",
+                    desc: "'c' を初めて見る。ウィンドウ [0,2]、長さ=3",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 0,
+                        i: 2,
+                        ch: 'c',
+                        best: 3,
+                        lastSeen: { a: 0, b: 1, c: 2 },
+                        window: 'abc',
+                    },
+                },
+                {
+                    step: 5,
+                    title: "i=3: 'a' (重複)",
+                    desc: "'a' が再出現。left を 1 に前進。ウィンドウ [1,3]、長さ=3",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 1,
+                        i: 3,
+                        ch: 'a',
+                        best: 3,
+                        lastSeen: { a: 3, b: 1, c: 2 },
+                        window: 'bca',
+                        duplicate: true,
+                    },
+                },
+                {
+                    step: 6,
+                    title: "i=4: 'b' (重複)",
+                    desc: "'b' が再出現。left を 2 に前進。ウィンドウ [2,4]、長さ=3",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 2,
+                        i: 4,
+                        ch: 'b',
+                        best: 3,
+                        lastSeen: { a: 3, b: 4, c: 2 },
+                        window: 'cab',
+                        duplicate: true,
+                    },
+                },
+                {
+                    step: 7,
+                    title: "i=5: 'c' (重複)",
+                    desc: "'c' が再出現。left を 3 に前進。ウィンドウ [3,5]、長さ=3",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 3,
+                        i: 5,
+                        ch: 'c',
+                        best: 3,
+                        lastSeen: { a: 3, b: 4, c: 5 },
+                        window: 'abc',
+                        duplicate: true,
+                    },
+                },
+                {
+                    step: 8,
+                    title: "i=6: 'b' (重複)",
+                    desc: "'b' が再出現。left を 5 に前進。ウィンドウ [5,6]、長さ=2",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 5,
+                        i: 6,
+                        ch: 'b',
+                        best: 3,
+                        lastSeen: { a: 3, b: 6, c: 5 },
+                        window: 'cb',
+                        duplicate: true,
+                    },
+                },
+                {
+                    step: 9,
+                    title: "i=7: 'b' (重複)",
+                    desc: "'b' が再出現。left を 7 に前進。ウィンドウ [7,7]、長さ=1",
+                    visual: {
+                        type: 'iteration',
+                        s: 'abcabcbb',
+                        left: 7,
+                        i: 7,
+                        ch: 'b',
+                        best: 3,
+                        lastSeen: { a: 3, b: 7, c: 5 },
+                        window: 'b',
+                        duplicate: true,
+                    },
+                },
+                {
+                    step: 10,
+                    title: '結果',
+                    desc: '最長部分文字列の長さ = 3',
+                    visual: {
+                        type: 'result',
+                        s: 'abcabcbb',
+                        best: 3,
+                        examples: ['abc', 'bca', 'cab'],
+                    },
+                },
+            ];
+
+            // ステップ可視化コンポーネント
+            function StepVisualization({ stepInfo }) {
+                const { visual } = stepInfo;
+
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ width: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="40"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="700"
+                                fill="#1e293b"
+                            >
+                                入力文字列
+                            </text>
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                fontSize="32"
+                                fontWeight="700"
+                                fill="#10b981"
+                                fontFamily="JetBrains Mono"
+                            >
+                                {visual.s}
+                            </text>
+
+                            <text x="300" y="140" textAnchor="middle" fontSize="16" fill="#64748b">
+                                left = {visual.left}, best = {visual.best}
+                            </text>
+
+                            <rect
+                                x="150"
+                                y="180"
+                                width="300"
+                                height="80"
+                                rx="12"
+                                fill="#f0fdf4"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="210"
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                追跡構造を初期化
+                            </text>
+                            <text x="300" y="235" textAnchor="middle" fontSize="13" fill="#64748b">
+                                ASCII: 配列(128) | 非ASCII: 辞書
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'iteration') {
+                    const charWidth = 50;
+                    const startX = 50;
+                    const charY = 120;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{
+                                width: '100%',
+                                height: 'auto',
+                                marginTop: '200px',
+                            }}
+                        >
+                            {/* 現在の文字インジケーター */}
+                            <text
+                                x="300"
+                                y="15"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="700"
+                                fill="#1e293b"
+                            >
+                                処理中: i={visual.i}, ch='{visual.ch}'
+                            </text>
+
+                            {visual.duplicate && (
+                                <text
+                                    x="300"
+                                    y="35"
+                                    textAnchor="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                    fill="#ef4444"
+                                >
+                                    ⚠ 重複を検出！
+                                </text>
+                            )}
+
+                            {/* 文字列の可視化 */}
+                            {visual.s.split('').map((char, idx) => {
+                                const x = startX + idx * charWidth;
+                                const isInWindow = idx >= visual.left && idx <= visual.i;
+                                const isCurrent = idx === visual.i;
+
+                                return (
+                                    <g key={idx}>
+                                        <rect
+                                            x={x}
+                                            y={charY - 30}
+                                            width={charWidth - 5}
+                                            height={50}
+                                            rx="8"
+                                            fill={
+                                                isCurrent
+                                                    ? '#10b981'
+                                                    : isInWindow
+                                                      ? '#d1fae5'
+                                                      : '#f1f5f9'
+                                            }
+                                            stroke={
+                                                isCurrent
+                                                    ? '#059669'
+                                                    : isInWindow
+                                                      ? '#10b981'
+                                                      : '#cbd5e1'
+                                            }
+                                            strokeWidth="2"
+                                        />
+                                        <text
+                                            x={x + (charWidth - 5) / 2}
+                                            y={charY}
+                                            textAnchor="middle"
+                                            fontSize="20"
+                                            fontWeight="700"
+                                            fill={
+                                                isCurrent
+                                                    ? 'white'
+                                                    : isInWindow
+                                                      ? '#059669'
+                                                      : '#64748b'
+                                            }
+                                            fontFamily="JetBrains Mono"
+                                        >
+                                            {char}
+                                        </text>
+                                        <text
+                                            x={x + (charWidth - 5) / 2}
+                                            y={charY + 35}
+                                            textAnchor="middle"
+                                            fontSize="11"
+                                            fill="#64748b"
+                                        >
+                                            {idx}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            {/* ウィンドウインジケーター */}
+                            {visual.left <= visual.i && (
+                                <>
+                                    <path
+                                        d={`M ${startX + visual.left * charWidth} ${charY + 60} L ${
+                                            startX + visual.left * charWidth
+                                        } ${charY + 40}`}
+                                        stroke="#10b981"
+                                        strokeWidth="3"
+                                        markerEnd="url(#arrowhead)"
+                                    />
+                                    <text
+                                        x={startX + visual.left * charWidth}
+                                        y={charY + 80}
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        left
+                                    </text>
+
+                                    <path
+                                        d={`M ${
+                                            startX + visual.i * charWidth + (charWidth - 5) / 2
+                                        } ${charY - 50} L ${
+                                            startX + visual.i * charWidth + (charWidth - 5) / 2
+                                        } ${charY - 35}`}
+                                        stroke="#10b981"
+                                        strokeWidth="3"
+                                        markerEnd="url(#arrowhead)"
+                                    />
+                                    <text
+                                        x={startX + visual.i * charWidth + (charWidth - 5) / 2}
+                                        y={55}
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        i
+                                    </text>
+                                </>
+                            )}
+
+                            {/* 情報パネル */}
+                            <rect
+                                x="50"
+                                y="220"
+                                width="500"
+                                height="140"
+                                rx="12"
+                                fill="#ffffff"
+                                stroke="#e2e8f0"
+                                strokeWidth="2"
+                            />
+
+                            <text x="70" y="250" fontSize="14" fontWeight="700" fill="#1e293b">
+                                ウィンドウ: "{visual.window}"
+                            </text>
+                            <text x="70" y="275" fontSize="13" fill="#64748b">
+                                現在の長さ: {visual.i - visual.left + 1}
+                            </text>
+                            <text x="70" y="300" fontSize="13" fill="#64748b">
+                                現時点での最大: {visual.best}
+                            </text>
+
+                            <text x="70" y="330" fontSize="12" fontWeight="600" fill="#64748b">
+                                最後に出現した位置:
+                            </text>
+                            <text
+                                x="70"
+                                y="350"
+                                fontSize="11"
+                                fill="#64748b"
+                                fontFamily="JetBrains Mono"
+                            >
+                                {Object.entries(visual.lastSeen)
+                                    .slice(0, 6)
+                                    .map(([k, v]) => `${k}:${v}`)
+                                    .join('  ')}
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowhead"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ width: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <rect
+                                x="100"
+                                y="50"
+                                width="400"
+                                height="120"
+                                rx="16"
+                                fill="url(#resultGrad)"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="white"
+                            >
+                                結果
+                            </text>
+                            <text
+                                x="300"
+                                y="130"
+                                textAnchor="middle"
+                                fontSize="48"
+                                fontWeight="700"
+                                fill="white"
+                            >
+                                {visual.best}
+                            </text>
+
+                            <text x="300" y="200" textAnchor="middle" fontSize="14" fill="#64748b">
+                                部分文字列の例:
+                            </text>
+                            <text
+                                x="300"
+                                y="230"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#10b981"
+                                fontFamily="JetBrains Mono"
+                            >
+                                {visual.examples.map((ex) => `"${ex}"`).join(', ')}
+                            </text>
+
+                            <defs>
+                                <linearGradient id="resultGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#10b981" />
+                                    <stop offset="100%" stopColor="#059669" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            // メインビジュアライザーコンポーネント
+            function VisualizerComponent() {
+                const [activeStep, setActiveStep] = useState(INITIAL_STEP);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const totalSteps = stepsData.length;
+                const currentStepData = stepsData[activeStep - 1];
+
+                // 自動再生ロジック
+                useEffect(() => {
+                    if (!isPlaying) return;
+
+                    timerRef.current = setTimeout(() => {
+                        setActiveStep((prev) => {
+                            const nextStep = prev + 1;
+                            if (nextStep > totalSteps) {
+                                setIsPlaying(false);
+                                return INITIAL_STEP; // 自動リセット
+                            }
+                            return nextStep;
+                        });
+                    }, STEP_AUTO_ADVANCE_DELAY);
+
+                    return () => {
+                        if (timerRef.current) {
+                            clearTimeout(timerRef.current);
+                        }
+                    };
+                }, [isPlaying, activeStep, totalSteps]);
+
+                // コントロール関数
+                const handlePlay = () => {
+                    if (isPlaying) return; // 多重再生防止
+                    setIsPlaying(true);
+                    if (activeStep === totalSteps) {
+                        setActiveStep(INITIAL_STEP);
+                    }
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(INITIAL_STEP);
+                    if (timerRef.current) {
+                        clearTimeout(timerRef.current);
+                    }
+                };
+
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    if (timerRef.current) {
+                        clearTimeout(timerRef.current);
+                    }
+                    setActiveStep((prev) => Math.max(1, prev - 1));
+                };
+
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    if (timerRef.current) {
+                        clearTimeout(timerRef.current);
+                    }
+                    setActiveStep((prev) => Math.min(totalSteps, prev + 1));
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    if (timerRef.current) {
+                        clearTimeout(timerRef.current);
+                    }
+                    setActiveStep(step);
+                };
+
+                return (
+                    <div className="demo-grid">
+                        {/* ステップリスト */}
+                        <div className="step-list">
+                            {stepsData.map((stepData) => (
+                                <button
+                                    key={stepData.step}
+                                    type="button"
+                                    className={`step-button ${
+                                        activeStep === stepData.step ? 'active' : ''
+                                    }`}
+                                    onClick={() => handleStepClick(stepData.step)}
+                                    aria-label={`Go to step ${stepData.step}`}
+                                    aria-current={activeStep === stepData.step ? 'step' : undefined}
+                                >
+                                    <div className="step-title">
+                                        Step {stepData.step}: {stepData.title}
+                                    </div>
+                                    <div className="step-desc">{stepData.desc}</div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* 可視化パネル */}
+                        <div className="visualization-panel">
+                            <div style={{ flex: 1 }}>
+                                <StepVisualization stepInfo={currentStepData} />
+                            </div>
+
+                            {/* コントロール */}
+                            <div className="controls">
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="Play animation"
+                                >
+                                    {isPlaying ? '▶ Playing...' : '▶ Play'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="Previous step"
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleNext}
+                                    disabled={activeStep === totalSteps || isPlaying}
+                                    aria-label="Next step"
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleReset}
+                                    aria-label="Reset to first step"
+                                >
+                                    ↺ Reset
+                                </button>
+                                <div
+                                    style={{
+                                        marginLeft: 'auto',
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    {activeStep} / {totalSteps}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // マウント
+            const container = document.getElementById('interactive-demo');
+            if (container) {
+                const root = ReactDOM.createRoot(container);
+                root.render(<VisualizerComponent />);
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>K番目順列アルゴリズム解析</title>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            /* カスタムCSSクラス統合 */
+            .card-container {
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                border: 1px solid #334155;
+            }
+
+            .tab-button {
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .tab-active {
+                background-color: #2563eb;
+                color: white;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                transform: scale(1.05);
+            }
+
+            .tab-inactive {
+                background-color: #374151;
+                color: #d1d5db;
+            }
+
+            .tab-inactive:hover {
+                background-color: #4b5563;
+                color: white;
+            }
+
+            .step-card {
+                background-color: #1e293b;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                border-left: 4px solid #3b82f6;
+                margin-bottom: 1rem;
+                transform: translateX(0);
+                transition: all 0.5s ease;
+            }
+
+            .array-item {
+                display: inline-block;
+                padding: 0.5rem 0.75rem;
+                background-color: #2563eb;
+                color: white;
+                border-radius: 0.375rem;
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+                font-family: monospace;
+                font-size: 0.875rem;
+                transition: all 0.3s ease;
+            }
+
+            .highlight-item {
+                background-color: #eab308;
+                color: black;
+                transform: scale(1.1);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            }
+
+            .removed-item {
+                background-color: #ef4444;
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+
+            /* コードブロック用スタイル */
+            pre,
+            code {
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.6;
+            }
+
+            pre {
+                padding: 20px;
+                padding-left: 90px; /* 行番号のスペースを確保 */
+                background: #1a1b26 !important;
+                border-radius: 12px;
+                border: 1px solid #2d3748;
+                position: relative;
+                overflow-x: auto;
+            }
+
+            /* コードブロック全体のコンテナ */
+            .relative {
+                position: relative;
+                display: block;
+                width: 100%;
+            }
+
+            /* コードの可視性を確保 */
+            code.language-typescript {
+                display: block;
+                padding: 0;
+                margin: 0;
+                background: transparent !important;
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                line-height: 1.6 !important;
+                font-size: 0.875rem !important;
+                white-space: pre !important;
+            }
+
+            /* 行番号とコードの同期 */
+            pre code {
+                line-height: 1.6 !important;
+                font-size: 0.875rem !important;
+                display: block;
+                margin: 0;
+                padding: 0;
+            }
+
+            .line-numbers {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 40px;
+                background: #0f1419;
+                border-right: 1px solid #2d3748;
+                padding: 20px 0;
+                color: #6b7280;
+                font-size: 0.875rem;
+                line-height: 1.6;
+                user-select: none;
+                z-index: 10;
+                display: flex;
+                flex-direction: column;
+                border-top-left-radius: 12px;
+                border-bottom-left-radius: 12px;
+            }
+
+            .line-numbers div {
+                height: 1.6em; /* line-heightと同じ値 */
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 8px;
+                padding-left: 8px; /* 左側にも少し余白 */
+                min-width: 100%; /* 幅を確保 */
+            }
+
+            .code-content {
+                margin-left: 0;
+                display: block;
+                width: 100%;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* コードブロック全体のコンテナ */
+            .code-block-container {
+                position: relative;
+                background: #1a1b26;
+                border-radius: 12px;
+                border: 1px solid #2d3748;
+                overflow: hidden;
+            }
+
+            /* コピーボタン */
+            .copy-button {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                background: #374151;
+                color: #d1d5db;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.75rem;
+                transition: all 0.2s;
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-weight: 500;
+            }
+
+            .copy-button:hover {
+                background: #4b5563;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .copy-button svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            /* コードラッパー */
+            .code-wrapper {
+                display: flex;
+                min-height: 100%;
+            }
+
+            /* 行番号コンテナ */
+            .line-numbers-container {
+                background: #0f1419;
+                border-right: 1px solid #2d3748;
+                padding: 20px 0;
+                min-width: 60px;
+                flex-shrink: 0;
+            }
+
+            .line-number {
+                height: 1.6em;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 16px;
+                padding-left: 8px;
+                color: #6b7280;
+                font-size: 0.875rem;
+                font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, monospace;
+                line-height: 1.6;
+                user-select: none;
+            }
+
+            /* コードプリ要素 */
+            .code-pre {
+                flex: 1;
+                margin: 0;
+                padding: 20px;
+                background: transparent;
+                border: none;
+                overflow-x: auto;
+            }
+
+            /* コード要素 */
+            .language-typescript {
+                display: block;
+                padding: 0;
+                margin: 0;
+                background: transparent !important;
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                line-height: 1.6 !important;
+                font-size: 0.875rem !important;
+                white-space: pre !important;
+                color: #e2e8f0 !important;
+                border: none;
+            }
+
+            /* レスポンシブ対応 */
+            @media (max-width: 768px) {
+                .line-numbers-container {
+                    min-width: 50px;
+                }
+
+                .line-number {
+                    padding-right: 12px;
+                    font-size: 0.75rem;
+                }
+
+                .code-pre {
+                    padding: 16px;
+                }
+
+                .language-typescript {
+                    font-size: 0.75rem !important;
+                }
+            }
+
+            /* アニメーション */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .fade-in-up {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .pulse-animation {
+                animation: pulse 2s infinite;
+            }
+
+            /* フローチャート用スタイル */
+            .flow-node {
+                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+                color: white;
+                border-radius: 0.5rem;
+                padding: 0.75rem;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                transform: translateX(0);
+                transition: all 0.3s ease;
+            }
+
+            .flow-arrow {
+                color: #60a5fa;
+                font-size: 1.5rem;
+            }
+
+            /* 数式表示 */
+            .math-formula {
+                background-color: #374151;
+                color: #4ade80;
+                padding: 0.5rem 1rem;
+                border-radius: 0.375rem;
+                font-family: monospace;
+                display: inline-block;
+            }
+        </style>
+    </head>
+
+    <body
+        class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 min-h-screen text-white"
+    >
+        <div class="container mx-auto px-4 py-8">
+            <!-- ヘッダー -->
+            <header class="text-center mb-12 fade-in-up">
+                <h1
+                    class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4"
+                >
+                    K番目順列アルゴリズム解析
+                </h1>
+                <p class="text-xl text-slate-300">数学的アプローチによる効率的な順列計算</p>
+                <div class="mt-6 flex justify-center space-x-4">
+                    <span class="math-formula">時間計算量: O(n²)</span>
+                    <span class="math-formula">空間計算量: O(n)</span>
+                </div>
+            </header>
+
+            <!-- タブナビゲーション -->
+            <div class="flex justify-center mb-8 fade-in-up">
+                <div class="bg-slate-800 rounded-lg p-2 flex space-x-2">
+                    <button class="tab-button tab-active" onclick="switchTab('algorithm')">
+                        アルゴリズム
+                    </button>
+                    <button class="tab-button tab-inactive" onclick="switchTab('visualization')">
+                        視覚化
+                    </button>
+                    <button class="tab-button tab-inactive" onclick="switchTab('analysis')">
+                        解析
+                    </button>
+                    <button class="tab-button tab-inactive" onclick="switchTab('demo')">
+                        デモ
+                    </button>
+                </div>
+            </div>
+
+            <!-- コンテンツエリア -->
+            <div id="content-area">
+                <!-- アルゴリズムタブ -->
+                <div id="algorithm-tab" class="tab-content">
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <!-- TypeScriptコード -->
+                        <div class="card-container fade-in-up">
+                            <h2 class="text-2xl font-bold mb-4 text-blue-400">TypeScript実装</h2>
+                            <div class="code-block-container">
+                                <button class="copy-button" onclick="copyCode('main-code')">
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+                                        <rect
+                                            x="9"
+                                            y="9"
+                                            width="13"
+                                            height="13"
+                                            rx="2"
+                                            ry="2"
+                                        ></rect>
+                                        <path d="m5 15-4-4 4-4"></path>
+                                    </svg>
+                                    Copy
+                                </button>
+                                <div class="code-wrapper">
+                                    <div class="line-numbers-container">
+                                        <div class="line-number"></div>
+                                        <div class="line-number"></div>
+                                        <div class="line-number">1</div>
+                                        <div class="line-number">2</div>
+                                        <div class="line-number">3</div>
+                                        <div class="line-number">4</div>
+                                        <div class="line-number">5</div>
+                                        <div class="line-number">6</div>
+                                        <div class="line-number">7</div>
+                                        <div class="line-number">8</div>
+                                        <div class="line-number">9</div>
+                                        <div class="line-number">10</div>
+                                        <div class="line-number">11</div>
+                                        <div class="line-number">12</div>
+                                        <div class="line-number">13</div>
+                                        <div class="line-number">14</div>
+                                        <div class="line-number">15</div>
+                                        <div class="line-number">16</div>
+                                        <div class="line-number">17</div>
+                                        <div class="line-number">18</div>
+                                        <div class="line-number">19</div>
+                                        <div class="line-number">20</div>
+                                        <div class="line-number">21</div>
+                                        <div class="line-number">22</div>
+                                        <div class="line-number">23</div>
+                                        <div class="line-number">24</div>
+                                        <div class="line-number">25</div>
+                                        <div class="line-number">26</div>
+                                        <div class="line-number">27</div>
+                                        <div class="line-number">28</div>
+                                        <div class="line-number">29</div>
+                                        <div class="line-number">30</div>
+                                        <div class="line-number">31</div>
+                                        <div class="line-number">32</div>
+                                        <div class="line-number">33</div>
+                                        <div class="line-number">34</div>
+                                        <div class="line-number">35</div>
+                                        <div class="line-number">36</div>
+                                    </div>
+                                    <pre class="code-pre">
+                                        <code id="main-code" class="language-typescript">
+function getPermutation(n: number, k: number): string {
+    // 階乗を事前計算
+    const factorial: number[] = [1];
+    for (let i = 1; i < n; i++) {
+        factorial[i] = factorial[i - 1] * i;
+    }
+    
+    // 使用可能な数字のリスト
+    const numbers: number[] = [];
+    for (let i = 1; i <= n; i++) {
+        numbers.push(i);
+    }
+    
+    // k を 0-indexed に変換
+    k--;
+    
+    let result: string = '';
+    
+    // 各桁を順番に決定
+    for (let i = 0; i < n; i++) {
+        // インデックス計算
+        const index: number = Math.floor(k / factorial[n - 1 - i]);
+        
+        // 数字を結果に追加
+        result += numbers[index];
+        
+        // 使用済み数字を削除
+        numbers.splice(index, 1);
+        
+        // k を更新
+        k %= factorial[n - 1 - i];
+    }
+    
+    return result;
+}                                       </code>
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- アルゴリズム概要 -->
+                        <div class="card-container fade-in-up">
+                            <h2 class="text-2xl font-bold mb-4 text-purple-400">
+                                アルゴリズム概要
+                            </h2>
+                            <div class="space-y-4">
+                                <div class="bg-slate-700 rounded-lg p-4">
+                                    <h3 class="font-bold text-green-400 mb-2">核心アイデア</h3>
+                                    <p class="text-slate-300">
+                                        全順列を生成せず、数学的計算で直接k番目の順列を求める
+                                    </p>
+                                </div>
+                                <div class="bg-slate-700 rounded-lg p-4">
+                                    <h3 class="font-bold text-yellow-400 mb-2">キーポイント</h3>
+                                    <ul class="text-slate-300 space-y-1">
+                                        <li>• 階乗による位置計算</li>
+                                        <li>• 各桁での数字選択</li>
+                                        <li>• 使用済み数字の除去</li>
+                                        <li>• 剰余演算での位置更新</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-slate-700 rounded-lg p-4">
+                                    <h3 class="font-bold text-red-400 mb-2">効率性</h3>
+                                    <p class="text-slate-300">
+                                        O(n!)の全順列生成を回避し、O(n²)で直接計算
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 視覚化タブ -->
+                <div id="visualization-tab" class="tab-content hidden">
+                    <div class="card-container fade-in-up">
+                        <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">
+                            ステップバイステップ視覚化
+                        </h2>
+
+                        <!-- 制御パネル -->
+                        <div class="bg-slate-700 rounded-lg p-4 mb-6">
+                            <div class="flex items-center justify-center space-x-4">
+                                <label class="text-slate-300">n:</label>
+                                <input
+                                    type="number"
+                                    id="demo-n"
+                                    value="4"
+                                    min="3"
+                                    max="5"
+                                    class="bg-slate-600 text-white px-3 py-1 rounded w-16"
+                                />
+                                <label class="text-slate-300">k:</label>
+                                <input
+                                    type="number"
+                                    id="demo-k"
+                                    value="9"
+                                    min="1"
+                                    class="bg-slate-600 text-white px-3 py-1 rounded w-16"
+                                />
+                                <button
+                                    onclick="startVisualization()"
+                                    class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+                                >
+                                    視覚化開始
+                                </button>
+                                <button
+                                    onclick="resetVisualization()"
+                                    class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
+                                >
+                                    リセット
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 視覚化エリア -->
+                        <div id="visualization-area" class="space-y-6">
+                            <!-- 初期状態 -->
+                            <div class="bg-slate-800 rounded-lg p-6">
+                                <h3 class="text-xl font-bold mb-4 text-green-400">初期状態</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <h4 class="font-bold text-blue-300 mb-2">階乗配列</h4>
+                                        <div id="factorial-display" class="space-y-1"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-purple-300 mb-2">数字配列</h4>
+                                        <div id="numbers-display" class="flex flex-wrap"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-yellow-300 mb-2">変数</h4>
+                                        <div id="variables-display" class="space-y-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ステップ表示 -->
+                            <div id="steps-container" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 解析タブ -->
+                <div id="analysis-tab" class="tab-content hidden">
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <!-- 時間計算量解析 -->
+                        <div class="card-container fade-in-up">
+                            <h2 class="text-2xl font-bold mb-4 text-red-400">時間計算量解析</h2>
+                            <div class="space-y-4">
+                                <div class="step-card">
+                                    <h3 class="font-bold text-blue-300 mb-2">階乗計算</h3>
+                                    <p class="text-slate-300 mb-2">O(n) - n個の階乗を順次計算</p>
+                                    <div class="math-formula">
+                                        for i = 1 to n-1: factorial[i] = factorial[i-1] * i
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <h3 class="font-bold text-purple-300 mb-2">メインループ</h3>
+                                    <p class="text-slate-300 mb-2">
+                                        O(n²) - n回のループ、各回でsplice操作O(n)
+                                    </p>
+                                    <div class="math-formula">n × O(n) = O(n²)</div>
+                                </div>
+
+                                <div class="step-card">
+                                    <h3 class="font-bold text-green-300 mb-2">総合計算量</h3>
+                                    <p class="text-slate-300 mb-2">O(n) + O(n²) = O(n²)</p>
+                                    <div class="bg-green-600 text-white p-3 rounded-md">
+                                        <strong>結論: O(n²) vs 全順列生成 O(n! × n)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 空間計算量解析 -->
+                        <div class="card-container fade-in-up">
+                            <h2 class="text-2xl font-bold mb-4 text-yellow-400">空間計算量解析</h2>
+                            <div class="space-y-4">
+                                <div class="step-card">
+                                    <h3 class="font-bold text-blue-300 mb-2">factorial配列</h3>
+                                    <p class="text-slate-300 mb-2">O(n) - n個の階乗値を保存</p>
+                                    <div class="math-formula">配列サイズ: n</div>
+                                </div>
+
+                                <div class="step-card">
+                                    <h3 class="font-bold text-purple-300 mb-2">numbers配列</h3>
+                                    <p class="text-slate-300 mb-2">O(n) - 使用可能な数字を保存</p>
+                                    <div class="math-formula">初期サイズ: n → 最終サイズ: 0</div>
+                                </div>
+
+                                <div class="step-card">
+                                    <h3 class="font-bold text-green-300 mb-2">その他変数</h3>
+                                    <p class="text-slate-300 mb-2">O(1) - 定数個の変数</p>
+                                    <div class="bg-yellow-600 text-black p-3 rounded-md">
+                                        <strong>総空間計算量: O(n)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- フローチャート -->
+                    <div class="card-container mt-8 fade-in-up">
+                        <h2 class="text-2xl font-bold mb-6 text-center text-indigo-400">
+                            アルゴリズムフロー
+                        </h2>
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="flow-node">階乗配列の事前計算</div>
+                            <div class="flow-arrow">↓</div>
+                            <div class="flow-node">数字配列の初期化</div>
+                            <div class="flow-arrow">↓</div>
+                            <div class="flow-node">k を 0-indexed に変換</div>
+                            <div class="flow-arrow">↓</div>
+                            <div class="flow-node bg-gradient-to-r from-green-500 to-blue-500">
+                                メインループ (n回)
+                            </div>
+                            <div class="ml-8 bg-slate-700 rounded-lg p-4 space-y-2">
+                                <div class="text-sm text-slate-300">
+                                    1. index = k ÷ factorial[n-1-i]
+                                </div>
+                                <div class="text-sm text-slate-300">
+                                    2. result += numbers[index]
+                                </div>
+                                <div class="text-sm text-slate-300">
+                                    3. numbers.splice(index, 1)
+                                </div>
+                                <div class="text-sm text-slate-300">4. k %= factorial[n-1-i]</div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+                            <div class="flow-node bg-gradient-to-r from-purple-500 to-pink-500">
+                                結果文字列を返却
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- デモタブ -->
+                <div id="demo-tab" class="tab-content hidden">
+                    <div class="card-container fade-in-up">
+                        <h2 class="text-2xl font-bold mb-6 text-center text-green-400">
+                            インタラクティブデモ
+                        </h2>
+
+                        <!-- 入力コントロール -->
+                        <div class="bg-slate-700 rounded-lg p-6 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div>
+                                    <label class="block text-slate-300 mb-2">n (集合サイズ)</label>
+                                    <input
+                                        type="number"
+                                        id="input-n"
+                                        value="4"
+                                        min="3"
+                                        max="5"
+                                        class="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 focus:border-blue-400 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-slate-300 mb-2">k (順列番号)</label>
+                                    <input
+                                        type="number"
+                                        id="input-k"
+                                        value="9"
+                                        min="1"
+                                        class="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 focus:border-blue-400 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <button
+                                        onclick="runDemo()"
+                                        class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+                                    >
+                                        実行
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 結果表示 -->
+                        <div id="demo-result" class="bg-slate-800 rounded-lg p-6 hidden">
+                            <h3 class="text-xl font-bold mb-4 text-yellow-400">実行結果</h3>
+                            <div id="demo-output" class="space-y-4"></div>
+                        </div>
+
+                        <!-- 実行トレース -->
+                        <div id="execution-trace" class="hidden">
+                            <h3 class="text-xl font-bold mb-4 text-cyan-400">実行トレース</h3>
+                            <div id="trace-steps" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // タブ切り替え機能
+            function switchTab(tabName) {
+                // 全てのタブコンテンツを非表示
+                const contents = document.querySelectorAll('.tab-content');
+                contents.forEach((content) => content.classList.add('hidden'));
+
+                // 全てのタブボタンを非アクティブ化
+                const buttons = document.querySelectorAll('.tab-button');
+                buttons.forEach((button) => {
+                    button.classList.remove('tab-active');
+                    button.classList.add('tab-inactive');
+                });
+
+                // 選択されたタブをアクティブ化
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+                event.target.classList.remove('tab-inactive');
+                event.target.classList.add('tab-active');
+            }
+
+            // コードコピー機能
+            function copyCode(elementId) {
+                const codeElement = document.getElementById(elementId);
+                const text = codeElement.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.classList.add('bg-green-600');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-600');
+                    }, 2000);
+                });
+            }
+
+            // K番目順列計算関数
+            function calculateKthPermutation(n, k) {
+                const factorial = [1];
+                for (let i = 1; i < n; i++) {
+                    factorial[i] = factorial[i - 1] * i;
+                }
+
+                const numbers = [];
+                for (let i = 1; i <= n; i++) {
+                    numbers.push(i);
+                }
+
+                k--;
+                let result = '';
+                const steps = [];
+
+                for (let i = 0; i < n; i++) {
+                    const index = Math.floor(k / factorial[n - 1 - i]);
+                    const selectedNumber = numbers[index];
+                    result += selectedNumber;
+
+                    steps.push({
+                        step: i + 1,
+                        k: k,
+                        factorial: factorial[n - 1 - i],
+                        index: index,
+                        selectedNumber: selectedNumber,
+                        numbers: [...numbers],
+                        result: result,
+                    });
+
+                    numbers.splice(index, 1);
+                    k %= factorial[n - 1 - i];
+                }
+
+                return { result, steps, factorial };
+            }
+
+            // 視覚化開始
+            function startVisualization() {
+                const n = parseInt(document.getElementById('demo-n').value);
+                const k = parseInt(document.getElementById('demo-k').value);
+
+                if (k > factorial(n)) {
+                    alert(`k は ${factorial(n)} 以下である必要があります`);
+                    return;
+                }
+
+                const { result, steps, factorial: factorialArray } = calculateKthPermutation(n, k);
+
+                displayInitialState(n, k, factorialArray);
+                displaySteps(steps);
+            }
+
+            // 階乗計算
+            function factorial(n) {
+                let result = 1;
+                for (let i = 2; i <= n; i++) {
+                    result *= i;
+                }
+                return result;
+            }
+
+            // 初期状態表示
+            function displayInitialState(n, k, factorialArray) {
+                // 階乗配列表示
+                const factorialDisplay = document.getElementById('factorial-display');
+                factorialDisplay.innerHTML = factorialArray
+                    .map(
+                        (val, index) =>
+                            `<div class="text-sm bg-blue-600 text-white px-2 py-1 rounded">${index}! = ${val}</div>`,
+                    )
+                    .join('');
+
+                // 数字配列表示
+                const numbersDisplay = document.getElementById('numbers-display');
+                numbersDisplay.innerHTML = '';
+                for (let i = 1; i <= n; i++) {
+                    const item = createArrayItem(i.toString(), false);
+                    numbersDisplay.appendChild(item);
+                }
+
+                // 変数表示
+                const variablesDisplay = document.getElementById('variables-display');
+                variablesDisplay.innerHTML = `
+                <div class="text-sm bg-slate-600 text-white px-2 py-1 rounded">n = ${n}</div>
+                <div class="text-sm bg-slate-600 text-white px-2 py-1 rounded">k = ${k} → ${k - 1} (0-indexed)</div>
+                <div class="text-sm bg-slate-600 text-white px-2 py-1 rounded">result = ""</div>
+            `;
+            }
+
+            // 配列アイテム作成
+            function createArrayItem(value, isHighlighted = false, isRemoved = false) {
+                const item = document.createElement('span');
+                item.textContent = value;
+                item.className = 'array-item';
+
+                if (isHighlighted) item.classList.add('highlight-item');
+                if (isRemoved) item.classList.add('removed-item');
+
+                return item;
+            }
+
+            // ステップ表示
+            function displaySteps(steps) {
+                const container = document.getElementById('steps-container');
+                container.innerHTML = '';
+
+                steps.forEach((step, index) => {
+                    setTimeout(() => {
+                        const stepDiv = createStepElement(step);
+                        container.appendChild(stepDiv);
+                        stepDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, index * 1500);
+                });
+            }
+
+            // ステップ要素作成
+            function createStepElement(step) {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step-card fade-in-up';
+
+                stepDiv.innerHTML = `
+                <h3 class="text-xl font-bold mb-4 text-cyan-400">ステップ ${step.step}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-bold text-blue-300 mb-2">計算</h4>
+                        <div class="bg-slate-700 rounded p-3 space-y-2">
+                            <div class="text-sm">k = ${step.k}</div>
+                            <div class="text-sm">factorial[${step.factorial}] = ${step.factorial}</div>
+                            <div class="text-sm text-yellow-300">index = ${step.k} ÷ ${step.factorial} = ${step.index}</div>
+                            <div class="text-sm text-green-300">選択: numbers[${step.index}] = ${step.selectedNumber}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-300 mb-2">配列状態</h4>
+                        <div class="space-y-2">
+                            <div class="text-sm">選択前: ${step.numbers.join(', ')}</div>
+                            <div class="text-sm text-red-300">削除後: ${step.numbers.filter((_, i) => i !== step.index).join(', ')}</div>
+                            <div class="text-sm text-green-300">結果: "${step.result}"</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                return stepDiv;
+            }
+
+            // リセット機能
+            function resetVisualization() {
+                document.getElementById('steps-container').innerHTML = '';
+                document.getElementById('factorial-display').innerHTML = '';
+                document.getElementById('numbers-display').innerHTML = '';
+                document.getElementById('variables-display').innerHTML = '';
+            }
+
+            // デモ実行
+            function runDemo() {
+                const n = parseInt(document.getElementById('input-n').value);
+                const k = parseInt(document.getElementById('input-k').value);
+
+                if (k > factorial(n)) {
+                    alert(`k は ${factorial(n)} 以下である必要があります`);
+                    return;
+                }
+
+                const { result, steps } = calculateKthPermutation(n, k);
+
+                // 結果表示
+                const resultDiv = document.getElementById('demo-result');
+                const outputDiv = document.getElementById('demo-output');
+
+                resultDiv.classList.remove('hidden');
+                outputDiv.innerHTML = `
+                <div class="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-lg mb-4">
+                    <h4 class="text-lg font-bold">入力: n = ${n}, k = ${k}</h4>
+                    <h4 class="text-2xl font-bold mt-2">出力: "${result}"</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-700 rounded-lg p-3">
+                        <h5 class="font-bold text-blue-300 mb-2">実行時間</h5>
+                        <p class="text-slate-300">O(n²) = O(${n}²) = O(${n * n})</p>
+                    </div>
+                    <div class="bg-slate-700 rounded-lg p-3">
+                        <h5 class="font-bold text-purple-300 mb-2">使用メモリ</h5>
+                        <p class="text-slate-300">O(n) = O(${n})</p>
+                    </div>
+                </div>
+            `;
+
+                // 実行トレース表示
+                displayExecutionTrace(steps);
+            }
+
+            // 実行トレース表示
+            function displayExecutionTrace(steps) {
+                const traceDiv = document.getElementById('execution-trace');
+                const stepsDiv = document.getElementById('trace-steps');
+
+                traceDiv.classList.remove('hidden');
+                stepsDiv.innerHTML = '';
+
+                steps.forEach((step, index) => {
+                    const stepElement = document.createElement('div');
+                    stepElement.className =
+                        'bg-slate-700 rounded-lg p-4 border-l-4 border-cyan-400';
+
+                    stepElement.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-lg font-bold text-cyan-400">Step ${step.step}</span>
+                        <span class="text-sm text-slate-400">位置: ${index + 1}/${steps.length}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <h6 class="font-semibold text-yellow-400">変数状態</h6>
+                            <div class="text-sm space-y-1">
+                                <div class="bg-slate-600 px-2 py-1 rounded">k = ${step.k}</div>
+                                <div class="bg-slate-600 px-2 py-1 rounded">factorial = ${step.factorial}</div>
+                                <div class="bg-slate-600 px-2 py-1 rounded">index = ${step.index}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <h6 class="font-semibold text-blue-400">配列操作</h6>
+                            <div class="text-sm space-y-1">
+                                <div>選択前: [${step.numbers.join(', ')}]</div>
+                                <div class="text-red-300">削除: ${step.selectedNumber}</div>
+                                <div>選択後: [${step.numbers.filter((_, i) => i !== step.index).join(', ')}]</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <h6 class="font-semibold text-green-400">結果構築</h6>
+                            <div class="text-sm space-y-1">
+                                <div>選択数字: <span class="bg-green-600 px-2 py-1 rounded text-white">${step.selectedNumber}</span></div>
+                                <div>現在の結果: <span class="bg-purple-600 px-2 py-1 rounded text-white">"${step.result}"</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-slate-600 rounded-lg">
+                        <h6 class="font-semibold text-orange-400 mb-2">数学的計算</h6>
+                        <div class="text-sm text-slate-300">
+                            index = Math.floor(${step.k} ÷ ${step.factorial}) = ${step.index}<br>
+                            新しいk = ${step.k} % ${step.factorial} = ${step.k % step.factorial}
+                        </div>
+                    </div>
+                `;
+
+                    stepsDiv.appendChild(stepElement);
+                });
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', function () {
+                // k の最大値を動的に設定
+                const nInput = document.getElementById('demo-n');
+                const kInput = document.getElementById('demo-k');
+                const inputN = document.getElementById('input-n');
+                const inputK = document.getElementById('input-k');
+
+                function updateKMax() {
+                    const n = parseInt(this.value);
+                    const maxK = factorial(n);
+                    const kInputs = [kInput, inputK];
+
+                    kInputs.forEach((input) => {
+                        input.max = maxK;
+                        if (parseInt(input.value) > maxK) {
+                            input.value = maxK;
+                        }
+                    });
+                }
+
+                nInput.addEventListener('change', updateKMax);
+                inputN.addEventListener('change', updateKMax);
+
+                // 初期設定
+                updateKMax.call(nInput);
+
+                // Prism.js のハイライト適用
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightAll();
+                }
+            });
+
+            // パフォーマンス比較デモ
+            function showPerformanceComparison() {
+                const results = [];
+
+                for (let n = 3; n <= 6; n++) {
+                    const bruteForceComplexity = factorial(n) * n; // O(n! × n)
+                    const optimizedComplexity = n * n; // O(n²)
+
+                    results.push({
+                        n: n,
+                        bruteForce: bruteForceComplexity,
+                        optimized: optimizedComplexity,
+                        improvement: Math.round(bruteForceComplexity / optimizedComplexity),
+                    });
+                }
+
+                // 比較表を動的に生成
+                const comparisonTable = `
+                <div class="bg-slate-800 rounded-lg p-6 mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-red-400">パフォーマンス比較</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-700">
+                                    <th class="px-4 py-2 text-left">n</th>
+                                    <th class="px-4 py-2 text-left">全順列生成 O(n!×n)</th>
+                                    <th class="px-4 py-2 text-left">最適化版 O(n²)</th>
+                                    <th class="px-4 py-2 text-left">改善倍率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${results
+                                    .map(
+                                        (r) => `
+                                    <tr class="border-b border-slate-600">
+                                        <td class="px-4 py-2 font-bold">${r.n}</td>
+                                        <td class="px-4 py-2 text-red-300">${r.bruteForce.toLocaleString()}</td>
+                                        <td class="px-4 py-2 text-green-300">${r.optimized}</td>
+                                        <td class="px-4 py-2 text-yellow-300">${r.improvement}x faster</td>
+                                    </tr>
+                                `,
+                                    )
+                                    .join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+                // 解析タブに追加
+                const analysisTab = document.getElementById('analysis-tab');
+                if (!document.getElementById('performance-comparison')) {
+                    const div = document.createElement('div');
+                    div.id = 'performance-comparison';
+                    div.innerHTML = comparisonTable;
+                    analysisTab.appendChild(div);
+                }
+            }
+
+            // 高度な視覚効果
+            function addVisualEffects() {
+                // 数字選択時のアニメーション効果
+                const arrayItems = document.querySelectorAll('.array-item');
+                arrayItems.forEach((item) => {
+                    item.addEventListener('mouseenter', function () {
+                        this.style.transform = 'scale(1.1) rotate(5deg)';
+                        this.style.transition = 'all 0.3s ease';
+                    });
+
+                    item.addEventListener('mouseleave', function () {
+                        this.style.transform = 'scale(1) rotate(0deg)';
+                    });
+                });
+
+                // スクロール時のフェードイン効果
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px',
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in-up');
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.card-container').forEach((card) => {
+                    observer.observe(card);
+                });
+            }
+
+            // パフォーマンス比較を初期化時に呼び出し
+            setTimeout(showPerformanceComparison, 1000);
+
+            // 視覚効果を適用
+            setTimeout(addVisualEffects, 500);
+        </script>
+    </body>
+</html>

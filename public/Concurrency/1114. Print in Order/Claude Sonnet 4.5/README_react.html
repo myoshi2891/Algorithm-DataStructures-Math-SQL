@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1114: Print in Order - Thread Synchronization 解説</title>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+            rel="stylesheet"
+        />
+        <script crossorigin src="/vendor/react/react.development.js"></script>
+        <script
+            crossorigin
+            src="/vendor/react-dom/react-dom.development.js"
+        ></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.95rem;
+            }
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 0.5rem 1rem;
+                margin: 0.5rem 0.5rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-4 sm:p-8 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <div class="max-w-[1400px] mx-auto">
+            <header
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2rem] sm:text-[2.5rem] font-bold text-teal-800 mb-2">
+                    Print in Order
+                </h1>
+                <p class="text-lg sm:text-xl text-cyan-700 font-semibold mt-2">
+                    Event同期による O(1) スレッド順序制御
+                </p>
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <section id="overview" class="bg-white rounded-2xl p-6 sm:p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.75rem] sm:text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">問題説明</h3>
+                    <p class="text-slate-700 leading-7 mb-4">
+                        3つのスレッドが並行に起動し、それぞれ
+                        <code class="px-2 py-1 bg-slate-100 rounded text-sm">first()</code>、<code
+                            class="px-2 py-1 bg-slate-100 rounded text-sm"
+                            >second()</code
+                        >、<code class="px-2 py-1 bg-slate-100 rounded text-sm">third()</code>
+                        を呼び出します。スレッドの起動順序は不定ですが、出力は必ず
+                        <strong>"firstsecondthird"</strong> の順序を保証する必要があります。
+                    </p>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-teal-800 mb-3">入出力例</h3>
+                    <div class="bg-slate-50 rounded-lg p-4 mb-3">
+                        <p class="font-semibold text-slate-700 mb-2">例1: nums = [1, 2, 3]</p>
+                        <p class="text-slate-600">
+                            出力:
+                            <code class="px-2 py-1 bg-white rounded text-sm"
+                                >"firstsecondthird"</code
+                            >
+                        </p>
+                    </div>
+                    <div class="bg-slate-50 rounded-lg p-4">
+                        <p class="font-semibold text-slate-700 mb-2">例2: nums = [1, 3, 2]</p>
+                        <p class="text-slate-600">
+                            出力:
+                            <code class="px-2 py-1 bg-white rounded text-sm"
+                                >"firstsecondthird"</code
+                            >
+                        </p>
+                        <p class="text-emerald-600 mt-2 text-sm">
+                            → Thread CはThread Bを待機、正しい順序を保証
+                        </p>
+                    </div>
+                </div>
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+                    <p class="font-semibold text-emerald-800 mb-2">主要ポイント</p>
+                    <ul class="space-y-1 text-emerald-700">
+                        <li><strong>時間計算量:</strong> O(1) - 各メソッドは定数時間操作</li>
+                        <li><strong>空間計算量:</strong> O(1) - 固定サイズの同期オブジェクト2個</li>
+                        <li><strong>同期方式:</strong> threading.Event で効率的な待機</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="steps" class="bg-white rounded-2xl p-6 sm:p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.75rem] sm:text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="step-root"></div>
+            </section>
+
+            <section id="code" class="bg-white rounded-2xl p-6 sm:p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.75rem] sm:text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre class="line-numbers"><code class="language-python">from threading import Event
+
+class Foo:
+    __slots__ = ('e1', 'e2')
+
+    def __init__(self) -> None:
+        self.e1 = Event()  # first() 完了通知
+        self.e2 = Event()  # second() 完了通知
+
+    def first(self, printFirst) -> None:
+        printFirst()
+        self.e1.set()  # second() の待機を解除
+
+    def second(self, printSecond) -> None:
+        self.e1.wait()  # first() の完了を待機
+        printSecond()
+        self.e2.set()  # third() の待機を解除
+
+    def third(self, printThird) -> None:
+        self.e2.wait()  # second() の完了を待機
+        printThird()</code></pre>
+            </section>
+
+            <section id="diagram" class="bg-white rounded-2xl p-6 sm:p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.75rem] sm:text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-5 overflow-x-auto">
+                    <svg
+                        viewBox="0 0 700 520"
+                        style="max-width: 100%; height: auto"
+                        role="img"
+                        aria-label="スレッド同期フローチャート"
+                    >
+                        <defs>
+                            <marker
+                                id="arr"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrG"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrP"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+                        <rect
+                            x="20"
+                            y="10"
+                            width="200"
+                            height="500"
+                            rx="12"
+                            fill="#ecfdf5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                            stroke-dasharray="5,5"
+                        />
+                        <text
+                            x="120"
+                            y="35"
+                            text-anchor="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#047857"
+                        >
+                            Thread A (first)
+                        </text>
+                        <rect
+                            x="250"
+                            y="10"
+                            width="200"
+                            height="500"
+                            rx="12"
+                            fill="#eff6ff"
+                            stroke="#3b82f6"
+                            stroke-width="2"
+                            stroke-dasharray="5,5"
+                        />
+                        <text
+                            x="350"
+                            y="35"
+                            text-anchor="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#1d4ed8"
+                        >
+                            Thread B (second)
+                        </text>
+                        <rect
+                            x="480"
+                            y="10"
+                            width="200"
+                            height="500"
+                            rx="12"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                            stroke-dasharray="5,5"
+                        />
+                        <text
+                            x="580"
+                            y="35"
+                            text-anchor="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#b45309"
+                        >
+                            Thread C (third)
+                        </text>
+
+                        <ellipse
+                            cx="120"
+                            cy="80"
+                            rx="70"
+                            ry="25"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="120"
+                            y="80"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            起動
+                        </text>
+                        <path
+                            d="M120 105 L120 140"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arr)"
+                        />
+                        <rect
+                            x="40"
+                            y="140"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="120"
+                            y="165"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            printFirst()
+                        </text>
+                        <path
+                            d="M120 190 L120 225"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arr)"
+                        />
+                        <rect
+                            x="40"
+                            y="225"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="120"
+                            y="250"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            e1.set()
+                        </text>
+                        <path
+                            d="M200 250 L250 250"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrG)"
+                        />
+                        <text
+                            x="225"
+                            y="240"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            通知
+                        </text>
+
+                        <ellipse
+                            cx="350"
+                            cy="80"
+                            rx="70"
+                            ry="25"
+                            fill="#dbeafe"
+                            stroke="#3b82f6"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="350"
+                            y="80"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            起動
+                        </text>
+                        <path
+                            d="M350 105 L350 140"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arr)"
+                        />
+                        <rect
+                            x="270"
+                            y="140"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="350"
+                            y="158"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            e1.wait()
+                        </text>
+                        <text
+                            x="350"
+                            y="175"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#dc2626"
+                        >
+                            待機中...
+                        </text>
+                        <path
+                            d="M350 190 L350 225"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrP)"
+                        />
+                        <text x="365" y="208" font-size="11" fill="#a855f7">解除</text>
+                        <rect
+                            x="270"
+                            y="225"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="350"
+                            y="250"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            printSecond()
+                        </text>
+                        <path
+                            d="M350 275 L350 310"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arr)"
+                        />
+                        <rect
+                            x="270"
+                            y="310"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="350"
+                            y="335"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            e2.set()
+                        </text>
+                        <path
+                            d="M430 335 L480 335"
+                            stroke="#059669"
+                            stroke-width="3"
+                            fill="none"
+                            marker-end="url(#arrG)"
+                        />
+                        <text
+                            x="455"
+                            y="325"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            通知
+                        </text>
+
+                        <ellipse
+                            cx="580"
+                            cy="80"
+                            rx="70"
+                            ry="25"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="580"
+                            y="80"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            起動
+                        </text>
+                        <path
+                            d="M580 105 L580 140"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arr)"
+                        />
+                        <rect
+                            x="500"
+                            y="140"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="580"
+                            y="158"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            e2.wait()
+                        </text>
+                        <text
+                            x="580"
+                            y="175"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#dc2626"
+                        >
+                            待機中...
+                        </text>
+                        <path
+                            d="M580 190 L580 310"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrP)"
+                        />
+                        <text x="595" y="250" font-size="11" fill="#a855f7">解除</text>
+                        <rect
+                            x="500"
+                            y="310"
+                            width="160"
+                            height="50"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="580"
+                            y="335"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            printThird()
+                        </text>
+
+                        <rect
+                            x="100"
+                            y="420"
+                            width="500"
+                            height="60"
+                            rx="12"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="3"
+                        />
+                        <text
+                            x="350"
+                            y="442"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="700"
+                            fill="#047857"
+                        >
+                            出力結果
+                        </text>
+                        <text
+                            x="350"
+                            y="462"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="600"
+                        >
+                            "firstsecondthird"
+                        </text>
+                        <path
+                            d="M120 275 L120 420"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrG)"
+                        />
+                        <path
+                            d="M350 360 L350 420"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrG)"
+                        />
+                        <path
+                            d="M580 360 L580 420"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrG)"
+                        />
+                    </svg>
+                </div>
+                <p class="mt-6 text-slate-700 leading-7">
+                    <strong class="text-lg">フローの説明：</strong><br />
+                    1. <span class="text-emerald-700 font-semibold">Thread A</span>: first()
+                    を即座に実行し、e1 をセット<br />
+                    2. <span class="text-blue-700 font-semibold">Thread B</span>: e1 を待機 → 解除後
+                    second() 実行、e2 をセット<br />
+                    3. <span class="text-amber-700 font-semibold">Thread C</span>: e2 を待機 →
+                    解除後 third() を実行
+                </p>
+            </section>
+
+            <section id="complexity" class="bg-white rounded-2xl p-6 sm:p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.75rem] sm:text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-50">
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    手法
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-left font-semibold text-teal-800"
+                                >
+                                    特徴
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50/50">
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-semibold text-emerald-700"
+                                >
+                                    Event（本実装）
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    シンプル・高速・推奨
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-3">Lock/Mutex</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">やや複雑</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-3">
+                                    Condition Variable
+                                </td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">汎用的だが冗長</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-200 px-4 py-3">Semaphore</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">O(1)</td>
+                                <td class="border border-slate-200 px-4 py-3">カウント機能あり</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 bg-sky-50 border-l-4 border-sky-500 p-4 rounded">
+                    <p class="font-semibold text-sky-800 mb-2">なぜ Event が最適か</p>
+                    <ul class="space-y-1 text-sky-700 text-sm">
+                        <li>• <strong>ビジーウェイトなし</strong>: OSレベルで効率的にスリープ</li>
+                        <li>• <strong>__slots__</strong>: インスタンス辞書を排除しメモリ最適化</li>
+                        <li>• <strong>DAG構造</strong>: 一方向依存でデッドロック不可能</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期化',
+                    desc: 'Fooクラスのインスタンスを作成。2つのEventオブジェクト(e1, e2)を初期化。両方とも未セット状態。',
+                    visual: {
+                        type: 'init',
+                        e1: false,
+                        e2: false,
+                        threads: ['待機', '待機', '待機'],
+                        output: '',
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'スレッド起動',
+                    desc: '3つのスレッドが同時に起動。起動順序は不定（例: Thread B → C → A）。各スレッドは対応するメソッドを呼び出す。',
+                    visual: {
+                        type: 'start',
+                        e1: false,
+                        e2: false,
+                        threads: ['起動中', '起動中', '起動中'],
+                        output: '',
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'Thread B/C 待機',
+                    desc: 'Thread B は e1.wait() で待機。Thread C は e2.wait() で待機。両方とも未セットのため、OSレベルでスリープ。',
+                    visual: {
+                        type: 'wait',
+                        e1: false,
+                        e2: false,
+                        threads: ['実行中', 'e1待機', 'e2待機'],
+                        output: '',
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'first() 実行',
+                    desc: 'Thread A は待機なしで printFirst() を実行。"first" が出力される。',
+                    visual: {
+                        type: 'first',
+                        e1: false,
+                        e2: false,
+                        threads: ['first実行', 'e1待機', 'e2待機'],
+                        output: 'first',
+                    },
+                },
+                {
+                    step: 5,
+                    title: 'e1.set() 実行',
+                    desc: 'Thread A が e1.set() を呼び出し。e1 がセット状態になり、Thread B の待機が解除される。',
+                    visual: {
+                        type: 'e1set',
+                        e1: true,
+                        e2: false,
+                        threads: ['完了', '解除', 'e2待機'],
+                        output: 'first',
+                    },
+                },
+                {
+                    step: 6,
+                    title: 'second() 実行',
+                    desc: 'Thread B の待機が解除され、printSecond() を実行。"second" が出力される。',
+                    visual: {
+                        type: 'second',
+                        e1: true,
+                        e2: false,
+                        threads: ['完了', 'second実行', 'e2待機'],
+                        output: 'firstsecond',
+                    },
+                },
+                {
+                    step: 7,
+                    title: 'e2.set() 実行',
+                    desc: 'Thread B が e2.set() を呼び出し。e2 がセット状態になり、Thread C の待機が解除される。',
+                    visual: {
+                        type: 'e2set',
+                        e1: true,
+                        e2: true,
+                        threads: ['完了', '完了', '解除'],
+                        output: 'firstsecond',
+                    },
+                },
+                {
+                    step: 8,
+                    title: 'third() 実行',
+                    desc: 'Thread C の待機が解除され、printThird() を実行。"third" が出力される。',
+                    visual: {
+                        type: 'third',
+                        e1: true,
+                        e2: true,
+                        threads: ['完了', '完了', 'third実行'],
+                        output: 'firstsecondthird',
+                    },
+                },
+                {
+                    step: 9,
+                    title: '完了',
+                    desc: '全スレッドが正常終了。出力は起動順序に関わらず必ず "firstsecondthird" となる。',
+                    visual: {
+                        type: 'done',
+                        e1: true,
+                        e2: true,
+                        threads: ['完了', '完了', '完了'],
+                        output: 'firstsecondthird',
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                const colors = ['#10b981', '#3b82f6', '#f59e0b'];
+                const names = ['Thread A', 'Thread B', 'Thread C'];
+                const labels = ['first()', 'second()', 'third()'];
+                return (
+                    <svg
+                        viewBox="0 0 600 320"
+                        style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                    >
+                        <defs>
+                            <marker
+                                id="arrVis"
+                                markerWidth="8"
+                                markerHeight="8"
+                                refX="7"
+                                refY="3"
+                                orient="auto"
+                            >
+                                <path d="M0,0 L0,6 L7,3 z" fill="#64748b" />
+                            </marker>
+                        </defs>
+                        <text
+                            x="300"
+                            y="25"
+                            textAnchor="middle"
+                            fontSize="16"
+                            fontWeight="700"
+                            fill="#334155"
+                        >
+                            スレッド状態
+                        </text>
+                        {[0, 1, 2].map((i) => {
+                            const x = 100 + i * 200;
+                            const state = visual.threads[i];
+                            const isActive =
+                                state.includes('実行') || state === '解除' || state === '起動中';
+                            const isWait = state.includes('待機');
+                            const isDone = state === '完了';
+                            let fill = '#f1f5f9',
+                                stroke = '#94a3b8';
+                            if (isActive) {
+                                fill = '#d1fae5';
+                                stroke = colors[i];
+                            } else if (isWait) {
+                                fill = '#fee2e2';
+                                stroke = '#dc2626';
+                            } else if (isDone) {
+                                fill = '#d1fae5';
+                                stroke = '#10b981';
+                            }
+                            return (
+                                <g key={i}>
+                                    <rect
+                                        x={x - 70}
+                                        y={50}
+                                        width={140}
+                                        height={100}
+                                        rx="12"
+                                        fill={fill}
+                                        stroke={stroke}
+                                        strokeWidth="3"
+                                    />
+                                    <text
+                                        x={x}
+                                        y={75}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fontWeight="700"
+                                        fill={colors[i]}
+                                    >
+                                        {names[i]}
+                                    </text>
+                                    <text
+                                        x={x}
+                                        y={95}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="12"
+                                        fill="#64748b"
+                                    >
+                                        {labels[i]}
+                                    </text>
+                                    <text
+                                        x={x}
+                                        y={125}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="13"
+                                        fontWeight="600"
+                                        fill={isWait ? '#dc2626' : isDone ? '#059669' : '#334155'}
+                                    >
+                                        {state}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                        <text
+                            x="150"
+                            y="180"
+                            textAnchor="middle"
+                            fontSize="14"
+                            fontWeight="600"
+                            fill="#334155"
+                        >
+                            Event状態
+                        </text>
+                        <rect
+                            x="70"
+                            y="195"
+                            width="70"
+                            height="40"
+                            rx="8"
+                            fill={visual.e1 ? '#d1fae5' : '#f1f5f9'}
+                            stroke={visual.e1 ? '#10b981' : '#94a3b8'}
+                            strokeWidth="2"
+                        />
+                        <text
+                            x="105"
+                            y="215"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="13"
+                            fontWeight="600"
+                            fill={visual.e1 ? '#059669' : '#64748b'}
+                        >
+                            e1: {visual.e1 ? 'SET' : 'UNSET'}
+                        </text>
+                        <rect
+                            x="160"
+                            y="195"
+                            width="70"
+                            height="40"
+                            rx="8"
+                            fill={visual.e2 ? '#d1fae5' : '#f1f5f9'}
+                            stroke={visual.e2 ? '#10b981' : '#94a3b8'}
+                            strokeWidth="2"
+                        />
+                        <text
+                            x="195"
+                            y="215"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="13"
+                            fontWeight="600"
+                            fill={visual.e2 ? '#059669' : '#64748b'}
+                        >
+                            e2: {visual.e2 ? 'SET' : 'UNSET'}
+                        </text>
+                        {visual.e1 && (
+                            <path
+                                d="M140 215 L155 215"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrVis)"
+                            />
+                        )}
+                        <text
+                            x="450"
+                            y="180"
+                            textAnchor="middle"
+                            fontSize="14"
+                            fontWeight="600"
+                            fill="#334155"
+                        >
+                            出力
+                        </text>
+                        <rect
+                            x="320"
+                            y="195"
+                            width="260"
+                            height="40"
+                            rx="8"
+                            fill="#f0fdf4"
+                            stroke="#10b981"
+                            strokeWidth="2"
+                        />
+                        <text
+                            x="450"
+                            y="215"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="14"
+                            fontWeight="600"
+                            fill="#047857"
+                            fontFamily="JetBrains Mono, monospace"
+                        >
+                            "{visual.output}"
+                        </text>
+                        <rect
+                            x="100"
+                            y="260"
+                            width="400"
+                            height="45"
+                            rx="10"
+                            fill={visual.output === 'firstsecondthird' ? '#d1fae5' : '#f1f5f9'}
+                            stroke={visual.output === 'firstsecondthird' ? '#10b981' : '#94a3b8'}
+                            strokeWidth="2"
+                        />
+                        <text
+                            x="300"
+                            y="282"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="14"
+                            fontWeight="600"
+                            fill={visual.output === 'firstsecondthird' ? '#059669' : '#64748b'}
+                        >
+                            {visual.output === 'firstsecondthird'
+                                ? '✓ 順序保証成功！'
+                                : '処理中...'}
+                        </text>
+                    </svg>
+                );
+            }
+
+            function StepExplorer() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => setActiveStep((p) => p + 1), 1500);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+                const current = stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-lg font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2 max-h-[900px] overflow-y-auto pr-2">
+                                {stepsData.map((s) => (
+                                    <button
+                                        key={s.step}
+                                        type="button"
+                                        onClick={() => {
+                                            setIsPlaying(false);
+                                            setActiveStep(s.step);
+                                        }}
+                                        className={[
+                                            'w-full text-left text-sm rounded-xl border-2 transition px-3 py-3 bg-white border-slate-200 hover:border-emerald-500',
+                                            activeStep === s.step
+                                                ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                : '',
+                                        ].join(' ')}
+                                        aria-current={activeStep === s.step ? 'step' : undefined}
+                                    >
+                                        <div
+                                            className={[
+                                                'font-bold mb-1',
+                                                activeStep === s.step
+                                                    ? 'text-emerald-900'
+                                                    : 'text-teal-800',
+                                            ].join(' ')}
+                                        >
+                                            Step {s.step}: {s.title}
+                                        </div>
+                                        <div className="text-slate-500 text-xs">
+                                            {s.desc.substring(0, 40)}...
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-lg font-semibold">
+                                    Step {current.step}: {current.title}
+                                </h3>
+                                <p className="text-slate-600 leading-6 text-sm">{current.desc}</p>
+                            </div>
+                            <StepVisualization visual={current.visual} />
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    className="px-5 py-2 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPlaying(false);
+                                        setActiveStep((p) => Math.max(1, p - 1));
+                                    }}
+                                    disabled={activeStep === 1}
+                                    className="px-5 py-2 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPlaying(false);
+                                        setActiveStep((p) => Math.min(stepsData.length, p + 1));
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                    className="px-5 py-2 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPlaying(false);
+                                        setActiveStep(1);
+                                    }}
+                                    className="px-5 py-2 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById('step-root')).render(<StepExplorer />);
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    </body>
+</html>

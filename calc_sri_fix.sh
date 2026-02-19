@@ -27,5 +27,16 @@ calculate_sri() {
     rm -f "$temp_file"
 }
 
-calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"
+calculate_sri "https://unpkg.com/react@18/umd/react.production.min.js"
+calculate_sri "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+calculate_sri "https://unpkg.com/@babel/standalone/babel.min.js"
+calculate_sri "https://cdn.tailwindcss.com"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"
 calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"
+# Google Fonts returns dynamic CSS, SRI might be unstable but we check just in case or skip if needed. User instruction implies to check.
+calculate_sri "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Fraunces:wght@700;900&display=swap"
+calculate_sri "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"

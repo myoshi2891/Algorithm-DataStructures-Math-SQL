@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>順列生成アルゴリズムの解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.95);
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #4a5568;
+                text-align: center;
+                margin-bottom: 40px;
+                font-size: 2.5em;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .section {
+                margin: 40px 0;
+                padding: 25px;
+                background: #f8fafc;
+                border-radius: 10px;
+                border-left: 5px solid #667eea;
+            }
+
+            .tree-container {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            }
+
+            .node {
+                display: inline-block;
+                padding: 8px 15px;
+                margin: 5px;
+                border: 2px solid #667eea;
+                border-radius: 25px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                font-weight: bold;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .node:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+            }
+
+            .used {
+                background: linear-gradient(135deg, #e53e3e, #c53030);
+                border-color: #e53e3e;
+            }
+
+            .level {
+                margin: 20px 0;
+                text-align: center;
+            }
+
+            .level-label {
+                background: #4a5568;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                display: inline-block;
+                margin-bottom: 15px;
+                font-weight: bold;
+            }
+
+            .step {
+                background: white;
+                padding: 20px;
+                margin: 15px 0;
+                border-radius: 8px;
+                border-left: 4px solid #38a169;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .code-block {
+                background: #2d3748;
+                color: #e2e8f0;
+                padding: 20px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                margin: 15px 0;
+                overflow-x: auto;
+                line-height: 1.5;
+            }
+
+            .highlight {
+                background: #ffd700;
+                color: #333;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+            .array-visual {
+                display: flex;
+                justify-content: center;
+                margin: 20px 0;
+                flex-wrap: wrap;
+            }
+
+            .array-item {
+                width: 50px;
+                height: 50px;
+                border: 2px solid #667eea;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 2px;
+                border-radius: 8px;
+                font-weight: bold;
+                background: white;
+                transition: all 0.3s ease;
+            }
+
+            .selected {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .complexity-box {
+                background: linear-gradient(135deg, #38a169, #2f855a);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+
+            .animation-controls {
+                text-align: center;
+                margin: 20px 0;
+            }
+
+            .btn {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                cursor: pointer;
+                margin: 5px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+            }
+
+            .visualization {
+                min-height: 400px;
+                background: white;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .fade-in {
+                animation: fadeIn 0.5s ease-out;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>順列生成アルゴリズムの解析と可視化</h1>
+
+            <div class="section">
+                <h2>🎯 アルゴリズムの概要</h2>
+                <p>バックトラッキングを用いた順列生成アルゴリズムは、以下の手順で動作します：</p>
+                <div class="step">
+                    <strong>1. 初期化</strong>: 結果配列、現在の順列、使用フラグ配列を準備
+                </div>
+                <div class="step">
+                    <strong>2. 再帰的構築</strong>: 各位置に未使用の要素を順次配置
+                </div>
+                <div class="step">
+                    <strong>3. バックトラック</strong>:
+                    完成した順列を保存後、状態を復元して次の組み合わせを探索
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🌳 実行トレースの可視化 (nums = [1, 2, 3])</h2>
+                <div class="animation-controls">
+                    <button class="btn" onclick="startVisualization()">アニメーション開始</button>
+                    <button class="btn" onclick="resetVisualization()">リセット</button>
+                </div>
+                <div class="visualization" id="visualization">
+                    <div class="level">
+                        <div class="level-label">Level 0 (空の状態)</div>
+                        <div class="array-visual">
+                            <div class="array-item" id="item-0">1</div>
+                            <div class="array-item" id="item-1">2</div>
+                            <div class="array-item" id="item-2">3</div>
+                        </div>
+                        <div>現在の順列: []</div>
+                        <div>使用フラグ: [false, false, false]</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 決定木の構造</h2>
+                <div class="tree-container">
+                    <div class="level">
+                        <div class="level-label">Root</div>
+                        <div class="node">[]</div>
+                    </div>
+
+                    <div class="level">
+                        <div class="level-label">Level 1</div>
+                        <div class="node">[1]</div>
+                        <div class="node">[2]</div>
+                        <div class="node">[3]</div>
+                    </div>
+
+                    <div class="level">
+                        <div class="level-label">Level 2</div>
+                        <div class="node">[1,2]</div>
+                        <div class="node">[1,3]</div>
+                        <div class="node">[2,1]</div>
+                        <div class="node">[2,3]</div>
+                        <div class="node">[3,1]</div>
+                        <div class="node">[3,2]</div>
+                    </div>
+
+                    <div class="level">
+                        <div class="level-label">Level 3 (完成した順列)</div>
+                        <div class="node highlight">[1,2,3]</div>
+                        <div class="node highlight">[1,3,2]</div>
+                        <div class="node highlight">[2,1,3]</div>
+                        <div class="node highlight">[2,3,1]</div>
+                        <div class="node highlight">[3,1,2]</div>
+                        <div class="node highlight">[3,2,1]</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💻 ステップ別コード実行</h2>
+
+                <h3>1. 関数の初期化</h3>
+                <div class="code-block">
+                    function permute(nums: number[]): number[][] { const
+                    <span class="highlight">result: number[][]</span> = []; // 結果を格納 const
+                    <span class="highlight">currentPermutation: number[]</span> = []; //
+                    現在構築中の順列 const <span class="highlight">used: boolean[]</span> = new
+                    Array(nums.length).fill(false); // 使用フラグ
+                </div>
+
+                <h3>2. バックトラッキング関数</h3>
+                <div class="code-block">
+                    function backtrack(nums, currentPermutation, used, result): void { //
+                    <span class="highlight">ベースケース</span>: 順列が完成したか確認 if
+                    (currentPermutation.length === nums.length) {
+                    result.push([...currentPermutation]); //
+                    <span class="highlight">コピーして保存</span> return; } //
+                    <span class="highlight">各要素を試行</span> for (let i = 0; i &lt; nums.length;
+                    i++) { if (used[i]) continue; //
+                    <span class="highlight">使用済みはスキップ</span>
+
+                    // <span class="highlight">要素を追加</span> currentPermutation.push(nums[i]);
+                    used[i] = true; // <span class="highlight">再帰呼び出し</span> backtrack(nums,
+                    currentPermutation, used, result); //
+                    <span class="highlight">バックトラック</span>
+                    currentPermutation.pop(); used[i] = false; } }
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>⚡ 計算量解析</h2>
+                <div class="complexity-box">
+                    <h3>時間計算量: O(n! × n)</h3>
+                    <p><strong>理由:</strong></p>
+                    <ul>
+                        <li>n個の要素から作れる順列の数: <strong>n!</strong></li>
+                        <li>各順列をコピーする時間: <strong>O(n)</strong></li>
+                        <li>総時間計算量: <strong>n! × n</strong></li>
+                    </ul>
+
+                    <h3>空間計算量: O(n)</h3>
+                    <p><strong>理由:</strong></p>
+                    <ul>
+                        <li>再帰スタックの深さ: <strong>O(n)</strong></li>
+                        <li>used配列のサイズ: <strong>O(n)</strong></li>
+                        <li>currentPermutation配列: <strong>O(n)</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🔍 具体例での実行流れ (nums = [1, 2])</h2>
+                <div id="trace-example">
+                    <div class="step">
+                        <strong>Step 1:</strong> backtrack([], [false, false])
+                        <div>→ i=0を選択: currentPermutation=[1], used=[true, false]</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 2:</strong> backtrack([1], [true, false])
+                        <div>→ i=1を選択: currentPermutation=[1,2], used=[true, true]</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 3:</strong> backtrack([1,2], [true, true])
+                        <div>→ 長さ2に到達、結果に[1,2]を追加</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 4:</strong> バックトラック
+                        <div>→ currentPermutation=[1], used=[true, false]</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 5:</strong> さらにバックトラック
+                        <div>→ currentPermutation=[], used=[false, false]</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 6:</strong> i=1を選択
+                        <div>→ currentPermutation=[2], used=[false, true]</div>
+                    </div>
+                    <div class="step">
+                        <strong>Step 7:</strong> i=0を選択
+                        <div>→ currentPermutation=[2,1], used=[true, true]</div>
+                        <div>→ 結果に[2,1]を追加</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🚀 最適化のポイント</h2>
+                <div class="step">
+                    <strong>1. スプレッド演算子によるコピー</strong>
+                    <div><code>[...currentPermutation]</code> で配列の浅いコピーを高速作成</div>
+                </div>
+                <div class="step">
+                    <strong>2. boolean配列による状態管理</strong>
+                    <div>Setより高速なO(1)アクセスでメモリ効率も良い</div>
+                </div>
+                <div class="step">
+                    <strong>3. インプレース操作</strong>
+                    <div>push/popを使用してメモリ使用量を最小化</div>
+                </div>
+                <div class="step">
+                    <strong>4. 早期終了</strong>
+                    <div>使用済み要素は<code>continue</code>で即座にスキップ</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let animationStep = 0;
+            const maxSteps = 7;
+
+            function startVisualization() {
+                animationStep = 0;
+                visualizeStep();
+            }
+
+            function resetVisualization() {
+                animationStep = 0;
+                document.getElementById('visualization').innerHTML = `
+                <div class="level">
+                    <div class="level-label">Level 0 (空の状態)</div>
+                    <div class="array-visual">
+                        <div class="array-item" id="item-0">1</div>
+                        <div class="array-item" id="item-1">2</div>
+                        <div class="array-item" id="item-2">3</div>
+                    </div>
+                    <div>現在の順列: []</div>
+                    <div>使用フラグ: [false, false, false]</div>
+                </div>
+            `;
+            }
+
+            function visualizeStep() {
+                const visualization = document.getElementById('visualization');
+
+                const steps = [
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">Level 0 → Level 1</div>
+                            <div class="array-visual">
+                                <div class="array-item selected">1</div>
+                                <div class="array-item">2</div>
+                                <div class="array-item">3</div>
+                            </div>
+                            <div>現在の順列: [1]</div>
+                            <div>使用フラグ: [<span style="color: red;">true</span>, false, false]</div>
+                        </div>
+                    `,
+                        description: '要素1を選択',
+                    },
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">Level 1 → Level 2</div>
+                            <div class="array-visual">
+                                <div class="array-item used">1</div>
+                                <div class="array-item selected">2</div>
+                                <div class="array-item">3</div>
+                            </div>
+                            <div>現在の順列: [1, 2]</div>
+                            <div>使用フラグ: [<span style="color: red;">true</span>, <span style="color: red;">true</span>, false]</div>
+                        </div>
+                    `,
+                        description: '要素2を選択',
+                    },
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">Level 2 → Level 3 (完成)</div>
+                            <div class="array-visual">
+                                <div class="array-item used">1</div>
+                                <div class="array-item used">2</div>
+                                <div class="array-item selected">3</div>
+                            </div>
+                            <div>現在の順列: [1, 2, 3] ✅</div>
+                            <div>使用フラグ: [<span style="color: red;">true</span>, <span style="color: red;">true</span>, <span style="color: red;">true</span>]</div>
+                            <div style="color: green; font-weight: bold;">結果に追加: [1, 2, 3]</div>
+                        </div>
+                    `,
+                        description: '順列完成 → 結果に保存',
+                    },
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">バックトラック: Level 3 → Level 2</div>
+                            <div class="array-visual">
+                                <div class="array-item used">1</div>
+                                <div class="array-item selected">2</div>
+                                <div class="array-item">3</div>
+                            </div>
+                            <div>現在の順列: [1, 2] (3を削除)</div>
+                            <div>使用フラグ: [<span style="color: red;">true</span>, <span style="color: red;">true</span>, false]</div>
+                        </div>
+                    `,
+                        description: '要素3を削除してバックトラック',
+                    },
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">次の選択: 要素3を選択</div>
+                            <div class="array-visual">
+                                <div class="array-item used">1</div>
+                                <div class="array-item used">2</div>
+                                <div class="array-item selected">3</div>
+                            </div>
+                            <div>現在の順列: [1, 3] (2を削除後、3を選択)</div>
+                            <div>使用フラグ: [<span style="color: red;">true</span>, false, <span style="color: red;">true</span>]</div>
+                        </div>
+                    `,
+                        description: '別の組み合わせを試行',
+                    },
+                    {
+                        html: `
+                        <div class="level fade-in">
+                            <div class="level-label">完成した順列の一覧</div>
+                            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0;">
+                                <div class="node highlight">[1,2,3]</div>
+                                <div class="node highlight">[1,3,2]</div>
+                                <div class="node highlight">[2,1,3]</div>
+                                <div class="node highlight">[2,3,1]</div>
+                                <div class="node highlight">[3,1,2]</div>
+                                <div class="node highlight">[3,2,1]</div>
+                            </div>
+                            <div style="text-align: center; font-weight: bold; color: green;">
+                                全6個の順列が生成完了！
+                            </div>
+                        </div>
+                    `,
+                        description: '全順列の生成完了',
+                    },
+                ];
+
+                if (animationStep < steps.length) {
+                    visualization.innerHTML = steps[animationStep].html;
+                    setTimeout(() => {
+                        animationStep++;
+                        if (animationStep < steps.length) {
+                            setTimeout(visualizeStep, 2000);
+                        }
+                    }, 500);
+                }
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', resetVisualization);
+        </script>
+    </body>
+</html>

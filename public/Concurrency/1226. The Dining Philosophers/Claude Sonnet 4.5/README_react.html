@@ -1,0 +1,2430 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 1226: Dining Philosophers - リソース順序付けによるデッドロック回避</title>
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* Dark Mode Support */
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background: linear-gradient(135deg, #1a2e1a 0%, #1a2640 100%) !important;
+                    color: #e2e8f0 !important;
+                }
+
+                header,
+                section {
+                    background: linear-gradient(135deg, #1f3d2b, #1e3a5f) !important;
+                    color: #e2e8f0 !important;
+                }
+
+                h1,
+                h2,
+                h3 {
+                    color: #6ee7b7 !important;
+                }
+
+                p,
+                li,
+                td,
+                th {
+                    color: #cbd5e1 !important;
+                }
+
+                a {
+                    color: #67e8f9 !important;
+                }
+
+                /* SVG Dark Mode Adjustments - Stronger selectors */
+                #diagram svg text,
+                #react-root svg text {
+                    fill: #e2e8f0 !important;
+                }
+
+                /* Secondary text (gray) - make lighter */
+                #diagram svg text[fill='#64748b'],
+                #react-root svg text[fill='#64748b'] {
+                    fill: #94a3b8 !important;
+                }
+
+                /* Arrow colors for dark mode - make lines visible */
+                #diagram svg path[stroke='#64748b'],
+                #react-root svg path[stroke='#64748b'] {
+                    stroke: #94a3b8 !important;
+                }
+
+                /* Arrow markers */
+                #diagram svg path[fill='#64748b'],
+                #react-root svg path[fill='#64748b'] {
+                    fill: #94a3b8 !important;
+                }
+
+                /* Keep colored texts with better contrast */
+                #diagram svg text[fill='#059669'],
+                #diagram svg text[fill='#10b981'],
+                #react-root svg text[fill='#059669'],
+                #react-root svg text[fill='#10b981'] {
+                    fill: #6ee7b7 !important;
+                }
+
+                #diagram svg text[fill='#dc2626'],
+                #react-root svg text[fill='#dc2626'] {
+                    fill: #fca5a5 !important;
+                }
+
+                #diagram svg text[fill='#0284c7'],
+                #react-root svg text[fill='#0284c7'] {
+                    fill: #7dd3fc !important;
+                }
+
+                /* Boxes and shapes - darken backgrounds, brighten borders */
+                #diagram svg rect[fill='#e0f2fe'],
+                #react-root svg rect[fill='#e0f2fe'] {
+                    fill: #0c4a6e !important;
+                    stroke: #38bdf8 !important;
+                }
+
+                #diagram svg rect[fill='#d1fae5'],
+                #react-root svg rect[fill='#d1fae5'] {
+                    fill: #064e3b !important;
+                    stroke: #34d399 !important;
+                }
+
+                #diagram svg rect[fill='#f1f5f9'],
+                #react-root svg rect[fill='#f1f5f9'] {
+                    fill: #1e293b !important;
+                    stroke: #64748b !important;
+                }
+
+                #diagram svg ellipse[fill='#d1fae5'],
+                #react-root svg ellipse[fill='#d1fae5'] {
+                    fill: #064e3b !important;
+                    stroke: #34d399 !important;
+                }
+
+                /* Diamond shape - yellow/amber */
+                #diagram svg path[fill='#fef3c7'],
+                #react-root svg path[fill='#fef3c7'] {
+                    fill: #451a03 !important;
+                    stroke: #fbbf24 !important;
+                }
+
+                /* Circle elements */
+                #diagram svg circle[fill='#e0f2fe'],
+                #react-root svg circle[fill='#e0f2fe'] {
+                    fill: #0c4a6e !important;
+                }
+
+                #diagram svg circle[fill='#f1f5f9'],
+                #react-root svg circle[fill='#f1f5f9'] {
+                    fill: #1e293b !important;
+                }
+
+                #diagram svg circle[fill='#fef3c7'],
+                #react-root svg circle[fill='#fef3c7'] {
+                    fill: #78350f !important;
+                }
+
+                #diagram svg circle[fill='#d1fae5'],
+                #react-root svg circle[fill='#d1fae5'] {
+                    fill: #064e3b !important;
+                }
+
+                /* Green arrow strokes */
+                #diagram svg path[stroke='#059669'],
+                #react-root svg path[stroke='#059669'] {
+                    stroke: #6ee7b7 !important;
+                }
+
+                /* Red arrow strokes */
+                #diagram svg path[stroke='#dc2626'],
+                #react-root svg path[stroke='#dc2626'] {
+                    stroke: #fca5a5 !important;
+                }
+
+                /* Dashed circle border */
+                #diagram svg circle[stroke='#e2e8f0'],
+                #react-root svg circle[stroke='#e2e8f0'] {
+                    stroke: #475569 !important;
+                }
+
+                /* Table styling for dark mode */
+                table {
+                    border-color: #475569 !important;
+                }
+
+                th {
+                    background: #1e3a5f !important;
+                    border-color: #475569 !important;
+                }
+
+                td {
+                    border-color: #475569 !important;
+                }
+
+                tr:nth-child(even) {
+                    background: #1e293b !important;
+                }
+
+                /* Code blocks */
+                pre[class*='language-'],
+                code[class*='language-'] {
+                    background: #1e293b !important;
+                }
+
+                /* Buttons */
+                div.code-toolbar > .toolbar .toolbar-item > button,
+                div.code-toolbar > .toolbar .toolbar-item > a {
+                    background: #334155 !important;
+                    border-color: #475569 !important;
+                    color: #e2e8f0 !important;
+                }
+
+                /* Navigation buttons */
+                nav a {
+                    background: #1e3a5f !important;
+                    border-color: #475569 !important;
+                    color: #e2e8f0 !important;
+                }
+
+                /* Step cards in React component */
+                .bg-white {
+                    background: #1e3a5f !important;
+                }
+
+                .border-slate-200 {
+                    border-color: #475569 !important;
+                }
+
+                .text-slate-700,
+                .text-slate-600,
+                .text-slate-500 {
+                    color: #cbd5e1 !important;
+                }
+
+                .text-teal-800 {
+                    color: #6ee7b7 !important;
+                }
+
+                .text-cyan-700 {
+                    color: #67e8f9 !important;
+                }
+
+                .bg-slate-50 {
+                    background: #1e293b !important;
+                }
+
+                .bg-emerald-50 {
+                    background: #064e3b !important;
+                }
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">
+                Dining Philosophers（食事する哲学者問題）
+            </h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">
+                リソース順序付け戦略による O(1) デッドロック完全回避
+            </p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >概要</a
+                >
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >ステップ解説</a
+                >
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >Python実装</a
+                >
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >フローチャート</a
+                >
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >計算量分析</a
+                >
+            </nav>
+        </header>
+
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題の説明</h3>
+            <p class="mb-4">
+                5人の哲学者が円卓に座り、各自の間にフォークが1本ずつ（計5本）配置されています。各哲学者は「思考」と「食事」を交互に繰り返しますが、食事をするには左右両方のフォークが必要です。各フォークは同時に1人しか使用できません。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+            <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                <p class="font-semibold mb-2">Input: n = 1</p>
+                <p class="text-sm text-slate-600 mb-2">各哲学者が1回ずつ食事を行う</p>
+                <p class="font-semibold mb-2">Output:</p>
+                <p class="text-sm text-slate-600">出力配列の各要素 [a, b, c] は：</p>
+                <ul class="list-disc list-inside text-sm text-slate-600 ml-4">
+                    <li>a: 哲学者のID (0-4)</li>
+                    <li>b: フォークの種類 (1: 左, 2: 右)</li>
+                    <li>c: 操作 (1: pick, 2: put, 3: eat)</li>
+                </ul>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-2 ml-4">
+                <li>1 ≤ n ≤ 60（各哲学者が1〜60回食事）</li>
+                <li>5つのスレッドが並行実行</li>
+                <li>デッドロック（全員が永久に待機）を回避</li>
+                <li>飢餓（特定の哲学者が永久に食事できない）を回避</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略: リソース順序付け</h3>
+            <div class="bg-emerald-50 rounded-lg p-4 border-l-4 border-emerald-500">
+                <p class="font-semibold text-emerald-900 mb-2">核心アイデア</p>
+                <p class="text-slate-700">
+                    常に<strong>小さいフォークID → 大きいフォークID</strong
+                    >の順でロック取得することで、循環待機を数学的に不可能にします。
+                </p>
+                <ul class="list-disc list-inside text-slate-700 mt-3 space-y-1 ml-4">
+                    <li>哲学者0-3: 左フォーク → 右フォーク（philosopher < right）</li>
+                    <li>哲学者4: 右フォーク → 左フォーク（順序を逆転）</li>
+                </ul>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-2 ml-4">
+                <li><strong>時間計算量</strong>: O(1) per call（ロック待機時間を除く）</li>
+                <li><strong>空間計算量</strong>: O(1)（固定5個のLock）</li>
+                <li><strong>デッドロック回避</strong>: Coffmanの循環待機条件を破る</li>
+                <li><strong>飢餓回避</strong>: threading.Lockの公平性保証による</li>
+            </ul>
+        </section>
+
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="react-root"></div>
+        </section>
+
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+            <pre class="line-numbers"><code class="language-python">from threading import Lock
+
+class DiningPhilosophers:
+    """
+    食事する哲学者問題の解決クラス
+
+    リソース順序付け戦略によりデッドロックを完全防止。
+    常に小さいフォーク番号→大きいフォーク番号の順でロック取得。
+
+    Time: O(1) per call
+    Space: O(1) - 固定5個のLock
+    """
+
+    __slots__ = ('_forks',)  # メモリオーバーヘッド削減
+
+    def __init__(self) -> None:
+        """5本のフォークに対応するLockを初期化"""
+        self._forks = [Lock() for _ in range(5)]
+
+    def wantsToEat(
+        self,
+        philosopher: int,
+        pickLeftFork,
+        pickRightFork,
+        eat,
+        putLeftFork,
+        putRightFork
+    ) -> None:
+        """
+        哲学者が食事を行う処理
+
+        Args:
+            philosopher: 哲学者ID (0-4)
+            pickLeftFork: 左フォーク取得関数
+            pickRightFork: 右フォーク取得関数
+            eat: 食事関数
+            putLeftFork: 左フォーク返却関数
+            putRightFork: 右フォーク返却関数
+        """
+        # 右フォークIDのみ計算（philosopher自身が左フォークID）
+        r = (philosopher + 1) % 5
+
+        # リソース順序付け: 小さいID優先でロック
+        # 哲学者0-3: philosopher < r (80%のケース)
+        # 哲学者4: philosopher > r (20%のケース)
+        if philosopher < r:
+            # 左(小) → 右(大) の順でロック
+            self._forks[philosopher].acquire()
+            self._forks[r].acquire()
+            try:
+                pickLeftFork()
+                pickRightFork()
+                eat()
+                putRightFork()
+                putLeftFork()
+            finally:
+                # ロック解放（取得の逆順）
+                self._forks[r].release()
+                self._forks[philosopher].release()
+        else:
+            # 右(小) → 左(大) の順でロック（哲学者4のみ）
+            self._forks[r].acquire()
+            self._forks[philosopher].acquire()
+            try:
+                pickLeftFork()
+                pickRightFork()
+                eat()
+                putRightFork()
+                putLeftFork()
+            finally:
+                # ロック解放（取得の逆順）
+                self._forks[philosopher].release()
+                self._forks[r].release()</code></pre>
+        </section>
+
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 1000 1100"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="Dining Philosophers flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                    </defs>
+
+                    {/* 開始ノード */}
+                    <ellipse
+                        cx="500"
+                        cy="50"
+                        rx="120"
+                        ry="40"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="50"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="24"
+                        font-weight="600"
+                    >
+                        開始
+                    </text>
+
+                    {/* フォークID計算 */}
+                    <rect
+                        x="350"
+                        y="130"
+                        width="300"
+                        height="80"
+                        rx="10"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="155"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        フォークID計算
+                    </text>
+                    <text
+                        x="500"
+                        y="185"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        r = (philosopher + 1) % 5
+                    </text>
+
+                    {/* 矢印: 開始 → フォークID計算 */}
+                    <path
+                        d="M 500 90 L 500 130"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* 条件分岐: philosopher < r */}
+                    <path
+                        d="M 500 260 L 630 340 L 500 420 L 370 340 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="325"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        philosopher &lt; r
+                    </text>
+                    <text
+                        x="500"
+                        y="355"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        （哲学者0-3）
+                    </text>
+
+                    {/* 矢印: フォークID計算 → 条件分岐 */}
+                    <path
+                        d="M 500 210 L 500 260"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* 左ブランチ（はい）: 左→右の順でロック */}
+                    <rect
+                        x="80"
+                        y="470"
+                        width="280"
+                        height="100"
+                        rx="10"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="220"
+                        y="500"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        左→右の順でロック
+                    </text>
+                    <text
+                        x="220"
+                        y="530"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        lock(philosopher)
+                    </text>
+                    <text
+                        x="220"
+                        y="555"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        lock(r)
+                    </text>
+
+                    {/* 矢印: 条件分岐 → 左ブランチ（はい） */}
+                    <path
+                        d="M 370 340 L 220 340 L 220 470"
+                        stroke="#059669"
+                        stroke-width="3"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="295"
+                        y="330"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="20"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    {/* 右ブランチ（いいえ）: 右→左の順でロック */}
+                    <rect
+                        x="640"
+                        y="470"
+                        width="280"
+                        height="100"
+                        rx="10"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="780"
+                        y="500"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        右→左の順でロック
+                    </text>
+                    <text
+                        x="780"
+                        y="530"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        lock(r)
+                    </text>
+                    <text
+                        x="780"
+                        y="555"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        lock(philosopher)
+                    </text>
+
+                    {/* 矢印: 条件分岐 → 右ブランチ（いいえ） */}
+                    <path
+                        d="M 630 340 L 780 340 L 780 470"
+                        stroke="#dc2626"
+                        stroke-width="3"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="700"
+                        y="330"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="20"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    {/* pickLeftFork & pickRightFork */}
+                    <rect
+                        x="340"
+                        y="620"
+                        width="320"
+                        height="90"
+                        rx="10"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="650"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        フォーク取得
+                    </text>
+                    <text
+                        x="500"
+                        y="685"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        fill="#64748b"
+                    >
+                        pickLeftFork(), pickRightFork()
+                    </text>
+
+                    {/* 矢印: 左ブランチ → pickForks */}
+                    <path
+                        d="M 220 570 L 220 665 L 340 665"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* 矢印: 右ブランチ → pickForks */}
+                    <path
+                        d="M 780 570 L 780 665 L 660 665"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* eat */}
+                    <rect
+                        x="375"
+                        y="750"
+                        width="250"
+                        height="70"
+                        rx="10"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="785"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="24"
+                        font-weight="600"
+                    >
+                        食事 eat()
+                    </text>
+
+                    {/* 矢印: pickForks → eat */}
+                    <path
+                        d="M 500 710 L 500 750"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* putRightFork & putLeftFork */}
+                    <rect
+                        x="340"
+                        y="860"
+                        width="320"
+                        height="90"
+                        rx="10"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="890"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        フォーク返却
+                    </text>
+                    <text
+                        x="500"
+                        y="925"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        fill="#64748b"
+                    >
+                        putRightFork(), putLeftFork()
+                    </text>
+
+                    {/* 矢印: eat → putForks */}
+                    <path
+                        d="M 500 820 L 500 860"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    {/* ロック解放 */}
+                    <rect
+                        x="350"
+                        y="990"
+                        width="300"
+                        height="80"
+                        rx="10"
+                        fill="#f1f5f9"
+                        stroke="#64748b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="500"
+                        y="1015"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="22"
+                        font-weight="600"
+                    >
+                        ロック解放
+                    </text>
+                    <text
+                        x="500"
+                        y="1045"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        fill="#64748b"
+                    >
+                        取得の逆順で解放
+                    </text>
+
+                    {/* 矢印: putForks → ロック解放 */}
+                    <path
+                        d="M 500 950 L 500 990"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. フォークIDを計算（右フォーク = (philosopher + 1) % 5）<br />
+                2. philosopher &lt; r の場合、左→右の順でロック（哲学者0-3）<br />
+                3. philosopher ≥ r の場合、右→左の順でロック（哲学者4のみ）<br />
+                4. 両方のフォークを取得（pickLeftFork, pickRightFork）<br />
+                5. 食事を行う（eat）<br />
+                6. フォークを返却（putRightFork, putLeftFork）<br />
+                7. ロックを取得の逆順で解放
+            </p>
+        </section>
+
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">時間計算量</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th class="border border-emerald-200 px-4 py-2 text-left">操作</th>
+                            <th class="border border-emerald-200 px-4 py-2 text-left">計算量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-2">フォークID計算</td>
+                            <td class="border border-slate-200 px-4 py-2">O(1)</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-2">ロック取得</td>
+                            <td class="border border-slate-200 px-4 py-2">
+                                O(1)（待機時間を除く）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-2">関数呼び出し（5回）</td>
+                            <td class="border border-slate-200 px-4 py-2">O(1)</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-2">ロック解放</td>
+                            <td class="border border-slate-200 px-4 py-2">O(1)</td>
+                        </tr>
+                        <tr class="bg-emerald-50 font-semibold">
+                            <td class="border border-emerald-200 px-4 py-2">Total</td>
+                            <td class="border border-emerald-200 px-4 py-2">O(1) per call</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">空間計算量</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th class="border border-emerald-200 px-4 py-2 text-left">
+                                データ構造
+                            </th>
+                            <th class="border border-emerald-200 px-4 py-2 text-left">計算量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-2">threading.Lock × 5個</td>
+                            <td class="border border-slate-200 px-4 py-2">O(1)</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-2">中間変数</td>
+                            <td class="border border-slate-200 px-4 py-2">O(1)</td>
+                        </tr>
+                        <tr class="bg-emerald-50 font-semibold">
+                            <td class="border border-emerald-200 px-4 py-2">Total</td>
+                            <td class="border border-emerald-200 px-4 py-2">O(1)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">代替手法との比較</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50">
+                            <th class="border border-emerald-200 px-4 py-2 text-left">手法</th>
+                            <th class="border border-emerald-200 px-4 py-2 text-left">
+                                オーバーヘッド
+                            </th>
+                            <th class="border border-emerald-200 px-4 py-2 text-left">
+                                デッドロック回避
+                            </th>
+                            <th class="border border-emerald-200 px-4 py-2 text-left">
+                                実装複雑度
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-cyan-50 font-semibold">
+                            <td class="border border-cyan-200 px-4 py-2">
+                                リソース順序付け（本実装）
+                            </td>
+                            <td class="border border-cyan-200 px-4 py-2">最小（20-50ns）</td>
+                            <td class="border border-cyan-200 px-4 py-2">✓ 数学的に保証</td>
+                            <td class="border border-cyan-200 px-4 py-2">低</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-2">セマフォ（人数制限）</td>
+                            <td class="border border-slate-200 px-4 py-2">中（100-200ns）</td>
+                            <td class="border border-slate-200 px-4 py-2">✓ 同時アクセス制限</td>
+                            <td class="border border-slate-200 px-4 py-2">中</td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-2">チャネル（Go風）</td>
+                            <td class="border border-slate-200 px-4 py-2">大（500ns+）</td>
+                            <td class="border border-slate-200 px-4 py-2">✓ 順序付けで可能</td>
+                            <td class="border border-slate-200 px-4 py-2">中</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '初期状態と問題設定',
+                    desc: '5人の哲学者が円卓に座り、各自の間にフォーク（Lock）が1本ずつ配置されている。哲学者0を例として、左フォーク=0、右フォーク=1とする。',
+                    visual: {
+                        type: 'init',
+                        philosopher: 0,
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'フォークID計算',
+                    desc: '哲学者のIDから、左フォーク（philosopher自身）と右フォーク（r = (philosopher + 1) % 5）を計算する。',
+                    visual: {
+                        type: 'calcForks',
+                        philosopher: 0,
+                        leftFork: 0,
+                        rightFork: 1,
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'リソース順序付けの判定',
+                    desc: 'philosopher < r を判定。哲学者0の場合、0 < 1 なので「はい」となり、左→右の順でロック取得。',
+                    visual: {
+                        type: 'orderCheck',
+                        philosopher: 0,
+                        rightFork: 1,
+                        result: true,
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'ロック取得（左→右）',
+                    desc: '小さいID（左フォーク0）を先にロック、次に大きいID（右フォーク1）をロック。これにより順序が統一される。',
+                    visual: {
+                        type: 'lockAcquire',
+                        philosopher: 0,
+                        leftFork: 0,
+                        rightFork: 1,
+                        order: 'leftFirst',
+                    },
+                },
+                {
+                    step: 5,
+                    title: 'フォーク取得と食事',
+                    desc: '両方のロックを取得後、pickLeftFork()、pickRightFork()を呼び出し、eat()で食事を行う。',
+                    visual: {
+                        type: 'eating',
+                        philosopher: 0,
+                    },
+                },
+                {
+                    step: 6,
+                    title: 'フォーク返却とロック解放',
+                    desc: 'putRightFork()、putLeftFork()を呼び出し、ロックを取得の逆順で解放（右→左）。',
+                    visual: {
+                        type: 'release',
+                        philosopher: 0,
+                        leftFork: 0,
+                        rightFork: 1,
+                    },
+                },
+                {
+                    step: 7,
+                    title: '哲学者4の特殊ケース',
+                    desc: '哲学者4の場合、右フォーク r = 0、左フォーク = 4 となり、philosopher > r なので「いいえ」。右→左の順でロック取得（0→4）。',
+                    visual: {
+                        type: 'orderCheck',
+                        philosopher: 4,
+                        rightFork: 0,
+                        result: false,
+                    },
+                },
+                {
+                    step: 8,
+                    title: '哲学者4のロック取得（右→左）',
+                    desc: '哲学者4は小さいID（右フォーク0）を先にロック、次に大きいID（左フォーク4）をロック。これにより全哲学者が統一された順序でロック取得。',
+                    visual: {
+                        type: 'lockAcquire',
+                        philosopher: 4,
+                        leftFork: 4,
+                        rightFork: 0,
+                        order: 'rightFirst',
+                    },
+                },
+                {
+                    step: 9,
+                    title: 'デッドロック回避の証明',
+                    desc: '全員が小→大の順でロック取得するため、待機関係の有向グラフに閉路が形成されず、循環待機が数学的に不可能。',
+                    visual: {
+                        type: 'deadlockProof',
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrow2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            {/* 円卓 */}
+                            <circle
+                                cx="300"
+                                cy="200"
+                                r="120"
+                                fill="none"
+                                stroke="#e2e8f0"
+                                strokeWidth="4"
+                                strokeDasharray="8,8"
+                            />
+
+                            {/* 哲学者 */}
+                            <circle
+                                cx="300"
+                                cy="80"
+                                r="30"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="85"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                P0
+                            </text>
+
+                            <circle
+                                cx="414"
+                                cy="154"
+                                r="30"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="414"
+                                y="159"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                P1
+                            </text>
+
+                            <circle
+                                cx="414"
+                                cy="246"
+                                r="30"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="414"
+                                y="251"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                P2
+                            </text>
+
+                            <circle
+                                cx="300"
+                                cy="320"
+                                r="30"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="325"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                P3
+                            </text>
+
+                            <circle
+                                cx="186"
+                                cy="246"
+                                r="30"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="186"
+                                y="251"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                P4
+                            </text>
+
+                            {/* フォーク */}
+                            <circle
+                                cx="357"
+                                cy="117"
+                                r="12"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="357"
+                                y="121"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                F0
+                            </text>
+
+                            <circle
+                                cx="414"
+                                cy="200"
+                                r="12"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="414"
+                                y="204"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                F1
+                            </text>
+
+                            <circle
+                                cx="357"
+                                cy="283"
+                                r="12"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="357"
+                                y="287"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                F2
+                            </text>
+
+                            <circle
+                                cx="243"
+                                cy="283"
+                                r="12"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="243"
+                                y="287"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                F3
+                            </text>
+
+                            <circle
+                                cx="186"
+                                cy="200"
+                                r="12"
+                                fill="#f1f5f9"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="186"
+                                y="204"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                F4
+                            </text>
+
+                            <text
+                                x="300"
+                                y="370"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                哲学者0: 左フォーク=0（自身）, 右フォーク=1
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'calcForks') {
+                    const { philosopher, leftFork, rightFork } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <rect
+                                x="50"
+                                y="80"
+                                width="180"
+                                height="80"
+                                rx="8"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="140"
+                                y="105"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                左フォークID
+                            </text>
+                            <text
+                                x="140"
+                                y="135"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                {leftFork}
+                            </text>
+
+                            <rect
+                                x="280"
+                                y="80"
+                                width="180"
+                                height="80"
+                                rx="8"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="370"
+                                y="105"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                右フォークID
+                            </text>
+                            <text
+                                x="370"
+                                y="135"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="600"
+                                fill="#f59e0b"
+                            >
+                                {rightFork}
+                            </text>
+
+                            <text
+                                x="300"
+                                y="200"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                計算式: r = (philosopher + 1) % 5
+                            </text>
+                            <text
+                                x="300"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                哲学者{philosopher}の場合: ({philosopher} + 1) % 5 = {rightFork}
+                            </text>
+                            <text
+                                x="300"
+                                y="270"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#10b981"
+                            >
+                                左フォーク = {leftFork}, 右フォーク = {rightFork}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'orderCheck') {
+                    const { philosopher, rightFork, result } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <path
+                                d="M 300 100 L 400 160 L 300 220 L 200 160 Z"
+                                fill="#fef3c7"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="152"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                philosopher &lt; r
+                            </text>
+                            <text
+                                x="300"
+                                y="172"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                {philosopher} &lt; {rightFork}
+                            </text>
+
+                            {result ? (
+                                <>
+                                    <rect
+                                        x="100"
+                                        y="260"
+                                        width="160"
+                                        height="60"
+                                        rx="8"
+                                        fill="#d1fae5"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="180"
+                                        y="282"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#059669"
+                                    >
+                                        はい
+                                    </text>
+                                    <text
+                                        x="180"
+                                        y="302"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fill="#047857"
+                                    >
+                                        左→右の順でロック
+                                    </text>
+
+                                    <path
+                                        d="M 200 160 L 180 160 L 180 260"
+                                        stroke="#059669"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowGreen2)"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <rect
+                                        x="340"
+                                        y="260"
+                                        width="160"
+                                        height="60"
+                                        rx="8"
+                                        fill="#fee2e2"
+                                        stroke="#dc2626"
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x="420"
+                                        y="282"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#dc2626"
+                                    >
+                                        いいえ
+                                    </text>
+                                    <text
+                                        x="420"
+                                        y="302"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fill="#b91c1c"
+                                    >
+                                        右→左の順でロック
+                                    </text>
+
+                                    <path
+                                        d="M 400 160 L 420 160 L 420 260"
+                                        stroke="#dc2626"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowRed2)"
+                                    />
+                                </>
+                            )}
+
+                            <defs>
+                                <marker
+                                    id="arrowGreen2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                                </marker>
+                                <marker
+                                    id="arrowRed2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'lockAcquire') {
+                    const { philosopher, leftFork, rightFork, order } = visual;
+                    const firstFork = order === 'leftFirst' ? leftFork : rightFork;
+                    const secondFork = order === 'leftFirst' ? rightFork : leftFork;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrow3"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+
+                            <circle
+                                cx="200"
+                                cy="150"
+                                r="40"
+                                fill={firstFork === leftFork ? '#d1fae5' : '#fef3c7'}
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="200"
+                                y="145"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                フォーク
+                            </text>
+                            <text
+                                x="200"
+                                y="165"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                {firstFork}
+                            </text>
+                            <text
+                                x="200"
+                                y="215"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                1番目にロック
+                            </text>
+
+                            <circle
+                                cx="400"
+                                cy="150"
+                                r="40"
+                                fill={secondFork === rightFork ? '#fef3c7' : '#d1fae5'}
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="400"
+                                y="145"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                            >
+                                フォーク
+                            </text>
+                            <text
+                                x="400"
+                                y="165"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                {secondFork}
+                            </text>
+                            <text
+                                x="400"
+                                y="215"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                2番目にロック
+                            </text>
+
+                            <path
+                                d="M 300 80 L 200 110"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrow3)"
+                            />
+                            <path
+                                d="M 300 80 L 400 110"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrow3)"
+                            />
+
+                            <circle
+                                cx="300"
+                                cy="80"
+                                r="30"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="75"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                哲学者
+                            </text>
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                {philosopher}
+                            </text>
+
+                            <text
+                                x="300"
+                                y="280"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#10b981"
+                            >
+                                リソース順序付け: {firstFork} → {secondFork}
+                            </text>
+                            <text
+                                x="300"
+                                y="310"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                常に小さいID → 大きいIDの順でロック
+                            </text>
+                            <text
+                                x="300"
+                                y="340"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                {order === 'leftFirst' ? '（左→右）' : '（右→左）'}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'eating') {
+                    const { philosopher } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <circle
+                                cx="300"
+                                cy="150"
+                                r="60"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                            />
+                            <text
+                                x="300"
+                                y="135"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                哲学者{philosopher}
+                            </text>
+                            <text
+                                x="300"
+                                y="160"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                食事中
+                            </text>
+
+                            <rect
+                                x="180"
+                                y="70"
+                                width="40"
+                                height="10"
+                                rx="5"
+                                fill="#fbbf24"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="200"
+                                y="55"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                左フォーク
+                            </text>
+
+                            <rect
+                                x="380"
+                                y="70"
+                                width="40"
+                                height="10"
+                                rx="5"
+                                fill="#fbbf24"
+                                stroke="#f59e0b"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="400"
+                                y="55"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                右フォーク
+                            </text>
+
+                            <text
+                                x="300"
+                                y="250"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                処理順序:
+                            </text>
+                            <text
+                                x="300"
+                                y="275"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                1. pickLeftFork() → 2. pickRightFork()
+                            </text>
+                            <text
+                                x="300"
+                                y="300"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                3. eat()
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'release') {
+                    const { philosopher, leftFork, rightFork } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <defs>
+                                <marker
+                                    id="arrow4"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                                </marker>
+                            </defs>
+
+                            <circle
+                                cx="300"
+                                cy="80"
+                                r="30"
+                                fill="#e0f2fe"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="75"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                            >
+                                哲学者
+                            </text>
+                            <text
+                                x="300"
+                                y="90"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                {philosopher}
+                            </text>
+
+                            <circle
+                                cx="200"
+                                cy="180"
+                                r="35"
+                                fill="#fef3c7"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                                strokeDasharray="4,4"
+                            />
+                            <text
+                                x="200"
+                                y="175"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                            >
+                                フォーク
+                            </text>
+                            <text
+                                x="200"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                {rightFork}
+                            </text>
+                            <text
+                                x="200"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                1番目に解放
+                            </text>
+
+                            <circle
+                                cx="400"
+                                cy="180"
+                                r="35"
+                                fill="#d1fae5"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                                strokeDasharray="4,4"
+                            />
+                            <text
+                                x="400"
+                                y="175"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                            >
+                                フォーク
+                            </text>
+                            <text
+                                x="400"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#64748b"
+                            >
+                                {leftFork}
+                            </text>
+                            <text
+                                x="400"
+                                y="230"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                2番目に解放
+                            </text>
+
+                            <path
+                                d="M 280 110 L 220 150"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrow4)"
+                            />
+                            <path
+                                d="M 320 110 L 380 150"
+                                stroke="#64748b"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrow4)"
+                            />
+
+                            <text
+                                x="300"
+                                y="280"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                            >
+                                ロック解放は取得の逆順
+                            </text>
+                            <text
+                                x="300"
+                                y="310"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fill="#64748b"
+                            >
+                                putRightFork() → putLeftFork()
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'deadlockProof') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ marginTop: '20px', maxWidth: '100%', height: 'auto' }}
+                        >
+                            <text
+                                x="300"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#10b981"
+                            >
+                                デッドロック回避の証明
+                            </text>
+
+                            <rect
+                                x="50"
+                                y="80"
+                                width="220"
+                                height="80"
+                                rx="8"
+                                fill="#fee2e2"
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="160"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#dc2626"
+                            >
+                                従来アプローチ
+                            </text>
+                            <text
+                                x="160"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                全員が左→右の順
+                            </text>
+                            <text
+                                x="160"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#dc2626"
+                            >
+                                → 循環待機発生！
+                            </text>
+
+                            <rect
+                                x="330"
+                                y="80"
+                                width="220"
+                                height="80"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="440"
+                                y="100"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                リソース順序付け
+                            </text>
+                            <text
+                                x="440"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                常に小→大の順
+                            </text>
+                            <text
+                                x="440"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                → 循環待機不可能！
+                            </text>
+
+                            <rect
+                                x="100"
+                                y="200"
+                                width="400"
+                                height="160"
+                                rx="8"
+                                fill="#f0f9ff"
+                                stroke="#0284c7"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x="300"
+                                y="225"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                数学的証明
+                            </text>
+                            <text
+                                x="300"
+                                y="255"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                1. フォークに全順序を定義: &#123;0 &lt; 1 &lt; 2 &lt; 3 &lt; 4&#125;
+                            </text>
+                            <text
+                                x="300"
+                                y="280"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                2. 全ての哲学者が小→大の順でロック取得
+                            </text>
+                            <text
+                                x="300"
+                                y="305"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fill="#64748b"
+                            >
+                                3. 待機関係の有向グラフに閉路が存在しない
+                            </text>
+                            <text
+                                x="300"
+                                y="330"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                ∴ デッドロック理論的に不可能 ∎
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function StepsComponent() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep((prev) => prev - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep((prev) => prev + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前へ"
+                                >
+                                    ⏮ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次へ"
+                                >
+                                    Next ⏭
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    🔄 Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepsComponent />);
+        </script>
+    </body>
+</html>

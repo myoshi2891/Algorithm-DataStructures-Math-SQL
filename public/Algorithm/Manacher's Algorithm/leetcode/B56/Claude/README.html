@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>回文判定アルゴリズム詳細解析</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+
+            .container {
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+            }
+
+            h1,
+            h2,
+            h3 {
+                color: #2c3e50;
+                margin-top: 2rem;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 2.5rem;
+                margin-bottom: 2rem;
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .algorithm-section {
+                margin: 30px 0;
+                padding: 20px;
+                border: 2px solid #e1e8ed;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            }
+
+            .visualization {
+                margin: 20px 0;
+                padding: 15px;
+                background: white;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .string-display {
+                font-family: 'Courier New', monospace;
+                font-size: 18px;
+                text-align: center;
+                margin: 15px 0;
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 5px;
+            }
+
+            .character {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                line-height: 30px;
+                text-align: center;
+                margin: 2px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                background: #fff;
+            }
+
+            .center {
+                background: #ff6b6b !important;
+                color: white;
+                font-weight: bold;
+            }
+
+            .radius {
+                background: #4ecdc4 !important;
+                color: white;
+            }
+
+            .processed {
+                background: #ffe66d !important;
+            }
+
+            .step {
+                margin: 20px 0;
+                padding: 15px;
+                border-left: 4px solid #667eea;
+                background: rgba(102, 126, 234, 0.1);
+                border-radius: 0 8px 8px 0;
+            }
+
+            .complexity {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+
+            .example {
+                background: #f0f9ff;
+                border: 2px solid #0ea5e9;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .code-snippet {
+                background: #1e293b;
+                color: #e2e8f0;
+                padding: 15px;
+                border-radius: 8px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                overflow-x: auto;
+                margin: 15px 0;
+            }
+
+            .highlight {
+                background: #ffd700;
+                padding: 2px 4px;
+                border-radius: 3px;
+                font-weight: bold;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            th,
+            td {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid #ddd;
+            }
+
+            th {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-weight: bold;
+            }
+
+            tr:nth-child(even) {
+                background: #f8f9fa;
+            }
+
+            .interactive-demo {
+                margin: 30px 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                border-radius: 10px;
+            }
+
+            .demo-input {
+                padding: 10px;
+                margin: 10px;
+                border: 2px solid #667eea;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+
+            .demo-button {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                margin: 10px;
+                transition: transform 0.2s;
+            }
+
+            .demo-button:hover {
+                transform: translateY(-2px);
+            }
+
+            .animation {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>🎯 回文判定アルゴリズム詳細解析</h1>
+
+            <div class="algorithm-section animation">
+                <h2>📊 アルゴリズム概要</h2>
+                <p>
+                    この問題は<strong>Manacher's Algorithm</strong
+                    >を使用して効率的に解決します。通常の方法では各クエリごとにO(N)時間かかりますが、事前計算により<span
+                        class="highlight"
+                        >O(1)時間でのクエリ処理</span
+                    >を実現します。
+                </p>
+
+                <div class="complexity">
+                    <h3>⚡ 計算量分析</h3>
+                    <ul>
+                        <li><strong>時間計算量:</strong> O(N + Q) - 前処理O(N) + クエリ処理O(Q)</li>
+                        <li><strong>空間計算量:</strong> O(N) - 半径配列のみ</li>
+                        <li><strong>従来手法:</strong> O(N × Q) → 最大10^10回の操作</li>
+                        <li><strong>最適化後:</strong> O(N + Q) → 最大2×10^5回の操作</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🔄 Step 1: 文字列の前処理</h2>
+                <p>偶数長・奇数長の回文を統一的に処理するため、文字間に特殊文字'#'を挿入します。</p>
+
+                <div class="example">
+                    <h3>例: "mississippi"の前処理</h3>
+                    <div class="visualization">
+                        <div class="step">
+                            <strong>元の文字列:</strong>
+                            <div class="string-display">
+                                <span class="character">m</span>
+                                <span class="character">i</span>
+                                <span class="character">s</span>
+                                <span class="character">s</span>
+                                <span class="character">i</span>
+                                <span class="character">s</span>
+                                <span class="character">s</span>
+                                <span class="character">i</span>
+                                <span class="character">p</span>
+                                <span class="character">p</span>
+                                <span class="character">i</span>
+                            </div>
+                            <div style="text-align: center; margin-top: 10px">
+                                <small>インデックス: 0-10 (長さ11)</small>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <strong>前処理後:</strong>
+                            <div class="string-display">
+                                <span class="character processed">#</span>
+                                <span class="character">m</span>
+                                <span class="character processed">#</span>
+                                <span class="character">i</span>
+                                <span class="character processed">#</span>
+                                <span class="character">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character">i</span>
+                                <span class="character processed">#</span>
+                                <span class="character">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character">i</span>
+                                <span class="character processed">#</span>
+                                <span class="character">p</span>
+                                <span class="character processed">#</span>
+                                <span class="character">p</span>
+                                <span class="character processed">#</span>
+                                <span class="character">i</span>
+                                <span class="character processed">#</span>
+                            </div>
+                            <div style="text-align: center; margin-top: 10px">
+                                <small>インデックス: 0-22 (長さ23)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-snippet">
+                        const processed = '#' + s.split('').join('#') + '#'; // "mississippi" →
+                        "#m#i#s#s#i#s#s#i#p#p#i#"
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🧠 Step 2: Manacher's Algorithm</h2>
+                <p>
+                    各位置を中心とした最長回文の半径を効率的に計算します。対称性を利用して無駄な計算を削減します。
+                </p>
+
+                <div class="example">
+                    <h3>アルゴリズムの動作原理</h3>
+                    <div class="visualization">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>位置</th>
+                                    <th>文字</th>
+                                    <th>半径</th>
+                                    <th>説明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>0</td>
+                                    <td>#</td>
+                                    <td>0</td>
+                                    <td>境界</td>
+                                </tr>
+                                <tr>
+                                    <td>1</td>
+                                    <td>m</td>
+                                    <td>1</td>
+                                    <td>単一文字</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>s</td>
+                                    <td>1</td>
+                                    <td>"s"単体</td>
+                                </tr>
+                                <tr class="highlight" style="background: #ffe6e6">
+                                    <td>9</td>
+                                    <td>#</td>
+                                    <td>3</td>
+                                    <td>"s#s" → 元文字列"ss"</td>
+                                </tr>
+                                <tr class="highlight" style="background: #e6f3ff">
+                                    <td>15</td>
+                                    <td>#</td>
+                                    <td>3</td>
+                                    <td>"i#s#s#i" → 元文字列"issi"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="step">
+                        <h4>🔍 重要な概念</h4>
+                        <ul>
+                            <li><strong>Center:</strong> 現在の最長回文の中心位置</li>
+                            <li><strong>Right:</strong> 現在の最長回文の右端</li>
+                            <li><strong>対称性の利用:</strong> 既に計算した情報を活用して高速化</li>
+                        </ul>
+                    </div>
+
+                    <div class="code-snippet">
+                        // 対称性を利用した初期化 if (i < right) { radius[i]=Math.min(right - i,
+                        radius[2 * center - i]); } // 回文の拡張 while (processed[i + radius[i] +
+                        1]===processed[i - radius[i] - 1]) { radius[i]++; }
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>⚡ Step 3: クエリ処理</h2>
+                <p>事前計算した半径配列を使用して、各クエリをO(1)時間で処理します。</p>
+
+                <div class="example">
+                    <h3>具体例: クエリ[5,8] → "issi"</h3>
+                    <div class="visualization">
+                        <div class="step">
+                            <strong>1. インデックス変換:</strong>
+                            <ul>
+                                <li>クエリ: L=5, R=8 (1-indexed)</li>
+                                <li>0-indexed: start=4, end=7</li>
+                                <li>部分文字列: "issi"</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <strong>2. 前処理文字列での位置計算:</strong>
+                            <ul>
+                                <li>center = start + end + 1 = 4 + 7 + 1 = 12</li>
+                                <li>length = end - start + 1 = 7 - 4 + 1 = 4</li>
+                                <li>前処理文字列のインデックス12: "#"</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <strong>3. 半径チェック:</strong>
+                            <div class="string-display">
+                                <span class="character">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character radius">i</span>
+                                <span class="character processed">#</span>
+                                <span class="character center">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character radius">s</span>
+                                <span class="character processed">#</span>
+                                <span class="character">i</span>
+                            </div>
+                            <p style="text-align: center; margin-top: 10px">
+                                <small
+                                    >radius[12] = 4 ≥ length = 4 →
+                                    <strong style="color: #22c55e">回文！</strong></small
+                                >
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="code-snippet">
+                        function isPalindrome(radius: number[], l: number, r: number): boolean {
+                        const startIdx = l - 1; // 1-indexed → 0-indexed const endIdx = r - 1; const
+                        center = startIdx + endIdx + 1; // 前処理文字列での中心 const len = endIdx -
+                        startIdx + 1; // 部分文字列の長さ return radius[center] >= len; // O(1)判定
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>📋 全クエリ処理例</h2>
+                <div class="example">
+                    <h3>入力例の完全解析</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>クエリ</th>
+                                <th>範囲</th>
+                                <th>部分文字列</th>
+                                <th>中心位置</th>
+                                <th>必要半径</th>
+                                <th>実際半径</th>
+                                <th>結果</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>[5,8]</td>
+                                <td>"issi"</td>
+                                <td>12</td>
+                                <td>4</td>
+                                <td>4</td>
+                                <td style="color: #22c55e; font-weight: bold">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>[6,10]</td>
+                                <td>"ssipp"</td>
+                                <td>15</td>
+                                <td>5</td>
+                                <td>3</td>
+                                <td style="color: #ef4444; font-weight: bold">No</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>[2,8]</td>
+                                <td>"ississi"</td>
+                                <td>9</td>
+                                <td>7</td>
+                                <td>7</td>
+                                <td style="color: #22c55e; font-weight: bold">Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="interactive-demo animation">
+                <h2>🎮 インタラクティブデモ</h2>
+                <p>文字列とクエリを入力して、アルゴリズムの動作を確認してみましょう！</p>
+
+                <div style="text-align: center">
+                    <input
+                        type="text"
+                        id="demoString"
+                        class="demo-input"
+                        placeholder="文字列を入力 (例: mississippi)"
+                        value="mississippi"
+                    />
+                    <br />
+                    <input
+                        type="number"
+                        id="demoL"
+                        class="demo-input"
+                        placeholder="開始位置"
+                        value="5"
+                        style="width: 100px"
+                    />
+                    <input
+                        type="number"
+                        id="demoR"
+                        class="demo-input"
+                        placeholder="終了位置"
+                        value="8"
+                        style="width: 100px"
+                    />
+                    <br />
+                    <button onclick="runDemo()" class="demo-button">🔍 判定実行</button>
+                </div>
+
+                <div
+                    id="demoResult"
+                    style="
+                        margin-top: 20px;
+                        padding: 15px;
+                        background: white;
+                        border-radius: 8px;
+                        display: none;
+                    "
+                >
+                    <h4>結果:</h4>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+
+            <div class="algorithm-section animation">
+                <h2>🚀 最適化のポイント</h2>
+                <div class="complexity">
+                    <h3>メモリ効率化</h3>
+                    <ul>
+                        <li><strong>配列の再利用:</strong> 必要最小限のメモリ使用</li>
+                        <li><strong>型の最適化:</strong> TypeScriptの型システム活用</li>
+                        <li>
+                            <strong>ガベージコレクション考慮:</strong> 不要なオブジェクト生成回避
+                        </li>
+                    </ul>
+
+                    <h3>実行時間最適化</h3>
+                    <ul>
+                        <li><strong>事前計算:</strong> O(N)時間での前処理</li>
+                        <li><strong>対称性活用:</strong> 重複計算の削減</li>
+                        <li><strong>キャッシュ効率:</strong> 連続メモリアクセス</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function runDemo() {
+                const str = document.getElementById('demoString').value;
+                const l = parseInt(document.getElementById('demoL').value);
+                const r = parseInt(document.getElementById('demoR').value);
+
+                if (!str || !l || !r || l > r || l < 1 || r > str.length) {
+                    alert('有効な入力を行ってください');
+                    return;
+                }
+
+                // Manacher's algorithm implementation
+                const processed = '#' + str.split('').join('#') + '#';
+                const n = processed.length;
+                const radius = new Array(n).fill(0);
+                let center = 0,
+                    right = 0;
+
+                for (let i = 0; i < n; i++) {
+                    if (i < right) {
+                        radius[i] = Math.min(right - i, radius[2 * center - i]);
+                    }
+
+                    while (
+                        i + radius[i] + 1 < n &&
+                        i - radius[i] - 1 >= 0 &&
+                        processed[i + radius[i] + 1] === processed[i - radius[i] - 1]
+                    ) {
+                        radius[i]++;
+                    }
+
+                    if (i + radius[i] > right) {
+                        center = i;
+                        right = i + radius[i];
+                    }
+                }
+
+                // Check palindrome
+                const startIdx = l - 1;
+                const endIdx = r - 1;
+                const centerPos = startIdx + endIdx + 1;
+                const len = endIdx - startIdx + 1;
+                const substring = str.substring(l - 1, r);
+                const isPalin = radius[centerPos] >= len;
+
+                const resultDiv = document.getElementById('demoResult');
+                const contentDiv = document.getElementById('resultContent');
+
+                contentDiv.innerHTML = `
+                <p><strong>文字列:</strong> "${str}"</p>
+                <p><strong>クエリ範囲:</strong> [${l}, ${r}]</p>
+                <p><strong>部分文字列:</strong> "${substring}"</p>
+                <p><strong>前処理文字列:</strong> "${processed}"</p>
+                <p><strong>中心位置:</strong> ${centerPos}</p>
+                <p><strong>必要半径:</strong> ${len}</p>
+                <p><strong>実際半径:</strong> ${radius[centerPos]}</p>
+                <p><strong>判定結果:</strong> <span style="color: ${isPalin ? '#22c55e' : '#ef4444'}; font-weight: bold; font-size: 1.2em;">${isPalin ? 'Yes (回文)' : 'No (非回文)'}</span></p>
+            `;
+
+                resultDiv.style.display = 'block';
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Add animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px',
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animation');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.algorithm-section').forEach((section) => {
+                observer.observe(section);
+            });
+        </script>
+    </body>
+</html>

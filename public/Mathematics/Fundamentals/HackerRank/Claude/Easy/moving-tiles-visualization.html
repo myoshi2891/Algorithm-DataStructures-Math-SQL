@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Tiles - 重なり面積の時間逆算</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel Standalone (JSXをブラウザで変換) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+const MovingTilesExplanation = () => {
+    const [activeTab, setActiveTab] = useState('concept');
+    const [timeSlider, setTimeSlider] = useState(0);
+
+    // 可視化用のパラメータ
+    const l = 100; // 正方形の一辺（ピクセル）
+    const s1 = 3;
+    const s2 = 1;
+    const t = timeSlider;
+
+    // 時刻tでの各正方形の位置
+    const offset1 = (s1 * t) / Math.sqrt(2);
+    const offset2 = (s2 * t) / Math.sqrt(2);
+
+    // 重なり部分の一辺
+    const overlap = Math.max(0, l - (Math.abs(s1 - s2) * t) / Math.sqrt(2));
+    const overlapArea = overlap * overlap;
+
+    const tabs = [
+        { id: 'concept', label: '基本概念' },
+        { id: 'geometry', label: '幾何学的導出' },
+        { id: 'formula', label: '公式の導出' },
+        { id: 'implementation', label: '実装' },
+    ];
+
+    return (
+        <div className="w-full max-w-4xl mx-auto p-6 bg-white">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">
+                Moving Tiles - 重なり面積の時間逆算
+            </h1>
+
+            {/* タブナビゲーション */}
+            <div className="flex border-b mb-6">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 font-medium ${
+                            activeTab === tab.id
+                                ? 'border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* 基本概念 */}
+            {activeTab === 'concept' && (
+                <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                        <h2 className="text-xl font-bold mb-3">問題の概要</h2>
+                        <p className="mb-2">
+                            2つの正方形が原点から対角線方向（y = x）に異なる速度で移動するとき、
+                            <strong>指定された重なり面積になる時刻</strong>を求めます。
+                        </p>
+                    </div>
+
+                    {/* インタラクティブな可視化 */}
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">動的シミュレーション</h3>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                時刻 t = {t.toFixed(1)} 秒
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={timeSlider}
+                                onChange={(e) => setTimeSlider(Number(e.target.value))}
+                                className="w-full"
+                            />
+                        </div>
+
+                        <svg width="400" height="400" className="border bg-gray-50">
+                            {/* グリッド */}
+                            <line x1="0" y1="200" x2="400" y2="200" stroke="#ddd" />
+                            <line x1="200" y1="0" x2="200" y2="400" stroke="#ddd" />
+                            <line
+                                x1="0"
+                                y1="0"
+                                x2="400"
+                                y2="400"
+                                stroke="#ddd"
+                                strokeDasharray="5,5"
+                            />
+
+                            {/* 正方形2（青） */}
+                            <rect
+                                x={200 - l / 2 + offset2}
+                                y={200 - l / 2 + offset2}
+                                width={l}
+                                height={l}
+                                fill="rgba(59, 130, 246, 0.3)"
+                                stroke="blue"
+                                strokeWidth="2"
+                            />
+
+                            {/* 正方形1（赤） */}
+                            <rect
+                                x={200 - l / 2 + offset1}
+                                y={200 - l / 2 + offset1}
+                                width={l}
+                                height={l}
+                                fill="rgba(239, 68, 68, 0.3)"
+                                stroke="red"
+                                strokeWidth="2"
+                            />
+
+                            {/* 重なり領域の強調 */}
+                            {overlap > 0 && (
+                                <rect
+                                    x={200 - l / 2 + Math.max(offset1, offset2)}
+                                    y={200 - l / 2 + Math.max(offset1, offset2)}
+                                    width={overlap}
+                                    height={overlap}
+                                    fill="rgba(34, 197, 94, 0.5)"
+                                    stroke="green"
+                                    strokeWidth="2"
+                                />
+                            )}
+
+                            {/* 凡例 */}
+                            <rect x="10" y="10" width="15" height="15" fill="rgba(239, 68, 68, 0.3)" stroke="red" strokeWidth="1" />
+                            <text x="30" y="22" className="text-xs" fill="#333">
+                                正方形1 (速度: {s1})
+                            </text>
+                            <rect x="10" y="30" width="15" height="15" fill="rgba(59, 130, 246, 0.3)" stroke="blue" strokeWidth="1" />
+                            <text x="30" y="42" className="text-xs" fill="#333">
+                                正方形2 (速度: {s2})
+                            </text>
+                            <rect x="10" y="50" width="15" height="15" fill="rgba(34, 197, 94, 0.5)" stroke="green" strokeWidth="1" />
+                            <text x="30" y="62" className="text-xs" fill="#333">
+                                重なり領域
+                            </text>
+
+                            {/* y=x 方向のラベル */}
+                            <text x="350" y="390" className="text-xs" fill="#999">
+                                y = x 方向
+                            </text>
+                        </svg>
+
+                        <div className="mt-4 grid grid-cols-2 gap-4">
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="text-sm text-gray-600">重なり一辺</div>
+                                <div className="text-lg font-bold">{overlap.toFixed(2)} px</div>
+                            </div>
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="text-sm text-gray-600">重なり面積</div>
+                                <div className="text-lg font-bold">
+                                    {overlapArea.toFixed(0)} px²
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 計算過程の表示 */}
+                        <div className="mt-4 bg-blue-50 p-3 rounded">
+                            <h4 className="font-bold text-sm mb-2">計算過程</h4>
+                            <div className="font-mono text-xs space-y-1">
+                                <div>相対的ずれ: Δd = |{s1} - {s2}| × {t} = {(Math.abs(s1 - s2) * t).toFixed(2)}</div>
+                                <div>軸方向のずれ: δ = {(Math.abs(s1 - s2) * t).toFixed(2)} / √2 = {((Math.abs(s1 - s2) * t) / Math.sqrt(2)).toFixed(2)}</div>
+                                <div>重なり一辺: s(t) = {l} - {((Math.abs(s1 - s2) * t) / Math.sqrt(2)).toFixed(2)} = {overlap.toFixed(2)}</div>
+                                <div>重なり面積: A(t) = {overlap.toFixed(2)}² = {overlapArea.toFixed(0)}</div>
+                            </div>
+                        </div>
+
+                        {/* 逆算の例 */}
+                        {overlapArea > 0 && (
+                            <div className="mt-4 bg-green-50 p-3 rounded">
+                                <h4 className="font-bold text-sm mb-2">逆算（面積 → 時刻）</h4>
+                                <div className="font-mono text-xs">
+                                    <div>面積 q = {overlapArea.toFixed(0)} のとき:</div>
+                                    <div>t = ({l} - √{overlapArea.toFixed(0)}) × √2 / |{s1} - {s2}|</div>
+                                    <div>t = ({l} - {Math.sqrt(overlapArea).toFixed(2)}) × {Math.sqrt(2).toFixed(4)} / {Math.abs(s1 - s2)}</div>
+                                    <div className="font-bold text-green-700">t ≈ {((l - Math.sqrt(overlapArea)) * Math.sqrt(2) / Math.abs(s1 - s2)).toFixed(2)} 秒</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                        <h3 className="font-bold mb-2">重要なポイント</h3>
+                        <ul className="space-y-1 text-sm">
+                            <li>• 時刻 t=0 では2つの正方形は完全に重なる（面積 = l²）</li>
+                            <li>• 速度差により時間とともに重なり面積が減少</li>
+                            <li>• 対角線方向の移動なので、座標系の変換が必要</li>
+                        </ul>
+                    </div>
+                </div>
+            )}
+
+            {/* 幾何学的導出 */}
+            {activeTab === 'geometry' && (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">幾何学的導出プロセス</h2>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">Step 1: 座標変換</h3>
+                        <p className="mb-3">
+                            対角線方向（y = x）への移動距離 d を x, y 座標に変換:
+                        </p>
+                        <div className="bg-gray-100 p-3 rounded font-mono text-sm">
+                            Δx = d / √2
+                            <br />
+                            Δy = d / √2
+                        </div>
+
+                        <svg width="300" height="200" className="mt-4 border bg-white">
+                            <line
+                                x1="50"
+                                y1="150"
+                                x2="250"
+                                y2="150"
+                                stroke="black"
+                                markerEnd="url(#arrowhead)"
+                            />
+                            <line
+                                x1="50"
+                                y1="150"
+                                x2="50"
+                                y2="50"
+                                stroke="black"
+                                markerEnd="url(#arrowhead)"
+                            />
+                            <line x1="50" y1="150" x2="200" y2="50" stroke="blue" strokeWidth="2" />
+                            <text x="260" y="155" className="text-xs">
+                                x
+                            </text>
+                            <text x="45" y="40" className="text-xs">
+                                y
+                            </text>
+                            <text x="130" y="80" className="text-xs fill-blue-600">
+                                d
+                            </text>
+                            <text x="120" y="165" className="text-xs">
+                                d/√2
+                            </text>
+                            <text x="30" y="100" className="text-xs">
+                                d/√2
+                            </text>
+                            <defs>
+                                <marker
+                                    id="arrowhead"
+                                    markerWidth="10"
+                                    markerHeight="7"
+                                    refX="9"
+                                    refY="3.5"
+                                    orient="auto"
+                                >
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="black" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">Step 2: 相対的ずれ</h3>
+                        <p className="mb-3">時刻 t での各正方形の移動距離:</p>
+                        <div className="bg-gray-100 p-3 rounded font-mono text-sm mb-3">
+                            正方形1の移動距離: d₁ = s₁ × t<br />
+                            正方形2の移動距離: d₂ = s₂ × t<br />
+                            <br />
+                            相対的ずれ: Δd = |s₁ - s₂| × t
+                        </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">Step 3: 重なり部分の一辺</h3>
+                        <p className="mb-3">軸方向のずれを計算:</p>
+                        <div className="bg-gray-100 p-3 rounded font-mono text-sm mb-3">
+                            δ = Δd / √2 = (|s₁ - s₂| × t) / √2
+                            <br />
+                            <br />
+                            重なり部分の一辺:
+                            <br />
+                            s(t) = l - δ = l - (|s₁ - s₂| × t) / √2
+                        </div>
+
+                        <svg width="350" height="200" className="border bg-white">
+                            <rect
+                                x="50"
+                                y="50"
+                                width="100"
+                                height="100"
+                                fill="rgba(239, 68, 68, 0.3)"
+                                stroke="red"
+                                strokeWidth="2"
+                            />
+                            <rect
+                                x="80"
+                                y="80"
+                                width="100"
+                                height="100"
+                                fill="rgba(59, 130, 246, 0.3)"
+                                stroke="blue"
+                                strokeWidth="2"
+                            />
+                            <rect
+                                x="80"
+                                y="80"
+                                width="70"
+                                height="70"
+                                fill="rgba(34, 197, 94, 0.5)"
+                                stroke="green"
+                                strokeWidth="2"
+                                strokeDasharray="5,5"
+                            />
+
+                            <line x1="50" y1="40" x2="150" y2="40" stroke="black" strokeWidth="2" />
+                            <text x="90" y="35" className="text-xs">
+                                l
+                            </text>
+
+                            <line
+                                x1="80"
+                                y1="190"
+                                x2="150"
+                                y2="190"
+                                stroke="green"
+                                strokeWidth="2"
+                            />
+                            <text x="105" y="205" className="text-xs fill-green-600">
+                                s(t)
+                            </text>
+
+                            <line
+                                x1="50"
+                                y1="160"
+                                x2="80"
+                                y2="160"
+                                stroke="orange"
+                                strokeWidth="2"
+                            />
+                            <text x="55" y="175" className="text-xs fill-orange-600">
+                                δ
+                            </text>
+                        </svg>
+                    </div>
+
+                    <div className="border rounded-lg p-4 bg-blue-50">
+                        <h3 className="font-bold mb-3">Step 4: 重なり面積</h3>
+                        <div className="bg-white p-3 rounded font-mono text-sm">
+                            A(t) = s(t)² = [l - (|s₁ - s₂| × t) / √2]²
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 公式の導出 */}
+            {activeTab === 'formula' && (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">逆算公式の導出</h2>
+
+                    <div className="bg-green-50 p-4 rounded-lg">
+                        <h3 className="font-bold mb-2">目標</h3>
+                        <p>重なり面積 q が与えられたとき、時刻 t を求める</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="border-l-4 border-blue-500 pl-4">
+                            <h4 className="font-bold">ステップ 1: 面積の式から出発</h4>
+                            <div className="bg-gray-100 p-3 rounded font-mono text-sm mt-2">
+                                q = [l - (|s₁ - s₂| × t) / √2]²
+                            </div>
+                        </div>
+
+                        <div className="border-l-4 border-blue-500 pl-4">
+                            <h4 className="font-bold">ステップ 2: 平方根を取る</h4>
+                            <div className="bg-gray-100 p-3 rounded font-mono text-sm mt-2">
+                                √q = l - (|s₁ - s₂| × t) / √2
+                            </div>
+                        </div>
+
+                        <div className="border-l-4 border-blue-500 pl-4">
+                            <h4 className="font-bold">ステップ 3: 整理する</h4>
+                            <div className="bg-gray-100 p-3 rounded font-mono text-sm mt-2">
+                                (|s₁ - s₂| × t) / √2 = l - √q
+                            </div>
+                        </div>
+
+                        <div className="border-l-4 border-green-500 pl-4">
+                            <h4 className="font-bold">ステップ 4: t について解く</h4>
+                            <div className="bg-green-100 p-3 rounded font-mono text-sm mt-2">
+                                t = (l - √q) × √2 / |s₁ - s₂|
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4 bg-yellow-50">
+                        <h3 className="font-bold mb-3">計算例</h3>
+                        <div className="space-y-2 text-sm">
+                            <p>l = 10, s₁ = 1, s₂ = 2, q = 50 の場合:</p>
+                            <div className="bg-white p-3 rounded font-mono text-xs">
+                                t = (10 - √50) × √2 / |1 - 2|
+                                <br />
+                                t = (10 - 7.071) × 1.414 / 1<br />
+                                t = 2.929 × 1.414
+                                <br />t ≈ 4.142 秒
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">計算量の分析</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="font-bold text-sm mb-1">時間計算量</div>
+                                <div className="text-2xl font-bold text-blue-600">O(q)</div>
+                                <div className="text-xs mt-1">q: クエリ数</div>
+                            </div>
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="font-bold text-sm mb-1">空間計算量</div>
+                                <div className="text-2xl font-bold text-green-600">O(1)</div>
+                                <div className="text-xs mt-1">定数空間のみ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 実装 */}
+            {activeTab === 'implementation' && (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Python 実装のポイント</h2>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">最適化テクニック</h3>
+
+                        <div className="space-y-4">
+                            <div className="bg-blue-50 p-3 rounded">
+                                <h4 className="font-bold text-sm mb-2">1. 関数参照の局所化</h4>
+                                <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
+                                    sqrt = math.sqrt # グローバル参照を削減
+                                </pre>
+                                <p className="text-sm mt-2">効果: 10-15% 高速化</p>
+                            </div>
+
+                            <div className="bg-green-50 p-3 rounded">
+                                <h4 className="font-bold text-sm mb-2">2. 定数の事前計算</h4>
+                                <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
+                                    factor = 1.4142135623730951 / v_diff # √2 を事前計算
+                                </pre>
+                                <p className="text-sm mt-2">効果: q 回の計算を 1 回に削減</p>
+                            </div>
+
+                            <div className="bg-yellow-50 p-3 rounded">
+                                <h4 className="font-bold text-sm mb-2">3. リスト内包表記</h4>
+                                <pre className="bg-white p-2 rounded text-xs overflow-x-auto">
+                                    return [(l - sqrt(q)) * factor for q in queries]
+                                </pre>
+                                <p className="text-sm mt-2">効果: for ループより 5-10% 高速</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                        <h3 className="font-bold mb-3">エッジケースの処理</h3>
+
+                        <div className="space-y-3">
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="font-bold text-sm">速度が同じ場合</div>
+                                <pre className="text-xs mt-2 overflow-x-auto">
+                                    if v_diff == 0: return [0.0] * len(queries)
+                                </pre>
+                            </div>
+
+                            <div className="bg-gray-100 p-3 rounded">
+                                <div className="font-bold text-sm">境界値テスト</div>
+                                <ul className="text-xs mt-2 space-y-1">
+                                    <li>• q = 0 → 完全分離（最大時刻）</li>
+                                    <li>• q = l² → 完全重なり（t = 0）</li>
+                                    <li>• 最大一辺 l = 10⁹ → float64 で十分</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-lg">
+                        <h3 className="font-bold mb-2">アルゴリズムの利点</h3>
+                        <ul className="space-y-1 text-sm">
+                            <li>✓ 二分探索不要（解析的に求まる）</li>
+                            <li>✓ 各クエリを O(1) で処理</li>
+                            <li>✓ 定数空間で動作</li>
+                            <li>✓ 浮動小数点演算のみ（整数演算より高速）</li>
+                        </ul>
+                    </div>
+
+                    {/* 完全なPythonコード */}
+                    <div className="border rounded-lg p-4 mt-6">
+                        <h3 className="font-bold mb-3">完全な Python 実装</h3>
+                        <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
+{`import math
+from typing import List
+
+def movingTiles(l: int, s1: int, s2: int, queries: List[int]) -> List[float]:
+    """
+    2つの正方形の重なり面積から時刻を計算
+
+    数学的根拠:
+      - 重なり面積: A(t) = [l - |s1-s2|*t/√2]²
+      - 逆算: t = (l - √q) * √2 / |s1-s2|
+
+    Time Complexity: O(q) where q = len(queries)
+    Space Complexity: O(1) (excluding output)
+    """
+    # 関数呼び出しオーバーヘッド削減
+    sqrt = math.sqrt
+
+    # 速度差の絶対値
+    v_diff = abs(s1 - s2)
+
+    # エッジケース: 速度が同じ場合
+    if v_diff == 0:
+        return [0.0] * len(queries)
+
+    # 定数の事前計算: √2 / |s1 - s2|
+    factor = 1.4142135623730951 / v_diff
+
+    # 各クエリに対して時刻を計算
+    # t = (l - √q) * factor
+    return [(l - sqrt(q)) * factor for q in queries]`}
+                        </pre>
+                    </div>
+
+                    {/* コードと数式の対応表 */}
+                    <div className="border rounded-lg p-4 mt-4">
+                        <h3 className="font-bold mb-3">コードと数式の対応</h3>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b">
+                                    <th className="text-left py-2">コード</th>
+                                    <th className="text-left py-2">数式</th>
+                                    <th className="text-left py-2">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody className="font-mono text-xs">
+                                <tr className="border-b">
+                                    <td className="py-2">v_diff = abs(s1 - s2)</td>
+                                    <td>|s₁ - s₂|</td>
+                                    <td>速度差の絶対値</td>
+                                </tr>
+                                <tr className="border-b">
+                                    <td className="py-2">factor = √2 / v_diff</td>
+                                    <td>√2 / |s₁ - s₂|</td>
+                                    <td>定数項の事前計算</td>
+                                </tr>
+                                <tr>
+                                    <td className="py-2">(l - sqrt(q)) * factor</td>
+                                    <td>(l - √q) × √2 / |s₁ - s₂|</td>
+                                    <td>逆算公式</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ReactDOM でレンダリング
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<MovingTilesExplanation />);
+    </script>
+</body>
+</html>

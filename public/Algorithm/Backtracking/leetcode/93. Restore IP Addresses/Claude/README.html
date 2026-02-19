@@ -1,0 +1,1723 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 93: Restore IP Addresses - DFS + 枝刈り解説</title>
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <header
+            id="header"
+            class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+        >
+            <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Restore IP Addresses</h1>
+            <p class="text-xl text-cyan-700 font-semibold mt-2">DFS + 強枝刈り による O(1) 実装</p>
+            <nav class="flex flex-wrap gap-4 mt-6">
+                <a
+                    href="#overview"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >概要</a
+                >
+                <a
+                    href="#steps"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >ステップ解説</a
+                >
+                <a
+                    href="#code"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >コード</a
+                >
+                <a
+                    href="#diagram"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >フローチャート</a
+                >
+                <a
+                    href="#complexity"
+                    class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                    >計算量</a
+                >
+            </nav>
+        </header>
+
+        <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                アルゴリズム概要
+            </h2>
+
+            <h3 class="text-xl font-semibold text-teal-700 mt-6 mb-3">問題説明</h3>
+            <p class="text-slate-700 leading-7 mb-4">
+                数字のみから成る文字列
+                <code class="bg-slate-100 px-2 py-1 rounded text-sm font-mono">s</code>
+                に対し、<strong>3つのドット</strong>を挿入して<strong>4つのセグメント</strong>を作り、全ての有効なIPv4アドレスを列挙します。
+            </p>
+
+            <h3 class="text-xl font-semibold text-teal-700 mt-6 mb-3">制約条件</h3>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li>各セグメントは 0〜255 の整数</li>
+                <li>
+                    先頭ゼロ禁止（ただし単独の
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm font-mono">"0"</code>
+                    は許可）
+                </li>
+                <li>文字の順序変更・削除は不可（挿入のみ）</li>
+                <li>
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm font-mono"
+                        >1 &lt;= s.length &lt;= 20</code
+                    >
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-teal-700 mt-6 mb-3">入出力例</h3>
+            <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-emerald-500 mb-4">
+                <p class="font-semibold text-slate-800 mb-2">例1:</p>
+                <pre
+                    class="font-mono text-sm text-slate-700"
+                ><strong>Input:</strong> s = "25525511135"
+<strong>Output:</strong> ["255.255.11.135","255.255.111.35"]</pre>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-cyan-500 mb-4">
+                <p class="font-semibold text-slate-800 mb-2">例2:</p>
+                <pre class="font-mono text-sm text-slate-700"><strong>Input:</strong> s = "0000"
+<strong>Output:</strong> ["0.0.0.0"]</pre>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-700 mt-6 mb-3">戦略のポイント</h3>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li><strong>深さ優先探索（DFS）</strong>：各セグメントで1〜3桁を試行</li>
+                <li>
+                    <strong>残文字数の枝刈り</strong>：<code
+                        class="bg-slate-100 px-2 py-1 rounded text-sm font-mono"
+                        >remainSegs &lt;= remainChars &lt;= remainSegs * 3</code
+                    >
+                    で不可能な分岐を排除
+                </li>
+                <li>
+                    <strong>先頭ゼロ処理</strong>：先頭が
+                    <code class="bg-slate-100 px-2 py-1 rounded text-sm font-mono">'0'</code>
+                    なら長さ1のみ試行
+                </li>
+                <li><strong>255超過チェック</strong>：逐次数値化で255を超えたら即座にループ脱出</li>
+                <li>
+                    <strong>キャッシュ参照</strong
+                    >：0〜255の文字列を事前に生成し、スライス生成を回避
+                </li>
+            </ul>
+        </section>
+
+        <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                ステップバイステップ解説
+            </h2>
+            <div id="react-root"></div>
+        </section>
+
+        <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                Python実装
+            </h2>
+            <pre
+                class="line-numbers"
+            ><code class="language-python">from __future__ import annotations
+from typing import List
+
+class Solution:
+    """
+    Restore IP Addresses（メモリ最適化版）
+    - 0..255 の文字列を事前キャッシュして、部分文字列生成を回避
+    - 固定長配列 path を再利用し、探索中の一時オブジェクトを最小化
+    """
+
+    # 共有キャッシュ：0〜255 を文字列化して再利用
+    _SEG_CACHE: List[str] = [str(i) for i in range(256)]
+
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        """
+        全ての有効なIPv4アドレスを列挙
+
+        Args:
+            s: 数字のみから成る文字列
+
+        Returns:
+            生成可能な全ての有効IPv4アドレス（順不同）
+
+        Raises:
+            TypeError: 入力がstrでない、または数字以外を含む場合
+
+        Complexity:
+            Time: O(1)（n≤20、最大3^4分岐、出力を除く）
+            Space: O(1)（path固定長のみ、出力を除く）
+        """
+        # 入力検証
+        if not isinstance(s, str):
+            raise TypeError("Input must be a string.")
+
+        n: int = len(s)
+
+        # 数字のみ許可
+        for ch in s:
+            if ch < '0' or ch > '9':
+                raise TypeError("Input must contain digits only.")
+
+        # IPv4は合計4〜12桁のみ成立
+        if n < 4 or n > 12:
+            return []
+
+        res: List[str] = []
+        path: List[str] = [""] * 4  # 固定長配列・再利用
+        SEG = self._SEG_CACHE  # ローカル束縛で属性探索を削減
+
+        def dfs(idx: int, seg: int) -> None:
+            """
+            深さ優先探索でセグメントを決定
+
+            Args:
+                idx: 現在の文字位置
+                seg: 埋まったセグメント数（0〜4）
+            """
+            # 基底条件：4セグメント完成
+            if seg == 4:
+                if idx == n:
+                    # 全文字使い切り → 有効なIP
+                    res.append(".".join(path))
+                return
+
+            remain_segs = 4 - seg
+            remain_chars = n - idx
+
+            # 枝刈り：残文字数が不足または過剰
+            if remain_chars < remain_segs or remain_chars > remain_segs * 3:
+                return
+
+            # 先頭が '0' なら長さ1のみ許可
+            first_is_zero = s[idx] == '0'
+            max_len = 1 if first_is_zero else 3
+
+            val = 0  # セグメント数値を逐次生成
+            for length in range(1, max_len + 1):
+                if idx + length > n:
+                    break
+
+                # 逐次数値化：val = val*10 + digit
+                val = val * 10 + (ord(s[idx + length - 1]) - 48)
+
+                # 255超過したら以降は全て不正
+                if val > 255:
+                    break
+
+                # キャッシュから文字列参照（スライス生成なし）
+                path[seg] = SEG[val]
+                dfs(idx + length, seg + 1)
+
+        dfs(0, 0)
+        return res</code></pre>
+        </section>
+
+        <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                フローチャート
+            </h2>
+            <div class="mt-[20px] overflow-x-auto">
+                <svg
+                    viewBox="0 0 840 1100"
+                    style="max-width: 100%; height: auto; color: #333"
+                    role="img"
+                    aria-label="Restore IP Addresses flowchart"
+                >
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="arrowGreen"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                        </marker>
+                        <marker
+                            id="arrowRed"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                        </marker>
+                        <marker
+                            id="arrowPurple"
+                            markerWidth="10"
+                            markerHeight="10"
+                            refX="9"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                        </marker>
+                    </defs>
+
+                    <!-- 開始 -->
+                    <ellipse
+                        cx="420"
+                        cy="60"
+                        rx="100"
+                        ry="35"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="60"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="18"
+                        font-weight="600"
+                    >
+                        開始: dfs(0, 0)
+                    </text>
+
+                    <!-- 開始 → 基底条件チェック -->
+                    <path
+                        d="M 420 95 L 420 140"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <!-- 基底条件チェック -->
+                    <path
+                        d="M 420 140 L 520 190 L 420 240 L 320 190 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="190"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">seg == 4?</tspan>
+                    </text>
+
+                    <!-- はい → 全文字使用チェック -->
+                    <path
+                        d="M 520 190 L 620 190"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="570"
+                        y="180"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <!-- 全文字使用チェック -->
+                    <path
+                        d="M 720 140 L 820 190 L 720 240 L 620 190 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="190"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="720" dy="-8">idx == n?</tspan>
+                    </text>
+
+                    <!-- はい → 結果追加 -->
+                    <path
+                        d="M 720 140 L 720 90"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="750"
+                        y="130"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <rect
+                        x="645"
+                        y="30"
+                        width="140"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="645"
+                        y="60"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="720" dy="-8">結果に追加</tspan>
+                        <tspan x="720" dy="18">res.append()</tspan>
+                    </text>
+
+                    <!-- いいえ → 戻る（文字余り） -->
+                    <path
+                        d="M 720 240 L 720 330"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="580"
+                        y="300"
+                        text-anchor="start"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ（文字余り）
+                    </text>
+
+                    <ellipse
+                        cx="720"
+                        cy="360"
+                        rx="80"
+                        ry="30"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="720"
+                        y="360"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        戻る
+                    </text>
+
+                    <!-- いいえ → 残文字数チェック -->
+                    <path
+                        d="M 420 240 L 420 310"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="400"
+                        y="275"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <!-- 残文字数チェック -->
+                    <path
+                        d="M 420 310 L 520 360 L 420 410 L 320 360 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="360"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-16">remainSegs &lt;=</tspan>
+                        <tspan x="420" dy="18">remainChars &lt;=</tspan>
+                        <tspan x="420" dy="18">remainSegs*3?</tspan>
+                    </text>
+
+                    <!-- いいえ → 枝刈り戻る -->
+                    <path
+                        d="M 320 360 L 230 360"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="290"
+                        y="330"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ（枝刈り）
+                    </text>
+
+                    <ellipse
+                        cx="150"
+                        cy="360"
+                        rx="80"
+                        ry="30"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="150"
+                        y="360"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        戻る
+                    </text>
+
+                    <!-- はい → 長さ決定 -->
+                    <path
+                        d="M 420 410 L 420 480"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="400"
+                        y="445"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <rect
+                        x="320"
+                        y="480"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="510"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">max_len決定</tspan>
+                        <tspan x="420" dy="18">（先頭0なら1のみ）</tspan>
+                    </text>
+
+                    <!-- 長さ決定 → ループ開始 -->
+                    <path
+                        d="M 420 540 L 420 610"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <rect
+                        x="320"
+                        y="610"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#f3e8ff"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="640"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">長さlen=1..max_len</tspan>
+                        <tspan x="420" dy="18">を試行</tspan>
+                    </text>
+
+                    <!-- ループ → 数値化 -->
+                    <path
+                        d="M 420 670 L 420 740"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <rect
+                        x="320"
+                        y="740"
+                        width="200"
+                        height="60"
+                        rx="8"
+                        fill="#e0f2fe"
+                        stroke="#0284c7"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="770"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">逐次数値化</tspan>
+                        <tspan x="420" dy="18">val = val*10 + digit</tspan>
+                    </text>
+
+                    <!-- 数値化 → 255チェック -->
+                    <path
+                        d="M 420 800 L 420 870"
+                        stroke="#64748b"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrow)"
+                    />
+
+                    <path
+                        d="M 420 870 L 520 920 L 420 970 L 320 920 Z"
+                        fill="#fef3c7"
+                        stroke="#f59e0b"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="920"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">val &lt;= 255?</tspan>
+                    </text>
+
+                    <!-- いいえ → ループ脱出 -->
+                    <path
+                        d="M 520 920 L 600 920"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowRed)"
+                    />
+                    <text
+                        x="560"
+                        y="910"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        いいえ
+                    </text>
+
+                    <ellipse
+                        cx="680"
+                        cy="920"
+                        rx="80"
+                        ry="30"
+                        fill="#fee2e2"
+                        stroke="#dc2626"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="680"
+                        y="920"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                        fill="#dc2626"
+                    >
+                        ループ脱出
+                    </text>
+
+                    <!-- はい → 再帰 -->
+                    <path
+                        d="M 420 970 L 420 1020"
+                        stroke="#059669"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowGreen)"
+                    />
+                    <text
+                        x="400"
+                        y="995"
+                        text-anchor="end"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#059669"
+                    >
+                        はい
+                    </text>
+
+                    <rect
+                        x="300"
+                        y="1020"
+                        width="240"
+                        height="60"
+                        rx="8"
+                        fill="#d1fae5"
+                        stroke="#10b981"
+                        stroke-width="2"
+                    />
+                    <text
+                        x="420"
+                        y="1050"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="16"
+                        font-weight="600"
+                    >
+                        <tspan x="420" dy="-8">path[seg] = CACHE[val]</tspan>
+                        <tspan x="420" dy="18">dfs(idx+len, seg+1)</tspan>
+                    </text>
+
+                    <!-- 再帰 → ループへ戻る（紫の矢印） -->
+                    <path
+                        d="M 300 1050 L 140 1050 L 140 640 L 320 640"
+                        stroke="#a855f7"
+                        stroke-width="2"
+                        fill="none"
+                        marker-end="url(#arrowPurple)"
+                    />
+                    <text
+                        x="100"
+                        y="840"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="14"
+                        font-weight="600"
+                        fill="#a855f7"
+                    >
+                        次の長さ
+                    </text>
+                </svg>
+            </div>
+
+            <p class="mt-8 font-[Source_Code_Pro] text-[18px] leading-8">
+                <strong class="text-2xl">フローの説明：</strong><br />
+                1. <strong>基底条件</strong>：4セグメント完成 + 全文字使用 → 結果に追加<br />
+                2. <strong>枝刈り</strong>：残文字数が不足/過剰なら即座に戻る<br />
+                3. <strong>長さ決定</strong>：先頭が '0' なら長さ1のみ、それ以外は1〜3を試行<br />
+                4. <strong>逐次数値化</strong>：ループ内で桁を加算（int()変換を回避）<br />
+                5. <strong>255チェック</strong>：超過したらループ脱出（以降は全て不正）<br />
+                6. <strong>再帰呼び出し</strong>：キャッシュから文字列参照し、次のセグメントへ<br />
+                7. <strong>ループバック</strong>：次の長さを試行、全て試したら前のステップへ戻る
+            </p>
+        </section>
+
+        <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+            <h2
+                class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+            >
+                計算量分析
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-100">
+                            <th class="border border-emerald-300 px-4 py-3 text-left font-semibold">
+                                指標
+                            </th>
+                            <th class="border border-emerald-300 px-4 py-3 text-left font-semibold">
+                                値
+                            </th>
+                            <th class="border border-emerald-300 px-4 py-3 text-left font-semibold">
+                                備考
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                時間計算量
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                入力長
+                                n≤20、各セグメント1〜3桁で最大3^4=81分岐だが、枝刈りで実際は大幅削減。出力サイズを除けば定数時間
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                空間計算量
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                固定長配列 path[4]
+                                のみ使用。再帰深さ4も定数。キャッシュはクラス変数で共有
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                最適化手法
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">
+                                キャッシュ + 枝刈り
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                スライス生成ゼロ、逐次数値化、残文字数の上下限チェック
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-xl font-semibold text-teal-700 mt-8 mb-4">他手法との比較</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-cyan-100">
+                            <th class="border border-cyan-300 px-4 py-3 text-left font-semibold">
+                                アプローチ
+                            </th>
+                            <th class="border border-cyan-300 px-4 py-3 text-left font-semibold">
+                                時間
+                            </th>
+                            <th class="border border-cyan-300 px-4 py-3 text-left font-semibold">
+                                空間
+                            </th>
+                            <th class="border border-cyan-300 px-4 py-3 text-left font-semibold">
+                                備考
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-emerald-50">
+                            <td class="border border-slate-200 px-4 py-3 font-semibold">
+                                DFS + 強枝刈り（本実装）
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                最速。残文字数/先頭0/255超で剪定
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-200 px-4 py-3">
+                                3ドット全列挙（i&lt;j&lt;k）
+                            </td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(n³)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                実装容易だが条件判定が散在
+                            </td>
+                        </tr>
+                        <tr class="bg-slate-50">
+                            <td class="border border-slate-200 px-4 py-3">BFS 層展開</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(1)</td>
+                            <td class="border border-slate-200 px-4 py-3 font-mono">O(k)</td>
+                            <td class="border border-slate-200 px-4 py-3">
+                                中間配列が増えGC圧上昇
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力と初期化',
+                    desc: 's = "101023" の場合を例とする。まず入力を検証し、長さが4〜12の範囲内かをチェック。固定長配列 path[4] とキャッシュ SEG を準備する。',
+                    visual: {
+                        type: 'init',
+                        s: '101023',
+                        n: 6,
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'DFS開始: idx=0, seg=0',
+                    desc: "最初のセグメントを決定。s[0]='1' なので先頭ゼロではなく、長さ1〜3を試行可能。残文字数=6、残セグメント数=4 なので枝刈り条件を満たす。",
+                    visual: {
+                        type: 'dfs_start',
+                        s: '101023',
+                        idx: 0,
+                        seg: 0,
+                        remainChars: 6,
+                        remainSegs: 4,
+                    },
+                },
+                {
+                    step: 3,
+                    title: "長さ1試行: '1'",
+                    desc: "val=1 (<=255) なので有効。path[0]='1' として、dfs(1, 1) を再帰呼び出し。",
+                    visual: {
+                        type: 'try_len',
+                        s: '101023',
+                        idx: 0,
+                        seg: 0,
+                        len: 1,
+                        val: 1,
+                        path: ['1', '', '', ''],
+                    },
+                },
+                {
+                    step: 4,
+                    title: '第2セグメント: idx=1, seg=1',
+                    desc: "s[1]='0' なので先頭ゼロ。max_len=1 に制限され、'0' のみ試行可能。path[1]='0' として、dfs(2, 2) を再帰呼び出し。",
+                    visual: {
+                        type: 'dfs_step',
+                        s: '101023',
+                        idx: 1,
+                        seg: 1,
+                        len: 1,
+                        val: 0,
+                        path: ['1', '0', '', ''],
+                    },
+                },
+                {
+                    step: 5,
+                    title: '第3セグメント: idx=2, seg=2',
+                    desc: "s[2]='1' なので長さ1〜3を試行。'10' (val=10) を選択し、path[2]='10' として、dfs(4, 3) を再帰呼び出し。",
+                    visual: {
+                        type: 'dfs_step',
+                        s: '101023',
+                        idx: 2,
+                        seg: 2,
+                        len: 2,
+                        val: 10,
+                        path: ['1', '0', '10', ''],
+                    },
+                },
+                {
+                    step: 6,
+                    title: '第4セグメント: idx=4, seg=3',
+                    desc: "s[4]='2' から '23' (val=23) を選択。path[3]='23' として、dfs(6, 4) を再帰呼び出し。",
+                    visual: {
+                        type: 'dfs_step',
+                        s: '101023',
+                        idx: 4,
+                        seg: 3,
+                        len: 2,
+                        val: 23,
+                        path: ['1', '0', '10', '23'],
+                    },
+                },
+                {
+                    step: 7,
+                    title: '基底条件到達',
+                    desc: "seg=4 かつ idx=6 (==n) なので、全文字を使い切って4セグメント完成。結果に '1.0.10.23' を追加。",
+                    visual: {
+                        type: 'result',
+                        s: '101023',
+                        path: ['1', '0', '10', '23'],
+                        ip: '1.0.10.23',
+                    },
+                },
+                {
+                    step: 8,
+                    title: 'バックトラック: 他の分岐',
+                    desc: "前のステップに戻り、他の長さを試行。例えば第3セグメントで '102' (val=102) を選択し、第4セグメントで '3' を選択すると '1.0.102.3' が得られる。",
+                    visual: {
+                        type: 'backtrack',
+                        s: '101023',
+                        path: ['1', '0', '102', '3'],
+                        ip: '1.0.102.3',
+                    },
+                },
+                {
+                    step: 9,
+                    title: '全探索完了',
+                    desc: "全ての可能な分岐を探索し、有効なIPアドレスを全て収集。最終結果は ['1.0.10.23', '1.0.102.3', '10.1.0.23', '10.10.2.3', '101.0.2.3'] の5個。",
+                    visual: {
+                        type: 'final',
+                        results: ['1.0.10.23', '1.0.102.3', '10.1.0.23', '10.10.2.3', '101.0.2.3'],
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (visual.type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 200"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                入力文字列: s = "{visual.s}"
+                            </text>
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                長さ: n = {visual.n}
+                            </text>
+                            <text
+                                x="300"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                path = ["", "", "", ""]
+                            </text>
+                            <text
+                                x="300"
+                                y="160"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                SEG_CACHE = ["0", "1", ..., "255"]
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'dfs_start') {
+                    const chars = visual.s.split('');
+                    const boxWidth = 60;
+                    const spacing = 70;
+                    const startX = (600 - chars.length * spacing) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                DFS開始: idx={visual.idx}, seg={visual.seg}
+                            </text>
+
+                            {chars.map((ch, i) => (
+                                <g key={i}>
+                                    <rect
+                                        x={startX + i * spacing - boxWidth / 2}
+                                        y="70"
+                                        width={boxWidth}
+                                        height={boxWidth}
+                                        fill={i === visual.idx ? '#d1fae5' : '#f8fafc'}
+                                        stroke={i === visual.idx ? '#10b981' : '#cbd5e1'}
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + i * spacing}
+                                        y="108"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {ch}
+                                    </text>
+                                    <text
+                                        x={startX + i * spacing}
+                                        y="155"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fill="#64748b"
+                                    >
+                                        {i}
+                                    </text>
+                                </g>
+                            ))}
+
+                            <defs>
+                                <marker
+                                    id="arrowDown"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+                            <path
+                                d={`M ${startX + visual.idx * spacing} 40 L ${
+                                    startX + visual.idx * spacing
+                                } 70`}
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowDown)"
+                            />
+                            <text
+                                x={startX + visual.idx * spacing}
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="16"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                idx
+                            </text>
+
+                            <text
+                                x="300"
+                                y="210"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                残文字数={visual.remainChars}, 残セグメント数={visual.remainSegs}
+                            </text>
+                            <text
+                                x="300"
+                                y="240"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#059669"
+                            >
+                                枝刈り条件: {visual.remainSegs} ≤ {visual.remainChars} ≤{' '}
+                                {visual.remainSegs * 3} ✓
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'try_len' || visual.type === 'dfs_step') {
+                    const chars = visual.s.split('');
+                    const boxWidth = 60;
+                    const spacing = 70;
+                    const startX = (600 - chars.length * spacing) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 380"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                {visual.type === 'try_len'
+                                    ? `長さ${visual.len}試行`
+                                    : `セグメント${visual.seg + 1}決定`}
+                                : idx={visual.idx}, seg={visual.seg}
+                            </text>
+
+                            {chars.map((ch, i) => {
+                                const isInRange = i >= visual.idx && i < visual.idx + visual.len;
+                                return (
+                                    <g key={i}>
+                                        <rect
+                                            x={startX + i * spacing - boxWidth / 2}
+                                            y="70"
+                                            width={boxWidth}
+                                            height={boxWidth}
+                                            fill={isInRange ? '#fef3c7' : '#f8fafc'}
+                                            stroke={isInRange ? '#f59e0b' : '#cbd5e1'}
+                                            strokeWidth="2"
+                                            rx="6"
+                                        />
+                                        <text
+                                            x={startX + i * spacing}
+                                            y="108"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="18"
+                                            fontWeight="600"
+                                        >
+                                            {ch}
+                                        </text>
+                                        <text
+                                            x={startX + i * spacing}
+                                            y="155"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            fontSize="14"
+                                            fill="#64748b"
+                                        >
+                                            {i}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            <text
+                                x="300"
+                                y="200"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#0284c7"
+                            >
+                                選択: "{visual.s.substring(visual.idx, visual.idx + visual.len)}"
+                                (val={visual.val})
+                            </text>
+
+                            <text
+                                x="300"
+                                y="240"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                現在のpath:
+                            </text>
+
+                            {visual.path.map((seg, i) => (
+                                <g key={i}>
+                                    <rect
+                                        x={120 + i * 100}
+                                        y="260"
+                                        width={80}
+                                        height={50}
+                                        fill={seg ? '#d1fae5' : '#f8fafc'}
+                                        stroke={seg ? '#10b981' : '#cbd5e1'}
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={160 + i * 100}
+                                        y="285"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                    >
+                                        {seg || '?'}
+                                    </text>
+                                    <text
+                                        x={160 + i * 100}
+                                        y="335"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fill="#64748b"
+                                    >
+                                        seg {i}
+                                    </text>
+                                </g>
+                            ))}
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'result') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <rect
+                                x="100"
+                                y="50"
+                                width="400"
+                                height="100"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="3"
+                                rx="12"
+                            />
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#059669"
+                            >
+                                基底条件到達！
+                            </text>
+                            <text
+                                x="300"
+                                y="120"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="24"
+                                fontWeight="700"
+                                fill="#047857"
+                            >
+                                結果: {visual.ip}
+                            </text>
+
+                            <text
+                                x="300"
+                                y="190"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                path = [{visual.path.map((p) => `"${p}"`).join(', ')}]
+                            </text>
+                            <text
+                                x="300"
+                                y="220"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#059669"
+                            >
+                                seg=4 かつ idx=n → res.append("{visual.ip}")
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'backtrack') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 250"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="20"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                バックトラック: 別の分岐を探索
+                            </text>
+
+                            <rect
+                                x="100"
+                                y="80"
+                                width="400"
+                                height="80"
+                                fill="#f3e8ff"
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                rx="12"
+                            />
+                            <text
+                                x="300"
+                                y="110"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#7c3aed"
+                            >
+                                別の組み合わせ発見
+                            </text>
+                            <text
+                                x="300"
+                                y="140"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="22"
+                                fontWeight="700"
+                                fill="#6d28d9"
+                            >
+                                {visual.ip}
+                            </text>
+
+                            <text
+                                x="300"
+                                y="200"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fill="#64748b"
+                            >
+                                path = [{visual.path.map((p) => `"${p}"`).join(', ')}]
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (visual.type === 'final') {
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '20px' }}
+                        >
+                            <text
+                                x="300"
+                                y="40"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="22"
+                                fontWeight="700"
+                                fill="#059669"
+                            >
+                                全探索完了！
+                            </text>
+
+                            <text
+                                x="300"
+                                y="80"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0284c7"
+                            >
+                                発見された有効なIPアドレス（全{visual.results.length}個）:
+                            </text>
+
+                            {visual.results.map((ip, i) => (
+                                <g key={i}>
+                                    <rect
+                                        x="80"
+                                        y={110 + i * 45}
+                                        width="440"
+                                        height="38"
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                        rx="8"
+                                    />
+                                    <text
+                                        x="300"
+                                        y={129 + i * 45}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#0c4a6e"
+                                    >
+                                        {i + 1}. {ip}
+                                    </text>
+                                </g>
+                            ))}
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setIsPlaying(true);
+                    if (activeStep >= stepsData.length) {
+                        setActiveStep(1);
+                    }
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setActiveStep(activeStep - 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setActiveStep(activeStep + 1);
+                        setIsPlaying(false);
+                    }
+                };
+
+                const handleReset = () => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                };
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-8 mt-10 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)] bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ⟲ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<App />);
+        </script>
+
+        <footer class="mt-12 text-center text-slate-600 text-sm">
+            <p class="mb-2">
+                <strong>LeetCode 93: Restore IP Addresses</strong> - DFS + 強枝刈りによる O(1) 実装
+            </p>
+            <p>時間計算量: O(1) | 空間計算量: O(1) | 最適化: キャッシュ参照 + 残文字数枝刈り</p>
+        </footer>
+    </body>
+</html>

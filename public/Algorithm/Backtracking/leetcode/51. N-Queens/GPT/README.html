@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>N-Queens Algorithm Analysis</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+
+        <style>
+            :root {
+                --bg-primary: #0d1117;
+                --bg-secondary: #161b22;
+                --bg-tertiary: #21262d;
+                --text-primary: #f0f6fc;
+                --text-secondary: #8b949e;
+                --accent: #58a6ff;
+                --accent-hover: #79c0ff;
+                --success: #3fb950;
+                --warning: #f85149;
+                --border: #30363d;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                font-family: 'Inter', sans-serif;
+                line-height: 1.6;
+                overflow-x: auto;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 3rem;
+                background: linear-gradient(135deg, var(--accent), #f85149);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .section {
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                border: 1px solid var(--border);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            }
+
+            .section h2 {
+                color: var(--accent);
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .icon {
+                width: 24px;
+                height: 24px;
+                fill: currentColor;
+            }
+
+            /* Code styling */
+            pre[class*="language-"] {
+                background: var(--bg-tertiary) !important;
+                border-radius: 8px;
+                font-family: 'Fira Code', monospace !important;
+                font-size: 14px;
+                line-height: 1.5;
+                margin: 1rem 0;
+                position: relative;
+                overflow-x: auto;
+            }
+
+            code[class*="language-"] {
+                font-family: 'Fira Code', monospace !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                border-right: 1px solid var(--border);
+                background: var(--bg-primary);
+            }
+
+            /* Chess board styling */
+            .chess-board {
+                display: grid;
+                gap: 1px;
+                background: var(--border);
+                border-radius: 8px;
+                padding: 1px;
+                margin: 1rem 0;
+                max-width: 400px;
+            }
+
+            .chess-cell {
+                aspect-ratio: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: bold;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+
+            .chess-cell.light {
+                background: #f0d9b5;
+                color: #8b4513;
+            }
+
+            .chess-cell.dark {
+                background: #b58863;
+                color: #f0f0f0;
+            }
+
+            .chess-cell.queen {
+                background: var(--success) !important;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .chess-cell.attack {
+                background: rgba(248, 81, 73, 0.3) !important;
+            }
+
+            .chess-cell:hover {
+                transform: scale(1.05);
+                z-index: 1;
+            }
+
+            /* Visualization controls */
+            .controls {
+                display: flex;
+                gap: 1rem;
+                margin: 1rem 0;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                background: var(--accent);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 6px;
+                font-family: inherit;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .btn:hover {
+                background: var(--accent-hover);
+                transform: translateY(-1px);
+            }
+
+            .btn:disabled {
+                background: var(--text-secondary);
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* Statistics */
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin: 1rem 0;
+            }
+
+            .stat-card {
+                background: var(--bg-tertiary);
+                padding: 1rem;
+                border-radius: 8px;
+                text-align: center;
+                border: 1px solid var(--border);
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: bold;
+                color: var(--accent);
+            }
+
+            .stat-label {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            /* Algorithm flow */
+            .flow-diagram {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                margin: 1rem 0;
+            }
+
+            .flow-step {
+                background: var(--bg-tertiary);
+                padding: 1rem;
+                border-radius: 8px;
+                border-left: 4px solid var(--accent);
+                transition: all 0.2s ease;
+            }
+
+            .flow-step:hover {
+                background: rgba(88, 166, 255, 0.1);
+            }
+
+            .flow-step.active {
+                border-left-color: var(--success);
+                background: rgba(63, 185, 80, 0.1);
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
+
+                .controls {
+                    justify-content: center;
+                }
+
+                .chess-board {
+                    max-width: 300px;
+                    margin: 1rem auto;
+                }
+            }
+
+            /* Complexity analysis styling */
+            .complexity-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .complexity-table th,
+            .complexity-table td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .complexity-table th {
+                background: var(--bg-primary);
+                color: var(--accent);
+                font-weight: 600;
+            }
+
+            .complexity-table tr:hover {
+                background: rgba(88, 166, 255, 0.1);
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <header class="header">
+                <h1>N-Queens Algorithm Deep Analysis</h1>
+                <p>バックトラッキングによるN-Queens問題の詳細解析と可視化</p>
+            </header>
+
+            <!-- Algorithm Overview -->
+            <section class="section">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+                    </svg>
+                    アルゴリズム概要
+                </h2>
+                <p>N-Queens問題は、N×Nのチェス盤上にN個のクイーンを、互いに攻撃し合わないように配置する問題です。この問題をバックトラッキング手法で解決します。</p>
+
+                <div class="flow-diagram">
+                    <div class="flow-step" id="step1">
+                        <strong>1. 初期化</strong><br>
+                        空のN×Nチェス盤を作成し、制約チェック用のセット（列、対角線）を初期化
+                    </div>
+                    <div class="flow-step" id="step2">
+                        <strong>2. 行ごとの探索</strong><br>
+                        各行で可能な列位置を試行し、制約違反がないかチェック
+                    </div>
+                    <div class="flow-step" id="step3">
+                        <strong>3. 制約チェック</strong><br>
+                        同じ列、対角線上に他のクイーンがないか高速チェック
+                    </div>
+                    <div class="flow-step" id="step4">
+                        <strong>4. 配置・再帰</strong><br>
+                        有効な位置にクイーンを配置し、次の行を再帰的に探索
+                    </div>
+                    <div class="flow-step" id="step5">
+                        <strong>5. バックトラック</strong><br>
+                        解が見つからない場合、前の状態に戻って別の選択肢を試行
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Analysis -->
+            <section class="section">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z" />
+                    </svg>
+                    ソースコード解析
+                </h2>
+
+                <pre class="line-numbers"><code class="language-typescript">/**
+ * N-Queens問題を解く関数
+ * @param {number} n - チェス盤のサイズ (1 <= n <= 9)
+ * @returns {string[][]} - 全ての有効なクイーン配置を返す
+ * 
+ * 時間計算量: O(N!) - バックトラッキングで全探索
+ * 空間計算量: O(N^2 * 解の個数) - 盤面保存のため
+ */
+function solveNQueens(n: number): string[][] {
+    const results: string[][] = [];
+    
+    // 現在の盤面を '.' で初期化
+    const board: string[][] = Array.from({ length: n }, () => 
+        Array(n).fill('.')
+    );
+    
+    // 使用済みの列・対角線を記録する集合（O(1)チェックのため）
+    const cols: Set<number> = new Set();      // 同じ列
+    const diag1: Set<number> = new Set();     // 左上→右下 (row-col)
+    const diag2: Set<number> = new Set();     // 右上→左下 (row+col)
+    
+    /**
+     * バックトラッキング探索
+     * @param {number} row - 現在の行
+     */
+    function backtrack(row: number): void {
+        // ベースケース: 全ての行にクイーンを配置完了
+        if (row === n) {
+            const solution: string[] = board.map(r => r.join(''));
+            results.push(solution);
+            return;
+        }
+        
+        // 現在の行の各列を試行
+        for (let col = 0; col < n; col++) {
+            // 攻撃範囲チェック（O(1)時間）
+            if (cols.has(col) || 
+                diag1.has(row - col) || 
+                diag2.has(row + col)) {
+                continue; // 制約違反のためスキップ
+            }
+            
+            // クイーンを配置
+            board[row][col] = 'Q';
+            cols.add(col);
+            diag1.add(row - col);
+            diag2.add(row + col);
+            
+            // 次の行を再帰探索
+            backtrack(row + 1);
+            
+            // バックトラック: 状態を元に戻す
+            board[row][col] = '.';
+            cols.delete(col);
+            diag1.delete(row - col);
+            diag2.delete(row + col);
+        }
+    }
+    
+    backtrack(0); // 0行目から開始
+    return results;
+}</code></pre>
+            </section>
+
+            <!-- Interactive Visualization -->
+            <section class="section">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </svg>
+                    インタラクティブ可視化
+                </h2>
+
+                <div class="controls">
+                    <button class="btn" onclick="startDemo()">デモ開始</button>
+                    <button class="btn" onclick="stepForward()">次のステップ</button>
+                    <button class="btn" onclick="resetBoard()">リセット</button>
+                    <select id="boardSize" onchange="changeBoardSize()">
+                        <option value="4">4×4</option>
+                        <option value="5">5×5</option>
+                        <option value="6">6×6</option>
+                        <option value="8">8×8</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: start;">
+                    <div>
+                        <h3>チェス盤</h3>
+                        <div id="chessBoard" class="chess-board"></div>
+                    </div>
+
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>現在の状態</h3>
+                        <div id="currentStatus" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <p><strong>行:</strong> <span id="currentRow">0</span></p>
+                            <p><strong>列:</strong> <span id="currentCol">-</span></p>
+                            <p><strong>試行回数:</strong> <span id="attempts">0</span></p>
+                            <p><strong>バックトラック回数:</strong> <span id="backtracks">0</span></p>
+                        </div>
+
+                        <h3>制約状況</h3>
+                        <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                            <p><strong>使用済み列:</strong> <span id="usedCols">なし</span></p>
+                            <p><strong>対角線1:</strong> <span id="usedDiag1">なし</span></p>
+                            <p><strong>対角線2:</strong> <span id="usedDiag2">なし</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complexity Analysis -->
+            <section class="section">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z" />
+                    </svg>
+                    計算量解析
+                </h2>
+
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>計算量</th>
+                            <th>説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>時間計算量</strong></td>
+                            <td><code>O(N!)</code></td>
+                            <td>最悪の場合、各行でN個の位置を試行する必要があり、実際はそれより少ない</td>
+                        </tr>
+                        <tr>
+                            <td><strong>空間計算量</strong></td>
+                            <td><code>O(N)</code></td>
+                            <td>再帰スタック、制約セット、盤面配列で線形空間</td>
+                        </tr>
+                        <tr>
+                            <td><strong>制約チェック</strong></td>
+                            <td><code>O(1)</code></td>
+                            <td>Setを使用することで定数時間での制約確認が可能</td>
+                        </tr>
+                        <tr>
+                            <td><strong>解の格納</strong></td>
+                            <td><code>O(N² × 解の個数)</code></td>
+                            <td>各解をN×Nの文字列配列として保存</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="nValue">4</div>
+                        <div class="stat-label">盤面サイズ (N)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="solutionCount">2</div>
+                        <div class="stat-label">解の総数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="operationCount">0</div>
+                        <div class="stat-label">総操作回数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="efficiency">100%</div>
+                        <div class="stat-label">効率性</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Algorithm Details -->
+            <section class="section">
+                <h2>
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </svg>
+                    重要な最適化ポイント
+                </h2>
+
+                <div style="display: grid; gap: 1rem;">
+                    <div class="flow-step">
+                        <strong>🚀 Set を使った高速制約チェック</strong><br>
+                        <code>cols</code>, <code>diag1</code>, <code>diag2</code> のSetを使用してO(1)時間での制約確認を実現。
+                        従来のO(N)チェックから大幅に高速化。
+                    </div>
+
+                    <div class="flow-step">
+                        <strong>📐 数学的対角線表現</strong><br>
+                        対角線を <code>(row - col)</code> と <code>(row + col)</code> で表現することで、
+                        効率的な対角線制約管理が可能。
+                    </div>
+
+                    <div class="flow-step">
+                        <strong>💾 メモリ効率的な状態管理</strong><br>
+                        2次元配列ではなく1次元の制約セットで状態を管理し、
+                        メモリ使用量を最小化。
+                    </div>
+
+                    <div class="flow-step">
+                        <strong>⚡ 早期終了とプルーニング</strong><br>
+                        制約違反を検出した瞬間に探索を打ち切り、
+                        無駄な計算を回避する枝刈り最適化。
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script>
+            // Global state for visualization
+            let currentN = 4;
+            let board = [];
+            let cols = new Set();
+            let diag1 = new Set();
+            let diag2 = new Set();
+            let solutions = [];
+            let isRunning = false;
+            let stepCount = 0;
+            let backtrackCount = 0;
+            let animationSpeed = 800;
+
+            // Algorithm execution state
+            let executionStack = [];
+            let currentExecution = null;
+            let isAutoRunning = false;
+            let foundSolutions = [];
+
+            // Known solution counts for different N values
+            const solutionCounts = {
+                1: 1, 2: 0, 3: 0, 4: 2, 5: 10, 6: 4, 7: 40, 8: 92, 9: 352
+            };
+
+            // N-Queens solver with step-by-step execution
+            class NQueensSolver {
+                constructor(n) {
+                    this.n = n;
+                    this.board = Array.from({ length: n }, () => Array(n).fill('.'));
+                    this.cols = new Set();
+                    this.diag1 = new Set();
+                    this.diag2 = new Set();
+                    this.solutions = [];
+                    this.steps = [];
+                    this.currentStep = 0;
+                }
+
+                isSafe(row, col) {
+                    return !this.cols.has(col) &&
+                        !this.diag1.has(row - col) &&
+                        !this.diag2.has(row + col);
+                }
+
+                placeQueen(row, col) {
+                    this.board[row][col] = 'Q';
+                    this.cols.add(col);
+                    this.diag1.add(row - col);
+                    this.diag2.add(row + col);
+                }
+
+                removeQueen(row, col) {
+                    this.board[row][col] = '.';
+                    this.cols.delete(col);
+                    this.diag1.delete(row - col);
+                    this.diag2.delete(row + col);
+                }
+
+                generateSteps() {
+                    this.steps = [];
+                    this.backtrackRecursive(0);
+                    return this.steps;
+                }
+
+                backtrackRecursive(row) {
+                    if (row === this.n) {
+                        // Found a solution
+                        const solution = this.board.map(r => r.slice());
+                        this.solutions.push(solution);
+                        this.steps.push({
+                            type: 'solution',
+                            row: row,
+                            board: this.board.map(r => r.slice()),
+                            message: `解を発見！ (${this.solutions.length}個目)`
+                        });
+                        return;
+                    }
+
+                    this.steps.push({
+                        type: 'explore',
+                        row: row,
+                        col: -1,
+                        board: this.board.map(r => r.slice()),
+                        message: `行 ${row} を探索中...`
+                    });
+
+                    for (let col = 0; col < this.n; col++) {
+                        this.steps.push({
+                            type: 'try',
+                            row: row,
+                            col: col,
+                            board: this.board.map(r => r.slice()),
+                            safe: this.isSafe(row, col),
+                            message: `行 ${row}, 列 ${col} を試行中...`
+                        });
+
+                        if (this.isSafe(row, col)) {
+                            // Place queen
+                            this.placeQueen(row, col);
+
+                            this.steps.push({
+                                type: 'place',
+                                row: row,
+                                col: col,
+                                board: this.board.map(r => r.slice()),
+                                constraints: {
+                                    cols: new Set(this.cols),
+                                    diag1: new Set(this.diag1),
+                                    diag2: new Set(this.diag2)
+                                },
+                                message: `クイーンを配置: (${row}, ${col})`
+                            });
+
+                            // Recursive call
+                            this.backtrackRecursive(row + 1);
+
+                            // Backtrack
+                            this.removeQueen(row, col);
+
+                            if (row < this.n - 1 || col < this.n - 1) {
+                                this.steps.push({
+                                    type: 'backtrack',
+                                    row: row,
+                                    col: col,
+                                    board: this.board.map(r => r.slice()),
+                                    message: `バックトラック: (${row}, ${col}) から除去`
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            let solver = null;
+            let currentStepIndex = 0;
+
+            function initializeBoard(n) {
+                currentN = n;
+                board = Array.from({ length: n }, () => Array(n).fill('.'));
+                cols.clear();
+                diag1.clear();
+                diag2.clear();
+                stepCount = 0;
+                backtrackCount = 0;
+                foundSolutions = [];
+
+                solver = new NQueensSolver(n);
+                currentStepIndex = 0;
+
+                updateStats();
+                renderBoard();
+            }
+
+            function renderBoard() {
+                const boardElement = document.getElementById('chessBoard');
+                boardElement.innerHTML = '';
+                boardElement.style.gridTemplateColumns = `repeat(${currentN}, 1fr)`;
+
+                for (let row = 0; row < currentN; row++) {
+                    for (let col = 0; col < currentN; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = `chess-cell ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+
+                        // Display content
+                        if (board[row][col] === 'Q') {
+                            cell.textContent = '♛';
+                            cell.classList.add('queen');
+                        } else {
+                            cell.textContent = '';
+                        }
+
+                        // Show attack patterns for current constraints
+                        if (board[row][col] !== 'Q' && isUnderAttack(row, col)) {
+                            cell.classList.add('attack');
+                            cell.textContent = '×';
+                        }
+
+                        boardElement.appendChild(cell);
+                    }
+                }
+
+                updateStatusDisplay();
+            }
+
+            function isUnderAttack(row, col) {
+                return cols.has(col) || diag1.has(row - col) || diag2.has(row + col);
+            }
+
+            function updateStatusDisplay() {
+                const currentStep = solver && solver.steps[currentStepIndex];
+
+                document.getElementById('currentRow').textContent = currentStep ? currentStep.row : 0;
+                document.getElementById('currentCol').textContent = currentStep ? (currentStep.col >= 0 ? currentStep.col : '-') : '-';
+                document.getElementById('attempts').textContent = stepCount;
+                document.getElementById('backtracks').textContent = backtrackCount;
+
+                document.getElementById('usedCols').textContent = cols.size > 0 ? Array.from(cols).sort().join(', ') : 'なし';
+                document.getElementById('usedDiag1').textContent = diag1.size > 0 ? Array.from(diag1).sort((a, b) => a - b).join(', ') : 'なし';
+                document.getElementById('usedDiag2').textContent = diag2.size > 0 ? Array.from(diag2).sort((a, b) => a - b).join(', ') : 'なし';
+
+                // Show current step message
+                if (currentStep) {
+                    const statusDiv = document.getElementById('currentStatus');
+                    const existingMessage = statusDiv.querySelector('.step-message');
+                    if (existingMessage) {
+                        existingMessage.remove();
+                    }
+
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'step-message';
+                    messageDiv.style.cssText = 'margin-top: 1rem; padding: 0.5rem; background: var(--accent); color: white; border-radius: 4px; font-size: 0.9rem;';
+                    messageDiv.textContent = currentStep.message;
+                    statusDiv.appendChild(messageDiv);
+                }
+            }
+
+            function updateStats() {
+                document.getElementById('nValue').textContent = currentN;
+                document.getElementById('solutionCount').textContent = foundSolutions.length + ' / ' + (solutionCounts[currentN] || '?');
+                document.getElementById('operationCount').textContent = stepCount;
+
+                const efficiency = solver && solver.steps.length > 0 ? Math.round((currentStepIndex / solver.steps.length) * 100) : 0;
+                document.getElementById('efficiency').textContent = efficiency + '%';
+            }
+
+            function startDemo() {
+                if (isAutoRunning) {
+                    isAutoRunning = false;
+                    document.querySelector('button[onclick="startDemo()"]').textContent = 'デモ開始';
+                    return;
+                }
+
+                resetBoard();
+
+                // Generate all steps
+                solver.generateSteps();
+                currentStepIndex = 0;
+                isAutoRunning = true;
+
+                document.querySelector('button[onclick="startDemo()"]').textContent = 'デモ停止';
+
+                runAutoDemo();
+            }
+
+            function runAutoDemo() {
+                if (!isAutoRunning || !solver || currentStepIndex >= solver.steps.length) {
+                    isAutoRunning = false;
+                    document.querySelector('button[onclick="startDemo()"]').textContent = 'デモ開始';
+                    return;
+                }
+
+                executeStep();
+
+                setTimeout(() => {
+                    runAutoDemo();
+                }, animationSpeed);
+            }
+
+            function executeStep() {
+                if (!solver || currentStepIndex >= solver.steps.length) return;
+
+                const step = solver.steps[currentStepIndex];
+
+                // Update board state
+                board = step.board.map(row => row.slice());
+
+                // Update constraints based on current board
+                cols.clear();
+                diag1.clear();
+                diag2.clear();
+
+                for (let r = 0; r < currentN; r++) {
+                    for (let c = 0; c < currentN; c++) {
+                        if (board[r][c] === 'Q') {
+                            cols.add(c);
+                            diag1.add(r - c);
+                            diag2.add(r + c);
+                        }
+                    }
+                }
+
+                stepCount++;
+                if (step.type === 'backtrack') {
+                    backtrackCount++;
+                }
+                if (step.type === 'solution') {
+                    foundSolutions.push(step.board);
+                }
+
+                // Highlight current step in flow
+                highlightFlowStep(step.type);
+
+                renderBoard();
+                updateStats();
+
+                currentStepIndex++;
+            }
+
+            function highlightFlowStep(stepType) {
+                const steps = document.querySelectorAll('.flow-step');
+                steps.forEach(step => step.classList.remove('active'));
+
+                let stepId = 'step1';
+                switch (stepType) {
+                    case 'explore': stepId = 'step2'; break;
+                    case 'try': stepId = 'step3'; break;
+                    case 'place': stepId = 'step4'; break;
+                    case 'backtrack': stepId = 'step5'; break;
+                    case 'solution': stepId = 'step4'; break;
+                }
+
+                const targetStep = document.getElementById(stepId);
+                if (targetStep) {
+                    targetStep.classList.add('active');
+                }
+            }
+
+            function stepForward() {
+                if (isAutoRunning) return;
+
+                if (!solver) {
+                    solver = new NQueensSolver(currentN);
+                    solver.generateSteps();
+                    currentStepIndex = 0;
+                }
+
+                if (currentStepIndex < solver.steps.length) {
+                    executeStep();
+                }
+            }
+
+            function resetBoard() {
+                isAutoRunning = false;
+                document.querySelector('button[onclick="startDemo()"]').textContent = 'デモ開始';
+                initializeBoard(currentN);
+            }
+
+            function changeBoardSize() {
+                const select = document.getElementById('boardSize');
+                const newSize = parseInt(select.value);
+                initializeBoard(newSize);
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeBoard(4);
+
+                // Auto-highlight first step
+                const firstStep = document.getElementById('step1');
+                if (firstStep) {
+                    firstStep.classList.add('active');
+                }
+
+                // Add click handlers for flow steps
+                const steps = document.querySelectorAll('.flow-step');
+                steps.forEach((step, index) => {
+                    step.addEventListener('click', () => {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+                    });
+                });
+            });
+        </script>
+    </body>
+
+</html>

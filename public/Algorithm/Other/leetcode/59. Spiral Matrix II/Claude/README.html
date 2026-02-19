@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Spiral Matrix Algorithm Analysis</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            pre,
+            code {
+                font-family:
+                    'Courier New', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.5;
+            }
+
+            pre {
+                padding: 16px;
+                background: #1a1b26;
+                border-radius: 8px;
+            }
+
+            .matrix-cell {
+                transition: all 0.3s ease;
+            }
+
+            .matrix-cell:hover {
+                transform: scale(1.1);
+                z-index: 10;
+            }
+
+            .step-highlight {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.7;
+                }
+            }
+
+            .code-line {
+                transition: background-color 0.3s ease;
+            }
+
+            .code-line:hover {
+                background-color: rgba(59, 130, 246, 0.1);
+            }
+
+            .direction-arrow {
+                transition: transform 0.3s ease;
+            }
+
+            .direction-arrow:hover {
+                transform: scale(1.2);
+            }
+        </style>
+    </head>
+
+    <body
+        class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white"
+    >
+        <div class="container mx-auto px-6 py-8 max-w-6xl">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1
+                    class="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4"
+                >
+                    Spiral Matrix II Algorithm
+                </h1>
+                <p class="text-xl text-gray-300">TypeScript実装の詳細解析</p>
+            </div>
+
+            <!-- Algorithm Overview -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-6 text-blue-400">🎯 アルゴリズム概要</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-purple-400">基本戦略</h3>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• 4つの境界（top, bottom, left, right）を管理</li>
+                            <li>• 螺旋の方向に沿って順番に埋める</li>
+                            <li>• 各方向完了後、境界を内側に移動</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-green-400">計算量</h3>
+                        <div class="space-y-2 text-gray-300">
+                            <div>
+                                <span class="font-mono bg-gray-700 px-2 py-1 rounded"
+                                    >時間: O(n²)</span
+                                >
+                            </div>
+                            <div>
+                                <span class="font-mono bg-gray-700 px-2 py-1 rounded"
+                                    >空間: O(n²)</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Steps -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">🔄 処理ステップの可視化</h2>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Step 1: Right -->
+                    <div
+                        class="bg-gray-700/30 rounded-xl p-6 hover:bg-gray-700/50 transition-all duration-300"
+                    >
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <span class="direction-arrow text-2xl mr-3">→</span>
+                            ステップ1: 右方向
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div
+                                class="matrix-cell bg-red-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="matrix-cell bg-red-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="matrix-cell bg-red-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                3
+                            </div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                        </div>
+                        <p class="text-sm text-gray-300">上の行を左から右へ埋める</p>
+                    </div>
+
+                    <!-- Step 2: Down -->
+                    <div
+                        class="bg-gray-700/30 rounded-xl p-6 hover:bg-gray-700/50 transition-all duration-300"
+                    >
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <span class="direction-arrow text-2xl mr-3">↓</span>
+                            ステップ2: 下方向
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                3
+                            </div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div
+                                class="matrix-cell bg-blue-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                4
+                            </div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div
+                                class="matrix-cell bg-blue-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                5
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300">右の列を上から下へ埋める</p>
+                    </div>
+
+                    <!-- Step 3: Left -->
+                    <div
+                        class="bg-gray-700/30 rounded-xl p-6 hover:bg-gray-700/50 transition-all duration-300"
+                    >
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <span class="direction-arrow text-2xl mr-3">←</span>
+                            ステップ3: 左方向
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                3
+                            </div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div class="matrix-cell bg-gray-600 text-center py-2 rounded">0</div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                4
+                            </div>
+                            <div
+                                class="matrix-cell bg-green-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                7
+                            </div>
+                            <div
+                                class="matrix-cell bg-green-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                6
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                5
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300">下の行を右から左へ埋める</p>
+                    </div>
+
+                    <!-- Step 4: Up -->
+                    <div
+                        class="bg-gray-700/30 rounded-xl p-6 hover:bg-gray-700/50 transition-all duration-300"
+                    >
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <span class="direction-arrow text-2xl mr-3">↑</span>
+                            ステップ4: 上方向
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                3
+                            </div>
+                            <div
+                                class="matrix-cell bg-yellow-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                8
+                            </div>
+                            <div
+                                class="matrix-cell bg-yellow-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                9
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                4
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                7
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                6
+                            </div>
+                            <div
+                                class="matrix-cell bg-gray-500 text-white text-center py-2 rounded font-mono"
+                            >
+                                5
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300">左の列を下から上へ、中央を埋める</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Implementation -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">💻 TypeScript実装</h2>
+
+                <div class="bg-gray-900 rounded-xl overflow-hidden border border-gray-700">
+                    <div class="bg-gray-800 px-6 py-3 border-b border-gray-700">
+                        <span class="text-green-400 font-mono">spiral-matrix.ts</span>
+                    </div>
+                    <div class="relative">
+                        <div
+                            class="absolute left-0 top-0 bottom-0 w-12 bg-gray-800/50 flex flex-col text-xs text-gray-500 pt-4"
+                        >
+                            <div class="h-6 flex items-center justify-center">1</div>
+                            <div class="h-6 flex items-center justify-center">2</div>
+                            <div class="h-6 flex items-center justify-center">3</div>
+                            <div class="h-6 flex items-center justify-center">4</div>
+                            <div class="h-6 flex items-center justify-center">5</div>
+                            <div class="h-6 flex items-center justify-center">6</div>
+                            <div class="h-6 flex items-center justify-center">7</div>
+                            <div class="h-6 flex items-center justify-center">8</div>
+                            <div class="h-6 flex items-center justify-center">9</div>
+                            <div class="h-6 flex items-center justify-center">10</div>
+                            <div class="h-6 flex items-center justify-center">11</div>
+                            <div class="h-6 flex items-center justify-center">12</div>
+                            <div class="h-6 flex items-center justify-center">13</div>
+                            <div class="h-6 flex items-center justify-center">14</div>
+                            <div class="h-6 flex items-center justify-center">15</div>
+                            <div class="h-6 flex items-center justify-center">16</div>
+                            <div class="h-6 flex items-center justify-center">17</div>
+                            <div class="h-6 flex items-center justify-center">18</div>
+                            <div class="h-6 flex items-center justify-center">19</div>
+                            <div class="h-6 flex items-center justify-center">20</div>
+                            <div class="h-6 flex items-center justify-center">21</div>
+                            <div class="h-6 flex items-center justify-center">22</div>
+                            <div class="h-6 flex items-center justify-center">23</div>
+                            <div class="h-6 flex items-center justify-center">24</div>
+                            <div class="h-6 flex items-center justify-center">25</div>
+                            <div class="h-6 flex items-center justify-center">26</div>
+                            <div class="h-6 flex items-center justify-center">27</div>
+                            <div class="h-6 flex items-center justify-center">28</div>
+                            <div class="h-6 flex items-center justify-center">29</div>
+                            <div class="h-6 flex items-center justify-center">30</div>
+                            <div class="h-6 flex items-center justify-center">31</div>
+                            <div class="h-6 flex items-center justify-center">32</div>
+                            <div class="h-6 flex items-center justify-center">33</div>
+                            <div class="h-6 flex items-center justify-center">34</div>
+                            <div class="h-6 flex items-center justify-center">35</div>
+                            <div class="h-6 flex items-center justify-center">36</div>
+                            <div class="h-6 flex items-center justify-center">37</div>
+                            <div class="h-6 flex items-center justify-center">38</div>
+                            <div class="h-6 flex items-center justify-center">39</div>
+                            <div class="h-6 flex items-center justify-center">40</div>
+                            <div class="h-6 flex items-center justify-center">41</div>
+                            <div class="h-6 flex items-center justify-center">42</div>
+                            <div class="h-6 flex items-center justify-center">43</div>
+                            <div class="h-6 flex items-center justify-center">44</div>
+                        </div>
+                        <pre
+                            class="ml-12 text-sm"
+                        ><code><div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"><span class="text-green-400">/**</span>
+</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">
+    <span class="text-green-400"> * 螺旋状にn×nマトリックスを1からn²まで埋める関数</span>
+</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">
+    <span class="text-green-400"> * @param n - マトリックスのサイズ (1 &lt;= n &lt;= 20)</span>
+</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">  
+    <span class="text-green-400"> * @returns 螺旋状に埋められたn×nマトリックス</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">
+    <span class="text-green-400"> */</span>
+</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">
+    <span class="text-purple-400">function</span> <span class="text-blue-400">generateMatrix</span>(<span class="text-orange-400">n</span>: <span class="text-blue-300">number</span>): <span class="text-blue-300">number</span>[][] {
+</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-gray-500">// n×nマトリックスを0で初期化</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-purple-400">const</span> <span class="text-blue-400">matrix</span>: <span class="text-blue-300">number</span>[][] <span class="text-red-400">=</span> <span class="text-yellow-400">Array</span>(<span class="text-orange-400">n</span>).<span class="text-yellow-400">fill</span>(<span class="text-purple-300">null</span>).<span class="text-yellow-400">map</span>(() <span class="text-red-400">=></span> <span class="text-yellow-400">Array</span>(<span class="text-orange-400">n</span>).<span class="text-yellow-400">fill</span>(<span class="text-orange-300">0</span>));</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-purple-400">let</span> <span class="text-blue-400">top</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-orange-300">0</span>, <span class="text-blue-400">bottom</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-orange-400">n</span> <span class="text-red-400">-</span> <span class="text-orange-300">1</span>, <span class="text-blue-400">left</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-orange-300">0</span>, <span class="text-blue-400">right</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-orange-400">n</span> <span class="text-red-400">-</span> <span class="text-orange-300">1</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-purple-400">let</span> <span class="text-blue-400">num</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-orange-300">1</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-purple-400">while</span> (<span class="text-blue-400">top</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">bottom</span> <span class="text-red-400">&&</span> <span class="text-blue-400">left</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">right</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-gray-500">// 上の行を左から右へ</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">col</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">left</span>; <span class="text-blue-400">col</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">right</span>; <span class="text-blue-400">col</span><span class="text-red-400">++</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-blue-400">matrix</span>[<span class="text-blue-400">top</span>][<span class="text-blue-400">col</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-blue-400">top</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-gray-500">// 右の列を上から下へ</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">row</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">top</span>; <span class="text-blue-400">row</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">bottom</span>; <span class="text-blue-400">row</span><span class="text-red-400">++</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-blue-400">matrix</span>[<span class="text-blue-400">row</span>][<span class="text-blue-400">right</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-blue-400">right</span><span class="text-red-400">--</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-gray-500">// 下の行を右から左へ（行が残っている場合）</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-purple-400">if</span> (<span class="text-blue-400">top</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">bottom</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">col</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">right</span>; <span class="text-blue-400">col</span> <span class="text-red-400">&gt;=</span> <span class="text-blue-400">left</span>; <span class="text-blue-400">col</span><span class="text-red-400">--</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">                <span class="text-blue-400">matrix</span>[<span class="text-blue-400">bottom</span>][<span class="text-blue-400">col</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-blue-400">bottom</span><span class="text-red-400">--</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-gray-500">// 左の列を下から上へ（列が残っている場合）</span></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        <span class="text-purple-400">if</span> (<span class="text-blue-400">left</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">right</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">row</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">bottom</span>; <span class="text-blue-400">row</span> <span class="text-red-400">&gt;=</span> <span class="text-blue-400">top</span>; <span class="text-blue-400">row</span><span class="text-red-400">--</span>) {</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">                <span class="text-blue-400">matrix</span>[<span class="text-blue-400">row</span>][<span class="text-blue-400">left</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">            <span class="text-blue-400">left</span><span class="text-red-400">++</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">        }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    }</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">    <span class="text-purple-400">return</span> <span class="text-blue-400">matrix</span>;</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors">}</div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"></div>
+<div class="code-line h-0.5 flex items-center px-4 hover:bg-blue-900/20 transition-colors"><span class="text-purple-400">export</span> { <span class="text-blue-400">generateMatrix</span> };</div></code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Demo -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">🎮 インタラクティブデモ</h2>
+
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3 text-purple-400"
+                        >マトリックスサイズ:</label
+                    >
+                    <input
+                        type="range"
+                        id="sizeSlider"
+                        min="1"
+                        max="6"
+                        value="3"
+                        class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div class="flex justify-between text-sm text-gray-400 mt-1">
+                        <span>1</span>
+                        <span id="currentSize" class="font-bold text-white">3</span>
+                        <span>6</span>
+                    </div>
+                </div>
+
+                <div class="text-center mb-6">
+                    <button
+                        id="generateBtn"
+                        class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                    >
+                        🔄 マトリックス生成
+                    </button>
+                </div>
+
+                <div id="matrixContainer" class="flex justify-center">
+                    <!-- Matrix will be generated here -->
+                </div>
+            </div>
+
+            <!-- Algorithm Analysis -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">📊 処理解析</h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Time Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-red-900/30 to-red-700/30 rounded-xl p-6 border border-red-700/50"
+                    >
+                        <h3 class="text-2xl font-bold mb-4 text-red-400">⏱️ 時間計算量</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-lg">O(n²)</span>
+                                <span class="text-sm text-gray-300">各要素を一度だけ訪問</span>
+                            </div>
+                            <div class="bg-gray-800/50 rounded p-3">
+                                <p class="text-sm text-gray-300">
+                                    • 外側ループ: 最大 ⌈n/2⌉ 回<br />
+                                    • 内側ループ: 各境界に沿って移動<br />
+                                    • 総訪問回数: n² 回（すべての要素）
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Space Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-green-900/30 to-green-700/30 rounded-xl p-6 border border-green-700/50"
+                    >
+                        <h3 class="text-2xl font-bold mb-4 text-green-400">💾 空間計算量</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-lg">O(n²)</span>
+                                <span class="text-sm text-gray-300">結果マトリックスのみ</span>
+                            </div>
+                            <div class="bg-gray-800/50 rounded p-3">
+                                <p class="text-sm text-gray-300">
+                                    • 結果マトリックス: n² 要素<br />
+                                    • 追加変数: O(1) （境界変数のみ）<br />
+                                    • 最適化: 不要な配列生成を回避
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Step Analysis -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">🔍 詳細ステップ解析</h2>
+
+                <div class="space-y-8">
+                    <!-- Step 1 -->
+                    <div
+                        class="bg-gradient-to-r from-red-900/20 to-red-700/20 rounded-xl p-6 border-l-4 border-red-500"
+                    >
+                        <h3 class="text-xl font-bold mb-4 text-red-400">
+                            ステップ1: 右方向への移動
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <pre
+                                    class="bg-gray-900 rounded p-4 text-sm"
+                                ><code><span class="text-gray-500">// 上の行を左から右へ</span>
+<span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">col</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">left</span>; <span class="text-blue-400">col</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">right</span>; <span class="text-blue-400">col</span><span class="text-red-400">++</span>) {
+    <span class="text-blue-400">matrix</span>[<span class="text-blue-400">top</span>][<span class="text-blue-400">col</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;
+}
+<span class="text-blue-400">top</span><span class="text-red-400">++</span>;</code></pre>
+                            </div>
+                            <div>
+                                <p class="text-gray-300 mb-3">処理内容:</p>
+                                <ul class="text-sm text-gray-400 space-y-1">
+                                    <li>• 現在のtop行の左端から右端まで数値を配置</li>
+                                    <li>• numを1ずつ増加させながら設定</li>
+                                    <li>• 処理完了後、top境界を1つ下に移動</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div
+                        class="bg-gradient-to-r from-blue-900/20 to-blue-700/20 rounded-xl p-6 border-l-4 border-blue-500"
+                    >
+                        <h3 class="text-xl font-bold mb-4 text-blue-400">
+                            ステップ2: 下方向への移動
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <pre
+                                    class="bg-gray-900 rounded p-4 text-sm"
+                                ><code><span class="text-gray-500">// 右の列を上から下へ</span>
+<span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">row</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">top</span>; <span class="text-blue-400">row</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">bottom</span>; <span class="text-blue-400">row</span><span class="text-red-400">++</span>) {
+    <span class="text-blue-400">matrix</span>[<span class="text-blue-400">row</span>][<span class="text-blue-400">right</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;
+}
+<span class="text-blue-400">right</span><span class="text-red-400">--</span>;</code></pre>
+                            </div>
+                            <div>
+                                <p class="text-gray-300 mb-3">処理内容:</p>
+                                <ul class="text-sm text-gray-400 space-y-1">
+                                    <li>• 現在のright列の上端から下端まで数値を配置</li>
+                                    <li>• 更新されたtop位置から開始</li>
+                                    <li>• 処理完了後、right境界を1つ左に移動</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div
+                        class="bg-gradient-to-r from-green-900/20 to-green-700/20 rounded-xl p-6 border-l-4 border-green-500"
+                    >
+                        <h3 class="text-xl font-bold mb-4 text-green-400">
+                            ステップ3: 左方向への移動
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <pre
+                                    class="bg-gray-900 rounded p-4 text-sm"
+                                ><code><span class="text-purple-400">if</span> (<span class="text-blue-400">top</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">bottom</span>) {
+    <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">col</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">right</span>; <span class="text-blue-400">col</span> <span class="text-red-400">&gt;=</span> <span class="text-blue-400">left</span>; <span class="text-blue-400">col</span><span class="text-red-400">--</span>) {
+        <span class="text-blue-400">matrix</span>[<span class="text-blue-400">bottom</span>][<span class="text-blue-400">col</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;
+    }
+    <span class="text-blue-400">bottom</span><span class="text-red-400">--</span>;
+}</code></pre>
+                            </div>
+                            <div>
+                                <p class="text-gray-300 mb-3">処理内容:</p>
+                                <ul class="text-sm text-gray-400 space-y-1">
+                                    <li>• 行が残っている場合のみ実行</li>
+                                    <li>• bottom行の右端から左端まで数値を配置</li>
+                                    <li>• 処理完了後、bottom境界を1つ上に移動</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div
+                        class="bg-gradient-to-r from-yellow-900/20 to-yellow-700/20 rounded-xl p-6 border-l-4 border-yellow-500"
+                    >
+                        <h3 class="text-xl font-bold mb-4 text-yellow-400">
+                            ステップ4: 上方向への移動
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <pre
+                                    class="bg-gray-900 rounded p-4 text-sm"
+                                ><code><span class="text-purple-400">if</span> (<span class="text-blue-400">left</span> <span class="text-red-400">&lt;=</span> <span class="text-blue-400">right</span>) {
+    <span class="text-purple-400">for</span> (<span class="text-purple-400">let</span> <span class="text-blue-400">row</span>: <span class="text-blue-300">number</span> <span class="text-red-400">=</span> <span class="text-blue-400">bottom</span>; <span class="text-blue-400">row</span> <span class="text-red-400">&gt;=</span> <span class="text-blue-400">top</span>; <span class="text-blue-400">row</span><span class="text-red-400">--</span>) {
+        <span class="text-blue-400">matrix</span>[<span class="text-blue-400">row</span>][<span class="text-blue-400">left</span>] <span class="text-red-400">=</span> <span class="text-blue-400">num</span><span class="text-red-400">++</span>;
+    }
+    <span class="text-blue-400">left</span><span class="text-red-400">++</span>;
+}</code></pre>
+                            </div>
+                            <div>
+                                <p class="text-gray-300 mb-3">処理内容:</p>
+                                <ul class="text-sm text-gray-400 space-y-1">
+                                    <li>• 列が残っている場合のみ実行</li>
+                                    <li>• left列の下端から上端まで数値を配置</li>
+                                    <li>• 処理完了後、left境界を1つ右に移動</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Optimization -->
+            <div
+                class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50"
+            >
+                <h2 class="text-3xl font-bold mb-8 text-blue-400">⚡ パフォーマンス最適化</h2>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-purple-900/30 rounded-xl p-6 border border-purple-700/50">
+                        <h3 class="text-lg font-bold mb-3 text-purple-400">メモリ効率</h3>
+                        <ul class="text-sm text-gray-300 space-y-2">
+                            <li>
+                                •
+                                <code class="bg-gray-700 px-1 rounded">Array.fill(null)</code
+                                >で型安全な初期化
+                            </li>
+                            <li>• 不要なオブジェクト生成を回避</li>
+                            <li>• プリミティブ型のみ使用</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-900/30 rounded-xl p-6 border border-blue-700/50">
+                        <h3 class="text-lg font-bold mb-3 text-blue-400">処理効率</h3>
+                        <ul class="text-sm text-gray-300 space-y-2">
+                            <li>• 境界チェックで無駄な処理を回避</li>
+                            <li>• 単一パスでマトリックス完成</li>
+                            <li>• キャッシュ効率的なアクセスパターン</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-green-900/30 rounded-xl p-6 border border-green-700/50">
+                        <h3 class="text-lg font-bold mb-3 text-green-400">LeetCode対応</h3>
+                        <ul class="text-sm text-gray-300 space-y-2">
+                            <li>• 制約範囲での最適性能</li>
+                            <li>• TypeScript 5.1互換</li>
+                            <li>• Node.js 18.16.1対応</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Interactive demo functionality
+            const sizeSlider = document.getElementById('sizeSlider');
+            const currentSizeSpan = document.getElementById('currentSize');
+            const generateBtn = document.getElementById('generateBtn');
+            const matrixContainer = document.getElementById('matrixContainer');
+
+            // TypeScript implementation
+            function generateMatrix(n) {
+                const matrix = Array(n)
+                    .fill(null)
+                    .map(() => Array(n).fill(0));
+                let top = 0,
+                    bottom = n - 1,
+                    left = 0,
+                    right = n - 1;
+                let num = 1;
+
+                while (top <= bottom && left <= right) {
+                    // Right direction
+                    for (let col = left; col <= right; col++) {
+                        matrix[top][col] = num++;
+                    }
+                    top++;
+
+                    // Down direction
+                    for (let row = top; row <= bottom; row++) {
+                        matrix[row][right] = num++;
+                    }
+                    right--;
+
+                    // Left direction
+                    if (top <= bottom) {
+                        for (let col = right; col >= left; col--) {
+                            matrix[bottom][col] = num++;
+                        }
+                        bottom--;
+                    }
+
+                    // Up direction
+                    if (left <= right) {
+                        for (let row = bottom; row >= top; row--) {
+                            matrix[row][left] = num++;
+                        }
+                        left++;
+                    }
+                }
+
+                return matrix;
+            }
+
+            function renderMatrix(matrix) {
+                const n = matrix.length;
+                const cellSize = Math.max(60, Math.min(80, 300 / n));
+
+                let html = `<div class="grid grid-cols-${n} gap-2" style="max-width: ${n * (cellSize + 8)}px;">`;
+
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        const value = matrix[i][j];
+                        const hue = (((value - 1) * 360) / (n * n)) % 360;
+                        html += `
+                        <div class="matrix-cell bg-gradient-to-br text-white text-center font-bold rounded-lg shadow-lg
+                                   hover:shadow-xl transform hover:scale-110 transition-all duration-300"
+                             style="width: ${cellSize}px; height: ${cellSize}px; line-height: ${cellSize}px; 
+                                    background: hsl(${hue}, 70%, 50%);">
+                            ${value}
+                        </div>
+                    `;
+                    }
+                }
+
+                html += '</div>';
+                matrixContainer.innerHTML = html;
+            }
+
+            sizeSlider.addEventListener('input', function () {
+                currentSizeSpan.textContent = this.value;
+            });
+
+            generateBtn.addEventListener('click', function () {
+                const n = parseInt(sizeSlider.value);
+                const matrix = generateMatrix(n);
+                renderMatrix(matrix);
+
+                // Add visual feedback
+                this.classList.add('animate-pulse');
+                setTimeout(() => {
+                    this.classList.remove('animate-pulse');
+                }, 500);
+            });
+
+            // Generate initial matrix
+            generateBtn.click();
+        </script>
+    </body>
+</html>

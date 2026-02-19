@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>最長増加部分列（LIS）問題の詳細解析</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            .fira-code {
+                font-family: 'Fira Code', monospace;
+            }
+
+            .inter {
+                font-family: 'Inter', sans-serif;
+            }
+
+            .syntax-keyword {
+                color: #ff6b6b;
+            }
+
+            .syntax-function {
+                color: #4ecdc4;
+            }
+
+            .syntax-variable {
+                color: #45b7d1;
+            }
+
+            .syntax-string {
+                color: #96ceb4;
+            }
+
+            .syntax-number {
+                color: #ffeaa7;
+            }
+
+            .syntax-comment {
+                color: #74b9ff;
+                opacity: 0.8;
+            }
+
+            .code-block {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                border: 1px solid #0f3460;
+                font-family: 'Fira Code', Consolas, 'Liberation Mono', Menlo, monospace !important;
+            }
+
+            .code-block pre {
+                font-family: 'Fira Code', Consolas, 'Liberation Mono', Menlo, monospace !important;
+                white-space: pre !important;
+                overflow-x: auto;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+            }
+
+            .code-line {
+                display: flex;
+                align-items: flex-start;
+                min-height: 1.6em;
+                line-height: 1.6;
+                font-family: 'Fira Code', monospace;
+                white-space: pre;
+            }
+
+            .line-number {
+                color: #6b7280;
+                user-select: none;
+                width: 3rem;
+                text-align: right;
+                margin-right: 1rem;
+                flex-shrink: 0;
+                font-family: 'Fira Code', monospace;
+            }
+
+            .code-content {
+                flex: 1;
+                font-family: 'Fira Code', monospace;
+                white-space: pre;
+                overflow-x: visible;
+            }
+
+            .visualization-box {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .step-card {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                transition: all 0.3s ease;
+            }
+
+            .step-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .tree-node {
+                transition: all 0.3s ease;
+            }
+
+            .tree-node:hover {
+                transform: scale(1.1);
+            }
+
+            .dp-cell {
+                transition: all 0.5s ease;
+                border: 2px solid transparent;
+            }
+
+            .dp-cell.highlight {
+                border-color: #ff6b6b;
+                background-color: rgba(255, 107, 107, 0.2);
+                transform: scale(1.05);
+            }
+
+            .arrow {
+                stroke: #4ecdc4;
+                stroke-width: 2;
+                fill: none;
+                marker-end: url(#arrowhead);
+            }
+
+            .complexity-badge {
+                background: linear-gradient(45deg, #ff9a56, #ffad56);
+            }
+
+            /* インデント用のスペーシング */
+            .indent-1 {
+                padding-left: 2rem;
+            }
+
+            .indent-2 {
+                padding-left: 4rem;
+            }
+
+            .indent-3 {
+                padding-left: 6rem;
+            }
+
+            .indent-4 {
+                padding-left: 8rem;
+            }
+        </style>
+    </head>
+
+    <body class="bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 min-h-screen inter">
+        <!-- Header -->
+        <header class="bg-black bg-opacity-50 backdrop-blur-lg border-b border-purple-500">
+            <div class="container mx-auto px-6 py-4">
+                <h1 class="text-4xl font-bold text-white text-center">
+                    最長増加部分列（LIS）問題の詳細解析
+                </h1>
+                <p class="text-purple-200 text-center mt-2">
+                    Dynamic Programming Approach with Visualization
+                </p>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-6 py-8">
+            <!-- Problem Overview -->
+            <section class="mb-12">
+                <div
+                    class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-purple-300"
+                >
+                    <h2 class="text-3xl font-bold text-white mb-4">問題の概要</h2>
+                    <p class="text-purple-100 text-lg leading-relaxed">
+                        n本の木が横一列に並んでおり、何本かの木を伐採して残った木の高さが単調増加になるようにしたい。
+                        残せる木の最大本数を求める問題です。これは<span
+                            class="text-yellow-300 font-semibold"
+                            >最長増加部分列（Longest Increasing Subsequence, LIS）</span
+                        >問題として知られています。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Algorithm Explanation -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-white mb-6">アルゴリズムの解説</h2>
+
+                <!-- Step 1: Problem Transformation -->
+                <div class="step-card rounded-xl p-6 mb-6 text-white">
+                    <h3 class="text-2xl font-semibold mb-4">📊 ステップ1: 問題の変換</h3>
+                    <p class="text-lg mb-4">
+                        配列 [100, 102, 101, 91, 199] から最長増加部分列を見つける
+                    </p>
+
+                    <div class="visualization-box rounded-lg p-4 mb-4">
+                        <div class="flex justify-center items-center space-x-4">
+                            <div
+                                class="tree-node bg-blue-500 rounded-lg p-3 text-center cursor-pointer"
+                                data-index="0"
+                            >
+                                <div class="text-sm">木1</div>
+                                <div class="font-bold">100</div>
+                            </div>
+                            <div
+                                class="tree-node bg-blue-500 rounded-lg p-3 text-center cursor-pointer"
+                                data-index="1"
+                            >
+                                <div class="text-sm">木2</div>
+                                <div class="font-bold">102</div>
+                            </div>
+                            <div
+                                class="tree-node bg-blue-500 rounded-lg p-3 text-center cursor-pointer"
+                                data-index="2"
+                            >
+                                <div class="text-sm">木3</div>
+                                <div class="font-bold">101</div>
+                            </div>
+                            <div
+                                class="tree-node bg-blue-500 rounded-lg p-3 text-center cursor-pointer"
+                                data-index="3"
+                            >
+                                <div class="text-sm">木4</div>
+                                <div class="font-bold">91</div>
+                            </div>
+                            <div
+                                class="tree-node bg-blue-500 rounded-lg p-3 text-center cursor-pointer"
+                                data-index="4"
+                            >
+                                <div class="text-sm">木5</div>
+                                <div class="font-bold">199</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: DP Table -->
+                <div class="step-card rounded-xl p-6 mb-6 text-white">
+                    <h3 class="text-2xl font-semibold mb-4">🔢 ステップ2: DPテーブルの構築</h3>
+                    <p class="text-lg mb-4">dp[i] = i番目の木を最後とする最長増加部分列の長さ</p>
+
+                    <div class="visualization-box rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-5 gap-2 max-w-lg mx-auto">
+                            <div class="text-center text-sm mb-2">木1 (100)</div>
+                            <div class="text-center text-sm mb-2">木2 (102)</div>
+                            <div class="text-center text-sm mb-2">木3 (101)</div>
+                            <div class="text-center text-sm mb-2">木4 (91)</div>
+                            <div class="text-center text-sm mb-2">木5 (199)</div>
+
+                            <div
+                                class="dp-cell bg-green-500 rounded p-3 text-center font-bold"
+                                data-dp="0"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="dp-cell bg-green-500 rounded p-3 text-center font-bold"
+                                data-dp="1"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="dp-cell bg-green-500 rounded p-3 text-center font-bold"
+                                data-dp="2"
+                            >
+                                2
+                            </div>
+                            <div
+                                class="dp-cell bg-green-500 rounded p-3 text-center font-bold"
+                                data-dp="3"
+                            >
+                                1
+                            </div>
+                            <div
+                                class="dp-cell bg-green-500 rounded p-3 text-center font-bold"
+                                data-dp="4"
+                            >
+                                3
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        id="animateDP"
+                        class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg font-semibold transition-colors"
+                    >
+                        DP計算をアニメーションで表示
+                    </button>
+                </div>
+
+                <!-- Step 3: Code Analysis -->
+                <div class="step-card rounded-xl p-6 mb-6 text-white">
+                    <h3 class="text-2xl font-semibold mb-4">💻 ステップ3: コードの詳細解析</h3>
+
+                    <div class="code-block rounded-lg p-4 overflow-x-auto">
+                        <pre><div class="code-line"><span class="line-number">1</span><span class="code-content"><span class="syntax-keyword">function</span> <span class="syntax-function">longestIncreasingSubsequence</span>(<span class="syntax-variable">n</span>, <span class="syntax-variable">heights</span>) {</span></div><div class="code-line"><span class="line-number">2</span><span class="code-content">  <span class="syntax-comment">// dp[i] = i番目の木を最後とする増加部分列の最大長</span></span></div><div class="code-line"><span class="line-number">3</span><span class="code-content">  <span class="syntax-comment">// 初期値は全て1（各木単体の部分列）</span></span></div><div class="code-line"><span class="line-number">4</span><span class="code-content">  <span class="syntax-keyword">const</span> <span class="syntax-variable">dp</span> = <span class="syntax-keyword">new</span> <span class="syntax-function">Array</span>(<span class="syntax-variable">n</span>).<span class="syntax-function">fill</span>(<span class="syntax-number">1</span>);</span></div><div class="code-line"><span class="line-number">5</span><span class="code-content"></span></div><div class="code-line"><span class="line-number">6</span><span class="code-content">  <span class="syntax-comment">// 各木について、その木を最後とする最長増加部分列の長さを計算</span></span></div><div class="code-line"><span class="line-number">7</span><span class="code-content">  <span class="syntax-keyword">for</span> (<span class="syntax-keyword">let</span> <span class="syntax-variable">i</span> = <span class="syntax-number">1</span>; <span class="syntax-variable">i</span> &lt; <span class="syntax-variable">n</span>; <span class="syntax-variable">i</span>++) {</span></div><div class="code-line"><span class="line-number">8</span><span class="code-content">    <span class="syntax-comment">// i番目の木より前の全ての木をチェック</span></span></div><div class="code-line"><span class="line-number">9</span><span class="code-content">    <span class="syntax-keyword">for</span> (<span class="syntax-keyword">let</span> <span class="syntax-variable">j</span> = <span class="syntax-number">0</span>; <span class="syntax-variable">j</span> &lt; <span class="syntax-variable">i</span>; <span class="syntax-variable">j</span>++) {</span></div><div class="code-line"><span class="line-number">10</span><span class="code-content">      <span class="syntax-comment">// j番目の木の高さがi番目の木の高さより小さい場合</span></span></div><div class="code-line"><span class="line-number">11</span><span class="code-content">      <span class="syntax-keyword">if</span> (<span class="syntax-variable">heights</span>[<span class="syntax-variable">j</span>] &lt; <span class="syntax-variable">heights</span>[<span class="syntax-variable">i</span>]) {</span></div><div class="code-line"><span class="line-number">12</span><span class="code-content">        <span class="syntax-comment">// j番目の木を最後とする部分列にi番目の木を追加</span></span></div><div class="code-line"><span class="line-number">13</span><span class="code-content">        <span class="syntax-variable">dp</span>[<span class="syntax-variable">i</span>] = <span class="syntax-variable">Math</span>.<span class="syntax-function">max</span>(<span class="syntax-variable">dp</span>[<span class="syntax-variable">i</span>], <span class="syntax-variable">dp</span>[<span class="syntax-variable">j</span>] + <span class="syntax-number">1</span>);</span></div><div class="code-line"><span class="line-number">14</span><span class="code-content">      }</span></div><div class="code-line"><span class="line-number">15</span><span class="code-content">    }</span></div><div class="code-line"><span class="line-number">16</span><span class="code-content">  }</span></div><div class="code-line"><span class="line-number">17</span><span class="code-content"></span></div><div class="code-line"><span class="line-number">18</span><span class="code-content">  <span class="syntax-comment">// 全てのdp値の中で最大値を返す</span></span></div><div class="code-line"><span class="line-number">19</span><span class="code-content">  <span class="syntax-keyword">return</span> <span class="syntax-variable">Math</span>.<span class="syntax-function">max</span>(...<span class="syntax-variable">dp</span>);</span></div><div class="code-line"><span class="line-number">20</span><span class="code-content">}</span></div></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complexity Analysis -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-white mb-6">計算量解析</h2>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div
+                        class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-purple-300"
+                    >
+                        <h3 class="text-2xl font-semibold text-white mb-4">⏱️ 時間計算量</h3>
+                        <div class="complexity-badge rounded-lg p-4 text-center mb-4">
+                            <span class="text-2xl font-bold text-white">O(n²)</span>
+                        </div>
+                        <ul class="text-purple-100 space-y-2">
+                            <li>• 外側のループ: n-1 回</li>
+                            <li>• 内側のループ: 最大 n-1 回</li>
+                            <li>• 総操作回数: 約 n²/2 回</li>
+                            <li>• n=5,000 → 約 12,500,000 回</li>
+                        </ul>
+                    </div>
+
+                    <div
+                        class="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-purple-300"
+                    >
+                        <h3 class="text-2xl font-semibold text-white mb-4">💾 空間計算量</h3>
+                        <div class="complexity-badge rounded-lg p-4 text-center mb-4">
+                            <span class="text-2xl font-bold text-white">O(n)</span>
+                        </div>
+                        <ul class="text-purple-100 space-y-2">
+                            <li>• dpテーブル: n 個の整数</li>
+                            <li>• heightsテーブル: n 個の整数</li>
+                            <li>• その他変数: 定数個</li>
+                            <li>• 総メモリ: 約 8n バイト</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step-by-Step Execution -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-white mb-6">実行過程の詳細</h2>
+
+                <div id="executionSteps" class="space-y-6">
+                    <!-- Steps will be dynamically generated -->
+                </div>
+
+                <div class="text-center mt-6">
+                    <button
+                        id="stepByStep"
+                        class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 rounded-lg font-semibold text-white transition-all transform hover:scale-105"
+                    >
+                        ステップ実行を開始
+                    </button>
+                    <button
+                        id="resetAnimation"
+                        class="bg-gray-600 hover:bg-gray-700 px-8 py-3 rounded-lg font-semibold text-white ml-4 transition-colors"
+                    >
+                        リセット
+                    </button>
+                </div>
+            </section>
+
+            <!-- Optimization Section -->
+            <section class="mb-12">
+                <div class="bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-purple-300">
+                    <h2 class="text-3xl font-bold text-white mb-4">
+                        🚀 最適化バージョン（O(n log n)）
+                    </h2>
+                    <p class="text-white text-lg mb-4">
+                        より大きなデータセットに対しては、二分探索を使用したO(n log
+                        n)のアルゴリズムも実装可能です。
+                    </p>
+
+                    <div class="code-block rounded-lg p-4 overflow-x-auto text-white">
+                        <pre><div class="code-line"><span class="line-number">1</span><span class="code-content"><span class="syntax-keyword">function</span> <span class="syntax-function">longestIncreasingSubsequenceOptimized</span>(<span class="syntax-variable">n</span>, <span class="syntax-variable">heights</span>) {</span></div><div class="code-line"><span class="line-number">2</span><span class="code-content">    <span class="syntax-comment">// tails[i] = 長さi+1の増加部分列の末尾要素の最小値</span></span></div><div class="code-line"><span class="line-number">3</span><span class="code-content">    <span class="syntax-keyword">const</span> <span class="syntax-variable">tails</span> = [];</span></div><div class="code-line"><span class="line-number">4</span><span class="code-content">    </span></div><div class="code-line"><span class="line-number">5</span><span class="code-content">    <span class="syntax-keyword">for</span> (<span class="syntax-keyword">let</span> <span class="syntax-variable">i</span> = <span class="syntax-number">0</span>; <span class="syntax-variable">i</span> &lt; <span class="syntax-variable">n</span>; <span class="syntax-variable">i</span>++) {</span></div><div class="code-line"><span class="line-number">6</span><span class="code-content">        <span class="syntax-keyword">const</span> <span class="syntax-variable">height</span> = <span class="syntax-variable">heights</span>[<span class="syntax-variable">i</span>];</span></div><div class="code-line"><span class="line-number">7</span><span class="code-content">        </span></div><div class="code-line"><span class="line-number">8</span><span class="code-content">        <span class="syntax-comment">// 二分探索で挿入位置を見つける</span></span></div><div class="code-line"><span class="line-number">9</span><span class="code-content">        <span class="syntax-keyword">let</span> <span class="syntax-variable">left</span> = <span class="syntax-number">0</span>;</span></div><div class="code-line"><span class="line-number">10</span><span class="code-content">        <span class="syntax-keyword">let</span> <span class="syntax-variable">right</span> = <span class="syntax-variable">tails</span>.<span class="syntax-variable">length</span>;</span></div><div class="code-line"><span class="line-number">11</span><span class="code-content">        </span></div><div class="code-line"><span class="line-number">12</span><span class="code-content">        <span class="syntax-keyword">while</span> (<span class="syntax-variable">left</span> &lt; <span class="syntax-variable">right</span>) {</span></div><div class="code-line"><span class="line-number">13</span><span class="code-content">            <span class="syntax-keyword">const</span> <span class="syntax-variable">mid</span> = <span class="syntax-variable">Math</span>.<span class="syntax-function">floor</span>((<span class="syntax-variable">left</span> + <span class="syntax-variable">right</span>) / <span class="syntax-number">2</span>);</span></div><div class="code-line"><span class="line-number">14</span><span class="code-content">            <span class="syntax-keyword">if</span> (<span class="syntax-variable">tails</span>[<span class="syntax-variable">mid</span>] &lt; <span class="syntax-variable">height</span>) {</span></div><div class="code-line"><span class="line-number">15</span><span class="code-content">                <span class="syntax-variable">left</span> = <span class="syntax-variable">mid</span> + <span class="syntax-number">1</span>;</span></div><div class="code-line"><span class="line-number">16</span><span class="code-content">            } <span class="syntax-keyword">else</span> {</span></div><div class="code-line"><span class="line-number">17</span><span class="code-content">                <span class="syntax-variable">right</span> = <span class="syntax-variable">mid</span>;</span></div><div class="code-line"><span class="line-number">18</span><span class="code-content">            }</span></div><div class="code-line"><span class="line-number">19</span><span class="code-content">        }</span></div><div class="code-line"><span class="line-number">20</span><span class="code-content">        </span></div><div class="code-line"><span class="line-number">21</span><span class="code-content">        <span class="syntax-comment">// 挿入または更新</span></span></div><div class="code-line"><span class="line-number">22</span><span class="code-content">        <span class="syntax-keyword">if</span> (<span class="syntax-variable">left</span> === <span class="syntax-variable">tails</span>.<span class="syntax-variable">length</span>) {</span></div><div class="code-line"><span class="line-number">23</span><span class="code-content">            <span class="syntax-variable">tails</span>.<span class="syntax-function">push</span>(<span class="syntax-variable">height</span>);</span></div><div class="code-line"><span class="line-number">24</span><span class="code-content">        } <span class="syntax-keyword">else</span> {</span></div><div class="code-line"><span class="line-number">25</span><span class="code-content">            <span class="syntax-variable">tails</span>[<span class="syntax-variable">left</span>] = <span class="syntax-variable">height</span>;</span></div><div class="code-line"><span class="line-number">26</span><span class="code-content">        }</span></div><div class="code-line"><span class="line-number">27</span><span class="code-content">    }</span></div><div class="code-line"><span class="line-number">28</span><span class="code-content">    </span></div><div class="code-line"><span class="line-number">29</span><span class="code-content">    <span class="syntax-keyword">return</span> <span class="syntax-variable">tails</span>.<span class="syntax-variable">length</span>;</span></div><div class="code-line"><span class="line-number">30</span><span class="code-content">}</span></div></pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script>
+            // Animation state
+            let currentStep = 0;
+            let isAnimating = false;
+            const heights = [100, 102, 101, 91, 199];
+            const dp = [1, 1, 1, 1, 1];
+
+            // Initialize execution steps
+            function initializeExecutionSteps() {
+                const steps = [
+                    {
+                        i: 1,
+                        j: 0,
+                        condition: '100 < 102',
+                        action: 'dp[1] = max(1, 1+1) = 2',
+                        dp: [1, 2, 1, 1, 1],
+                    },
+                    {
+                        i: 2,
+                        j: 0,
+                        condition: '100 < 101',
+                        action: 'dp[2] = max(1, 1+1) = 2',
+                        dp: [1, 2, 2, 1, 1],
+                    },
+                    {
+                        i: 2,
+                        j: 1,
+                        condition: '102 > 101',
+                        action: '条件不一致、スキップ',
+                        dp: [1, 2, 2, 1, 1],
+                    },
+                    {
+                        i: 3,
+                        j: 0,
+                        condition: '100 > 91',
+                        action: '条件不一致、スキップ',
+                        dp: [1, 2, 2, 1, 1],
+                    },
+                    {
+                        i: 3,
+                        j: 1,
+                        condition: '102 > 91',
+                        action: '条件不一致、スキップ',
+                        dp: [1, 2, 2, 1, 1],
+                    },
+                    {
+                        i: 3,
+                        j: 2,
+                        condition: '101 > 91',
+                        action: '条件不一致、スキップ',
+                        dp: [1, 2, 2, 1, 1],
+                    },
+                    {
+                        i: 4,
+                        j: 0,
+                        condition: '100 < 199',
+                        action: 'dp[4] = max(1, 1+1) = 2',
+                        dp: [1, 2, 2, 1, 2],
+                    },
+                    {
+                        i: 4,
+                        j: 1,
+                        condition: '102 < 199',
+                        action: 'dp[4] = max(2, 2+1) = 3',
+                        dp: [1, 2, 2, 1, 3],
+                    },
+                    {
+                        i: 4,
+                        j: 2,
+                        condition: '101 < 199',
+                        action: 'dp[4] = max(3, 2+1) = 3',
+                        dp: [1, 2, 2, 1, 3],
+                    },
+                    {
+                        i: 4,
+                        j: 3,
+                        condition: '91 < 199',
+                        action: 'dp[4] = max(3, 1+1) = 3',
+                        dp: [1, 2, 2, 1, 3],
+                    },
+                ];
+
+                const container = document.getElementById('executionSteps');
+                container.innerHTML = steps
+                    .map(
+                        (step, index) => `
+                    <div class="step-execution bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-purple-300 opacity-30 transition-all duration-500" data-step="${index}">
+                        <h4 class="text-xl font-semibold text-white mb-3">
+                            ステップ ${index + 1}: i=${step.i}, j=${step.j}
+                        </h4>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <span class="text-purple-200 font-semibold">条件チェック:</span>
+                                <p class="text-white">${step.condition}</p>
+                            </div>
+                            <div>
+                                <span class="text-purple-200 font-semibold">実行内容:</span>
+                                <p class="text-white">${step.action}</p>
+                            </div>
+                            <div>
+                                <span class="text-purple-200 font-semibold">DP状態:</span>
+                                <p class="text-white fira-code">[${step.dp.join(', ')}]</p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                    )
+                    .join('');
+            }
+
+            // Step-by-step animation
+            function runStepByStep() {
+                if (isAnimating) return;
+                isAnimating = true;
+
+                const steps = document.querySelectorAll('.step-execution');
+                currentStep = 0;
+
+                function nextStep() {
+                    if (currentStep < steps.length) {
+                        steps[currentStep].style.opacity = '1';
+                        steps[currentStep].style.transform = 'translateX(0)';
+                        currentStep++;
+                        setTimeout(nextStep, 1000);
+                    } else {
+                        isAnimating = false;
+                    }
+                }
+
+                nextStep();
+            }
+
+            // Reset animation
+            function resetAnimation() {
+                const steps = document.querySelectorAll('.step-execution');
+                steps.forEach((step) => {
+                    step.style.opacity = '0.3';
+                    step.style.transform = 'translateX(-20px)';
+                });
+                currentStep = 0;
+                isAnimating = false;
+            }
+
+            // DP animation
+            function animateDP() {
+                const dpCells = document.querySelectorAll('.dp-cell');
+                let index = 0;
+
+                function highlightCell() {
+                    if (index < dpCells.length) {
+                        dpCells.forEach((cell) => cell.classList.remove('highlight'));
+                        dpCells[index].classList.add('highlight');
+                        index++;
+                        setTimeout(highlightCell, 800);
+                    } else {
+                        setTimeout(() => {
+                            dpCells.forEach((cell) => cell.classList.remove('highlight'));
+                        }, 1000);
+                    }
+                }
+
+                highlightCell();
+            }
+
+            // Tree node interactions
+            function setupTreeNodeInteractions() {
+                const treeNodes = document.querySelectorAll('.tree-node');
+                treeNodes.forEach((node, index) => {
+                    node.addEventListener('click', () => {
+                        treeNodes.forEach((n) => n.classList.remove('bg-red-500'));
+                        node.classList.add('bg-red-500');
+
+                        // Show possible connections
+                        const currentHeight = heights[index];
+                        treeNodes.forEach((n, i) => {
+                            if (i > index && heights[i] > currentHeight) {
+                                n.classList.add('bg-green-500');
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Event listeners
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeExecutionSteps();
+                setupTreeNodeInteractions();
+
+                document.getElementById('stepByStep').addEventListener('click', runStepByStep);
+                document.getElementById('resetAnimation').addEventListener('click', resetAnimation);
+                document.getElementById('animateDP').addEventListener('click', animateDP);
+            });
+
+            // Initial setup
+            resetAnimation();
+        </script>
+    </body>
+</html>

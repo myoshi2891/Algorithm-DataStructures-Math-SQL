@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Partition List - Stable Partition via Two Dummy Lists</title>
+
+        <!-- CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            :root {
+                --code-lh: 1.6;
+            }
+
+            body {
+                font-family:
+                    Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+            }
+
+            /* Prism Code Styling */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    'Liberation Mono', 'Courier New', monospace;
+            }
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            /* Prism Toolbar */
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin-top: 1rem;
+                margin-right: 1rem;
+                font:
+                    600 1rem/1.2 Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+
+            /* Smooth Animations */
+            .fade-transition {
+                transition: opacity 0.3s ease-in-out;
+            }
+            .step-card {
+                transition: all 0.2s ease;
+            }
+            .step-card:hover,
+            .step-card:focus {
+                transform: translateY(-1px);
+                box-shadow:
+                    0 10px 25px -3px rgba(0, 0, 0, 0.1),
+                    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .nav-btn {
+                transition: all 0.2s ease;
+            }
+            .nav-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+            }
+            .control-btn {
+                transition: all 0.2s ease;
+            }
+            .control-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            /* SVG Nodes */
+            .svg-node {
+                transition: all 0.3s ease;
+            }
+            .svg-text {
+                font-family: Inter, sans-serif;
+                font-weight: 500;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-50 text-slate-800">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-6xl mx-auto px-4 py-8">
+                <h1 class="text-4xl font-bold text-slate-900 mb-2">Partition List Algorithm</h1>
+                <p class="text-lg text-slate-600 mb-6">
+                    Stable Partition via Two Dummy Lists (Pure / Non-destructive)
+                </p>
+
+                <!-- Navigation -->
+                <nav class="flex flex-wrap gap-3" role="navigation" aria-label="Page sections">
+                    <button
+                        onclick="scrollToSection('overview')"
+                        class="nav-btn bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 text-xl font-medium"
+                        aria-label="概要セクションへ移動"
+                    >
+                        概要
+                    </button>
+                    <button
+                        onclick="scrollToSection('steps')"
+                        class="nav-btn bg-sky-100 text-sky-700 px-4 py-2 rounded-lg border border-sky-200 text-xl font-medium"
+                        aria-label="ステップセクションへ移動"
+                    >
+                        ステップ
+                    </button>
+                    <button
+                        onclick="scrollToSection('code')"
+                        class="nav-btn bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg border border-indigo-200 text-xl font-medium"
+                        aria-label="コードセクションへ移動"
+                    >
+                        コード
+                    </button>
+                    <button
+                        onclick="scrollToSection('diagram')"
+                        class="nav-btn bg-purple-100 text-purple-700 px-4 py-2 rounded-lg border border-purple-200 text-xl font-medium"
+                        aria-label="図解セクションへ移動"
+                    >
+                        図解
+                    </button>
+                    <button
+                        onclick="scrollToSection('complexity')"
+                        class="nav-btn bg-orange-100 text-orange-700 px-4 py-2 rounded-lg border border-orange-200 text-xl font-medium"
+                        aria-label="計算量セクションへ移動"
+                    >
+                        計算量
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-4 py-8 space-y-16">
+            <!-- Overview Section -->
+            <section id="overview" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fas fa-lightbulb text-emerald-500 mr-3"></i>
+                    アルゴリズム概要
+                </h2>
+                <div class="space-y-4 text-lg text-slate-700">
+                    <p>
+                        連結リストを閾値
+                        <code class="bg-slate-100 px-2 py-1 rounded">x</code>
+                        で安定パーティションします。<code>x</code> 未満のノードを前に、<code
+                            >x</code
+                        >
+                        以上のノードを後に配置し、各パーティション内の相対順序を保持します。
+                    </p>
+
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-emerald-800 mb-3">
+                            採用アルゴリズム: 非破壊コピー方式
+                        </h3>
+                        <ul class="space-y-2 text-emerald-700">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>2本のリスト（less,
+                                greater_equal）を並行構築
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i
+                                >元データを変更しない（Pure関数）
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>単一走査でO(n)時間計算量
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>安定性を自動保証
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 mt-6">
+                        <div class="bg-sky-50 border border-sky-200 rounded-lg p-4">
+                            <h4 class="font-semibold text-sky-800 mb-2">入力例</h4>
+                            <code class="text-sky-700">[1,4,3,2,5,2], x = 3</code>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                            <h4 class="font-semibold text-indigo-800 mb-2">出力例</h4>
+                            <code class="text-indigo-700">[1,2,2,4,3,5]</code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Steps Section -->
+            <section id="steps" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fas fa-play-circle text-sky-500 mr-3"></i>
+                    ステップバイステップ解説
+                </h2>
+
+                <div class="grid lg:grid-cols-5 gap-8">
+                    <!-- Step Cards -->
+                    <div class="lg:col-span-2 space-y-3">
+                        <div
+                            id="step-1"
+                            class="step-card bg-emerald-50 border-2 border-emerald-200 rounded-lg p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            onclick="showStep(1)"
+                            onkeydown="handleStepKeydown(event, 1)"
+                        >
+                            <div class="font-semibold text-emerald-800 text-lg mb-2">
+                                Step 1: 初期化
+                            </div>
+                            <p class="text-emerald-700">ダミーノードとテールポインタを初期化</p>
+                        </div>
+
+                        <div
+                            id="step-2"
+                            class="step-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            onclick="showStep(2)"
+                            onkeydown="handleStepKeydown(event, 2)"
+                        >
+                            <div class="font-semibold text-gray-600 text-lg mb-2">
+                                Step 2: Less リスト構築
+                            </div>
+                            <p class="text-gray-500">x未満の要素をlessリストに追加</p>
+                        </div>
+
+                        <div
+                            id="step-3"
+                            class="step-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            onclick="showStep(3)"
+                            onkeydown="handleStepKeydown(event, 3)"
+                        >
+                            <div class="font-semibold text-gray-600 text-lg mb-2">
+                                Step 3: GE リスト構築
+                            </div>
+                            <p class="text-gray-500">x以上の要素をgeリストに追加</p>
+                        </div>
+
+                        <div
+                            id="step-4"
+                            class="step-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            onclick="showStep(4)"
+                            onkeydown="handleStepKeydown(event, 4)"
+                        >
+                            <div class="font-semibold text-gray-600 text-lg mb-2">
+                                Step 4: リスト連結
+                            </div>
+                            <p class="text-gray-500">lessリストの末尾をgeリストの先頭に接続</p>
+                        </div>
+
+                        <div
+                            id="step-5"
+                            class="step-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 cursor-pointer"
+                            role="button"
+                            tabindex="0"
+                            onclick="showStep(5)"
+                            onkeydown="handleStepKeydown(event, 5)"
+                        >
+                            <div class="font-semibold text-gray-600 text-lg mb-2">Step 5: 完了</div>
+                            <p class="text-gray-500">最終的なパーティション済みリストを返却</p>
+                        </div>
+                    </div>
+
+                    <!-- Visualization Area -->
+                    <div class="lg:col-span-3">
+                        <div class="bg-slate-50 rounded-lg p-6 min-h-[400px] relative">
+                            <!-- Step 1: Initial -->
+                            <div id="viz-step-1" class="fade-transition">
+                                <svg viewBox="0 0 600 300" class="w-full h-auto">
+                                    <text
+                                        x="300"
+                                        y="30"
+                                        text-anchor="middle"
+                                        class="svg-text text-lg font-semibold fill-slate-700"
+                                    >
+                                        Step 1: Initialization
+                                    </text>
+
+                                    <!-- Input List -->
+                                    <text x="50" y="80" class="svg-text text-sm fill-slate-600">
+                                        Input:
+                                    </text>
+                                    <g transform="translate(50, 100)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="50"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="70"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            4
+                                        </text>
+                                        <rect
+                                            x="100"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="120"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            3
+                                        </text>
+                                        <rect
+                                            x="150"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="170"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="200"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="220"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            5
+                                        </text>
+                                        <rect
+                                            x="250"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#e8f4fd"
+                                            stroke="#0284c7"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="270"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <text x="400" y="80" class="svg-text text-sm fill-slate-600">
+                                        x = 3
+                                    </text>
+
+                                    <!-- Empty Lists -->
+                                    <text x="50" y="180" class="svg-text text-sm fill-emerald-600">
+                                        Less (&lt; 3):
+                                    </text>
+                                    <rect
+                                        x="150"
+                                        y="160"
+                                        width="100"
+                                        height="30"
+                                        fill="none"
+                                        stroke="#10b981"
+                                        stroke-dasharray="5,5"
+                                        rx="4"
+                                    />
+                                    <text
+                                        x="200"
+                                        y="180"
+                                        text-anchor="middle"
+                                        class="svg-text text-sm fill-slate-500"
+                                    >
+                                        empty
+                                    </text>
+
+                                    <text x="50" y="230" class="svg-text text-sm fill-orange-600">
+                                        GE (&ge; 3):
+                                    </text>
+                                    <rect
+                                        x="150"
+                                        y="210"
+                                        width="100"
+                                        height="30"
+                                        fill="none"
+                                        stroke="#f59e0b"
+                                        stroke-dasharray="5,5"
+                                        rx="4"
+                                    />
+                                    <text
+                                        x="200"
+                                        y="230"
+                                        text-anchor="middle"
+                                        class="svg-text text-sm fill-slate-500"
+                                    >
+                                        empty
+                                    </text>
+                                </svg>
+                            </div>
+
+                            <!-- Step 2: Building Less List -->
+                            <div
+                                id="viz-step-2"
+                                class="fade-transition opacity-0 absolute inset-0 p-6"
+                            >
+                                <svg viewBox="0 0 600 300" class="w-full h-auto">
+                                    <text
+                                        x="300"
+                                        y="30"
+                                        text-anchor="middle"
+                                        class="svg-text text-lg font-semibold fill-slate-700"
+                                    >
+                                        Step 2: Building Less List
+                                    </text>
+
+                                    <!-- Less List -->
+                                    <text x="50" y="100" class="svg-text text-sm fill-emerald-600">
+                                        Less (&lt; 3):
+                                    </text>
+                                    <g transform="translate(150, 80)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <!-- GE List (partial) -->
+                                    <text x="50" y="180" class="svg-text text-sm fill-orange-600">
+                                        GE (&ge; 3):
+                                    </text>
+                                    <g transform="translate(150, 160)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            4
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            3
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            5
+                                        </text>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <!-- Step 3: Building GE List -->
+                            <div
+                                id="viz-step-3"
+                                class="fade-transition opacity-0 absolute inset-0 p-6"
+                            >
+                                <svg viewBox="0 0 600 300" class="w-full h-auto">
+                                    <text
+                                        x="300"
+                                        y="30"
+                                        text-anchor="middle"
+                                        class="svg-text text-lg font-semibold fill-slate-700"
+                                    >
+                                        Step 3: Both Lists Built
+                                    </text>
+
+                                    <!-- Less List -->
+                                    <text x="50" y="100" class="svg-text text-sm fill-emerald-600">
+                                        Less (&lt; 3):
+                                    </text>
+                                    <g transform="translate(150, 80)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <!-- GE List -->
+                                    <text x="50" y="180" class="svg-text text-sm fill-orange-600">
+                                        GE (&ge; 3):
+                                    </text>
+                                    <g transform="translate(150, 160)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            4
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            3
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            5
+                                        </text>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <!-- Step 4: Concatenation -->
+                            <div
+                                id="viz-step-4"
+                                class="fade-transition opacity-0 absolute inset-0 p-6"
+                            >
+                                <svg viewBox="0 0 600 300" class="w-full h-auto">
+                                    <text
+                                        x="300"
+                                        y="30"
+                                        text-anchor="middle"
+                                        class="svg-text text-lg font-semibold fill-slate-700"
+                                    >
+                                        Step 4: Concatenation
+                                    </text>
+
+                                    <!-- Connection Arrow -->
+                                    <path
+                                        d="M 270 120 L 380 150"
+                                        fill="none"
+                                        stroke="#6366f1"
+                                        stroke-width="3"
+                                        marker-end="url(#arrowhead)"
+                                    />
+                                    <text
+                                        x="260"
+                                        y="145"
+                                        text-anchor="middle"
+                                        class="svg-text text-sm fill-indigo-600"
+                                    >
+                                        connect
+                                    </text>
+
+                                    <!-- Arrow Marker -->
+                                    <defs>
+                                        <marker
+                                            id="arrowhead"
+                                            markerWidth="10"
+                                            markerHeight="7"
+                                            refX="9"
+                                            refY="3.5"
+                                            orient="auto"
+                                        >
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="#6366f1" />
+                                        </marker>
+                                    </defs>
+
+                                    <!-- Less List -->
+                                    <text x="50" y="100" class="svg-text text-sm fill-emerald-600">
+                                        Less:
+                                    </text>
+                                    <g transform="translate(100, 80)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                    </g>
+
+                                    <!-- GE List -->
+                                    <text x="350" y="180" class="svg-text text-sm fill-orange-600">
+                                        GE:
+                                    </text>
+                                    <g transform="translate(390, 160)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            4
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            3
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            5
+                                        </text>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <!-- Step 5: Final Result -->
+                            <div
+                                id="viz-step-5"
+                                class="fade-transition opacity-0 absolute inset-0 p-6"
+                            >
+                                <svg viewBox="0 0 600 300" class="w-full h-auto">
+                                    <text
+                                        x="300"
+                                        y="30"
+                                        text-anchor="middle"
+                                        class="svg-text text-lg font-semibold fill-slate-700"
+                                    >
+                                        Step 5: Final Result
+                                    </text>
+
+                                    <text x="50" y="120" class="svg-text text-sm fill-slate-600">
+                                        Final Partitioned List:
+                                    </text>
+                                    <g transform="translate(50, 140)">
+                                        <rect
+                                            x="0"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="20"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            1
+                                        </text>
+                                        <rect
+                                            x="60"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="80"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="120"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="140"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            2
+                                        </text>
+                                        <rect
+                                            x="200"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="220"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            4
+                                        </text>
+                                        <rect
+                                            x="260"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="280"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            3
+                                        </text>
+                                        <rect
+                                            x="320"
+                                            y="0"
+                                            width="40"
+                                            height="30"
+                                            fill="#fed7aa"
+                                            stroke="#f59e0b"
+                                            rx="4"
+                                        />
+                                        <text
+                                            x="340"
+                                            y="20"
+                                            text-anchor="middle"
+                                            class="svg-text text-sm fill-slate-700"
+                                        >
+                                            5
+                                        </text>
+                                    </g>
+
+                                    <text x="50" y="220" class="svg-text text-sm fill-emerald-700">
+                                        ✓ Stable partition: relative order preserved
+                                    </text>
+                                    <text x="50" y="245" class="svg-text text-sm fill-sky-700">
+                                        ✓ All &lt; 3 elements come first
+                                    </text>
+                                    <text x="50" y="270" class="svg-text text-sm fill-orange-700">
+                                        ✓ All &ge; 3 elements come after
+                                    </text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="flex justify-center gap-3 mt-6">
+                            <button
+                                id="prevBtn"
+                                onclick="prevStep()"
+                                class="control-btn bg-slate-200 text-slate-700 px-4 py-2 rounded-lg border border-slate-300 font-medium"
+                            >
+                                <i class="fas fa-step-backward mr-2"></i>Prev
+                            </button>
+                            <button
+                                id="playBtn"
+                                onclick="playSteps()"
+                                class="control-btn bg-emerald-500 text-white px-6 py-2 rounded-lg border border-emerald-600 font-medium"
+                            >
+                                <i class="fas fa-play mr-2"></i>Play
+                            </button>
+                            <button
+                                id="nextBtn"
+                                onclick="nextStep()"
+                                class="control-btn bg-slate-200 text-slate-700 px-4 py-2 rounded-lg border border-slate-300 font-medium"
+                            >
+                                <i class="fas fa-step-forward mr-2"></i>Next
+                            </button>
+                            <button
+                                onclick="resetSteps()"
+                                class="control-btn bg-orange-500 text-white px-4 py-2 rounded-lg border border-orange-600 font-medium"
+                            >
+                                <i class="fas fa-undo mr-2"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Section -->
+            <section id="code" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fas fa-code text-indigo-500 mr-3"></i>
+                    Python実装 (LeetCode形式)
+                </h2>
+
+                <div class="bg-slate-50 rounded-lg p-6">
+                    <pre
+                        class="line-numbers whitespace-pre leading-[1.6] overflow-x-auto"
+                    ><code class="language-python">from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
+
+# Pylance対応のフォールバック定義
+if TYPE_CHECKING:
+    class ListNode:
+        def __init__(self, val: int = 0, next: Optional["ListNode"] = None) -> None: ...
+        val: int
+        next: Optional["ListNode"]
+else:
+    class ListNode:
+        __slots__ = ("val", "next")
+        def __init__(self, val: int = 0, next: Optional["ListNode"] = None) -> None:
+            self.val = val
+            self.next = next
+
+class Solution:
+    """
+    Partition List (安定パーティション)
+    - 非破壊（Pure）：入力ノードは変更せず、新ノードを生成
+    - (< x) が前、(>= x) が後。元の相対順序は維持（安定）
+    """
+
+    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:
+        """
+        Args:
+            head: 連結リスト先頭
+            x: しきい値
+
+        Returns:
+            パーティション後の新しい連結リスト先頭（非破壊）
+
+        Complexity:
+            Time: O(n)  — n はノード数（単一走査）
+            Space: O(n) — Pureのため新ノードを生成
+        """
+        # ダミー（番兵）とテール
+        less_dummy = ListNode(0)
+        ge_dummy = ListNode(0)
+        lt_tail = less_dummy
+        ge_tail = ge_dummy
+
+        cur = head
+        while cur is not None:
+            v = cur.val  # 属性参照を一度だけ
+            if v < x:
+                lt_tail.next = ListNode(v)
+                lt_tail = lt_tail.next
+            else:
+                ge_tail.next = ListNode(v)
+                ge_tail = ge_tail.next
+            cur = cur.next
+
+        # 連結（less -> ge）
+        lt_tail.next = ge_dummy.next
+        ge_tail.next = None
+        return less_dummy.next
+</code></pre>
+                </div>
+
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>実装のポイント
+                    </h3>
+                    <ul class="space-y-2 text-blue-700">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle mr-2 mt-1 text-sm"></i
+                            ><span
+                                ><strong>ダミーノード活用：</strong
+                                >分岐処理を削減し、コードを簡潔化</span
+                            >
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle mr-2 mt-1 text-sm"></i
+                            ><span
+                                ><strong>属性アクセス最小化：</strong
+                                ><code>cur.val</code>を変数<code>v</code>に一度だけ取得</span
+                            >
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle mr-2 mt-1 text-sm"></i
+                            ><span
+                                ><strong>Pure関数：</strong
+                                >元データを変更せず、新しいノードを生成</span
+                            >
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle mr-2 mt-1 text-sm"></i
+                            ><span
+                                ><strong>型安全性：</strong><code>Optional[ListNode]</code>で
+                                null安全性を確保</span
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Diagram Section -->
+            <section id="diagram" class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fas fa-project-diagram text-purple-500 mr-3"></i>
+                    アルゴリズムフローチャート
+                </h2>
+
+                <div class="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <p class="text-purple-800 font-medium">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        このフローチャートは、連結リストを閾値xで安定パーティションするアルゴリズムの処理フローを示しています
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-6">
+                    <svg
+                        viewBox="0 0 900 720"
+                        width="100%"
+                        xmlns="http://www.w3.org/2000/svg"
+                        role="img"
+                        aria-labelledby="title"
+                        style="max-width: 100%; height: auto"
+                    >
+                        <title id="title">Partition List Algorithm Flow</title>
+
+                        <style>
+                            .t1 {
+                                font:
+                                    700 18px/1.2 Inter,
+                                    ui-sans-serif,
+                                    system-ui,
+                                    Arial,
+                                    sans-serif;
+                                fill: #6b21a8;
+                            }
+                            .t2 {
+                                font:
+                                    600 12px/1.2 Inter,
+                                    ui-sans-serif,
+                                    system-ui,
+                                    Arial,
+                                    sans-serif;
+                                fill: #334155;
+                            }
+                            .caption {
+                                font:
+                                    600 12px/1.2 Inter,
+                                    ui-sans-serif,
+                                    system-ui,
+                                    Arial,
+                                    sans-serif;
+                                fill: #475569;
+                            }
+                            .edge {
+                                fill: none;
+                                stroke: #374151;
+                                stroke-width: 2;
+                                stroke-linecap: round;
+                                stroke-linejoin: round;
+                                vector-effect: non-scaling-stroke;
+                                marker-end: url(#arrowhead3);
+                            }
+                            .tagY {
+                                font:
+                                    700 11px/1 Inter,
+                                    ui-sans-serif,
+                                    system-ui,
+                                    Arial,
+                                    sans-serif;
+                                fill: #047857;
+                            }
+                            .tagN {
+                                font:
+                                    700 11px/1 Inter,
+                                    ui-sans-serif,
+                                    system-ui,
+                                    Arial,
+                                    sans-serif;
+                                fill: #dc2626;
+                            }
+                        </style>
+
+                        <!-- Title -->
+                        <text x="450" y="32" text-anchor="middle" class="t1">
+                            Partition List Algorithm Flow
+                        </text>
+
+                        <!-- Start -->
+                        <ellipse
+                            cx="450"
+                            cy="80"
+                            rx="60"
+                            ry="25"
+                            fill="#e8f4fd"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text x="450" y="86" text-anchor="middle" class="t2">START</text>
+
+                        <!-- Initialize -->
+                        <rect
+                            x="350"
+                            y="130"
+                            width="200"
+                            height="50"
+                            rx="8"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text x="450" y="150" text-anchor="middle" class="t2">
+                            Initialize dummy nodes:
+                        </text>
+                        <text x="450" y="166" text-anchor="middle" class="t2">
+                            less_dummy, ge_dummy
+                        </text>
+
+                        <!-- cur = head -->
+                        <rect
+                            x="400"
+                            y="210"
+                            width="100"
+                            height="35"
+                            rx="6"
+                            fill="#e0e7ff"
+                            stroke="#3730a3"
+                            stroke-width="2"
+                        />
+                        <text x="450" y="233" text-anchor="middle" class="t2">cur = head</text>
+
+                        <!-- Loop condition -->
+                        <path
+                            d="M 400 280 L 500 280 L 520 300 L 500 320 L 400 320 L 380 300 Z"
+                            fill="#fef3c7"
+                            stroke="#d97706"
+                            stroke-width="2"
+                        />
+                        <text x="450" y="296" text-anchor="middle" class="t2">cur != None?</text>
+                        <text x="450" y="312" text-anchor="middle" class="t2">
+                            (Continue loop?)
+                        </text>
+
+                        <!-- Value comparison -->
+                        <path
+                            d="M 200 400 L 320 400 L 340 420 L 320 440 L 200 440 L 180 420 Z"
+                            fill="#fce7f3"
+                            stroke="#be185d"
+                            stroke-width="2"
+                        />
+                        <text x="260" y="416" text-anchor="middle" class="t2">cur.val &lt; x?</text>
+                        <text x="260" y="432" text-anchor="middle" class="t2">(Value check)</text>
+
+                        <!-- Add to less -->
+                        <rect
+                            x="50"
+                            y="520"
+                            width="200"
+                            height="50"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text x="150" y="540" text-anchor="middle" class="t2">
+                            Add to LESS list:
+                        </text>
+                        <text x="150" y="556" text-anchor="middle" class="t2">
+                            lt_tail.next = ListNode(val)
+                        </text>
+
+                        <!-- Add to ge -->
+                        <rect
+                            x="360"
+                            y="520"
+                            width="200"
+                            height="50"
+                            rx="6"
+                            fill="#fed7aa"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text x="460" y="540" text-anchor="middle" class="t2">Add to GE list:</text>
+                        <text x="460" y="556" text-anchor="middle" class="t2">
+                            ge_tail.next = ListNode(val)
+                        </text>
+
+                        <!-- cur = cur.next -->
+                        <rect
+                            x="230"
+                            y="600"
+                            width="140"
+                            height="35"
+                            rx="6"
+                            fill="#e0e7ff"
+                            stroke="#3730a3"
+                            stroke-width="2"
+                        />
+                        <text x="300" y="623" text-anchor="middle" class="t2">cur = cur.next</text>
+
+                        <!-- Connect lists -->
+                        <rect
+                            x="580"
+                            y="380"
+                            width="200"
+                            height="60"
+                            rx="6"
+                            fill="#ddd6fe"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text x="680" y="400" text-anchor="middle" class="t2">Connect lists:</text>
+                        <text x="680" y="416" text-anchor="middle" class="t2">
+                            lt_tail.next = ge_dummy.next
+                        </text>
+
+                        <!-- Return -->
+                        <ellipse
+                            cx="680"
+                            cy="520"
+                            rx="90"
+                            ry="30"
+                            fill="#e8f4fd"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text x="680" y="520" text-anchor="middle" class="t2">RETURN</text>
+                        <text x="680" y="536" text-anchor="middle" class="t2">less_dummy.next</text>
+
+                        <!-- Arrow marker -->
+                        <defs>
+                            <marker
+                                id="arrowhead3"
+                                markerWidth="12"
+                                markerHeight="8"
+                                refX="10"
+                                refY="4"
+                                orient="auto"
+                            >
+                                <polygon points="0 0, 12 4, 0 8" fill="#374151" />
+                            </marker>
+                        </defs>
+
+                        <!-- Vertical stack arrows -->
+                        <path d="M 450 105 L 450 130" class="edge" />
+                        <path d="M 450 180 L 450 210" class="edge" />
+                        <path d="M 450 245 L 450 280" class="edge" />
+
+                        <!-- YES from loop condition: bottom -> value check -->
+                        <path d="M 450 320 L 450 360 L 260 360 L 260 400" class="edge" />
+                        <g>
+                            <rect
+                                x="458"
+                                y="331"
+                                width="34"
+                                height="18"
+                                fill="#fff"
+                                stroke="#10b981"
+                                rx="3"
+                            />
+                            <text x="475" y="344" text-anchor="middle" class="tagY">YES</text>
+                        </g>
+
+                        <!-- NO from loop condition -->
+                        <path d="M 520 300 L 680 300 L 680 380" class="edge" />
+                        <g>
+                            <rect
+                                x="545"
+                                y="290"
+                                width="28"
+                                height="18"
+                                fill="#fff"
+                                stroke="#dc2626"
+                                rx="3"
+                            />
+                            <text x="559" y="303" text-anchor="middle" class="tagN">NO</text>
+                        </g>
+
+                        <!-- From value check to LESS (YES) -->
+                        <path d="M 180 420 L 150 420 L 150 520" class="edge" />
+                        <g>
+                            <rect
+                                x="140"
+                                y="410"
+                                width="35"
+                                height="18"
+                                fill="#fff"
+                                stroke="#10b981"
+                                rx="3"
+                            />
+                            <text x="157" y="423" text-anchor="middle" class="tagY">YES</text>
+                        </g>
+
+                        <!-- From value check to GE (NO) -->
+                        <path d="M 340 420 L 460 420 L 460 520" class="edge" />
+                        <g>
+                            <rect
+                                x="355"
+                                y="410"
+                                width="28"
+                                height="18"
+                                fill="#fff"
+                                stroke="#dc2626"
+                                rx="3"
+                            />
+                            <text x="369" y="423" text-anchor="middle" class="tagN">NO</text>
+                        </g>
+
+                        <!-- To cur = cur.next -->
+                        <path d="M 150 570 L 150 617 L 230 617" class="edge" />
+                        <path d="M 460 570 L 460 617 L 370 617" class="edge" />
+
+                        <!-- Loop back: from cur=cur.next (bottom) → bottom外周 → 左端 → 上 → ダイヤ左辺 -->
+                        <path
+                            d="M 300 635 L 300 660 L 10 660 L 10 300 L 380 300"
+                            class="edge"
+                            marker-end="url(#arrowhead3)"
+                        />
+                        <!-- From connect to return -->
+                        <path d="M 680 440 L 680 490" class="edge" />
+
+                        <!-- Step captions -->
+                        <text x="480" y="120" class="caption">1. Setup phase</text>
+                        <text x="480" y="270" class="caption">2. Main loop</text>
+                        <text x="270" y="390" class="caption">3. Value classification</text>
+                        <!-- ★ 中央へ移動（LESS/GEの間） -->
+                        <text x="260" y="520" class="caption">4. List building</text>
+                        <text x="780" y="520" class="caption">5. Final connection</text>
+                    </svg>
+                </div>
+
+                <div class="mt-6 grid md:grid-cols-3 gap-4">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-emerald-800 mb-2">
+                            <i class="fas fa-arrow-left text-emerald-600 mr-2"></i>Less List (< x)
+                        </h4>
+                        <p class="text-sm text-emerald-700">閾値未満の要素を順序保持して構築</p>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-orange-800 mb-2">
+                            <i class="fas fa-arrow-right text-orange-600 mr-2"></i>GE List (≥ x)
+                        </h4>
+                        <p class="text-sm text-orange-700">閾値以上の要素を順序保持して構築</p>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <h4 class="font-semibold text-purple-800 mb-2">
+                            <i class="fas fa-link text-purple-600 mr-2"></i>Final Connection
+                        </h4>
+                        <p class="text-sm text-purple-700">2つのリストを連結して完成</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complexity Section -->
+            <section
+                id="complexity"
+                class="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
+            >
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fas fa-chart-line text-orange-500 mr-3"></i>
+                    計算量解析
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Time Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-6"
+                    >
+                        <h3 class="text-2xl font-bold text-emerald-800 mb-4">
+                            <i class="fas fa-clock mr-2"></i>時間計算量: O(n)
+                        </h3>
+                        <div class="space-y-3 text-emerald-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-emerald-600 mr-2"></i>
+                                <span><strong>単一走査：</strong>元リストを1回だけ巡回</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-emerald-600 mr-2"></i>
+                                <span
+                                    ><strong>定数時間操作：</strong
+                                    >各ノードに対する判定・追加処理</span
+                                >
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-emerald-600 mr-2"></i>
+                                <span><strong>最適性：</strong>これ以上の効率化は不可能</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Space Complexity -->
+                    <div
+                        class="bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 rounded-xl p-6"
+                    >
+                        <h3 class="text-2xl font-bold text-sky-800 mb-4">
+                            <i class="fas fa-memory mr-2"></i>空間計算量: O(n)
+                        </h3>
+                        <div class="space-y-3 text-sky-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-sky-600 mr-2"></i>
+                                <span><strong>新ノード生成：</strong>各元ノードに対応</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-sky-600 mr-2"></i>
+                                <span><strong>非破壊的：</strong>元データを保護（Pure関数）</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-arrow-right text-sky-600 mr-2"></i>
+                                <span><strong>補助構造：</strong>ダミーノード2個（定数）</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison -->
+                <div class="mt-8 overflow-x-auto">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4">アルゴリズム比較</h3>
+                    <table
+                        class="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm"
+                    >
+                        <thead class="bg-slate-100">
+                            <tr>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    アプローチ
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left font-semibold text-slate-700"
+                                >
+                                    特徴
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-medium text-emerald-800"
+                                >
+                                    非破壊コピー（採用）
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-emerald-700">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-emerald-700">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-emerald-700">
+                                    安全・Pure・可読性高
+                                </td>
+                            </tr>
+                            <tr class="bg-blue-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-medium text-blue-800"
+                                >
+                                    破壊的再配線
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-blue-700">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-blue-700">
+                                    O(1)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-blue-700">
+                                    最速・省メモリ
+                                </td>
+                            </tr>
+                            <tr class="bg-yellow-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-medium text-yellow-800"
+                                >
+                                    安定ソート
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-yellow-700">
+                                    O(n log n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-yellow-700">
+                                    O(n)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-yellow-700">
+                                    過剰計算
+                                </td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-medium text-red-800"
+                                >
+                                    逐次挿入
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-red-700">
+                                    O(n²)
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-red-700">O(1)</td>
+                                <td class="border border-slate-300 px-4 py-3 text-red-700">
+                                    実用性低
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <h4 class="font-semibold text-orange-800 mb-2">
+                        <i class="fas fa-star mr-2"></i>採用理由
+                    </h4>
+                    <p class="text-orange-700">
+                        非破壊コピー方式は、最適な時間計算量O(n)を保ちながら、元データの安全性と高い可読性を両立。
+                        業務開発における保守性と競技プログラミングにおける効率性の両方を満たす実装です。
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-800 text-slate-300 py-8 mt-16">
+            <div class="max-w-6xl mx-auto px-4 text-center">
+                <p class="mb-2">Stable Partition via Two Dummy Lists Algorithm</p>
+                <p class="text-sm text-slate-400">
+                    Time: O(n) | Space: O(n) | Pure & Non-destructive
+                </p>
+            </div>
+        </footer>
+
+        <!-- Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script>
+            let currentStep = 1;
+            let isPlaying = false;
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function () {
+                showStep(1);
+                updateButtonStates();
+            });
+
+            // Smooth scroll to section
+            function scrollToSection(sectionId) {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // Show specific step
+            function showStep(step) {
+                if (step < 1 || step > 5) return;
+
+                currentStep = step;
+
+                // Update step cards
+                for (let i = 1; i <= 5; i++) {
+                    const stepCard = document.getElementById(`step-${i}`);
+                    if (i === step) {
+                        stepCard.className = stepCard.className
+                            .replace(/bg-\w+-\d+/g, 'bg-emerald-50')
+                            .replace(/border-\w+-\d+/g, 'border-emerald-200')
+                            .replace(/text-\w+-\d+/g, 'text-emerald-800');
+                        stepCard.querySelector('p').className = 'text-emerald-700';
+                    } else {
+                        stepCard.className = stepCard.className
+                            .replace(/bg-\w+-\d+/g, 'bg-gray-50')
+                            .replace(/border-\w+-\d+/g, 'border-gray-200')
+                            .replace(/text-\w+-\d+/g, 'text-gray-600');
+                        stepCard.querySelector('p').className = 'text-gray-500';
+                    }
+                }
+
+                // Update visualization
+                for (let i = 1; i <= 5; i++) {
+                    const vizStep = document.getElementById(`viz-step-${i}`);
+                    if (i === step) {
+                        vizStep.classList.remove('opacity-0');
+                        vizStep.classList.add('opacity-100');
+                    } else {
+                        vizStep.classList.remove('opacity-100');
+                        vizStep.classList.add('opacity-0');
+                    }
+                }
+
+                updateButtonStates();
+            }
+
+            // Navigation functions
+            function prevStep() {
+                if (currentStep > 1) {
+                    showStep(currentStep - 1);
+                }
+            }
+
+            function nextStep() {
+                if (currentStep < 5) {
+                    showStep(currentStep + 1);
+                }
+            }
+
+            function resetSteps() {
+                isPlaying = false;
+                showStep(1);
+                updatePlayButton();
+            }
+
+            // Play animation
+            function playSteps() {
+                if (isPlaying) return; // Prevent multiple plays
+
+                isPlaying = true;
+                updatePlayButton();
+
+                let step = 1;
+                showStep(step);
+
+                const interval = setInterval(() => {
+                    step++;
+                    if (step <= 5) {
+                        showStep(step);
+                    } else {
+                        clearInterval(interval);
+                        // Auto reset to step 1
+                        setTimeout(() => {
+                            isPlaying = false;
+                            showStep(1);
+                            updatePlayButton();
+                        }, 1000);
+                    }
+                }, 1500);
+            }
+
+            // Update button states
+            function updateButtonStates() {
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+
+                if (currentStep === 1) {
+                    prevBtn.disabled = true;
+                    prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    prevBtn.disabled = false;
+                    prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+
+                if (currentStep === 5) {
+                    nextBtn.disabled = true;
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            function updatePlayButton() {
+                const playBtn = document.getElementById('playBtn');
+                if (isPlaying) {
+                    playBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Playing...';
+                    playBtn.disabled = true;
+                    playBtn.classList.add('opacity-75');
+                } else {
+                    playBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Play';
+                    playBtn.disabled = false;
+                    playBtn.classList.remove('opacity-75');
+                }
+            }
+
+            // Keyboard navigation for step cards
+            function handleStepKeydown(event, step) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    showStep(step);
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+            Largest Rectangle in Histogram - 単調スタックアルゴリズム解説（Tailwind CDN リファクタ）
+        </title>
+
+        <!-- Tailwind CSS (CDN) -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            brand: { DEFAULT: '#3b82f6', light: '#dbeafe' }, // blue-500
+                            violetx: { DEFAULT: '#8b5cf6', light: '#ede9fe' }, // violet-500
+                            accent: { DEFAULT: '#06d6a0', light: '#e6fff6' },
+                            warn: { DEFAULT: '#f59e0b' },
+                            danger: { DEFAULT: '#ef4444' },
+                            paper: {
+                                DEFAULT: '#ffffff',
+                                soft: '#f8fafc',
+                                line: '#e2e8f0',
+                                tertiary: '#f1f5f9',
+                            },
+                        },
+                        boxShadow: {
+                            card: '0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06)',
+                            cardLg: '0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05)',
+                        },
+                        borderRadius: {
+                            xl2: '20px',
+                        },
+                        fontFamily: {
+                            inter: [
+                                'Inter',
+                                'system-ui',
+                                '-apple-system',
+                                'Segoe UI',
+                                'Helvetica Neue',
+                                'Arial',
+                                'Noto Sans JP',
+                                'Hiragino Kaku Gothic ProN',
+                                'Yu Gothic UI',
+                                'Meiryo',
+                                'sans-serif',
+                            ],
+                            mono: [
+                                'JetBrains Mono',
+                                'ui-monospace',
+                                'SFMono-Regular',
+                                'Menlo',
+                                'Consolas',
+                                'Liberation Mono',
+                                'monospace',
+                            ],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <!-- Fonts & Icons -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+            rel="stylesheet"
+        />
+
+        <!-- Prism (CDN) -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+
+        <!-- Small tweaks for Prism spacing -->
+        <style>
+            pre[class*='language-'] {
+                margin: 0 !important;
+                font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+                padding-bottom: 0 !important;
+            }
+            pre.line-numbers {
+                padding-left: 4.2em !important;
+            }
+
+            .line-numbers .line-numbers-rows {
+                width: 2.4em;
+            }
+
+            :root {
+                --code-lh: 1.6;
+            } /* ← 上の leading-[1.6] と同じ値にする */
+
+            /* コード側の行高と wrap を固定 */
+            pre[class*='language-'],
+            pre[class*='language-'] > code {
+                line-height: var(--code-lh) !important;
+                white-space: pre !important;
+                word-break: normal !important;
+                overflow-wrap: normal !important;
+            }
+
+            /* 行番号側の1行の高さをコードと一致させる */
+            .line-numbers .line-numbers-rows > span {
+                height: calc(var(--code-lh) * 1em);
+            }
+
+            /* 行番号ガターの幅と pre の左パディングを揃える（お好みで） */
+            pre.line-numbers {
+                padding-left: 3.2em !important;
+            }
+            .line-numbers .line-numbers-rows {
+                width: 3.2em;
+            }
+        </style>
+    </head>
+
+    <body class="min-h-screen bg-gradient-to-br from-white to-paper-soft text-slate-800 font-inter">
+        <div class="max-w-[1200px] mx-auto p-4 md:p-8">
+            <!-- Header -->
+            <header
+                class="relative overflow-hidden rounded-xl2 shadow-cardLg border border-paper-line text-white p-8 text-center mb-8 bg-gradient-to-tr from-brand to-violetx"
+            >
+                <div
+                    class="absolute inset-0 opacity-20"
+                    style="
+                        background-image: url('data:image/svg+xml,%3Csvg width=%2760%27 height=%2760%27 viewBox=%270 0 60 60%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cg fill=%27%23ffffff%27 fill-opacity=%270.25%27%3E%3Ccircle cx=%2730%27 cy=%2730%27 r=%272%27/%3E%3C/g%3E%3C/svg%3E');
+                        background-size: 60px 60px;
+                    "
+                ></div>
+                <h1 class="relative z-10 text-3xl md:text-4xl font-extrabold">
+                    <i class="fa-solid fa-chart-bar mr-2"></i>Largest Rectangle in Histogram
+                </h1>
+                <p class="relative z-10 mt-2 text-white/90">
+                    単調スタック (Monotonic Stack) アルゴリズムによる効率的解法
+                </p>
+            </header>
+
+            <!-- Algorithm Overview -->
+            <section
+                class="bg-white rounded-xl border border-paper-line shadow-card p-6 mb-6 hover:shadow-cardLg transition"
+            >
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-paper-tertiary">
+                    <i class="fa-solid fa-lightbulb text-brand text-2xl"></i>
+                    <h2 class="text-xl font-semibold">アルゴリズム概要</h2>
+                </div>
+                <p class="leading-7">
+                    <strong class="text-slate-900">単調スタックアルゴリズム</strong
+                    >は、ヒストグラム内の最大長方形面積を
+                    <strong class="text-brand">O(n)</strong>
+                    時間で求める効率的な手法です。スタック内のインデックスを
+                    <em class="font-semibold text-slate-700">単調増加</em
+                    >に保ちながら各要素を一度だけ処理します。
+                </p>
+
+                <div class="grid gap-4 md:grid-cols-3 mt-5">
+                    <div
+                        class="rounded-lg p-4 text-center bg-gradient-to-b from-white to-brand.light border border-paper-line shadow-sm"
+                    >
+                        <i class="fa-solid fa-clock text-brand text-2xl mb-2"></i>
+                        <h3 class="font-semibold">時間計算量</h3>
+                        <div class="font-mono text-lg font-bold text-brand">O(n)</div>
+                    </div>
+                    <div
+                        class="rounded-lg p-4 text-center bg-gradient-to-b from-white to-violetx.light border border-paper-line shadow-sm"
+                    >
+                        <i class="fa-solid fa-memory text-violetx text-2xl mb-2"></i>
+                        <h3 class="font-semibold">空間計算量</h3>
+                        <div class="font-mono text-lg font-bold text-violetx">O(n)</div>
+                    </div>
+                    <div
+                        class="rounded-lg p-4 text-center bg-gradient-to-b from-white to-emerald-50 border border-paper-line shadow-sm"
+                    >
+                        <i class="fa-solid fa-star text-emerald-500 text-2xl mb-2"></i>
+                        <h3 class="font-semibold">効率性</h3>
+                        <div class="font-mono text-lg font-bold text-emerald-600">最適解</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Visualization -->
+            <section
+                class="bg-white rounded-xl border border-paper-line shadow-card p-6 mb-6 hover:shadow-cardLg transition"
+            >
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-paper-tertiary">
+                    <i class="fa-solid fa-play-circle text-brand text-2xl"></i>
+                    <h2 class="text-xl font-semibold">インタラクティブデモ</h2>
+                </div>
+
+                <div
+                    class="flex flex-wrap items-center justify-center gap-3 bg-paper-tertiary rounded-xl p-4"
+                >
+                    <button
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white font-semibold shadow hover:-translate-y-0.5 hover:shadow-cardLg transition"
+                        onclick="startDemo()"
+                    >
+                        <i class="fa-solid fa-play"></i>デモ開始
+                    </button>
+                    <button
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-500 text-white font-semibold hover:bg-slate-700 transition"
+                        onclick="resetDemo()"
+                    >
+                        <i class="fa-solid fa-rotate-left"></i>リセット
+                    </button>
+                    <button
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-500 text-white font-semibold hover:bg-slate-700 transition"
+                        onclick="nextStep()"
+                    >
+                        <i class="fa-solid fa-forward-step"></i>次のステップ
+                    </button>
+                </div>
+
+                <div class="bg-paper-soft rounded-xl p-6 mt-5 text-center">
+                    <h3 class="font-semibold">例: heights = [2, 1, 5, 6, 2, 3]</h3>
+                    <div
+                        id="histogram"
+                        class="flex items-end justify-center gap-1.5 my-6 min-h-[200px]"
+                    >
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="2"
+                            style="height: 80px"
+                        >
+                            2
+                        </div>
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="1"
+                            style="height: 40px"
+                        >
+                            1
+                        </div>
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="5"
+                            style="height: 200px"
+                        >
+                            5
+                        </div>
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="6"
+                            style="height: 240px"
+                        >
+                            6
+                        </div>
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="2"
+                            style="height: 80px"
+                        >
+                            2
+                        </div>
+                        <div
+                            class="bar w-10 text-white font-semibold rounded-t-md shadow-card bg-gradient-to-br from-brand to-violetx flex items-end justify-center py-2"
+                            data-height="3"
+                            style="height: 120px"
+                        >
+                            3
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center gap-4 my-6">
+                        <h4 class="font-semibold">スタックの状態</h4>
+                        <div
+                            id="stack-container"
+                            class="min-h-[150px] min-w-[200px] flex flex-col-reverse items-center justify-start p-3 border-2 border-dashed border-paper-line rounded-lg bg-paper-soft"
+                        >
+                            <div class="text-slate-400 italic">空のスタック</div>
+                        </div>
+                    </div>
+
+                    <div id="step-info" class="mt-4 font-semibold text-brand">
+                        デモを開始してください
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step by Step Explanation -->
+            <section
+                class="bg-white rounded-xl border border-paper-line shadow-card p-6 mb-6 hover:shadow-cardLg transition"
+            >
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-paper-tertiary">
+                    <i class="fa-solid fa-list-ol text-brand text-2xl"></i>
+                    <h2 class="text-xl font-semibold">ステップバイステップ解説</h2>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-3 bg-paper-soft p-4 rounded-xl mb-6">
+                    <button
+                        class="step-btn active inline-flex items-center gap-2 px-4 py-2 bg-white border border-paper-line rounded-md text-slate-600 font-medium hover:border-brand hover:text-brand transition"
+                        data-step="0"
+                    >
+                        <i class="fa-solid fa-info"></i>初期化
+                    </button>
+                    <button
+                        class="step-btn inline-flex items-center gap-2 px-4 py-2 bg-white border border-paper-line rounded-md text-slate-600 font-medium hover:border-brand hover:text-brand transition"
+                        data-step="1"
+                    >
+                        <i class="fa-solid fa-arrow-right"></i>要素処理
+                    </button>
+                    <button
+                        class="step-btn inline-flex items-center gap-2 px-4 py-2 bg-white border border-paper-line rounded-md text-slate-600 font-medium hover:border-brand hover:text-brand transition"
+                        data-step="2"
+                    >
+                        <i class="fa-solid fa-calculator"></i>面積計算
+                    </button>
+                    <button
+                        class="step-btn inline-flex items-center gap-2 px-4 py-2 bg-white border border-paper-line rounded-md text-slate-600 font-medium hover:border-brand hover:text-brand transition"
+                        data-step="3"
+                    >
+                        <i class="fa-solid fa-check"></i>完了
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="step-content active" data-step="0">
+                        <h3 class="text-lg font-semibold">1. 初期化フェーズ</h3>
+                        <ul class="list-disc pl-6 mt-2 space-y-1">
+                            <li><strong>stack</strong>: インデックスを格納する単調増加スタック</li>
+                            <li><strong>max_area</strong>: 最大面積</li>
+                            <li><strong>番兵</strong>: 末尾に高さ0を仮想追加して残りを一括処理</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-content hidden" data-step="1">
+                        <h3 class="text-lg font-semibold">2. 要素処理フェーズ</h3>
+                        <ul class="list-disc pl-6 mt-2 space-y-1">
+                            <li>現在高さがトップより<strong>高い</strong> ⇒ push</li>
+                            <li>現在高さがトップより<strong>低い</strong> ⇒ popして面積計算</li>
+                            <li>単調性により候補を効率的に絞り込み</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-content hidden" data-step="2">
+                        <h3 class="text-lg font-semibold">3. 面積計算フェーズ</h3>
+                        <ul class="list-disc pl-6 mt-2 space-y-1">
+                            <li><strong>高さ</strong>：pop要素の高さ</li>
+                            <li><strong>幅</strong>：現在位置 − 左端 − 1</li>
+                            <li><strong>面積</strong>：高さ × 幅（最大更新）</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-content hidden" data-step="3">
+                        <h3 class="text-lg font-semibold">4. 完了フェーズ</h3>
+                        <ul class="list-disc pl-6 mt-2 space-y-1">
+                            <li>番兵によりスタックの残りを全てpop</li>
+                            <li>最終的な最大面積を返却</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Implementation -->
+            <section
+                class="bg-white rounded-xl border border-paper-line shadow-card p-6 mb-6 hover:shadow-cardLg transition"
+            >
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-paper-tertiary">
+                    <i class="fa-solid fa-code text-brand text-2xl"></i>
+                    <h2 class="text-xl font-semibold">Python実装</h2>
+                </div>
+
+                <div class="rounded-xl overflow-hidden shadow-card border border-paper-line">
+                    <div
+                        class="flex items-center justify-between px-4 py-3 bg-slate-800 text-white font-mono"
+                    >
+                        <span
+                            ><i class="fa-brands fa-python text-amber-400 mr-2"></i
+                            >solution.py</span
+                        >
+                        <button
+                            class="copy-btn inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/20 bg-white/10 hover:bg-white/20 transition"
+                            onclick="copyCode()"
+                        >
+                            <i class="fa-regular fa-clipboard"></i>コピー
+                        </button>
+                    </div>
+                    <pre
+                        class="line-numbers whitespace-pre leading-[1.6] bg-slate-800"
+                    ><code class="language-python" id="main-code">from typing import List
+
+class Solution:
+    """
+    Largest Rectangle in Histogram を解くクラス
+    単調スタックによるO(n)時間解法
+    """
+
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        """
+        ヒストグラム内の最大長方形面積を求める
+
+        Args:
+            heights: 各棒の高さのリスト
+        Returns:
+            最大長方形の面積
+        Time: O(n), Space: O(n)
+        """
+        n = len(heights)
+        stack = []  # インデックスを格納
+        max_area = 0
+
+        # 各要素を処理（番兵として末尾に0を追加）
+        for i in range(n + 1):
+            # 番兵: i == n の時は高さ0として処理
+            current_height = 0 if i == n else heights[i]
+
+            # 現在の高さがスタックトップより低い間、面積計算
+            while stack and current_height &lt; heights[stack[-1]]:
+                # スタックから高さのインデックスを取得
+                height_index = stack.pop()
+                height = heights[height_index]
+
+                # 幅を計算: 現在位置 - 左端 - 1
+                left_boundary = stack[-1] if stack else -1
+                width = i - left_boundary - 1
+
+                # 面積計算と最大値更新
+                area = height * width
+                max_area = max(max_area, area)
+
+            # 現在のインデックスをスタックにプッシュ
+            stack.append(i)
+
+        return max_area
+
+# 使用例
+def demo():
+    solution = Solution()
+
+    heights1 = [2, 1, 5, 6, 2, 3]
+    result1 = solution.largestRectangleArea(heights1)
+    print(f"Input: {heights1}")
+    print(f"Output: {result1}")  # Expected: 10
+
+    heights2 = [2, 4]
+    result2 = solution.largestRectangleArea(heights2)
+    print(f"Input: {heights2}")
+    print(f"Output: {result2}")  # Expected: 4
+
+if __name__ == "__main__":
+    demo()
+   </code></pre>
+                </div>
+            </section>
+
+            <!-- Key Points -->
+            <section
+                class="bg-white rounded-xl border border-paper-line shadow-card p-6 mb-8 hover:shadow-cardLg transition"
+            >
+                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-paper-tertiary">
+                    <i class="fa-solid fa-key text-brand text-2xl"></i>
+                    <h2 class="text-xl font-semibold">重要ポイント</h2>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div class="rounded-lg p-5 bg-brand.light">
+                        <h4 class="font-semibold text-brand mb-1">
+                            <i class="fa-brands fa-stack-overflow mr-2"></i>単調スタック
+                        </h4>
+                        <p>スタック内のインデックスに対応する高さが常に単調増加になるよう維持</p>
+                    </div>
+                    <div class="rounded-lg p-5 bg-paper-soft">
+                        <h4 class="font-semibold text-violetx mb-1">
+                            <i class="fa-solid fa-shield-halved mr-2"></i>番兵テクニック
+                        </h4>
+                        <p>配列末尾に高さ0の仮想要素を追加し、残りの要素を一括処理</p>
+                    </div>
+                    <div class="rounded-lg p-5 bg-sky-50">
+                        <h4 class="font-semibold text-emerald-600 mb-1">
+                            <i class="fa-solid fa-chart-line mr-2"></i>線形時間
+                        </h4>
+                        <p>各要素は最大1回プッシュ・ポップされるため、全体で O(n)</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Prism scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+        <!-- Interactions -->
+        <script>
+            // Demo state
+            let demoStep = 0;
+            let demoRunning = false;
+            const heights = [2, 1, 5, 6, 2, 3];
+            let stack = [];
+            let maxArea = 0;
+
+            // Step navigation (Tailwindクラスで見た目を切替)
+            document.querySelectorAll('.step-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const step = btn.dataset.step;
+                    showStep(step);
+                });
+            });
+
+            function showStep(step) {
+                document.querySelectorAll('.step-btn').forEach((b) => {
+                    b.classList.remove(
+                        'bg-brand',
+                        'text-white',
+                        'border-brand',
+                        'hover:text-white',
+                    );
+                    b.classList.remove('active');
+                    b.classList.add('bg-white', 'text-slate-600', 'border', 'border-paper-line');
+                });
+                const activeBtn = document.querySelector(`[data-step="${step}"]`);
+                activeBtn.classList.add(
+                    'bg-brand',
+                    'text-white',
+                    'border-brand',
+                    'hover:text-white',
+                );
+                activeBtn.classList.remove('bg-white', 'text-slate-600', 'border-paper-line');
+
+                document.querySelectorAll('.step-content').forEach((c) => {
+                    c.classList.add('hidden');
+                    c.classList.remove('active');
+                });
+                const activeContent = document.querySelector(`.step-content[data-step="${step}"]`);
+                activeContent.classList.remove('hidden');
+                activeContent.classList.add('active');
+            }
+
+            // Demo controls
+            function startDemo() {
+                if (demoRunning) return;
+                demoRunning = true;
+                resetDemo();
+                const interval = setInterval(() => {
+                    if (demoStep >= heights.length + 1) {
+                        clearInterval(interval);
+                        demoRunning = false;
+                        updateStepInfo(`完了！最大面積: ${maxArea}`);
+                        return;
+                    }
+                    processStep();
+                    demoStep++;
+                }, 1800);
+            }
+            function nextStep() {
+                if (demoStep < heights.length + 1) {
+                    processStep();
+                    demoStep++;
+                }
+                if (demoStep >= heights.length + 1) {
+                    updateStepInfo(`完了！最大面積: ${maxArea}`);
+                }
+            }
+            function resetDemo() {
+                demoStep = 0;
+                stack = [];
+                maxArea = 0;
+                demoRunning = false;
+                document.querySelectorAll('.bar').forEach((b) => {
+                    b.classList.remove('ring-2', 'ring-emerald-400', 'scale-105', 'animate-pulse');
+                    b.classList.remove('from-emerald-400', 'to-green-600');
+                    b.classList.remove('from-amber-400', 'to-rose-500');
+                    b.classList.add('from-brand', 'to-violetx');
+                    b.style.transform = '';
+                    b.style.zIndex = '';
+                });
+                updateStackVisualization();
+                updateStepInfo('デモを開始してください');
+            }
+
+            function processStep() {
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach((b) => {
+                    b.classList.remove('ring-2', 'ring-emerald-400', 'scale-105', 'animate-pulse');
+                    b.classList.remove('from-emerald-400', 'to-green-600');
+                    b.classList.remove('from-amber-400', 'to-rose-500');
+                    b.classList.add('from-brand', 'to-violetx');
+                });
+
+                if (demoStep < heights.length) {
+                    const currentHeight = heights[demoStep];
+                    const currentBar = bars[demoStep];
+                    currentBar.classList.remove('from-brand', 'to-violetx');
+                    currentBar.classList.add('from-amber-400', 'to-rose-500', 'animate-pulse');
+
+                    // Monotonic stack process
+                    while (stack.length && currentHeight < heights[stack[stack.length - 1]]) {
+                        const heightIndex = stack.pop();
+                        const height = heights[heightIndex];
+                        const leftBoundary = stack.length ? stack[stack.length - 1] : -1;
+                        const width = demoStep - leftBoundary - 1;
+                        const area = height * width;
+                        if (area > maxArea) maxArea = area;
+
+                        const bar = bars[heightIndex];
+                        bar.classList.remove('from-brand', 'to-violetx');
+                        bar.classList.add(
+                            'from-emerald-400',
+                            'to-green-600',
+                            'ring-2',
+                            'ring-emerald-400',
+                            'scale-105',
+                        );
+                        updateStepInfo(
+                            `インデックス ${heightIndex} (高さ ${height}) をポップ。面積: ${area}, 最大面積: ${maxArea}`,
+                        );
+                    }
+                    stack.push(demoStep);
+                    updateStepInfo(`インデックス ${demoStep} (高さ ${currentHeight}) をプッシュ`);
+                } else {
+                    // sentinel: flush
+                    while (stack.length) {
+                        const heightIndex = stack.pop();
+                        const height = heights[heightIndex];
+                        const leftBoundary = stack.length ? stack[stack.length - 1] : -1;
+                        const width = heights.length - leftBoundary - 1;
+                        const area = height * width;
+                        if (area > maxArea) maxArea = area;
+
+                        const bar = bars[heightIndex];
+                        bar.classList.remove('from-brand', 'to-violetx');
+                        bar.classList.add(
+                            'from-emerald-400',
+                            'to-green-600',
+                            'ring-2',
+                            'ring-emerald-400',
+                            'scale-105',
+                        );
+                        updateStepInfo(
+                            `残りの要素を処理: i=${heightIndex} (h=${height}), 面積: ${area}, 最大面積: ${maxArea}`,
+                        );
+                    }
+                }
+                updateStackVisualization();
+            }
+
+            function updateStackVisualization() {
+                const container = document.getElementById('stack-container');
+                container.innerHTML = '';
+                if (!stack.length) {
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'text-slate-400 italic';
+                    emptyMsg.textContent = '空のスタック';
+                    container.appendChild(emptyMsg);
+                    return;
+                }
+                stack.forEach((index, i) => {
+                    const item = document.createElement('div');
+                    item.className =
+                        'stack-item px-3 py-1 my-0.5 rounded-md text-white font-mono font-medium transition';
+                    item.classList.add('bg-brand');
+                    item.textContent = `${index} (${heights[index]})`;
+                    if (i === stack.length - 1) {
+                        item.classList.remove('bg-brand');
+                        item.classList.add('bg-emerald-500', 'scale-105');
+                    }
+                    container.appendChild(item);
+                });
+            }
+
+            function updateStepInfo(msg) {
+                document.getElementById('step-info').textContent = msg;
+            }
+
+            // Copy code
+            function copyCode() {
+                const code = document.getElementById('main-code').textContent;
+                const btn = document.querySelector('.copy-btn');
+                const original = btn.innerHTML;
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>コピー完了';
+                    btn.classList.remove('bg-white/10');
+                    btn.classList.add('bg-emerald-500');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('bg-emerald-500');
+                        btn.classList.add('bg-white/10');
+                    }, 1600);
+                });
+            }
+
+            // Prism init + line numbers
+            document.addEventListener('DOMContentLoaded', () => {
+                Prism.highlightAll();
+                document
+                    .querySelectorAll('pre code')
+                    .forEach((block) => block.parentNode.classList.add('line-numbers'));
+            });
+
+            // Hover info on bars (UX)
+            document.querySelectorAll('.bar').forEach((bar, idx) => {
+                bar.addEventListener('mouseenter', () => {
+                    if (!demoRunning) {
+                        bar.style.transform = 'scale(1.05)';
+                        bar.style.zIndex = '10';
+                        updateStepInfo(`棒 ${idx}: 高さ ${heights[idx]}`);
+                    }
+                });
+                bar.addEventListener('mouseleave', () => {
+                    if (!demoRunning) {
+                        bar.style.transform = '';
+                        bar.style.zIndex = '';
+                        updateStepInfo('マウスを棒の上に置くと詳細が表示されます');
+                    }
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!demoRunning) startDemo();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    resetDemo();
+                } else if (e.key === 'ArrowRight') {
+                    nextStep();
+                }
+            });
+
+            // Console hint
+            setTimeout(() => {
+                console.log('🎯 Largest Rectangle in Histogram (Monotonic Stack)');
+                console.log('⌨️  Space/Enter: Start,  R: Reset,  →: Next');
+            }, 800);
+        </script>
+    </body>
+</html>

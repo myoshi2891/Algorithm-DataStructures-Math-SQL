@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Largest Rectangle in Histogram — 技術解説（単調増加スタック法 / Python）</title>
+
+        <!-- Fonts & Icons -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+
+        <!-- Prism.js (CDN) -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <style>
+            /* =========================
+       Design System (Light)
+       ========================= */
+            :root {
+                --bg: #f6f8fc;
+                --surface: #ffffff;
+                --text: #1f2937;
+                --muted: #667085;
+
+                --primary: #2563eb; /* Indigo/Blue */
+                --secondary: #7c3aed; /* Violet */
+                --accent: #10b981; /* Emerald */
+                --info: #06b6d4; /* Cyan */
+                --danger: #ef4444; /* Red */
+
+                --border: #e6e8ef;
+                --shadow: 0 10px 28px rgba(20, 32, 70, 0.06);
+                --radius: 16px;
+                --radius-sm: 12px;
+
+                --code-bg: #f7f9ff;
+                --step-bg: #f4fbff;
+
+                --grad-primary: linear-gradient(90deg, #2563eb 0%, #06b6d4 100%);
+                --grad-accent: linear-gradient(90deg, #10b981 0%, #22c55e 100%);
+                --grad-violet: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
+            }
+
+            /* Reset-ish */
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                background: var(--bg);
+                color: var(--text);
+                line-height: 1.6;
+                font-family:
+                    Inter,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    'Helvetica Neue',
+                    Arial,
+                    'Noto Sans JP',
+                    'Hiragino Kaku Gothic ProN',
+                    'Yu Gothic UI',
+                    Meiryo,
+                    sans-serif;
+                -webkit-font-smoothing: antialiased;
+                text-rendering: optimizeLegibility;
+            }
+            img,
+            svg {
+                max-width: 100%;
+                height: auto;
+            }
+            a {
+                color: var(--primary);
+                text-decoration: none;
+            }
+            code,
+            pre,
+            kbd,
+            samp {
+                font-family:
+                    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+                    'Liberation Mono', monospace;
+            }
+
+            /* ===== Page ===== */
+            .container {
+                max-width: 1180px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            header.hero {
+                background: linear-gradient(120deg, #ffffff 0%, #eef4ff 120%);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                padding: 22px 18px 16px 18px;
+                margin: 12px 0 22px;
+                position: relative;
+            }
+            .hero::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: var(--radius);
+                background:
+                    radial-gradient(
+                        1200px 280px at 20% -10%,
+                        rgba(37, 99, 235, 0.08),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        900px 220px at 80% -10%,
+                        rgba(16, 185, 129, 0.1),
+                        transparent 60%
+                    );
+                pointer-events: none;
+            }
+            .hero h1 {
+                margin: 0 0 6px;
+                font-size: clamp(22px, 3.2vw, 32px);
+                font-weight: 800;
+            }
+            .subtitle {
+                color: var(--muted);
+                margin-bottom: 8px;
+            }
+            .badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                border-radius: 999px;
+                font-size: 13px;
+                background: #fff;
+                border: 1px solid var(--border);
+                color: #334155;
+            }
+
+            /* ===== Sections (1 & 2 are full width like 5) ===== */
+            .stacked {
+                display: grid;
+                gap: 18px;
+            } /* sec1, sec2 full width */
+            .row-2col {
+                display: grid;
+                gap: 18px;
+                grid-template-columns: 1fr 1fr;
+            }
+            @media (max-width: 980px) {
+                .row-2col {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            section.card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                padding: 14px;
+                margin-bottom: 14px;
+                min-width: 0;
+                position: relative;
+                overflow: hidden;
+            }
+            section.card h2 {
+                margin: 2px 0 12px;
+                font-size: clamp(18px, 2.4vw, 22px);
+                position: relative;
+                padding-left: 12px;
+            }
+            /* colorful left bar */
+            .sec1 h2::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                bottom: 6px;
+                width: 6px;
+                border-radius: 4px;
+                background: var(--grad-primary);
+            }
+            .sec2 h2::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                bottom: 6px;
+                width: 6px;
+                border-radius: 4px;
+                background: var(--grad-violet);
+            }
+
+            .sec3 h2::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                bottom: 6px;
+                width: 6px;
+                border-radius: 4px;
+                background: var(--grad-accent);
+            }
+            .sec4 h2::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                bottom: 6px;
+                width: 6px;
+                border-radius: 4px;
+                background: var(--grad-primary);
+            }
+            .sec5 h2::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                bottom: 6px;
+                width: 6px;
+                border-radius: 4px;
+                background: var(--grad-violet);
+            }
+
+            .note {
+                color: var(--muted);
+                font-size: 13px;
+            }
+
+            /* ===== KPI ===== */
+            .kpis {
+                display: grid;
+                gap: 10px;
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .kpi {
+                background: linear-gradient(180deg, #ffffff 0%, #f6fbff 100%);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 10px;
+                box-shadow:
+                    inset 0 1px 0 #fff,
+                    0 6px 16px rgba(37, 99, 235, 0.06);
+            }
+            .kpi:nth-child(2) {
+                background: linear-gradient(180deg, #ffffff 0%, #f3fff9 100%);
+                box-shadow:
+                    inset 0 1px 0 #fff,
+                    0 6px 16px rgba(16, 185, 129, 0.08);
+            }
+            .kpi:nth-child(3) {
+                background: linear-gradient(180deg, #ffffff 0%, #f7efff 100%);
+                box-shadow:
+                    inset 0 1px 0 #fff,
+                    0 6px 16px rgba(124, 58, 237, 0.08);
+            }
+            .kpi .title {
+                font-size: 12px;
+                color: var(--muted);
+            }
+            .kpi .value {
+                font-size: 22px;
+                font-weight: 800;
+            }
+            @media (max-width: 720px) {
+                .kpis {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            @media (max-width: 520px) {
+                .kpis {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* ===== Code (compact; remove excess blank) ===== */
+            .code-shell {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                background: #fff;
+                overflow: hidden;
+            }
+            .code-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 10px;
+                border-bottom: 1px solid var(--border);
+                background: linear-gradient(90deg, #ffffff 0%, #eef4ff 60%, #effdf7 100%);
+            }
+            .code-title {
+                font-weight: 700;
+                font-size: 14px;
+            }
+            .code-actions {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                color: var(--muted);
+                font-size: 12px;
+            }
+            /* Tight code block */
+            pre[class*='language-'] {
+                margin: 0;
+                padding: 1rem !important;
+                background: var(--code-bg) !important;
+                border: 0;
+                max-width: 100%;
+                max-height: 36rem;
+                overflow: auto;
+                border-radius: 0 !important;
+            }
+            /* Narrower line number gutter */
+            pre.line-numbers {
+                padding-left: 5.2em !important;
+            }
+            .line-numbers .line-numbers-rows {
+                width: 2.4em;
+            }
+            /* Avoid big empty overlays from plugin */
+            pre[data-line] .line-highlight {
+                overflow: hidden;
+                padding: 0;
+            }
+
+            /* ===== Steps (Sec3) ===== */
+            .steps {
+                display: grid;
+                gap: 8px;
+            }
+            .step {
+                background: var(--step-bg);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 8px 10px;
+                transition:
+                    transform 0.16s ease,
+                    background 0.16s ease;
+                box-shadow: 0 4px 14px rgba(6, 182, 212, 0.05);
+            }
+            .step small {
+                display: block;
+                color: var(--muted);
+            }
+            .step:hover {
+                transform: translateY(-1px);
+                background: #eaf6ff;
+            }
+            .step.active {
+                outline: 2px solid #22c55e;
+                background: #f0fff7;
+            }
+
+            /* ===== Visualizer (Sec4) ===== */
+            .viz-wrap {
+                display: grid;
+                gap: 10px;
+                grid-template-rows: auto auto auto 1fr;
+            }
+            .controls {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 8px 10px;
+                background: #fff;
+                background-image: linear-gradient(
+                    90deg,
+                    rgba(37, 99, 235, 0.06),
+                    rgba(16, 185, 129, 0.06)
+                );
+            }
+            .btns {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            button.icon {
+                appearance: none;
+                border: 1px solid var(--border);
+                background: #fff;
+                color: var(--text);
+                padding: 8px 12px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 600;
+                transition:
+                    transform 0.18s ease,
+                    box-shadow 0.18s ease,
+                    background 0.18s ease;
+            }
+            button.icon:hover {
+                transform: translateY(-1px);
+                box-shadow: var(--shadow);
+            }
+            .progress {
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+            .bars {
+                display: flex;
+                align-items: flex-end;
+                gap: 10px;
+                min-height: 220px;
+                padding: 10px;
+                border: 1px dashed var(--border);
+                border-radius: 12px;
+                background: #fbfdff;
+                overflow: hidden;
+                background-image:
+                    radial-gradient(
+                        500px 140px at 10% -20%,
+                        rgba(37, 99, 235, 0.05),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        500px 140px at 90% -20%,
+                        rgba(16, 185, 129, 0.05),
+                        transparent 60%
+                    );
+            }
+            .bar {
+                width: 42px;
+                border-radius: 10px 10px 6px 6px;
+                position: relative;
+                background: linear-gradient(180deg, #dbe8ff, #b7ccff);
+                border: 1px solid #c6d7ff;
+                transition:
+                    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+                    height 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+                    box-shadow 0.35s;
+                box-shadow:
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.7),
+                    0 8px 18px rgba(120, 153, 255, 0.16);
+            }
+            .bar .label {
+                position: absolute;
+                bottom: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 12px;
+                color: var(--muted);
+            }
+            .bar.active {
+                outline: 3px solid var(--primary);
+                box-shadow: 0 10px 18px rgba(37, 99, 235, 0.2);
+            }
+            .bar.stacked {
+                border-color: var(--accent);
+                box-shadow:
+                    0 8px 18px rgba(16, 185, 129, 0.22),
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+            }
+            .bar.pop {
+                background: linear-gradient(180deg, #ffdede, #ffbaba);
+                border-color: #ffc6c6;
+            }
+
+            .stack {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                min-height: 42px;
+                padding: 8px;
+                border-radius: 10px;
+                background: linear-gradient(90deg, #f0fff8, #f2fffb);
+                border: 1px solid #c8f1e1;
+            }
+            .chip {
+                padding: 6px 9px;
+                background: #fff;
+                border: 1px solid #d7f2e8;
+                border-radius: 8px;
+                font-size: 12px;
+                color: #0b7f5b;
+                box-shadow: 0 4px 10px rgba(16, 185, 129, 0.12);
+            }
+
+            .legend {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                font-size: 12px;
+                color: var(--muted);
+            }
+            .swatch {
+                display: inline-block;
+                width: 16px;
+                height: 10px;
+                border-radius: 3px;
+                border: 1px solid var(--border);
+            }
+            .swatch.active {
+                background: var(--primary);
+            }
+            .swatch.stack {
+                background: var(--accent);
+            }
+            .swatch.pop {
+                background: var(--danger);
+            }
+
+            /* Footer */
+            footer {
+                text-align: center;
+                color: var(--muted);
+                padding: 18px 0 10px;
+                font-size: 13px;
+            }
+
+            /* Motion */
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    transition: none !important;
+                    animation: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header class="hero" aria-label="page header">
+                <h1>Largest Rectangle in Histogram — Python 技術解説</h1>
+                <div class="subtitle">
+                    対象アルゴリズム：<strong
+                        >単調増加スタック法 (Monotonic Increasing Stack)</strong
+                    >
+                    ／ 言語：Python (CPython 3.11+)
+                </div>
+                <div class="badges">
+                    <span class="badge"><i class="fa-solid fa-gauge-high"></i> Time O(n)</span>
+                    <span class="badge"><i class="fa-solid fa-memory"></i> Space O(n)</span>
+                    <span class="badge"><i class="fa-solid fa-code"></i> LeetCode Class 形式</span>
+                    <span class="badge"
+                        ><i class="fa-solid fa-swatchbook"></i> カラフルなライトテーマ</span
+                    >
+                    <span class="badge"
+                        ><i class="fa-solid fa-mobile-screen"></i> レスポンシブ</span
+                    >
+                </div>
+            </header>
+
+            <!-- 1 & 2: FULL WIDTH (same width as section 5) -->
+            <div class="stacked">
+                <section class="card sec1">
+                    <h2>1. アルゴリズム概要</h2>
+                    <p>
+                        配列を一次走査し、<em>高さが単調に増加するインデックス</em>をスタックへ保持します。
+                        現在の高さがスタック頂点より低くなった時、頂点を最小高さとする長方形の幅が確定します。
+                        末尾では番兵（高さ0）を用いて残りを一括処理することで、1本のループで実装可能です。
+                    </p>
+                    <div class="kpis" aria-label="kpi">
+                        <div class="kpi">
+                            <div class="title">対象配列（例）</div>
+                            <div class="value" id="kpiInput">[2, 1, 5, 6, 2, 3]</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="title">最大面積（進行中）</div>
+                            <div class="value" id="kpiArea">0</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="title">現在の i / n</div>
+                            <div class="value" id="kpiIndex">0 / 6</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card sec2">
+                    <h2>2. コード例（シンタックスハイライト付き）</h2>
+                    <div class="code-shell">
+                        <div class="code-head">
+                            <div class="code-title">
+                                <i class="fa-solid fa-python"></i> Python / LeetCode Class
+                            </div>
+                            <div class="code-actions">
+                                <span><i class="fa-regular fa-object-group"></i> 行番号</span
+                                ><span><i class="fa-regular fa-clipboard"></i> コピー可</span>
+                            </div>
+                        </div>
+                        <div id="code">
+                            <pre
+                                class="line-numbers"
+                                data-line="9-10,12-18,19"
+                            ><code class="language-python">from typing import List
+
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        n: int = len(heights)
+        stack: List[int] = []
+        h = heights
+        ma = 0
+        st = stack
+
+        for i in range(n + 1):
+            curr: int = 0 if i == n else h[i]  # sentinel at i==n
+            while st and curr &lt; h[st[-1]]:
+                top: int = st.pop()
+                height: int = h[top]
+                left: int = st[-1] if st else -1
+                width: int = i - left - 1
+                area: int = height * width
+                if area &gt; ma:
+                    ma = area
+            st.append(i)  # push current index (sentinel allowed)
+        return ma
+</code></pre>
+                        </div>
+                    </div>
+                    <p class="note">
+                        ※ 余白を圧縮（コンパクトなパディング・細い行番号ガター・オーバーレイ抑止）
+                    </p>
+                </section>
+            </div>
+
+            <!-- 3 & 4: SIDE-BY-SIDE ROW -->
+            <div class="row-2col">
+                <section class="card sec3">
+                    <h2>3. ステップバイステップ解説</h2>
+                    <p>
+                        例：<code>[2, 1, 5, 6, 2, 3]</code>
+                        を順に処理。各ステップでスタックと更新面積を表示します（クリックでジャンプ）。
+                    </p>
+                    <div id="steps" class="steps" aria-live="polite"></div>
+                </section>
+
+                <section class="card sec4">
+                    <h2>4. 視覚的図解・フローチャート</h2>
+                    <div class="viz-wrap">
+                        <div class="controls">
+                            <div class="btns">
+                                <button class="icon" id="btnPrev" title="前へ">
+                                    <i class="fa-solid fa-circle-chevron-left"></i> Prev
+                                </button>
+                                <button class="icon" id="btnPlay" title="再生 / 一時停止">
+                                    <i class="fa-solid fa-circle-play"></i> Play
+                                </button>
+                                <button class="icon" id="btnNext" title="次へ">
+                                    Next <i class="fa-solid fa-circle-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="progress" id="progress">Step 1 / 7</div>
+                        </div>
+
+                        <div class="bars" id="bars" aria-label="histogram bars"></div>
+                        <div class="stack" id="stack" aria-label="stack of indices"></div>
+                        <div class="legend">
+                            <span><span class="swatch active"></span> 現在バー</span>
+                            <span><span class="swatch stack"></span> スタック中</span>
+                            <span><span class="swatch pop"></span> pop対象</span>
+                        </div>
+
+                        <!-- SVG（Mermaid不使用） -->
+                        <div
+                            style="
+                                border: 1px solid var(--border);
+                                border-radius: 12px;
+                                padding: 8px;
+                                background: #fff;
+                            "
+                        >
+                            <svg
+                                viewBox="0 0 860 240"
+                                width="100%"
+                                height="200"
+                                aria-label="Flowchart"
+                            >
+                                <defs>
+                                    <linearGradient id="g1" x1="0" x2="1">
+                                        <stop offset="0%" stop-color="#e8f0ff" />
+                                        <stop offset="100%" stop-color="#ffffff" />
+                                    </linearGradient>
+                                    <linearGradient id="g2" x1="0" x2="1">
+                                        <stop offset="0%" stop-color="#e8fff6" />
+                                        <stop offset="100%" stop-color="#ffffff" />
+                                    </linearGradient>
+                                    <style>
+                                        .node {
+                                            rx: 12;
+                                            ry: 12;
+                                            fill: url(#g1);
+                                            stroke: #cfe0ff;
+                                        }
+                                        .node2 {
+                                            rx: 12;
+                                            ry: 12;
+                                            fill: url(#g2);
+                                            stroke: #c8f0e0;
+                                        }
+                                        .txt {
+                                            font:
+                                                600 13px Inter,
+                                                Arial;
+                                            fill: #1f2937;
+                                        }
+                                        .edge {
+                                            stroke: #9aa7c8;
+                                            stroke-width: 2;
+                                            marker-end: url(#arrow);
+                                        }
+                                    </style>
+                                    <marker
+                                        id="arrow"
+                                        markerWidth="10"
+                                        markerHeight="10"
+                                        refX="8"
+                                        refY="3"
+                                        orient="auto"
+                                        markerUnits="strokeWidth"
+                                    >
+                                        <path d="M0,0 L0,6 L9,3 z" fill="#9aa7c8" />
+                                    </marker>
+                                </defs>
+
+                                <rect class="node" x="20" y="20" width="170" height="44"></rect>
+                                <text class="txt" x="35" y="48">Start &amp; stack=[]</text>
+
+                                <rect class="node" x="230" y="20" width="210" height="44"></rect>
+                                <text class="txt" x="245" y="48">for i in [0..n] (sentinel)</text>
+
+                                <rect class="node2" x="480" y="20" width="170" height="44"></rect>
+                                <text class="txt" x="495" y="48">curr = 0 if i==n else h[i]</text>
+
+                                <rect class="node" x="690" y="20" width="150" height="44"></rect>
+                                <text class="txt" x="705" y="48">push i</text>
+
+                                <rect class="node" x="480" y="90" width="220" height="54"></rect>
+                                <text class="txt" x="495" y="120">
+                                    while stack and curr &lt; h[top]
+                                </text>
+
+                                <rect class="node2" x="240" y="160" width="340" height="54"></rect>
+                                <text class="txt" x="255" y="189">
+                                    pop → left = stack[-1] or -1
+                                </text>
+                                <text class="txt" x="255" y="207">
+                                    width = i-left-1; area = h[top]*width
+                                </text>
+
+                                <line class="edge" x1="190" y1="42" x2="230" y2="42"></line>
+                                <line class="edge" x1="440" y1="42" x2="480" y2="42"></line>
+                                <line class="edge" x1="650" y1="42" x2="690" y2="42"></line>
+                                <line class="edge" x1="565" y1="64" x2="565" y2="90"></line>
+                                <line class="edge" x1="480" y1="118" x2="240" y2="187"></line>
+                                <line class="edge" x1="580" y1="144" x2="565" y2="64"></line>
+                                <line class="edge" x1="765" y1="64" x2="765" y2="220"></line>
+                                <line class="edge" x1="765" y1="220" x2="150" y2="220"></line>
+                                <line class="edge" x1="150" y1="220" x2="150" y2="64"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 5: FULL WIDTH -->
+            <section class="card sec5" style="margin-top: 18px">
+                <h2>5. 時間計算量の説明</h2>
+                <ul>
+                    <li>
+                        <strong>時間計算量：</strong> O(n) — 各インデックスは高々 1 回 push / 1 回
+                        pop。
+                    </li>
+                    <li>
+                        <strong>空間計算量：</strong> O(n) — スタックに最大 n
+                        個のインデックスを保持。
+                    </li>
+                </ul>
+            </section>
+
+            <footer>
+                © 技術解説 / World-class UX:
+                フル幅(1・2・5)＋横並び(3・4)の視線誘導／アクセシブルな彩度設計。
+            </footer>
+        </div>
+
+        <!-- Prism scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-highlight/prism-line-highlight.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+
+        <script>
+            // ==========================
+            //  Data & Elements
+            // ==========================
+            const inputHeights = [2, 1, 5, 6, 2, 3];
+            const n = inputHeights.length;
+
+            const barsEl = document.getElementById('bars');
+            const stackEl = document.getElementById('stack');
+            const stepsEl = document.getElementById('steps');
+            const kpiArea = document.getElementById('kpiArea');
+            const kpiIndex = document.getElementById('kpiIndex');
+            const progress = document.getElementById('progress');
+
+            // ==========================
+            //  Steps (compact)
+            // ==========================
+            const steps = [
+                {
+                    title: 'Step 1: i=0 → push 0',
+                    desc: 'スタック空。2をpush。',
+                    currentIndex: 0,
+                    stack: [0],
+                    pops: [],
+                    maxArea: 0,
+                    code: '9-10,19',
+                },
+                {
+                    title: 'Step 2: i=1 → pop 0 → push 1',
+                    desc: 'curr=1で2をpop。面積2。',
+                    currentIndex: 1,
+                    stack: [1],
+                    pops: [0],
+                    maxArea: 2,
+                    code: '12-18',
+                },
+                {
+                    title: 'Step 3: i=2 → push 2',
+                    desc: '1 ≤ 5 のため push。',
+                    currentIndex: 2,
+                    stack: [1, 2],
+                    pops: [],
+                    maxArea: 2,
+                    code: '9-10,19',
+                },
+                {
+                    title: 'Step 4: i=3 → push 3',
+                    desc: '5 ≤ 6 のため push。',
+                    currentIndex: 3,
+                    stack: [1, 2, 3],
+                    pops: [],
+                    maxArea: 2,
+                    code: '9-10,19',
+                },
+                {
+                    title: 'Step 5: i=4 → pop 3, pop 2 → push 4',
+                    desc: '6→面積6, 5→面積10 (最大)。',
+                    currentIndex: 4,
+                    stack: [1, 4],
+                    pops: [3, 2],
+                    maxArea: 10,
+                    code: '12-18',
+                },
+                {
+                    title: 'Step 6: i=5 → push 5',
+                    desc: '2 ≤ 3 のため push。',
+                    currentIndex: 5,
+                    stack: [1, 4, 5],
+                    pops: [],
+                    maxArea: 10,
+                    code: '9-10,19',
+                },
+                {
+                    title: 'Step 7: i=6 (sentinel) → pop 5,4,1',
+                    desc: '残りを排出。最大は10。',
+                    currentIndex: 6,
+                    stack: [6],
+                    pops: [5, 4, 1],
+                    maxArea: 10,
+                    code: '12-18',
+                },
+            ];
+
+            function renderStepsList() {
+                stepsEl.innerHTML = '';
+                steps.forEach((s, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'step';
+                    item.innerHTML = `<strong>${s.title}</strong><small>${s.desc}</small>`;
+                    item.addEventListener('click', () => {
+                        pause();
+                        applyStep(idx);
+                    });
+                    stepsEl.appendChild(item);
+                });
+            }
+
+            function markActiveStep(index) {
+                stepsEl.querySelectorAll('.step').forEach((el, i) => {
+                    el.classList.toggle('active', i === index);
+                });
+            }
+
+            // ==========================
+            //  Visualizers
+            // ==========================
+            function renderBars(state) {
+                const maxVal = Math.max(...inputHeights, 1);
+                const pxPerUnit = Math.max(6, Math.floor(180 / maxVal));
+                barsEl.innerHTML = '';
+                inputHeights.forEach((v, idx) => {
+                    const d = document.createElement('div');
+                    d.className = 'bar';
+                    d.style.height = v * pxPerUnit + 'px';
+                    if (idx === state.currentIndex) d.classList.add('active');
+                    if (state.stack.includes(idx)) d.classList.add('stacked');
+                    if (state.pops.includes(idx)) d.classList.add('pop');
+                    const lb = document.createElement('div');
+                    lb.className = 'label';
+                    lb.textContent = String(v);
+                    d.appendChild(lb);
+                    barsEl.appendChild(d);
+                });
+            }
+
+            function renderStack(state) {
+                stackEl.innerHTML = '';
+                state.stack.forEach((i) => {
+                    const chip = document.createElement('span');
+                    chip.className = 'chip';
+                    chip.textContent =
+                        i >= n ? 'i=sentinel (h=0)' : `i=${i} (h=${inputHeights[i]})`;
+                    stackEl.appendChild(chip);
+                });
+            }
+
+            // Prism line highlight control
+            function highlightCode(lines) {
+                const pre = document.querySelector('#code pre');
+                const code = pre.querySelector('code');
+                pre.setAttribute('data-line', lines);
+                Prism.highlightElement(code);
+            }
+
+            // ==========================
+            //  Controls
+            // ==========================
+            let stepIndex = 0;
+            let timer = null;
+
+            function applyStep(i) {
+                stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+                const s = steps[stepIndex];
+                renderBars({
+                    currentIndex: s.currentIndex,
+                    stack: s.stack,
+                    pops: s.pops,
+                });
+                renderStack({ stack: s.stack });
+                document.getElementById('kpiArea').textContent = String(s.maxArea);
+                document.getElementById('kpiIndex').textContent = `${Math.min(
+                    s.currentIndex,
+                    n,
+                )} / ${n}`;
+                progress.textContent = `Step ${stepIndex + 1} / ${steps.length}`;
+                markActiveStep(stepIndex);
+                highlightCode(s.code);
+                const active = stepsEl.querySelector('.step.active');
+                if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+
+            function play() {
+                if (timer) {
+                    pause();
+                    return;
+                }
+                document.getElementById('btnPlay').innerHTML =
+                    '<i class="fa-solid fa-circle-pause"></i> Pause';
+                timer = setInterval(() => {
+                    if (stepIndex >= steps.length - 1) {
+                        pause();
+                        return;
+                    }
+                    applyStep(stepIndex + 1);
+                }, 1500);
+            }
+            function pause() {
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+                document.getElementById('btnPlay').innerHTML =
+                    '<i class="fa-solid fa-circle-play"></i> Play';
+            }
+
+            document.getElementById('btnPrev').addEventListener('click', () => {
+                pause();
+                applyStep(stepIndex - 1);
+            });
+            document.getElementById('btnNext').addEventListener('click', () => {
+                pause();
+                applyStep(stepIndex + 1);
+            });
+            document.getElementById('btnPlay').addEventListener('click', play);
+
+            // Init
+            renderStepsList();
+            applyStep(0);
+
+            // Keep bars proportional on resize
+            addEventListener('resize', () => applyStep(stepIndex), { passive: true });
+        </script>
+    </body>
+</html>

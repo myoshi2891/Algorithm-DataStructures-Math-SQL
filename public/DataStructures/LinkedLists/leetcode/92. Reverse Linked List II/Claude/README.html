@@ -1,0 +1,1857 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 92: Reverse Linked List II - 部分区間反転アルゴリズム</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Code+Pro:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Prism.js -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+
+        <!-- Prism toolbar の見た目だけ最小限維持 -->
+        <style>
+            code[class*='language-'],
+            pre[class*='language-'] {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+                font-size: 0.95rem;
+            }
+            div.code-toolbar > .toolbar {
+                opacity: 1;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a {
+                background: #fff;
+                border: 1px solid #e6e8ef;
+                border-radius: 10px;
+                padding: 1rem 1.5rem;
+                margin: 1rem 1rem 0 0;
+                font:
+                    600 13px/1.2 Inter,
+                    system-ui,
+                    sans-serif;
+                color: #334155;
+                box-shadow: 0 2px 6px rgba(20, 32, 70, 0.06);
+                transition:
+                    transform 0.15s,
+                    box-shadow 0.15s,
+                    background 0.15s;
+            }
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08);
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1);
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen p-8 sm:p-6 font-[Inter] text-slate-800 leading-relaxed bg-[linear-gradient(135deg,#f0fdf4_0%,#dbeafe_100%)]"
+    >
+        <div class="max-w-[1400px] mx-auto">
+            <!-- Header -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.10)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <h1 class="text-[2.5rem] font-bold text-teal-800 mb-2">Reverse Linked List II</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    部分区間の原地反転による O(n) 時間・O(1) 空間実装
+                </p>
+                <nav class="flex flex-wrap gap-4 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_10px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-700"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <!-- 概要 -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">問題説明</h3>
+                <p>
+                    単方向連結リストの先頭 <code>head</code> と整数 <code>left</code>,
+                    <code>right</code> が与えられる。 位置 <code>left</code> から
+                    <code>right</code> までのノードを反転し、結果のリストを返して下さい。
+                </p>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">入出力例</h3>
+                <pre class="language-python"><code>Input: head = [1,2,3,4,5], left = 2, right = 4
+Output: [1,4,3,2,5]
+
+Input: head = [5], left = 1, right = 1
+Output: [5]</code></pre>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">制約条件</h3>
+                <ul class="ml-6 mt-2 mb-4 list-disc">
+                    <li>
+                        リスト内のノード数を <code>n</code> とする:
+                        <code>1 ≤ n ≤ 500</code>
+                    </li>
+                    <li>ノードの値: <code>-500 ≤ Node.val ≤ 500</code></li>
+                    <li>位置の範囲: <code>1 ≤ left ≤ right ≤ n</code></li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">戦略</h3>
+                <ul class="ml-6 mt-2 mb-4 list-disc">
+                    <li>
+                        <strong>区間反転</strong>: 指定区間
+                        <code>[left, right]</code> を標準の単方向リスト反転で処理
+                    </li>
+                    <li><strong>原地処理</strong>: 追加ノード割当なし（番兵ノード不使用）</li>
+                    <li><strong>一回走査</strong>: O(n) 時間で完了</li>
+                    <li>
+                        <strong>特殊ケース対応</strong>: <code>left==1</code> の場合は先頭から反転
+                    </li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">主要ポイント</h3>
+                <p class="space-x-2">
+                    <span
+                        class="inline-block px-3 py-1 rounded-md font-semibold font-[JetBrains_Mono] bg-blue-100 text-sky-900"
+                        >時間: O(n)</span
+                    >
+                    <span
+                        class="inline-block px-3 py-1 rounded-md font-semibold font-[JetBrains_Mono] bg-pink-100 text-fuchsia-900"
+                        >空間: O(1)</span
+                    >
+                </p>
+                <p class="mt-4">
+                    番兵ノードを使わず、<code>left==1</code>
+                    を個別処理することで追加割当をゼロに抑えた最適実装。
+                </p>
+            </section>
+
+            <!-- ステップ解説 -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-root"></div>
+            </section>
+
+            <!-- コード -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+                <pre class="line-numbers"><code class="language-python">from typing import Optional
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+class Solution:
+    """
+    Reverse Linked List II
+    - 一回走査・O(1)追加メモリ・番兵ノード不要
+    - Time: O(n), Space: O(1)
+    """
+
+    def reverseBetween(
+        self,
+        head: Optional[ListNode],
+        left: int,
+        right: int
+    ) -> Optional[ListNode]:
+        # エッジケース: 空リストまたは区間長1
+        if head is None or left == right:
+            return head
+
+        # Case 1) 先頭から反転（left == 1）
+        if left == 1:
+            prev: Optional[ListNode] = None
+            curr: Optional[ListNode] = head
+            # 先頭から right 個を反転
+            for _ in range(right):
+                next_: Optional[ListNode] = curr.next
+                curr.next = prev
+                prev = curr
+                curr = next_
+            # 旧先頭を残りに接続
+            head.next = curr
+            return prev  # 新しい先頭
+
+        # Case 2) 中間以降の反転（left > 1）
+        # 1) left-1 位置まで進めて pre を取得
+        pre: ListNode = head
+        for _ in range(1, left - 1):
+            pre = pre.next
+
+        # 2) 区間 [left, right] を反転
+        start: ListNode = pre.next
+        prev: Optional[ListNode] = None
+        curr: Optional[ListNode] = start
+        for _ in range(right - left + 1):
+            next_: Optional[ListNode] = curr.next
+            curr.next = prev
+            prev = curr
+            curr = next_
+
+        # 3) 再接続
+        pre.next = prev
+        start.next = curr
+        return head</code></pre>
+            </section>
+
+            <!-- フローチャート -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-[20px] overflow-x-auto">
+                    <!-- ▼▼▼ 元の大型 SVG を完全復元 ▼▼▼ -->
+                    <svg viewBox="0 0 800 880" style="max-width: 100%; height: auto; color: #333">
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                        </defs>
+
+                        <!-- Start -->
+                        <ellipse
+                            cx="400"
+                            cy="60"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text x="400" y="68" text-anchor="middle" font-size="18" font-weight="600">
+                            開始
+                        </text>
+
+                        <!-- Check empty or single -->
+                        <path
+                            d="M 400 95 L 400 150"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <path
+                            d="M 400 150 L 500 200 L 400 250 L 300 200 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text x="400" y="195" text-anchor="middle" font-size="16" font-weight="600">
+                            head が None
+                        </text>
+                        <text x="400" y="215" text-anchor="middle" font-size="16" font-weight="600">
+                            または left == right
+                        </text>
+
+                        <!-- Return head -->
+                        <path
+                            d="M 500 200 L 600 200"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <text
+                            x="540"
+                            y="195"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+                        <rect
+                            x="600"
+                            y="170"
+                            width="140"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text x="670" y="205" text-anchor="middle" font-size="18" font-weight="600">
+                            head を返す
+                        </text>
+
+                        <!-- Check left == 1 -->
+                        <path
+                            d="M 400 250 L 400 310"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <text
+                            x="360"
+                            y="275"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                        <path
+                            d="M 400 310 L 500 360 L 400 410 L 300 360 Z"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text x="400" y="368" text-anchor="middle" font-size="18" font-weight="600">
+                            left == 1
+                        </text>
+
+                        <!-- Reverse from head (left == 1) -->
+                        <path
+                            d="M 500 360 L 600 360"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <text
+                            x="540"
+                            y="355"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+                        <rect
+                            x="600"
+                            y="330"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#ddd6fe"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text x="680" y="355" text-anchor="middle" font-size="18" font-weight="600">
+                            先頭から反転
+                        </text>
+                        <text x="680" y="375" text-anchor="middle" font-size="18" font-weight="600">
+                            right 個分
+                        </text>
+
+                        <!-- Connect tail -->
+                        <path
+                            d="M 680 390 L 680 440"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="600"
+                            y="440"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#ddd6fe"
+                            stroke="#7c3aed"
+                            stroke-width="2"
+                        />
+                        <text x="680" y="465" text-anchor="middle" font-size="18" font-weight="600">
+                            head.next
+                        </text>
+                        <text x="680" y="485" text-anchor="middle" font-size="18" font-weight="600">
+                            = curr
+                        </text>
+
+                        <!-- Return prev -->
+                        <path
+                            d="M 680 500 L 680 540"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="600"
+                            y="540"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text x="680" y="575" text-anchor="middle" font-size="18" font-weight="600">
+                            prev を返す
+                        </text>
+
+                        <!-- Advance to pre (left > 1) -->
+                        <path
+                            d="M 300 360 L 200 360"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <text
+                            x="260"
+                            y="355"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+                        <rect
+                            x="40"
+                            y="330"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#fae8ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text x="120" y="355" text-anchor="middle" font-size="18" font-weight="600">
+                            pre を移動
+                        </text>
+                        <text x="120" y="375" text-anchor="middle" font-size="18" font-weight="600">
+                            left - 1 の位置へ
+                        </text>
+
+                        <!-- Reverse segment -->
+                        <path
+                            d="M 120 390 L 120 450"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="40"
+                            y="450"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#fae8ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text x="120" y="475" text-anchor="middle" font-size="18" font-weight="600">
+                            区間を反転
+                        </text>
+                        <text x="120" y="495" text-anchor="middle" font-size="18" font-weight="600">
+                            [left, right]
+                        </text>
+
+                        <!-- Reconnect -->
+                        <path
+                            d="M 120 510 L 120 570"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="40"
+                            y="570"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#fae8ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text x="120" y="595" text-anchor="middle" font-size="18" font-weight="600">
+                            pre.next = prev
+                        </text>
+                        <text x="120" y="615" text-anchor="middle" font-size="18" font-weight="600">
+                            start.next = curr
+                        </text>
+
+                        <!-- Return head (left > 1) -->
+                        <path
+                            d="M 120 630 L 120 680"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <rect
+                            x="40"
+                            y="680"
+                            width="160"
+                            height="60"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text x="120" y="715" text-anchor="middle" font-size="18" font-weight="600">
+                            head を返す
+                        </text>
+
+                        <!-- End nodes merge -->
+                        <path
+                            d="M 200 710 L 400 710 L 400 790"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                        />
+                        <path
+                            d="M 600 570 L 400 570 L 400 785"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+                        <ellipse
+                            cx="400"
+                            cy="820"
+                            rx="100"
+                            ry="35"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text x="400" y="828" text-anchor="middle" font-size="18" font-weight="600">
+                            終了
+                        </text>
+                    </svg>
+                    <!-- ▲▲▲ 復元ここまで ▲▲▲ -->
+                </div>
+
+                <p class="mt-8 font-[Source_Code_Pro] text-[20px] font-semibold">
+                    <strong class="text-2xl">フローの説明：</strong><br />
+                    1. 空リストまたは区間長1の場合は即座に返す<br />
+                    2. left==1 なら先頭から right 個を反転し、旧先頭を残りに接続<br />
+                    3. left&gt;1 なら pre を left-1 位置まで進める<br />
+                    4. 区間を反転し、pre.next と start.next で再接続<br />
+                    5. 元のリスト先頭を返す
+                </p>
+            </section>
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[2rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse my-4">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    計算量
+                                </th>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    説明
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-3 border"><strong>時間</strong></td>
+                                <td class="p-3 border"><code>O(n)</code></td>
+                                <td class="p-3 border">
+                                    一回走査で left-1 まで進み、区間を反転（最大 n 回操作）
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border"><strong>空間</strong></td>
+                                <td class="p-3 border"><code>O(1)</code></td>
+                                <td class="p-3 border">
+                                    追加ノード割当なし。ローカル変数のみ（prev, curr, next_ 等）
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-semibold text-teal-800 mt-6 mb-3">手法比較</h3>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse my-4">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    手法
+                                </th>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    追加メモリ
+                                </th>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    実装複雑度
+                                </th>
+                                <th
+                                    class="p-3 border text-left bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)] font-semibold text-teal-800"
+                                >
+                                    備考
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-3 border"><strong>原地反転（採用）</strong></td>
+                                <td class="p-3 border">O(1)</td>
+                                <td class="p-3 border">低</td>
+                                <td class="p-3 border">番兵ノード不要、left==1 を個別処理</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border">番兵ノード使用</td>
+                                <td class="p-3 border">O(1)</td>
+                                <td class="p-3 border">低</td>
+                                <td class="p-3 border">実装容易だが1ノード分の割当</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border">再帰反転</td>
+                                <td class="p-3 border">O(n)</td>
+                                <td class="p-3 border">中</td>
+                                <td class="p-3 border">コールスタック深さ=区間長</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- React -->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- アニメーション・可視化 React 実装（元の StepVisualization を復元） -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力と初期確認',
+                    desc: 'head = [1,2,3,4,5], left = 2, right = 4 の場合を例とする。空リストまたは left==right でなければ処理続行。',
+                    visual: {
+                        type: 'init',
+                        list: [1, 2, 3, 4, 5],
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 2,
+                    title: 'left > 1 を確認',
+                    desc: 'left = 2 なので、先頭からの反転ではない。Case 2（中間反転）のルートへ進む。',
+                    visual: {
+                        type: 'check',
+                        list: [1, 2, 3, 4, 5],
+                        left: 2,
+                        right: 4,
+                        caseType: 'middle',
+                    },
+                },
+                {
+                    step: 3,
+                    title: 'pre を left-1 位置へ',
+                    desc: 'pre を位置1（値=1のノード）まで進める。これが反転区間の直前ノード。',
+                    visual: {
+                        type: 'advance',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 4,
+                    title: 'start を設定',
+                    desc: 'start = pre.next で反転区間の先頭（値=2のノード）を取得。',
+                    visual: {
+                        type: 'setStart',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        startIdx: 1,
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 5,
+                    title: '区間反転: 初期化',
+                    desc: 'prev = None, curr = start で反転ループを開始。right - left + 1 = 3 回反転。',
+                    visual: {
+                        type: 'reverseInit',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        startIdx: 1,
+                        currIdx: 1,
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 6,
+                    title: '反転ループ: 1回目',
+                    desc: 'curr (値=2) の next を prev に向ける。prev = curr, curr = next_ へ進む。',
+                    visual: {
+                        type: 'reverseStep',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        startIdx: 1,
+                        currIdx: 2,
+                        reversedIndices: [1],
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 7,
+                    title: '反転ループ: 2回目',
+                    desc: 'curr (値=3) の next を prev に向ける。反転部分が成長。',
+                    visual: {
+                        type: 'reverseStep',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        startIdx: 1,
+                        currIdx: 3,
+                        reversedIndices: [1, 2],
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 8,
+                    title: '反転ループ: 3回目（完了）',
+                    desc: 'curr (値=4) の next を prev に向ける。区間 [2,4] の反転完了。prev は反転後先頭（値=4）。',
+                    visual: {
+                        type: 'reverseStep',
+                        list: [1, 2, 3, 4, 5],
+                        preIdx: 0,
+                        startIdx: 1,
+                        currIdx: 4,
+                        reversedIndices: [1, 2, 3],
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 9,
+                    title: '再接続: pre.next',
+                    desc: 'pre.next = prev で、位置1のノードを反転後先頭（値=4）に接続。',
+                    visual: {
+                        type: 'reconnect1',
+                        list: [1, 4, 3, 2, 5],
+                        preIdx: 0,
+                        newNext: 3,
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 10,
+                    title: '再接続: start.next',
+                    desc: 'start.next = curr で、反転後末尾（値=2）を残り（値=5）に接続。',
+                    visual: {
+                        type: 'reconnect2',
+                        list: [1, 4, 3, 2, 5],
+                        startIdx: 1,
+                        tailIdx: 3,
+                        nextIdx: 4,
+                        left: 2,
+                        right: 4,
+                    },
+                },
+                {
+                    step: 11,
+                    title: '結果を返す',
+                    desc: '元のリスト先頭（値=1）を返す。最終結果: [1,4,3,2,5]',
+                    visual: {
+                        type: 'result',
+                        list: [1, 4, 3, 2, 5],
+                    },
+                },
+            ];
+
+            function StepVisualization({ visual }) {
+                if (!visual) return null;
+
+                const { type } = visual;
+
+                // 共通設定
+                const boxWidth = 75;
+                const boxHeight = 75;
+                const spacing = 90;
+
+                if (type === 'init') {
+                    const { list, left, right } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                初期リスト
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                位置 {left} から {right} まで反転
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill="#e0f2fe"
+                                        stroke="#0284c7"
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="145"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="210"
+                                        textAnchor="middle"
+                                        fontSize="12"
+                                        fill="#64748b"
+                                    >
+                                        位置 {idx + 1}
+                                    </text>
+                                </g>
+                            ))}
+                        </svg>
+                    );
+                }
+
+                if (type === 'check') {
+                    const { list, left, caseType } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                left の位置を確認
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                left = {left}{' '}
+                                {caseType === 'middle'
+                                    ? '> 1 → ケース2（中間）'
+                                    : '== 1 → ケース1（先頭から）'}
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={idx === left - 1 ? '#fef3c7' : '#e0f2fe'}
+                                        stroke={idx === left - 1 ? '#f59e0b' : '#0284c7'}
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="145"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+                        </svg>
+                    );
+                }
+
+                if (type === 'advance') {
+                    const { list, preIdx, left, right } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                pre を left-1 まで進める
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                pre は位置 {preIdx + 1} を指す（反転区間の直前）
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx === preIdx
+                                                ? '#fae8ff'
+                                                : idx >= left - 1 && idx <= right - 1
+                                                  ? '#fef3c7'
+                                                  : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx === preIdx
+                                                ? '#a855f7'
+                                                : idx >= left - 1 && idx <= right - 1
+                                                  ? '#f59e0b'
+                                                  : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="145"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* pre pointer */}
+                            <path
+                                d={`M ${startX + preIdx * spacing} 230 L ${
+                                    startX + preIdx * spacing
+                                } 183`}
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+                            <text
+                                x={startX + preIdx * spacing}
+                                y="260"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                pre
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'setStart') {
+                    const { list, preIdx, startIdx, left, right } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 350"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                start = pre.next を設定
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                start は位置 {startIdx + 1} を指す（反転開始ノード）
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx === startIdx
+                                                ? '#ddd6fe'
+                                                : idx === preIdx
+                                                  ? '#fae8ff'
+                                                  : idx >= left - 1 && idx <= right - 1
+                                                    ? '#fef3c7'
+                                                    : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx === startIdx
+                                                ? '#7c3aed'
+                                                : idx === preIdx
+                                                  ? '#a855f7'
+                                                  : idx >= left - 1 && idx <= right - 1
+                                                    ? '#f59e0b'
+                                                    : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="145"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* pre pointer */}
+                            <path
+                                d={`M ${startX + preIdx * spacing - 25} 230 L ${
+                                    startX + preIdx * spacing - 25
+                                } 185`}
+                                stroke="#a855f7"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowPurple)"
+                            />
+                            <text
+                                x={startX + preIdx * spacing - 25}
+                                y="260"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#a855f7"
+                            >
+                                pre
+                            </text>
+
+                            {/* start pointer */}
+                            <path
+                                d={`M ${startX + startIdx * spacing + 25} 230 L ${
+                                    startX + startIdx * spacing + 25
+                                } 185`}
+                                stroke="#7c3aed"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowViolet)"
+                            />
+                            <text
+                                x={startX + startIdx * spacing + 25}
+                                y="260"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#7c3aed"
+                            >
+                                start
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowPurple"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                                </marker>
+                                <marker
+                                    id="arrowViolet"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'reverseInit') {
+                    const { list, preIdx, startIdx, currIdx, left, right } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                反転ループの初期化
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                prev = None, curr = start、{right - left + 1} 個のノードを反転
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="120"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx >= left - 1 && idx <= right - 1
+                                                ? '#fef3c7'
+                                                : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx >= left - 1 && idx <= right - 1
+                                                ? '#f59e0b'
+                                                : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="165"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* curr pointer */}
+                            <path
+                                d={`M ${startX + currIdx * spacing} 250 L ${
+                                    startX + currIdx * spacing
+                                } 205`}
+                                stroke="#dc2626"
+                                strokeWidth="2"
+                                fill="none"
+                                markerEnd="url(#arrowRed)"
+                            />
+                            <text
+                                x={startX + currIdx * spacing}
+                                y="280"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#dc2626"
+                            >
+                                curr
+                            </text>
+
+                            <text x="300" y="330" textAnchor="middle" fontSize="18" fill="#64748b">
+                                prev = None（表示省略）
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowRed"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'reverseStep') {
+                    const { list, preIdx, startIdx, currIdx, reversedIndices, left, right } =
+                        visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                反転ステップ {reversedIndices.length}
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                {reversedIndices.length} 個を反転、curr を前進
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="120"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            reversedIndices.includes(idx)
+                                                ? '#d1fae5'
+                                                : idx >= left - 1 && idx <= right - 1
+                                                  ? '#fef3c7'
+                                                  : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            reversedIndices.includes(idx)
+                                                ? '#10b981'
+                                                : idx >= left - 1 && idx <= right - 1
+                                                  ? '#f59e0b'
+                                                  : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="165"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    {reversedIndices.includes(idx) && (
+                                        <text
+                                            x={startX + idx * spacing}
+                                            y="240"
+                                            textAnchor="middle"
+                                            fontSize="14"
+                                            fill="#059669"
+                                            fontWeight="600"
+                                        >
+                                            ✓
+                                        </text>
+                                    )}
+                                </g>
+                            ))}
+
+                            {/* curr pointer */}
+                            {currIdx < list.length && (
+                                <>
+                                    <path
+                                        d={`M ${startX + currIdx * spacing} 250 L ${
+                                            startX + currIdx * spacing
+                                        } 205`}
+                                        stroke="#dc2626"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        markerEnd="url(#arrowRed)"
+                                    />
+                                    <text
+                                        x={startX + currIdx * spacing}
+                                        y="280"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                        fill="#dc2626"
+                                    >
+                                        curr
+                                    </text>
+                                </>
+                            )}
+
+                            <defs>
+                                <marker
+                                    id="arrowRed"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'reconnect1') {
+                    const { list, preIdx, newNext } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                再接続: pre.next = prev
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                pre（位置 {preIdx + 1}）を反転後先頭（値 {list[newNext]}）に接続
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="120"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx === preIdx
+                                                ? '#fae8ff'
+                                                : idx === newNext
+                                                  ? '#d1fae5'
+                                                  : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx === preIdx
+                                                ? '#a855f7'
+                                                : idx === newNext
+                                                  ? '#10b981'
+                                                  : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="165"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* Connection arrow */}
+                            <path
+                                d={`M ${startX + preIdx * spacing + boxWidth / 2} 157 L ${
+                                    startX + newNext * spacing - boxWidth / 2
+                                } 157`}
+                                stroke="#10b981"
+                                strokeWidth="4"
+                                fill="none"
+                                markerEnd="url(#arrowGreen)"
+                                strokeDasharray="8,4"
+                            />
+
+                            <text
+                                x="300"
+                                y="330"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fill="#059669"
+                                fontWeight="600"
+                            >
+                                pre.next は反転区間の先頭を指す
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowGreen"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'reconnect2') {
+                    const { list, tailIdx, nextIdx } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 400"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                再接続: start.next = curr
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                反転後の末尾（値 {list[tailIdx]}）を残りのリストに接続
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="120"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill={
+                                            idx === tailIdx
+                                                ? '#ddd6fe'
+                                                : idx === nextIdx
+                                                  ? '#fef3c7'
+                                                  : '#e0f2fe'
+                                        }
+                                        stroke={
+                                            idx === tailIdx
+                                                ? '#7c3aed'
+                                                : idx === nextIdx
+                                                  ? '#f59e0b'
+                                                  : '#0284c7'
+                                        }
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="165"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            ))}
+
+                            {/* Connection arrow */}
+                            <path
+                                d={`M ${startX + tailIdx * spacing + boxWidth / 2} 157 L ${
+                                    startX + nextIdx * spacing - boxWidth / 2
+                                } 157`}
+                                stroke="#7c3aed"
+                                strokeWidth="4"
+                                fill="none"
+                                markerEnd="url(#arrowViolet2)"
+                                strokeDasharray="8,4"
+                            />
+
+                            <text
+                                x="300"
+                                y="330"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fill="#6d28d9"
+                                fontWeight="600"
+                            >
+                                反転区間の末尾を残りのノードへ接続
+                            </text>
+
+                            <defs>
+                                <marker
+                                    id="arrowViolet2"
+                                    markerWidth="10"
+                                    markerHeight="10"
+                                    refX="9"
+                                    refY="3"
+                                    orient="auto"
+                                >
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    );
+                }
+
+                if (type === 'result') {
+                    const { list } = visual;
+                    const totalWidth = list.length * spacing;
+                    const startX = (600 - totalWidth) / 2 + spacing / 2;
+
+                    return (
+                        <svg
+                            viewBox="0 0 600 300"
+                            style={{ maxWidth: '100%', height: 'auto', marginTop: '200px' }}
+                        >
+                            <text
+                                x="300"
+                                y="30"
+                                textAnchor="middle"
+                                fontSize="18"
+                                fontWeight="600"
+                                fill="#0f766e"
+                            >
+                                最終結果
+                            </text>
+                            <text x="300" y="55" textAnchor="middle" fontSize="18" fill="#64748b">
+                                head を返す: [{list.join(', ')}]
+                            </text>
+
+                            {list.map((val, idx) => (
+                                <g key={idx}>
+                                    <rect
+                                        x={startX + idx * spacing - boxWidth / 2}
+                                        y="100"
+                                        width={boxWidth}
+                                        height={boxHeight}
+                                        fill="#d1fae5"
+                                        stroke="#10b981"
+                                        strokeWidth="2"
+                                        rx="6"
+                                    />
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="145"
+                                        textAnchor="middle"
+                                        fontSize="18"
+                                        fontWeight="600"
+                                    >
+                                        {val}
+                                    </text>
+                                    <text
+                                        x={startX + idx * spacing}
+                                        y="210"
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fill="#059669"
+                                        fontWeight="600"
+                                    >
+                                        ✓
+                                    </text>
+                                </g>
+                            ))}
+                        </svg>
+                    );
+                }
+
+                return <div>Unknown visualization type</div>;
+            }
+            function StepByStepDemo() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    if (activeStep === stepsData.length) {
+                        setActiveStep(1);
+                    }
+                    setIsPlaying(true);
+                };
+
+                const handlePrev = () => {
+                    if (activeStep > 1) {
+                        setIsPlaying(false);
+                        setActiveStep(activeStep - 1);
+                    }
+                };
+
+                const handleNext = () => {
+                    if (activeStep < stepsData.length) {
+                        setIsPlaying(false);
+                        setActiveStep(activeStep + 1);
+                    }
+                };
+
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const currentStepData = stepsData.find((s) => s.step === activeStep);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 50)}
+                                                {step.desc.length > 50 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <div
+                                className="rounded-2xl p-8 mt-10
+             border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]"
+                            >
+                                <h3 className="mt-0 text-teal-800 text-xl font-semibold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7">{currentStepData.desc}</p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-6">
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50
+                             shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)]
+                             bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50
+                             shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)]
+                             bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handlePrev}
+                                    disabled={activeStep === 1 || isPlaying}
+                                    aria-label="前のステップ"
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition disabled:opacity-50
+                             shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)]
+                             bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={handleNext}
+                                    disabled={activeStep === stepsData.length || isPlaying}
+                                    aria-label="次のステップ"
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-6 py-3 rounded-xl font-semibold text-white transition
+                             shadow hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(16,185,129,0.30)]
+                             bg-[linear-gradient(135deg,#64748b,#475569)]"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            <div className="mt-6 p-4 rounded-xl border-2 border-slate-200 bg-slate-50">
+                                <p className="m-0 text-slate-500 text-sm">
+                                    <strong>進捗:</strong> Step {activeStep} / {stepsData.length}
+                                    {isPlaying ? ' (自動再生中...)' : ''}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-root'));
+            root.render(<StepByStepDemo />);
+        </script>
+    </body>
+</html>

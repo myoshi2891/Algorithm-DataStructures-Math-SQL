@@ -2,11 +2,25 @@
 
 This project includes tools to automatically generate and update the `index.html` file, which serves as a categorized table of contents for all HTML documentation in the repository.
 
-## Files
+## How It Works
 
-- `generate_index.py`: Python script that scans directories and generates `index.html`.
-- `update_index.sh`: Shell script wrapper for easy execution.
-- `public/index.html`: The generated index file (inside the publish directory).
+The index maintenance system consists of two main scripts:
+
+1. **`generate_index.py`**: A Python script that:
+    - Scans the directory structure.
+    - Extracts titles from HTML files.
+    - Copies HTML files to a clean `public/` directory.
+    - **Vendors Dependencies**: Copies required libraries (React, Babel, PrismJS, etc.) from `node_modules` to `public/vendor`.
+    - **Rewrites Links**: Updates HTML files to point to local `/vendor/...` assets instead of CDNs.
+    - Generates a categorised `index.html` with a tabbed interface.
+
+## Dependency Management
+
+This project uses `bun` to manage dependencies.
+
+- **Install Dependencies**: `bun install`
+- **Add New Library**: `bun add <library>`
+- **Vendor Logic**: If you add a new library, update `generate_index.py` to copy it to `public/vendor` and add a rewrite rule.
 
 ## Manual Update
 

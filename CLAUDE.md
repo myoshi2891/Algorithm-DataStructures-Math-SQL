@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-マルチ言語・マルチAIによる競技プログラミング学習リポジトリ。各問題に対して**2×3×3マトリックス**（2 AIプロバイダー × 3言語 × 3ドキュメント階層 = 18ファイル）で成果物を生成する。
+マルチ言語・マルチAIによる競技プログラミング学習リポジトリ。各問題に対して**2社 × Nモデル × 3言語 × 3ドキュメント階層**で成果物を生成する。
 
 ## 開発コマンド
 
@@ -41,7 +41,7 @@ make lab                   # JupyterLab起動
 
 - **Domain**: `Algorithm/`, `DataStructures/`, `Mathematics/`, `SQL/`, `Shell/`, `Concurrency/`
 - **Platform**: `leetcode/`, `hackerrank/`, `atcoder/`, `codeforces/`
-- **AIProvider**: `Claude Sonnet 4.5/`, `Claude Code Sonnet 4.6 extended/`, `gpt 5.1 thinking customized/` など
+- **AIProvider**: `Claude Sonnet 4.5/`, `Claude Code Sonnet 4.6 extended/`, `gpt-4o/` など
 - **Artifact**: `*.py`, `*.ts`, `*.js`, `README.md`, `README.html`, `README_react.html`
 
 **例外**: `JavaScript/` ディレクトリは LeetCode 30-Day JS Challenge 専用で、上記6階層に従わない。`SQL/` ドメインはAIプロバイダーが`gpt/`単一フォルダで`.ipynb`形式。

@@ -8,7 +8,7 @@
 - [正しさのスケッチ](#correctness)
 - [計算量](#complexity)
 - [TypeScript 実装](#impl)
-- [TypeScript / V8 最適化ポイント](#cpython)
+- [TypeScript / V8 最適化ポイント](#typescript-v8)
 - [エッジケースと検証観点](#edgecases)
 - [FAQ](#faq)
 
@@ -49,11 +49,9 @@ compose([f, g, h])(x) = f(g(h(x)))
 
 ```mermaid
 flowchart TD
-  Start[compose called with functions array] --> Empty{functions.length is 0?}
-  Empty -- Yes --> Identity[Return identity x equals x]
-  Empty -- No --> RetFn[Return closure fn x]
+  Start[compose called] --> RetFn[Return closure fn x]
   RetFn --> Call[fn x is called]
-  Call --> RR[reduceRight over functions]
+  Call --> RR[Start reduceRight with initial value x]
   RR --> Step{More functions?}
   Step -- Yes --> Apply[Apply current fn to acc]
   Apply --> Step
@@ -157,7 +155,7 @@ function compose(functions: readonly F[]): F {
 
 ---
 
-<h2 id="cpython">TypeScript / V8 最適化ポイント</h2>
+<h2 id="typescript-v8">TypeScript / V8 最適化ポイント</h2>
 
 | 観点                        | 内容                                                                                      |
 | --------------------------- | ----------------------------------------------------------------------------------------- |

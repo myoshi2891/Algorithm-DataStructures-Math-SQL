@@ -228,11 +228,11 @@ graph LR
 
 ### ドキュメント階層技術仕様
 
-| 階層               | ファイル          | 対象                     | 技術スタック                   | 主要機能                                                                            | ファイルサイズ      |
-| ------------------ | ----------------- | ------------------------ | ------------------------------ | ----------------------------------------------------------------------------------- | ------------------- |
-| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
-| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
-| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD、Babel Standalone | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
+| 階層               | ファイル          | 対象                     | 技術スタック                                   | 主要機能                                                                            | ファイルサイズ      |
+| ------------------ | ----------------- | ------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------- |
+| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし                   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
+| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS                         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
+| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD (Local), Babel Standalone (Local) | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
 
 ### 静的ドキュメント構造(階層1)
 
@@ -291,7 +291,7 @@ graph TB
     end
 
     subgraph "ドキュメントレイヤー"
-        D1[CDN経由の外部ライブラリ]
+        D1[ローカル管理された外部ライブラリ (Vendor)]
         D2[Prism.js, Tailwind, React]
         D3[README.html, README_react.html]
     end
@@ -542,6 +542,48 @@ graph TD
 ```
 
 各AIプロバイダーフォルダには3つの階層すべてが含まれます。
+
+---
+
+## 開発セットアップ
+
+このプロジェクトは、依存関係管理に`bun`を使用し、成果物生成にPythonを使用します。
+
+### 前提条件
+
+- [Bun](https://bun.sh) (v1.0.0+)
+- Python 3.11+
+
+### セットアップ手順
+
+1. **リポジトリのクローン**:
+
+    ```bash
+    git clone https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL.git
+    cd Algorithm-DataStructures-Math-SQL
+    ```
+
+2. **依存関係のインストール**:
+
+    ```bash
+    bun install
+    ```
+
+3. **インデックスと成果物のビルド**:
+
+    ```bash
+    ./update_index.sh
+    ```
+
+    これにより、`public/`ディレクトリが生成され、必要なベンダーファイルがコピーされます。
+
+4. **ローカルサーバーの起動**:
+
+    ```bash
+    npx http-server public
+    ```
+
+    ブラウザで `http://127.0.0.1:8080` を開いて確認します。
 
 ---
 

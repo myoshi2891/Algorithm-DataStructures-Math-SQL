@@ -228,11 +228,11 @@ graph LR
 
 ### ドキュメント階層技術仕様
 
-| 階層               | ファイル          | 対象                     | 技術スタック                   | 主要機能                                                                            | ファイルサイズ      |
-| ------------------ | ----------------- | ------------------------ | ------------------------------ | ----------------------------------------------------------------------------------- | ------------------- |
-| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
-| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
-| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD、Babel Standalone | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
+| 階層               | ファイル          | 対象                     | 技術スタック                                   | 主要機能                                                                            | ファイルサイズ      |
+| ------------------ | ----------------- | ------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------- |
+| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし                   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
+| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS                         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
+| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD (Local), Babel Standalone (Local) | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
 
 ### 静的ドキュメント構造(階層1)
 
@@ -291,7 +291,7 @@ graph TB
     end
 
     subgraph "ドキュメントレイヤー"
-        D1[CDN経由の外部ライブラリ]
+        D1[ローカル管理された外部ライブラリ (Vendor)]
         D2[Prism.js, Tailwind, React]
         D3[README.html, README_react.html]
     end
@@ -375,14 +375,14 @@ def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:
 
 ### ファイルタイプ仕様
 
-| ファイルタイプ       | 命名パターン                                                  | コード構造                                                                                                                                                                                                               | ファイルサイズ              | パス例                                                                                                                   |
-| -------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Python実装**       | `{ProblemName}.py` (Claude)<br>`{ProblemName}_py.ipynb` (GPT) | `class Solution:`<br>`def {methodName}(self, ...) -> ...:`<br>ヘルパーメソッドを含む場合あり                                                                                                                             | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.py`                 |
-| **TypeScript実装**   | `{ProblemName}.ts` (Claude)<br>`{ProblemName}_ts.ipynb` (GPT) | `function {functionName}(...): ReturnType { ... }`<br>または<br>`class Solution { {methodName}(...): ReturnType { ... } }`                                                                                               | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/gpt 5.1 thinking customized/Interleaving_String_ts.ipynb` |
-| **JavaScript実装**   | `{ProblemName}.js` (Claude)<br>`{ProblemName}_js.ipynb` (GPT) | `var {functionName} = function(...) { ... };`<br>`module.exports = { {functionName} };`                                                                                                                                  | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.js`                 |
-| **静的ドキュメント** | `README.md`                                                   | 5セクションMarkdown:<br>1. Overview (`<h2 id="overview">`)<br>2. Algorithm (`<h2 id="tldr">`)<br>3. Complexity (`<h2 id="complexity">`)<br>4. Implementation (`<h2 id="impl">`)<br>5. Optimization (`<h2 id="cpython">`) | 3000-5000語<br>(~200-400行) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.md`                              |
-| **対話型HTML**       | `README.html`                                                 | 埋め込みJavaScriptを含むHTML:<br>`<script src="...prism.js"></script>`<br>`<script src="...tailwindcss.com"></script>`<br>ボタン付きステップコントロールシステム                                                         | 1000-2000行<br>(~50KB)      | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.html`                            |
-| **React可視化**      | `README_react.html`                                           | React CDNを含むHTML:<br>`<script src="...react.development.js"></script>`<br>`<script src="...babel.standalone.js"></script>`<br>`<script type="text/babel">`内のJSXコンポーネント                                       | 2000-4000行<br>(~100KB)     | `Algorithm/BinarySearch/leetcode/99. Recover Binary Search Tree/Claude Opus 4.5/README_react.html`                       |
+| ファイルタイプ       | 命名パターン                                                  | コード構造                                                                                                                                                                                                                   | ファイルサイズ              | パス例                                                                                                                   |
+| -------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Python実装**       | `{ProblemName}.py` (Claude)<br>`{ProblemName}_py.ipynb` (GPT) | `class Solution:`<br>`def {methodName}(self, ...) -> ...:`<br>ヘルパーメソッドを含む場合あり                                                                                                                                 | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.py`                 |
+| **TypeScript実装**   | `{ProblemName}.ts` (Claude)<br>`{ProblemName}_ts.ipynb` (GPT) | `function {functionName}(...): ReturnType { ... }`<br>または<br>`class Solution { {methodName}(...): ReturnType { ... } }`                                                                                                   | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/gpt 5.1 thinking customized/Interleaving_String_ts.ipynb` |
+| **JavaScript実装**   | `{ProblemName}.js` (Claude)<br>`{ProblemName}_js.ipynb` (GPT) | `var {functionName} = function(...) { ... };`<br>`module.exports = { {functionName} };`                                                                                                                                      | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.js`                 |
+| **静的ドキュメント** | `README.md`                                                   | 5セクションMarkdown:<br>1. Overview (`<h2 id="overview">`)<br>2. Algorithm (`<h2 id="tldr">`)<br>3. Complexity (`<h2 id="complexity">`)<br>4. Implementation (`<h2 id="impl">`)<br>5. Optimization (`<h2 id="cpython">`)     | 3000-5000語<br>(~200-400行) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.md`                              |
+| **対話型HTML**       | `README.html`                                                 | ローカルベンダー管理のスクリプトを読み込むHTML:<br>`<script src="/vendor/prismjs/prism.js"></script>`<br>`<script src="/vendor/tailwindcss/script.js"></script>`<br>ボタン付きステップコントロールシステム                   | 1000-2000行<br>(~50KB)      | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.html`                            |
+| **React可視化**      | `README_react.html`                                           | ローカルベンダー管理のスクリプトを読み込むHTML:<br>`<script src="/vendor/react/react.development.js"></script>`<br>`<script src="/vendor/babel/babel.min.js"></script>`<br>`<script type="text/babel">`内のJSXコンポーネント | 2000-4000行<br>(~100KB)     | `Algorithm/BinarySearch/leetcode/99. Recover Binary Search Tree/Claude Opus 4.5/README_react.html`                       |
 
 ### コード構造ブリッジ: クラスと関数パターン
 
@@ -542,6 +542,48 @@ graph TD
 ```
 
 各AIプロバイダーフォルダには3つの階層すべてが含まれます。
+
+---
+
+## 開発セットアップ
+
+このプロジェクトは、依存関係管理に`bun`を使用し、成果物生成にPythonを使用します。
+
+### 前提条件
+
+- [Bun](https://bun.sh) (v1.0.0+)
+- Python 3.11+
+
+### セットアップ手順
+
+1. **リポジトリのクローン**:
+
+    ```bash
+    git clone https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL.git
+    cd Algorithm-DataStructures-Math-SQL
+    ```
+
+2. **依存関係のインストール**:
+
+    ```bash
+    bun install
+    ```
+
+3. **インデックスと成果物のビルド**:
+
+    ```bash
+    ./update_index.sh
+    ```
+
+    これにより、`public/`ディレクトリが生成され、必要なベンダーファイルがコピーされます。
+
+4. **ローカルサーバーの起動**:
+
+    ```bash
+    bun run serve
+    ```
+
+    ブラウザで `http://127.0.0.1:8080` を開いて確認します。
 
 ---
 

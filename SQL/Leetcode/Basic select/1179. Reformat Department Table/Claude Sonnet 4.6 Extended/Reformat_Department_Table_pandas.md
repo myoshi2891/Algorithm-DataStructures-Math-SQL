@@ -204,13 +204,13 @@ set_index + unstack の内部フロー（新）:
 
 ### 改善効果の目安
 
-| 指標                      | 旧実装 (`pivot_table`) | 新実装 (`set_index + unstack`) |
-| ------------------------- | ---------------------- | ------------------------------ |
-| 中間オブジェクト数        | 3〜4 個                | 1 個                           |
-| Python レベル集計呼び出し | あり（aggfunc）        | なし                           |
-| 計算量                    | O(N)（定数係数大）     | O(N)（定数係数小）             |
-| メモリ期待値              | Beats ~6%              | Beats 50〜80% 期待             |
-| Runtime 期待値            | Beats ~58%             | Beats 70〜90% 期待             |
+| 指標                      | 旧実装 (`pivot_table`) | 新実装 (`set_index + unstack`)              |
+| ------------------------- | ---------------------- | ------------------------------------------- |
+| 中間オブジェクト数        | 3〜4 個                | 1 個                                        |
+| Python レベル集計呼び出し | あり（aggfunc）        | なし                                        |
+| 計算量                    | O(N)（定数係数大）     | O(N)（定数係数小）                          |
+| メモリ期待値              | Beats ~6%              | Beats ~35% (Memory 68.51 MB / Beats 35.47%) |
+| Runtime 期待値            | Beats ~58%             | Beats 70〜90% 期待                          |
 
 ---
 
@@ -222,7 +222,7 @@ flowchart TD
   B[set_index id, month<br>でMultiIndex Series化<br>※pandas 2.2.2ではeager copyの可能性有]
   C[unstack month<br>Cythonレベルで直接2D展開<br>Python集計呼び出しなし]
   D[reindex columns _MONTHS<br>欠損月NaN補完+列順固定<br>O12 定数コスト]
-  E[列名リネーム+reset_index<br>id を通常列に戻す]
+  E[reset_index() → 列名リネーム(out.columns = _COL_NAMES)<br>id を通常列に戻す]
   F[出力 横持ち DataFrame<br>id + 12列 Jan_Revenue...Dec_Revenue]
 
   A --> B

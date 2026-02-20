@@ -76,7 +76,14 @@ class Solution:
             print(f"Copied FontAwesome webfonts: {fa_fonts_src} -> {fa_fonts_dest}")
 
     def rewrite_html_content(self, content: str) -> str:
-        """Replaces CDN links with local vendor links."""
+        """
+        Rewrite known CDN asset URLs in an HTML document to their corresponding local vendor paths.
+        
+        Replaces specific external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with local /vendor/... paths so the returned HTML references vendored assets.
+        
+        Returns:
+            The input HTML string with matched CDN URLs substituted by local vendor URLs.
+        """
         replacements = [
             # React
             ('https://unpkg.com/react@18/umd/react.development.js', '/vendor/react/react.development.js'),

@@ -104,6 +104,11 @@ class Solution:
         return content
 
     def generate_index(self) -> None:
+        """
+        Generate a static index HTML page under the public directory listing repository HTML files grouped by category.
+        
+        Scans the repository (excluding common build, VCS, virtualenv and vendor directories), copies required vendor assets into public/vendor, rewrites HTML files to reference local vendored assets, copies those files into the public tree, and produces a themed index at public/index.html with category tabs, search, pagination, per-category icons, total counts, and a UTC generation timestamp. Files in hidden categories (category name starting with '.') or in excluded directories are skipped. If reading or rewriting a file fails, the file is copied as a fallback.
+        """
         root_dir = "."
         output_dir = "public"
         index_file = "index.html"

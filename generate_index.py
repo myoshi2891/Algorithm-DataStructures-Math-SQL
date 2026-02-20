@@ -163,7 +163,10 @@ class Solution:
                     if category.startswith('.'):
                         continue
 
-                    title = self.get_html_title(filepath)
+                    try:
+                        title = self.get_html_title(filepath)
+                    except Exception:
+                        title = os.path.basename(filepath)
                     structure[category].append((title, rel_path))
 
         # Sort categories and files
@@ -611,13 +614,14 @@ class Solution:
         <span class="search-icon">\U0001F50D</span>
         <input type="text" id="searchInput" class="search-input"
                placeholder="Search problems... (e.g. Binary Search, DP, LeetCode 91)"
+               aria-label="Search problems"
                autocomplete="off">
         <span id="searchCount" class="search-count"></span>
         <button id="searchClear" class="search-clear" aria-label="Clear search">\u00D7</button>
     </div>
 
     <div class="tabs" id="categoryTabs">
-        <button class="tab-button active" data-category="all" onclick="openTab(event, 'All')">
+        <button class="tab-button active" data-category="all" data-tab-target="All">
             <span class="tab-icon">\U0001F30D</span> All <span class="tab-count">{total_count}</span>
         </button>
         {tabs}
@@ -736,16 +740,16 @@ class Solution:
         function applyStaggerAnimation(tabId) {{
             const tab = document.getElementById(tabId);
             const items = tab.querySelectorAll('.file-item:not(.hidden-item)');
+            items.forEach(item => {{ item.style.animation = 'none'; }});
+            tab.offsetHeight;
             items.forEach((item, i) => {{
-                item.style.animation = 'none';
-                item.offsetHeight;
                 item.style.animation = '';
                 item.style.animationDelay = (i * 0.04) + 's';
             }});
         }}
 
         /* Tab Navigation */
-        function openTab(evt, categoryName) {{
+        function openTab(categoryName) {{
             document.querySelectorAll('.tab-content').forEach(tc => {{
                 tc.style.display = 'none';
                 tc.classList.remove('active');
@@ -757,7 +761,8 @@ class Solution:
             const target = document.getElementById(categoryName);
             target.style.display = 'block';
             target.classList.add('active');
-            evt.currentTarget.classList.add('active');
+            const btn = document.querySelector('.tab-button[data-tab-target="' + categoryName + '"]');
+            if (btn) btn.classList.add('active');
 
             const input = document.getElementById('searchInput');
             if (input.value) {{
@@ -850,9 +855,20 @@ class Solution:
             }});
         }}
 
+        /* Tab Delegation */
+        function initTabs() {{
+            document.getElementById('categoryTabs').addEventListener('click', (evt) => {{
+                const btn = evt.target.closest('.tab-button');
+                if (btn && btn.dataset.tabTarget) {{
+                    openTab(btn.dataset.tabTarget);
+                }}
+            }});
+        }}
+
         /* Init */
         window.addEventListener('DOMContentLoaded', () => {{
             initTheme();
+            initTabs();
             initPagination();
             initSearch();
         }});
@@ -870,8 +886,9 @@ class Solution:
             count = len(files)
             icon = category_icons.get(category, '')
             css_cat = category.lower()
+            safe_category = html.escape(category, quote=True)
 
-            tabs_html += f'<button class="tab-button" data-category="{css_cat}" onclick="openTab(event, \'{category}\')"><span class="tab-icon">{icon}</span> {category} <span class="tab-count">{count}</span></button>\n'
+            tabs_html += f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}"><span class="tab-icon">{icon}</span> {safe_category} <span class="tab-count">{count}</span></button>\n'
 
             file_list_html = '<ul class="file-list">\n'
             for title, path in files:
@@ -883,7 +900,7 @@ class Solution:
                 all_files_html += item_html
             file_list_html += '</ul>'
 
-            tab_contents_html += f'<div id="{category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n'
+            tab_contents_html += f'<div id="{safe_category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n'
 
         final_html = html_template.format(
             tabs=tabs_html,

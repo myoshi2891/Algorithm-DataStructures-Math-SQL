@@ -61,7 +61,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
         columns="month",
         values="revenue",
         aggfunc="first",   # 重複行なし保証のため最軽量集計
-        dropna=False,      # 全 id を行として保持
+        dropna=False,      # 全てNaNの列を保持（行の保持はreindex等で行う）
     )
 
     # ② 存在しない月列を NaN で補完し、カレンダー順に並べ替え
@@ -97,7 +97,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
 
 - 売上なし月は `pivot_table` が自動で `NaN`（float64）を挿入する。整数列に `NaN` が混入すると `Int64`（nullable integer）への変換が必要な場合があるが、問題仕様上は `NaN` のままで許容。
 - `id` 列は int のまま保持される（`reset_index` 後も dtype 変化なし）。
-- `pivot_table` の `dropna=False` は行方向（id）の保持に関するオプションで、全値が NaN の id 行も出力に残す設定（本問では主キー保証により不要だが、防御的に指定）。
+- `pivot_table` の `dropna=False` は列方向（すべてNaNの列）の保持に関するオプションで、全値が NaN の列も出力に残す設定です。なお、id（行）の保持は `pivot_table` ではなく、後続の `reindex` 等でインデックスを明示的に指定する必要があります。
 
 ---
 

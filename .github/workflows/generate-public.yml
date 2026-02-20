@@ -1,0 +1,40 @@
+name: Generate Public Directory
+
+on:
+    push:
+        branches:
+            - '**'
+        paths-ignore:
+            - 'public/**'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+
+            - name: Install dependencies
+              run: bun install
+
+            - name: Run generation script
+              run: ./update_index.sh
+
+            - name: Commit public directory changes
+              uses: stefanzweifel/git-auto-commit-action@v5
+              with:
+                  commit_message: 'build: auto-generate public directory'
+                  file_pattern: 'public/'

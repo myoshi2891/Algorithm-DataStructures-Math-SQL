@@ -61,7 +61,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
         columns="month",
         values="revenue",
         aggfunc="first",   # 重複行なし保証のため最軽量集計
-        dropna=False,      # 全てNaNの列を保持（行の保持はreindex等で行う）
+        dropna=False,      # preserves all-NaN columns (row preservation is handled via reindex or similar)
     )
 
     # ② 存在しない月列を NaN で補完し、カレンダー順に並べ替え
@@ -97,7 +97,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
 
 - 売上なし月は `pivot_table` が自動で `NaN`（float64）を挿入する。整数列に `NaN` が混入すると `Int64`（nullable integer）への変換が必要な場合があるが、問題仕様上は `NaN` のままで許容。
 - `id` 列は int のまま保持される（`reset_index` 後も dtype 変化なし）。
-- `pivot_table` の `dropna=False` は列方向（すべてNaNの列）の保持に関するオプションで、全値が NaN の列も出力に残す設定です。なお、id（行）の保持は `pivot_table` ではなく、後続の `reindex` 等でインデックスを明示的に指定する必要があります。
+- `pivot_table` の `dropna=False` は preserves all-NaN columns (row preservation is handled via reindex or similar) という動作をします。列方向（すべてNaNの列）の保持に関するオプションで、全値が NaN の列も出力に残す設定です。なお、id（行）の保持は `pivot_table` ではなく、後続の `reindex` 等でインデックスを明示的に指定する必要があります。
 
 ---
 
@@ -171,17 +171,17 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
     #    unstack は Series を 2-D に展開するだけで中間集計オブジェクトを生成しない
     out = (
         department
-        .set_index(["id", "month"])["revenue"]   # MultiIndex Series: O(N), コピーなし
+        .set_index(["id", "month"])["revenue"]   # MultiIndex Series: O(N), (pandas 2.2.2ではeager copyの可能性回避不可)
         .unstack("month")                         # Series → DataFrame: O(N)
         .reindex(columns=_MONTHS)                 # 欠損月補完 + 列順固定: O(12)
     )
 
-    # ② 列名を一括置換（リスト代入はコピーなし）
-    out.columns = [f"{m}_Revenue" for m in out.columns]
-
-    # ③ id を通常列に戻す + 列名ラベルをクリア
+    # ② id を通常列に戻す + 列名ラベルをクリア
     out = out.reset_index()
     out.columns.name = None
+
+    # ③ _COL_NAMESを使用して列名を一括置換
+    out.columns = _COL_NAMES
 
     return out
 ```
@@ -196,11 +196,11 @@ pivot_table の内部フロー（旧）:
                  ↑ 中間オブジェクト3つ
 
 set_index + unstack の内部フロー（新）:
-  入力 → MultiIndex Series（ビュー） → unstack で直接 2D 展開
+  入力 → MultiIndex Series（コピーまたはビュー） → unstack で直接 2D 展開
                  ↑ 中間オブジェクト1つ
 ```
 
-`unstack` は pandas の Cython レベルで実装されており、Python レベルの `aggfunc` 呼び出しが一切発生しません。主キー保証がある本問では **集計処理そのものが不要** なため、このアプローチが理論的に最適です。
+`unstack` は pandas の Cython レベルで実装されており、Python レベルの `aggfunc` 呼び出しが一切発生しません。主キー保証がある本問では **集計処理そのものが不要** なため、このアプローチが理論的に最適です。また、pandas 2.2.2 では CoW (Copy-on-Write) がデフォルトで無効であるため `set_index` 時に eager copy が発生する可能性がありますが、それでも `groupby` 特有の集計オーバーヘッドを完全に回避できる点で、メモリ消費や処理速度を大きく改善できます。
 
 ---
 
@@ -216,12 +216,12 @@ set_index + unstack の内部フロー（新）:
 
 ---
 
-### 5) 図解（Mermaid 超保守版）
+### 6) 図解（Mermaid 超保守版）
 
 ```mermaid
 flowchart TD
   A[入力 department DataFrame<br>id / revenue / month]
-  B[set_index id, month<br>でMultiIndex Series化<br>コピーなし・ビュー操作]
+  B[set_index id, month<br>でMultiIndex Series化<br>※pandas 2.2.2ではeager copyの可能性有]
   C[unstack month<br>Cythonレベルで直接2D展開<br>Python集計呼び出しなし]
   D[reindex columns _MONTHS<br>欠損月NaN補完+列順固定<br>O12 定数コスト]
   E[列名リネーム+reset_index<br>id を通常列に戻す]

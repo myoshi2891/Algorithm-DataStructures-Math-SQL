@@ -191,6 +191,12 @@ class Solution:
         .file-link {{ text-decoration: none; color: #2c3e50; font-weight: 500; display: block; }}
         .file-path {{ font-size: 0.8em; color: #7f8c8d; margin-top: 5px; display: block; word-break: break-all; }}
         footer {{ margin-top: 50px; text-align: center; font-size: 0.9em; color: #777; border-top: 1px solid #ddd; padding-top: 20px; }}
+        .pagination {{ display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 30px; padding-bottom: 20px; }}
+        .page-button {{ padding: 8px 12px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 5px; color: #007bff; font-weight: 500; transition: all 0.2s; }}
+        .page-button.active {{ background: #007bff; color: white; border-color: #007bff; }}
+        .page-button:hover:not(.active):not(:disabled) {{ background: #f0f8ff; }}
+        .page-button:disabled {{ opacity: 0.5; cursor: not-allowed; color: #999; border-color: #eee; }}
+        .hidden-item {{ display: none !important; }}
     </style>
 </head>
 <body>
@@ -214,6 +220,99 @@ class Solution:
     </footer>
 
     <script>
+        const ITEMS_PER_PAGE = 12;
+        let currentPages = {{}};
+
+        function initPagination() {{
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {{
+                currentPages[tab.id] = 1;
+                renderPage(tab.id);
+            }});
+        }}
+
+        function renderPage(tabId) {{
+            const tab = document.getElementById(tabId);
+            const items = tab.querySelectorAll('.file-item');
+            const totalItems = items.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const currentPage = currentPages[tabId];
+
+            items.forEach((item, index) => {{
+                const start = (currentPage - 1) * ITEMS_PER_PAGE;
+                const end = start + ITEMS_PER_PAGE;
+                if (index >= start && index < end) {{
+                    item.classList.remove('hidden-item');
+                }} else {{
+                    item.classList.add('hidden-item');
+                }}
+            }});
+
+            renderPaginationControls(tabId, totalPages, currentPage);
+        }}
+
+        function renderPaginationControls(tabId, totalPages, currentPage) {{
+            const tab = document.getElementById(tabId);
+            let paginationContainer = tab.querySelector('.pagination');
+
+            if (!paginationContainer) {{
+                paginationContainer = document.createElement('div');
+                paginationContainer.className = 'pagination';
+                tab.appendChild(paginationContainer);
+            }}
+
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-button';
+            prevBtn.innerHTML = '&laquo; Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {{
+                currentPages[tabId]--;
+                renderPage(tabId);
+                window.scrollTo({{ top: 0, behavior: 'smooth' }});
+            }};
+            paginationContainer.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {{
+                // Optional: Ellipsis logic for many pages
+                if (totalPages > 7) {{
+                    if (i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 1) {{
+                        if (i === 2 || i === totalPages - 1) {{
+                            const ellipsis = document.createElement('span');
+                            ellipsis.textContent = '...';
+                            paginationContainer.appendChild(ellipsis);
+                        }}
+                        continue;
+                    }}
+                }}
+
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-button';
+                pageBtn.textContent = i;
+                if (i === currentPage) pageBtn.classList.add('active');
+                pageBtn.onclick = () => {{
+                    currentPages[tabId] = i;
+                    renderPage(tabId);
+                    window.scrollTo({{ top: 0, behavior: 'smooth' }});
+                }};
+                paginationContainer.appendChild(pageBtn);
+            }}
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-button';
+            nextBtn.innerHTML = 'Next &raquo;';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {{
+                currentPages[tabId]++;
+                renderPage(tabId);
+                window.scrollTo({{ top: 0, behavior: 'smooth' }});
+            }};
+            paginationContainer.appendChild(nextBtn);
+        }}
+
         function openTab(evt, categoryName) {{
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tab-content");
@@ -229,6 +328,8 @@ class Solution:
             document.getElementById(categoryName).classList.add("active");
             evt.currentTarget.className += " active";
         }}
+
+        window.addEventListener('DOMContentLoaded', initPagination);
     </script>
 </body>
 </html>"""

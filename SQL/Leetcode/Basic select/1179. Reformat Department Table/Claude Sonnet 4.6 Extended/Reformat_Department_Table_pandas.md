@@ -61,7 +61,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
         columns="month",
         values="revenue",
         aggfunc="first",   # 重複行なし保証のため最軽量集計
-        dropna=False,      # preserves all-NaN columns (row preservation is handled via reindex or similar)
+        dropna=False,      # すべてNaNの列も保持する（行の保持はreindex等で対応）
     )
 
     # ② 存在しない月列を NaN で補完し、カレンダー順に並べ替え
@@ -70,9 +70,8 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
     # ③ 列名を仕様形式 "{Month}_Revenue" にリネーム
     pivoted.columns = [f"{m}_Revenue" for m in pivoted.columns]
 
-    # ④ index (id) を通常列に戻し、余分な列名ラベルを除去
+    # ④ index (id) を通常列に戻す
     out = pivoted.reset_index()
-    out.columns.name = None
 
     return out
 ```
@@ -97,7 +96,7 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
 
 - 売上なし月は `pivot_table` が自動で `NaN`（float64）を挿入する。整数列に `NaN` が混入すると `Int64`（nullable integer）への変換が必要な場合があるが、問題仕様上は `NaN` のままで許容。
 - `id` 列は int のまま保持される（`reset_index` 後も dtype 変化なし）。
-- `pivot_table` の `dropna=False` は preserves all-NaN columns (row preservation is handled via reindex or similar) という動作をします。列方向（すべてNaNの列）の保持に関するオプションで、全値が NaN の列も出力に残す設定です。なお、id（行）の保持は `pivot_table` ではなく、後続の `reindex` 等でインデックスを明示的に指定する必要があります。
+- `pivot_table` の `dropna=False` はすべてNaNの列も保持する（行の保持はreindex等で対応）という動作をします。列方向（すべてNaNの列）の保持に関するオプションで、全値が NaN の列も出力に残す設定です。なお、id（行）の保持は `pivot_table` ではなく、後続の `reindex` 等でインデックスを明示的に指定する必要があります。
 
 ---
 
@@ -176,9 +175,8 @@ def reformat_department(department: pd.DataFrame) -> pd.DataFrame:
         .reindex(columns=_MONTHS)                 # 欠損月補完 + 列順固定: O(12)
     )
 
-    # ② id を通常列に戻す + 列名ラベルをクリア
+    # ② id を通常列に戻す
     out = out.reset_index()
-    out.columns.name = None
 
     # ③ _COL_NAMESを使用して列名を一括置換
     out.columns = _COL_NAMES

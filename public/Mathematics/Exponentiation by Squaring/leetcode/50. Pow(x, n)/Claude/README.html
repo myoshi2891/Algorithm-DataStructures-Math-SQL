@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>pow(x, n) アルゴリズム解析</title>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link
+            href="/vendor/prismjs/themes/prism-tomorrow.min.css"
+            onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css';"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/fontawesome/css/all.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            .prismjs .copy-button,
+            .code-toolbar > .toolbar button {
+                background-color: #4a5568 !important;
+                color: #e2e8f0 !important;
+                border-radius: 4px !important;
+                padding: 4px 8px !important;
+            }
+            .step-indent-1 {
+                margin-left: 20px;
+                color: #81c784;
+            }
+            .step-indent-2 {
+                margin-left: 40px;
+                color: #ffb74d;
+            }
+            .step-indent-3 {
+                margin-left: 60px;
+                color: #f06292;
+            }
+            .step-result {
+                color: #64b5f6;
+                font-weight: bold;
+            }
+            .final-result {
+                background: rgba(76, 175, 80, 0.2);
+                border-left: 4px solid #4caf50;
+                margin-top: 15px;
+                padding: 10px;
+                font-weight: bold;
+                color: #66bb6a;
+            }
+
+            /* SVG styling */
+            .node {
+                transition: opacity 0.5s;
+                opacity: 0;
+            }
+            .node.visible {
+                opacity: 1;
+            }
+            .node rect {
+                fill: #4a5568;
+                rx: 10;
+                ry: 10;
+                cursor: pointer;
+                transition: fill 0.3s;
+            }
+            .node:hover rect {
+                fill: #2d3748;
+            }
+            .node text {
+                fill: #fff;
+                font-size: 14px;
+                font-weight: 500;
+                font-family: monospace;
+                pointer-events: none;
+            }
+            .edge {
+                transition: opacity 0.5s;
+                stroke-dasharray: 1000;
+                stroke-dashoffset: 1000;
+                opacity: 0;
+            }
+            .edge.visible {
+                opacity: 1;
+                animation: drawLine 1s forwards;
+            }
+            .edge path {
+                stroke: #a0aec0;
+                stroke-width: 2;
+                fill: none;
+            }
+            .edge text {
+                fill: #4a5568;
+                font-size: 13px;
+                font-weight: bold;
+            }
+            @keyframes drawLine {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            /* Smooth background */
+            body {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                min-height: 100vh;
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8 font-sans text-gray-800">
+        <div class="max-w-4xl mx-auto space-y-8">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-5xl font-bold text-gray-800 mb-4 drop-shadow-sm">
+                    ⚡ pow(x, n) アルゴリズム解析
+                </h1>
+                <p class="text-lg text-gray-600">高速指数演算（Fast Exponentiation）の詳細解析</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-indigo-400 pb-2 mb-4">
+                    🔧 実装コード
+                </h2>
+                <pre class="line-numbers"><code class="language-javascript">/**
+ * x を n 乗する関数
+ * 高速指数演算（Fast Exponentiation）を使用してO(log n)で計算
+ *
+ * @param {number} x - 底となる数値 (-100.0 < x < 100.0)
+ * @param {number} n - 指数となる整数 (-2^31 <= n <= 2^31-1)
+ * @return {number} x^n の結果
+ */
+var myPow = function(x, n) {
+    // 負の指数の場合、1/x の |n| 乗として計算
+    if (n < 0) {
+        x = 1 / x;
+        n = -n;
+    }
+
+    /**
+     * 再帰による高速指数演算の実装
+     *
+     * @param {number} base - 底
+     * @param {number} exp - 指数（非負）
+     * @return {number} base^exp の結果
+     */
+    function fastPow(base, exp) {
+        // ベースケース：指数が0の場合は1を返す
+        if (exp === 0) return 1;
+
+        // 指数が偶数の場合：x^n = (x^2)^(n/2)
+        if (exp % 2 === 0) {
+            const half = fastPow(base, Math.floor(exp / 2));
+            return half * half;
+        }
+        // 指数が奇数の場合：x^n = x * x^(n-1)
+        else {
+            return base * fastPow(base, exp - 1);
+        }
+    }
+
+    return fastPow(x, n);
+};</code></pre>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-indigo-400 pb-2 mb-4">
+                    📊 計算量比較
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-center border-collapse">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                                <th class="p-3 border">手法</th>
+                                <th class="p-3 border">時間計算量</th>
+                                <th class="p-3 border">空間計算量</th>
+                                <th class="p-3 border">n=1000の場合の計算回数</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-gray-50">
+                                <td class="p-3 border text-gray-800">単純な反復</td>
+                                <td class="p-3 border text-gray-800">O(n)</td>
+                                <td class="p-3 border text-gray-800">O(1)</td>
+                                <td class="p-3 border text-gray-800">1000回</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border text-gray-800">高速指数演算</td>
+                                <td class="p-3 border text-gray-800">O(log n)</td>
+                                <td class="p-3 border text-gray-800">O(log n)</td>
+                                <td class="p-3 border text-gray-800">約10回</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-indigo-400 pb-2 mb-4">
+                    🌳 アルゴリズムの動作（例：2^10）
+                </h2>
+
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-gray-600 font-medium">再帰ツリーの展開ステップ</p>
+                    <div class="space-x-2">
+                        <button
+                            onclick="prevSvgStep()"
+                            id="btnSvgPrev"
+                            class="px-3 py-1 bg-gray-200 text-gray-700 rounded cursor-not-allowed opacity-50"
+                            disabled
+                            aria-disabled="true"
+                            tabindex="-1"
+                        >
+                            <i class="fas fa-chevron-left mr-1"></i>前へ
+                        </button>
+                        <span id="svgStepIndicator" class="font-mono text-gray-600 font-bold px-2"
+                            >Step 1 / 7</span
+                        >
+                        <button
+                            onclick="nextSvgStep()"
+                            id="btnSvgNext"
+                            class="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                        >
+                            次へ<i class="fas fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full overflow-x-auto flex justify-center pb-4">
+                    <svg
+                        id="algo-flowchart"
+                        viewBox="-40 -40 500 800"
+                        width="100%"
+                        max-width="400"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                viewBox="0 0 10 10"
+                                refX="8"
+                                refY="5"
+                                markerWidth="6"
+                                markerHeight="6"
+                                orient="auto-start-reverse"
+                            >
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#a0aec0" />
+                            </marker>
+                        </defs>
+
+                        <!-- Node 1 -->
+                        <g class="node visible" id="svg-node-1" transform="translate(100, 0)">
+                            <rect width="200" height="50" />
+                            <text x="100" y="30" text-anchor="middle">fastPow(2, 10)</text>
+                        </g>
+
+                        <!-- Edge 1 -->
+                        <g class="edge" id="svg-edge-1">
+                            <path d="M 200 50 L 200 110" marker-end="url(#arrow)" />
+                            <text x="210" y="85">10は偶数</text>
+                        </g>
+
+                        <!-- Node 2 -->
+                        <g class="node" id="svg-node-2" transform="translate(20, 110)">
+                            <rect width="360" height="50" />
+                            <text x="180" y="30" text-anchor="middle">
+                                fastPow(2, 5) × fastPow(2, 5)
+                            </text>
+                        </g>
+
+                        <!-- Edge 2 -->
+                        <g class="edge" id="svg-edge-2">
+                            <path d="M 200 160 L 200 220" marker-end="url(#arrow)" />
+                            <text x="210" y="195">5は奇数</text>
+                        </g>
+
+                        <!-- Node 3 -->
+                        <g class="node" id="svg-node-3" transform="translate(100, 220)">
+                            <rect width="200" height="50" />
+                            <text x="100" y="30" text-anchor="middle">2 × fastPow(2, 4)</text>
+                        </g>
+
+                        <!-- Edge 3 -->
+                        <g class="edge" id="svg-edge-3">
+                            <path d="M 200 270 L 200 330" marker-end="url(#arrow)" />
+                            <text x="210" y="305">4は偶数</text>
+                        </g>
+
+                        <!-- Node 4 -->
+                        <g class="node" id="svg-node-4" transform="translate(20, 330)">
+                            <rect width="360" height="50" />
+                            <text x="180" y="30" text-anchor="middle">
+                                fastPow(2, 2) × fastPow(2, 2)
+                            </text>
+                        </g>
+
+                        <!-- Edge 4 -->
+                        <g class="edge" id="svg-edge-4">
+                            <path d="M 200 380 L 200 440" marker-end="url(#arrow)" />
+                            <text x="210" y="415">2は偶数</text>
+                        </g>
+
+                        <!-- Node 5 -->
+                        <g class="node" id="svg-node-5" transform="translate(20, 440)">
+                            <rect width="360" height="50" />
+                            <text x="180" y="30" text-anchor="middle">
+                                fastPow(2, 1) × fastPow(2, 1)
+                            </text>
+                        </g>
+
+                        <!-- Edge 5 -->
+                        <g class="edge" id="svg-edge-5">
+                            <path d="M 200 490 L 200 550" marker-end="url(#arrow)" />
+                            <text x="210" y="525">1は奇数</text>
+                        </g>
+
+                        <!-- Node 6 -->
+                        <g class="node" id="svg-node-6" transform="translate(100, 550)">
+                            <rect width="200" height="50" />
+                            <text x="100" y="30" text-anchor="middle">2 × fastPow(2, 0)</text>
+                        </g>
+
+                        <!-- Edge 6 -->
+                        <g class="edge" id="svg-edge-6">
+                            <path d="M 200 600 L 200 660" marker-end="url(#arrow)" />
+                            <text x="210" y="635">0はベースケース</text>
+                        </g>
+
+                        <!-- Node 7 -->
+                        <g class="node" id="svg-node-7" transform="translate(160, 660)">
+                            <rect width="80" height="50" fill="#a0aec0" />
+                            <text x="40" y="30" text-anchor="middle">1</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-indigo-400 pb-2 mb-4">
+                    🎮 インタラクティブデモ
+                </h2>
+                <div class="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-100">
+                    <p class="text-gray-700 mb-3 font-semibold">独自の値でテストしてみましょう：</p>
+                    <div class="flex flex-wrap items-center gap-4 mb-4">
+                        <input
+                            type="number"
+                            id="baseInput"
+                            placeholder="底 (x)"
+                            value="2"
+                            step="0.1"
+                            class="border border-gray-300 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <span class="font-bold">^</span>
+                        <input
+                            type="number"
+                            id="expInput"
+                            placeholder="指数 (n)"
+                            value="10"
+                            class="border border-gray-300 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <button
+                            onclick="calculateDemo()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow transition-colors font-medium"
+                        >
+                            計算を初期化
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button
+                            onclick="goPrev()"
+                            id="btnPrev"
+                            class="px-4 py-2 bg-gray-300 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <i class="fas fa-chevron-left mr-1"></i> 前へ
+                        </button>
+                        <span
+                            id="stepIndicator"
+                            class="font-mono text-gray-700 font-bold w-24 text-center"
+                            >Step 0 / 0</span
+                        >
+                        <button
+                            onclick="goNext()"
+                            id="btnNext"
+                            class="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            次へ <i class="fas fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-5">
+                    <div
+                        id="demoSteps"
+                        class="font-mono text-sm leading-relaxed overflow-x-auto min-h-[300px]"
+                    >
+                        <div class="text-gray-400">値を入れて「計算を初期化」を押してください</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prism.js dependencies -->
+        <script
+            src="/vendor/prismjs/prism.js"
+            onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js';"
+        ></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+        <script
+            src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"
+            onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js';"
+        ></script>
+        <script
+            src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"
+            onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js';"
+        ></script>
+        <script
+            src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"
+            onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js';"
+        ></script>
+
+        <script>
+            // SVG Animation State
+            let currentSvgStep = 1;
+            const maxSvgSteps = 7;
+
+            function updateSvgState() {
+                for (let i = 1; i <= maxSvgSteps; i++) {
+                    const node = document.getElementById(`svg-node-${i}`);
+                    const edge = document.getElementById(`svg-edge-${i}`);
+
+                    if (node) {
+                        if (i <= currentSvgStep) node.classList.add('visible');
+                        else node.classList.remove('visible');
+                    }
+                    if (edge) {
+                        if (i < currentSvgStep) edge.classList.add('visible');
+                        else edge.classList.remove('visible');
+                    }
+                }
+
+                const btnPrev = document.getElementById('btnSvgPrev');
+                const btnNext = document.getElementById('btnSvgNext');
+                if (currentSvgStep === 1) {
+                    btnPrev.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnPrev.classList.remove('hover:bg-gray-300');
+                    btnPrev.disabled = true;
+                    btnPrev.setAttribute('aria-disabled', 'true');
+                    btnPrev.setAttribute('tabindex', '-1');
+                } else {
+                    btnPrev.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnPrev.classList.add('hover:bg-gray-300');
+                    btnPrev.disabled = false;
+                    btnPrev.setAttribute('aria-disabled', 'false');
+                    btnPrev.removeAttribute('tabindex');
+                }
+
+                if (currentSvgStep === maxSvgSteps) {
+                    btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnNext.classList.remove('hover:bg-indigo-600');
+                    btnNext.disabled = true;
+                    btnNext.setAttribute('aria-disabled', 'true');
+                    btnNext.setAttribute('tabindex', '-1');
+                } else {
+                    btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnNext.classList.add('hover:bg-indigo-600');
+                    btnNext.disabled = false;
+                    btnNext.setAttribute('aria-disabled', 'false');
+                    btnNext.removeAttribute('tabindex');
+                }
+
+                document.getElementById('svgStepIndicator').textContent =
+                    `Step ${currentSvgStep} / ${maxSvgSteps}`;
+            }
+
+            function nextSvgStep() {
+                if (currentSvgStep < maxSvgSteps) {
+                    currentSvgStep++;
+                    updateSvgState();
+                }
+            }
+
+            function prevSvgStep() {
+                if (currentSvgStep > 1) {
+                    currentSvgStep--;
+                    updateSvgState();
+                }
+            }
+
+            // Interactive Console Demo Logic
+            let currentDemoStep = 0;
+            let demoStepsData = [];
+
+            function computeStepsFor(x, n) {
+                let steps = [];
+                let originalX = x,
+                    originalN = n;
+
+                if (n < 0) {
+                    steps.push({
+                        type: 'negative',
+                        text: `負の指数処理: x = 1/${x} = ${1 / x}, n = ${-n}`,
+                        depth: 0,
+                    });
+                    x = 1 / x;
+                    n = -n;
+                }
+
+                function fastPowWithSteps(base, exp, depth = 0) {
+                    if (exp === 0) {
+                        steps.push({
+                            type: 'base',
+                            text: `fastPow(${base}, 0) = 1 (ベースケース)`,
+                            depth: depth,
+                        });
+                        return 1;
+                    }
+
+                    if (exp % 2 === 0) {
+                        steps.push({
+                            type: 'even',
+                            text: `fastPow(${base}, ${exp}) - 偶数なので半分に分割`,
+                            depth: depth,
+                        });
+                        const half = fastPowWithSteps(base, Math.floor(exp / 2), depth + 1);
+                        const result = half * half;
+                        steps.push({
+                            type: 'result',
+                            text: `= ${half} × ${half} = ${result}`,
+                            depth: depth,
+                        });
+                        return result;
+                    } else {
+                        steps.push({
+                            type: 'odd',
+                            text: `fastPow(${base}, ${exp}) - 奇数なので base × fastPow(base, exp-1)`,
+                            depth: depth,
+                        });
+                        const recursive = fastPowWithSteps(base, exp - 1, depth + 1);
+                        const result = base * recursive;
+                        steps.push({
+                            type: 'result',
+                            text: `= ${base} × ${recursive} = ${result}`,
+                            depth: depth,
+                        });
+                        return result;
+                    }
+                }
+
+                const result = fastPowWithSteps(x, n);
+                steps.push({
+                    type: 'final',
+                    text: `最終結果: ${originalX}^${originalN} = ${result}`,
+                    depth: 0,
+                });
+
+                return steps;
+            }
+
+            function formatSteps(stepsData, uptoIndex) {
+                return stepsData
+                    .slice(0, uptoIndex + 1)
+                    .map((step) => {
+                        const className =
+                            step.depth === 0 ? '' : `step-indent-${Math.min(step.depth, 3)}`;
+
+                        if (step.type === 'final') {
+                            return `<div class="final-result">${step.text}</div>`;
+                        } else if (step.type === 'result') {
+                            return `<div class="${className} step-result">${step.text}</div>`;
+                        } else {
+                            return `<div class="${className}">${step.text}</div>`;
+                        }
+                    })
+                    .join('');
+            }
+
+            function updateDemoUI() {
+                const indicator = document.getElementById('stepIndicator');
+                const btnPrev = document.getElementById('btnPrev');
+                const btnNext = document.getElementById('btnNext');
+                const demoSteps = document.getElementById('demoSteps');
+
+                if (demoStepsData.length === 0) {
+                    indicator.textContent = 'Step 0 / 0';
+                    btnPrev.disabled = true;
+                    btnNext.disabled = true;
+                    return;
+                }
+
+                indicator.textContent = `Step ${currentDemoStep + 1} / ${demoStepsData.length}`;
+                btnPrev.disabled = currentDemoStep === 0;
+                btnNext.disabled = currentDemoStep === demoStepsData.length - 1;
+
+                // Render HTML string to UI
+                demoSteps.innerHTML = formatSteps(demoStepsData, currentDemoStep);
+            }
+
+            function calculateDemo() {
+                const base = parseFloat(document.getElementById('baseInput').value);
+                const exp = parseInt(document.getElementById('expInput').value);
+
+                if (isNaN(base) || isNaN(exp)) {
+                    document.getElementById('demoSteps').innerHTML =
+                        '<span class="text-red-400">エラー: 有効な数値を入力してください</span>';
+                    return;
+                }
+
+                demoStepsData = computeStepsFor(base, exp);
+                currentDemoStep = 0;
+                updateDemoUI();
+            }
+
+            function goNext() {
+                if (currentDemoStep < demoStepsData.length - 1) {
+                    currentDemoStep++;
+                    updateDemoUI();
+                }
+            }
+
+            function goPrev() {
+                if (currentDemoStep > 0) {
+                    currentDemoStep--;
+                    updateDemoUI();
+                }
+            }
+
+            // Init SVG animation state
+            updateSvgState();
+
+            // Generate initial demo automatically
+            window.addEventListener('DOMContentLoaded', () => {
+                calculateDemo();
+            });
+        </script>
+    </body>
+</html>

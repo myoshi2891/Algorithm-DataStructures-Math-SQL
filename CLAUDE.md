@@ -27,6 +27,7 @@ bunx prettier -w .  # prettier 修正
 # 実行
 bunx tsx path/to/file.ts   # TypeScript実行
 make lab                   # JupyterLab起動
+python generate_index.py   # public/index.html 再生成
 ```
 
 パッケージマネージャは**Bun**。`npm`ではなく`bun install`を使用。
@@ -76,6 +77,19 @@ make lab                   # JupyterLab起動
 - **TypeScript**: `strict: true`, `noImplicitAny: true`, target ES2022
 - **Prettier**: semi, singleQuote, tabWidth: 4, printWidth: 100
 - **Python**: ruff + black
+
+### インデックスページ生成
+
+- `public/index.html` は `python generate_index.py` で自動生成。直接編集禁止
+- テンプレートは `generate_index.py` 内に埋め込み（Python `.format()` 使用、`{{`/`}}` でブレースエスケープ）
+- `public/` 配下の全ファイルは生成物。変更は必ずジェネレータ側で行う
+- テンプレート内JS で `innerHTML` 禁止（セキュリティフックがブロック）→ `textContent` + DOM API を使用
+- HTML出力に埋め込む文字列は `html.escape()` 必須（XSS防止）
+
+### ブラウザテスト（Playwright MCP）
+
+- `file://` URLはブロックされる → `python -m http.server 8765 --directory public` でローカルサーバー起動
+- `ruff` / `black` はグローバル未インストールの場合あり → `python -c "import py_compile; ..."` でシンタックスチェック代替
 
 ## SVGフローチャートガイドライン
 

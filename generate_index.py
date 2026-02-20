@@ -177,6 +177,7 @@ class Solution:
             'SQL': '\U0001F5C3\uFE0F',
         }
         total_count = sum(len(v) for v in structure.values())
+        domain_count = len(sorted_categories)
         current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
         # HTML Template — "Refined Lab" デザイン
@@ -598,7 +599,7 @@ class Solution:
             \U0001F9EA Algorithm Study
             <span class="title-accent">Index</span>
         </h1>
-        <p class="site-subtitle">{total_count} interactive lessons across 6 domains</p>
+        <p class="site-subtitle">{total_count} interactive lessons across {domain_count} domains</p>
     </header>
 
     <div class="search-container">
@@ -677,16 +678,19 @@ class Solution:
 
         function renderPaginationControls(tabId, totalPages, currentPage) {{
             const tab = document.getElementById(tabId);
-            let container = tab.querySelector('.pagination');
+            const existing = tab.querySelector('.pagination');
 
-            if (!container) {{
-                container = document.createElement('div');
+            if (totalPages <= 1) {{
+                if (existing) existing.remove();
+                return;
+            }}
+
+            const container = existing || document.createElement('div');
+            if (!existing) {{
                 container.className = 'pagination';
                 tab.appendChild(container);
             }}
             while (container.firstChild) container.removeChild(container.firstChild);
-
-            if (totalPages <= 1) return;
 
             const prevBtn = document.createElement('button');
             prevBtn.className = 'page-button';
@@ -755,7 +759,9 @@ class Solution:
                 input.value = '';
                 document.getElementById('searchClear').style.display = 'none';
                 document.getElementById('searchCount').textContent = '';
-                clearSearchFilter(categoryName);
+                document.querySelectorAll('.tab-content').forEach(tc => {{
+                    clearSearchFilter(tc.id);
+                }});
             }}
 
             currentPages[categoryName] = currentPages[categoryName] || 1;
@@ -865,7 +871,9 @@ class Solution:
             file_list_html = '<ul class="file-list">\n'
             for title, path in files:
                 encoded_path = urllib.parse.quote(path)
-                item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}"><span class="card-header"><span class="card-icon">{icon}</span><span class="card-title">{title}</span></span><span class="file-path">{path}</span></a></li>\n'
+                safe_title = html.escape(title)
+                safe_path = html.escape(path)
+                item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}"><span class="card-header"><span class="card-icon">{icon}</span><span class="card-title">{safe_title}</span></span><span class="file-path">{safe_path}</span></a></li>\n'
                 file_list_html += item_html
                 all_files_html += item_html
             file_list_html += '</ul>'
@@ -878,6 +886,7 @@ class Solution:
             tab_contents=tab_contents_html,
             timestamp=current_time,
             total_count=total_count,
+            domain_count=domain_count,
         )
 
         output_index_path = os.path.join(output_dir, index_file)

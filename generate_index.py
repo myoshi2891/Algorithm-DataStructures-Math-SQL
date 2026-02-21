@@ -888,12 +888,13 @@ class Solution:
         tab_contents_html = ""
         all_files_html = ""
 
-        def render_category_files(structure):
+        def render_category_files(structure, sorted_categories):
             tabs_html_list = []
             files_html_sections = []
             all_files_html_list = [] # Renamed to avoid conflict with outer scope all_files_html
 
-            for category, files in structure.items():
+            for category in sorted_categories:
+                files = structure[category]
                 css_cat = html.escape(category.lower(), quote=True)
                 safe_category = html.escape(category, quote=True)
                 icon = category_icons.get(category, '📁') # Default icon if not found
@@ -923,7 +924,7 @@ class Solution:
             return ''.join(tabs_html_list), ''.join(files_html_sections), ''.join(all_files_html_list)
 
         # Call the new function
-        tabs_html, tab_contents_html, all_files_html = render_category_files(structure)
+        tabs_html, tab_contents_html, all_files_html = render_category_files(structure, sorted_categories)
 
         final_html = html_template.format(
             tabs=tabs_html,

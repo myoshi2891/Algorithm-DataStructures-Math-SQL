@@ -406,6 +406,14 @@
             .cpbtn:hover {
                 background: var(--gd);
             }
+            .cpbtn:focus, .cpbtn:focus-visible {
+                outline: 2px solid var(--gd);
+                outline-offset: 2px;
+            }
+            .cpbtn:focus, .cpbtn:focus-visible {
+                outline: 2px solid var(--gd);
+                outline-offset: 2px;
+            }
             .kw {
                 color: #ff79c6;
             }
@@ -806,7 +814,7 @@
                     <strong>フローの説明：</strong><br />
                     1. 入力 (r, c) を受け取る<br />
                     2. グループ番号 g を整数除算で計算<br />
-                    3. グループ先頭値 base = 10g を求める<br />
+                    3. グループ先頭値 base = 10 × g を求める<br />
                     4. 列オフセット = 2×(c−1) を加算<br />
                     5. 行オフセット = (r−1) mod 2 を加算<br />
                     6. 3値の和を出力
@@ -1035,7 +1043,7 @@
             </section>
 
             <footer>
-                HackerRank — Strange Grid &nbsp;|&nbsp; Python CPython 3.13.3 &nbsp;|&nbsp; O(1)
+                HackerRank — Strange Grid &nbsp;|&nbsp; Python CPython 3.12.4 &nbsp;|&nbsp; O(1)
             </footer>
         </div>
 
@@ -1174,51 +1182,107 @@ if __name__ == "__main__":
 
             /* Steps */
             var COLS = [1, 2, 3, 4, 5];
+            function buildGridFragment(COLS, rows, cellValFn, highlightClassFn) {
+                var frag = document.createDocumentFragment();
+                var wrap = document.createElement('div');
+                wrap.style.display = 'inline-block';
+
+                var headerDiv = document.createElement('div');
+                headerDiv.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                COLS.forEach(function (c) {
+                    var cellDiv = document.createElement('div');
+                    cellDiv.style.cssText = 'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
+                    cellDiv.textContent = 'c=' + c;
+                    headerDiv.appendChild(cellDiv);
+                });
+                wrap.appendChild(headerDiv);
+
+                rows.forEach(function (r) {
+                    var gpRow = document.createElement('div');
+                    gpRow.className = 'gp-row';
+
+                    var rl = document.createElement('div');
+                    rl.className = 'rl';
+                    rl.textContent = 'r=' + r;
+                    gpRow.appendChild(rl);
+
+                    var cellContainer = document.createElement('div');
+                    cellContainer.style.cssText = 'display:flex;gap:4px;';
+
+                    COLS.forEach(function (c) {
+                        var g = Math.floor((r - 1) / 2);
+                        var cell = document.createElement('div');
+                        
+                        var cClass = g % 2 === 0 ? 'ca' : 'cb';
+                        if (highlightClassFn) {
+                            cClass = highlightClassFn(r, c, g, cClass);
+                        }
+                        
+                        cell.className = 'cell ' + cClass;
+                        cell.textContent = cellValFn(r, c);
+                        cellContainer.appendChild(cell);
+                    });
+                    gpRow.appendChild(cellContainer);
+                    wrap.appendChild(gpRow);
+                });
+                frag.appendChild(wrap);
+                return frag;
+            }
+
+            function buildGridFragment(COLS, rows, cellValFn, highlightClassFn) {
+                var frag = document.createDocumentFragment();
+                var wrap = document.createElement('div');
+                wrap.style.display = 'inline-block';
+
+                var headerDiv = document.createElement('div');
+                headerDiv.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                COLS.forEach(function (c) {
+                    var cellDiv = document.createElement('div');
+                    cellDiv.style.cssText = 'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
+                    cellDiv.textContent = 'c=' + c;
+                    headerDiv.appendChild(cellDiv);
+                });
+                wrap.appendChild(headerDiv);
+
+                rows.forEach(function (r) {
+                    var gpRow = document.createElement('div');
+                    gpRow.className = 'gp-row';
+
+                    var rl = document.createElement('div');
+                    rl.className = 'rl';
+                    rl.textContent = 'r=' + r;
+                    gpRow.appendChild(rl);
+
+                    var cellContainer = document.createElement('div');
+                    cellContainer.style.cssText = 'display:flex;gap:4px;';
+
+                    COLS.forEach(function (c) {
+                        var g = Math.floor((r - 1) / 2);
+                        var cell = document.createElement('div');
+                        
+                        var cClass = g % 2 === 0 ? 'ca' : 'cb';
+                        if (highlightClassFn) {
+                            cClass = highlightClassFn(r, c, g, cClass);
+                        }
+                        
+                        cell.className = 'cell ' + cClass;
+                        cell.textContent = cellValFn(r, c);
+                        cellContainer.appendChild(cell);
+                    });
+                    gpRow.appendChild(cellContainer);
+                    wrap.appendChild(gpRow);
+                });
+                frag.appendChild(wrap);
+                return frag;
+            }
+
             var STEPS = [
                 {
                     title: 'グリッドのパターン把握',
                     desc: 'グリッドを観察すると行は2行1組のグループをなす。第1・2行がグループ0、第3・4行がグループ1、第5・6行がグループ2…と続く。',
                     render: function () {
                         var rows = [6, 5, 4, 3, 2, 1];
-                        var frag = document.createDocumentFragment();
-                        var wrap = document.createElement('div');
-                        wrap.style.display = 'inline-block';
-
-                        var headerDiv = document.createElement('div');
-                        headerDiv.style.cssText =
-                            'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
-                        COLS.forEach(function (c) {
-                            var cellDiv = document.createElement('div');
-                            cellDiv.style.cssText =
-                                'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
-                            cellDiv.textContent = 'c=' + c;
-                            headerDiv.appendChild(cellDiv);
-                        });
-                        wrap.appendChild(headerDiv);
-
-                        rows.forEach(function (r) {
-                            var gpRow = document.createElement('div');
-                            gpRow.className = 'gp-row';
-
-                            var rl = document.createElement('div');
-                            rl.className = 'rl';
-                            rl.textContent = 'r=' + r;
-                            gpRow.appendChild(rl);
-
-                            var cellContainer = document.createElement('div');
-                            cellContainer.style.cssText = 'display:flex;gap:4px;';
-
-                            COLS.forEach(function (c) {
-                                var g = Math.floor((r - 1) / 2);
-                                var cell = document.createElement('div');
-                                cell.className = 'cell ' + (g % 2 === 0 ? 'ca' : 'cb');
-                                cell.textContent = cellVal(r, c);
-                                cellContainer.appendChild(cell);
-                            });
-                            gpRow.appendChild(cellContainer);
-                            wrap.appendChild(gpRow);
-                        });
-                        frag.appendChild(wrap);
+                        var frag = buildGridFragment(COLS, rows, cellVal, null);
 
                         var legendWrap = document.createElement('div');
                         legendWrap.style.cssText =
@@ -1260,35 +1324,9 @@ if __name__ == "__main__":
                             c = 3,
                             g = Math.floor((r - 1) / 2);
                         var rows = [6, 5, 4, 3, 2, 1];
-                        var frag = document.createDocumentFragment();
-                        var wrap = document.createElement('div');
-                        wrap.style.display = 'inline-block';
-
-                        rows.forEach(function (ri) {
-                            var gpRow = document.createElement('div');
-                            gpRow.className = 'gp-row';
-
-                            var rl = document.createElement('div');
-                            rl.className = 'rl';
-                            rl.textContent = 'r=' + ri;
-                            gpRow.appendChild(rl);
-
-                            var cellContainer = document.createElement('div');
-                            cellContainer.style.cssText = 'display:flex;gap:4px;';
-
-                            COLS.forEach(function (ci) {
-                                var gi = Math.floor((ri - 1) / 2);
-                                var cell = document.createElement('div');
-                                cell.className =
-                                    'cell ' +
-                                    (ri === r && ci === c ? 'ch' : gi % 2 === 0 ? 'ca' : 'cb');
-                                cell.textContent = cellVal(ri, ci);
-                                cellContainer.appendChild(cell);
-                            });
-                            gpRow.appendChild(cellContainer);
-                            wrap.appendChild(gpRow);
+                        var frag = buildGridFragment(COLS, rows, cellVal, function(ri, ci, gi, defaultClass) {
+                            return (ri === r && ci === c) ? 'ch' : defaultClass;
                         });
-                        frag.appendChild(wrap);
 
                         var fbox = document.createElement('div');
                         fbox.className = 'fbox';
@@ -1502,31 +1540,9 @@ if __name__ == "__main__":
                             row_offset = (r - 1) % 2,
                             answer = base + col_offset + row_offset;
                         var rows = [6, 5, 4, 3, 2, 1];
-                        var frag = document.createDocumentFragment();
-
-                        var wrap = document.createElement('div');
-                        wrap.style.display = 'inline-block';
-                        rows.forEach(function (ri) {
-                            var gpRow = document.createElement('div');
-                            gpRow.className = 'gp-row';
-
-                            var rl = document.createElement('div');
-                            rl.className = 'rl';
-                            rl.textContent = 'r=' + ri;
-                            gpRow.appendChild(rl);
-
-                            var cellContainer = document.createElement('div');
-                            cellContainer.style.cssText = 'display:flex;gap:4px;';
-                            COLS.forEach(function (ci) {
-                                var cell = document.createElement('div');
-                                cell.className = 'cell ' + (ri === r && ci === c ? 'ch' : 'cn');
-                                cell.textContent = cellVal(ri, ci);
-                                cellContainer.appendChild(cell);
-                            });
-                            gpRow.appendChild(cellContainer);
-                            wrap.appendChild(gpRow);
+                        var frag = buildGridFragment(COLS, rows, cellVal, function(ri, ci) {
+                            return (ri === r && ci === c) ? 'ch' : 'cn';
                         });
-                        frag.appendChild(wrap);
 
                         var resWrap = document.createElement('div');
                         resWrap.style.cssText =

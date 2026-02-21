@@ -135,7 +135,7 @@ $$
 g = \left\lfloor \frac{r - 1}{2} \right\rfloor \quad (\text{0-indexed グループ番号})
 $$
 
-各グループの**先頭値（列 $c=1$, 偶数行）**は：
+各グループの**先頭値（列 $c=1$, 奇数行（下行））**は：
 
 $$
 \text{base} = 10 \cdot g

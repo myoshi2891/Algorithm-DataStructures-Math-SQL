@@ -1,0 +1,1684 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <title>Strange Grid 解説</title>
+        <style>
+            :root {
+                --green: #00c896;
+                --gd: #059669;
+                --gl: #d1fae5;
+                --gm: #a7f3d0;
+                --blue: #0a7cff;
+                --bl: #dbeafe;
+                --bm: #93c5fd;
+                --ink: #0d1117;
+                --ink2: #1e293b;
+                --muted: #64748b;
+                --bg: #f0fdf6;
+                --card: #fff;
+                --bdr: #d1fae5;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+                background: var(--bg);
+                background-image:
+                    radial-gradient(circle at 15% 25%, rgba(0, 200, 150, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 85% 75%, rgba(10, 124, 255, 0.07) 0%, transparent 50%);
+                color: var(--ink);
+                line-height: 1.7;
+            }
+            .wrap {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 2rem 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+                font-weight: 800;
+            }
+            h2 {
+                font-size: 1.35rem;
+                font-weight: 800;
+                display: inline-block;
+                border-bottom: 3px solid var(--green);
+                padding-bottom: 0.3rem;
+                margin-bottom: 1.2rem;
+            }
+            p {
+                color: #475569;
+                line-height: 1.8;
+            }
+            .card {
+                background: var(--card);
+                border-radius: 1.25rem;
+                border: 1.5px solid var(--bdr);
+                box-shadow: 0 4px 20px rgba(0, 200, 150, 0.06);
+                padding: 1.8rem;
+                margin-bottom: 1.8rem;
+            }
+            .badge {
+                display: inline-block;
+                padding: 0.15rem 0.6rem;
+                border-radius: 999px;
+                font-size: 0.73rem;
+                font-weight: 700;
+            }
+            .bg {
+                background: var(--gl);
+                color: #065f46;
+            }
+            .bb {
+                background: var(--bl);
+                color: #1e3a8a;
+            }
+            .by {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            /* Header */
+            header {
+                background: linear-gradient(135deg, #d1fae5, #e0f2fe);
+                border-radius: 1.5rem;
+                border: 1.5px solid var(--gm);
+                padding: 2rem 2.2rem;
+                margin-bottom: 1.8rem;
+                box-shadow: 0 10px 30px rgba(0, 200, 150, 0.1);
+            }
+            header p {
+                color: #0369a1;
+                font-weight: 500;
+                margin: 0.4rem 0 1.2rem;
+            }
+            nav {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            nav a {
+                display: inline-block;
+                padding: 0.32rem 0.88rem;
+                border-radius: 999px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--ink2);
+                text-decoration: none;
+                border: 1.5px solid #d1fae5;
+                background: #fff;
+                transition: all 0.18s;
+            }
+            nav a:hover {
+                background: linear-gradient(135deg, #d1fae5, #bfdbfe);
+                border-color: var(--green);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 200, 150, 0.2);
+            }
+
+            /* Formula */
+            .fbox {
+                background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+                border: 2px solid var(--gm);
+                border-radius: 0.9rem;
+                padding: 1rem 1.3rem;
+                font-family: monospace;
+                font-size: 1rem;
+                color: #065f46;
+                margin: 1rem 0;
+            }
+
+            /* Grid cells */
+            .gp-wrap {
+                overflow-x: auto;
+                margin: 1rem 0;
+            }
+            .gp-row {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-bottom: 4px;
+            }
+            .rl {
+                width: 42px;
+                text-align: right;
+                padding-right: 6px;
+                font-size: 0.73rem;
+                font-weight: 700;
+                color: var(--muted);
+            }
+            .cell {
+                width: 52px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.4rem;
+                font-family: monospace;
+                font-size: 0.9rem;
+                font-weight: 500;
+                transition: all 0.25s;
+            }
+            .cn {
+                background: #f1f5f9;
+                color: #334155;
+            }
+            .ca {
+                background: #ecfdf5;
+                color: #065f46;
+            }
+            .cb {
+                background: #eff6ff;
+                color: #1e3a8a;
+            }
+            .ch {
+                background: linear-gradient(135deg, #00c896, #059669);
+                color: #fff;
+                box-shadow: 0 4px 14px rgba(0, 200, 150, 0.4);
+                transform: scale(1.15);
+                font-weight: 700;
+            }
+
+            /* Steps */
+            .steps-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            @media (min-width: 720px) {
+                .steps-grid {
+                    grid-template-columns: 200px 1fr;
+                }
+            }
+            .step-btn {
+                width: 100%;
+                text-align: left;
+                border-radius: 0.9rem;
+                border: 2px solid #e2e8f0;
+                background: #fff;
+                padding: 0.8rem 1rem;
+                cursor: pointer;
+                transition: all 0.18s;
+                font-family: inherit;
+                margin-bottom: 6px;
+                display: block;
+            }
+            .step-btn:hover {
+                border-color: var(--green);
+                transform: translateX(3px);
+                box-shadow: 0 4px 12px rgba(0, 200, 150, 0.15);
+            }
+            .step-btn.active {
+                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                border-color: var(--green);
+                box-shadow: 0 4px 14px rgba(0, 200, 150, 0.22);
+            }
+            .step-n {
+                font-weight: 700;
+                font-size: 0.85rem;
+                color: #1e293b;
+                margin-bottom: 2px;
+            }
+            .step-btn.active .step-n {
+                color: #065f46;
+            }
+            .step-s {
+                font-size: 0.73rem;
+                color: #94a3b8;
+            }
+            .vis-box {
+                background: linear-gradient(135deg, #ecfdf5, #f0f9ff);
+                border-radius: 1rem;
+                border: 2px solid #d1fae5;
+                padding: 1.1rem 1.3rem;
+                margin-bottom: 1rem;
+            }
+            .vis-t {
+                font-weight: 800;
+                font-size: 1rem;
+                color: #065f46;
+            }
+            .vis-d {
+                color: #475569;
+                font-size: 0.87rem;
+                line-height: 1.75;
+                margin-top: 4px;
+            }
+            .controls {
+                display: flex;
+                gap: 8px;
+                margin-top: 14px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            button.ctrl {
+                padding: 0.58rem 1.25rem;
+                border-radius: 0.7rem;
+                font-weight: 700;
+                font-size: 0.87rem;
+                cursor: pointer;
+                border: none;
+                transition: all 0.18s;
+                font-family: inherit;
+            }
+            button.ctrl:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+            .cp {
+                background: linear-gradient(135deg, #00c896, #059669);
+                color: #fff;
+                box-shadow: 0 3px 10px rgba(0, 200, 150, 0.3);
+            }
+            .cp:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(0, 200, 150, 0.35);
+            }
+            .cs {
+                background: #f1f5f9;
+                color: var(--ink2);
+                border: 1.5px solid #e2e8f0;
+            }
+            .cs:hover:not(:disabled) {
+                background: #e2e8f0;
+                transform: translateY(-2px);
+            }
+
+            /* Group cards */
+            .gcards {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin: 1rem 0;
+            }
+            .gcard {
+                flex: 1;
+                min-width: 120px;
+                border-radius: 0.9rem;
+                border: 1.5px solid #e2e8f0;
+                background: #f8fafc;
+                padding: 0.75rem 1rem;
+                text-align: center;
+            }
+            .gcard.on {
+                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                border-color: var(--green);
+            }
+            .gcard-l {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--muted);
+            }
+            .gcard-v {
+                font-family: monospace;
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: #065f46;
+                margin-top: 3px;
+            }
+            .gcard-s {
+                font-size: 0.68rem;
+                color: #94a3b8;
+                margin-top: 2px;
+            }
+
+            /* Result */
+            .res-g {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            .res-i {
+                background: #fff;
+                border-radius: 0.6rem;
+                border: 1.5px solid #d1fae5;
+                padding: 0.42rem 0.8rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .res-l {
+                font-family: monospace;
+                color: #475569;
+                font-size: 0.78rem;
+            }
+            .res-n {
+                font-family: monospace;
+                font-weight: 700;
+                color: #065f46;
+                font-size: 1rem;
+                margin-left: auto;
+            }
+            .res-tot {
+                font-family: monospace;
+                font-size: 1rem;
+                color: #065f46;
+                border-top: 1.5px dashed var(--gm);
+                padding-top: 9px;
+                margin-top: 2px;
+            }
+            .res-big {
+                font-size: 1.55rem;
+                font-weight: 700;
+                color: #059669;
+            }
+
+            /* Code */
+            .codeblk {
+                background: #0d1117;
+                border-radius: 1rem;
+                padding: 1.3rem 1.5rem;
+                font-family: monospace;
+                font-size: 0.83rem;
+                color: #e2e8f0;
+                overflow-x: auto;
+                line-height: 1.75;
+                position: relative;
+            }
+            .codeblk pre {
+                margin: 0;
+                white-space: pre;
+            }
+            .cpbtn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                padding: 3px 11px;
+                background: var(--green);
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.72rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.18s;
+                font-family: inherit;
+            }
+            .cpbtn:hover {
+                background: var(--gd);
+            }
+            .cpbtn:focus,
+            .cpbtn:focus-visible {
+                outline: 2px solid var(--gd);
+                outline-offset: 2px;
+            }
+            .kw {
+                color: #ff79c6;
+            }
+            .fn {
+                color: #50fa7b;
+            }
+            .cm {
+                color: #6272a4;
+            }
+            .st {
+                color: #f1fa8c;
+            }
+            .nb {
+                color: #8be9fd;
+            }
+            .nm {
+                color: #bd93f9;
+            }
+
+            /* Table */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                border-radius: 0.8rem;
+                overflow: hidden;
+            }
+            th {
+                background: linear-gradient(135deg, #d1fae5, #bfdbfe);
+                font-weight: 800;
+                padding: 0.62rem 1rem;
+                text-align: left;
+                font-size: 0.87rem;
+            }
+            td {
+                padding: 0.58rem 1rem;
+                border-bottom: 1px solid #f0fdf4;
+                font-size: 0.87rem;
+            }
+            tr:nth-child(even) td {
+                background: #f9fffe;
+            }
+
+            /* FAQ */
+            .faq {
+                background: #f8fafc;
+                border-radius: 0.8rem;
+                border: 1.5px solid #e2e8f0;
+                padding: 0.88rem 1.1rem;
+                margin-bottom: 10px;
+            }
+            .faq-q {
+                font-weight: 700;
+                color: #0369a1;
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+            }
+            .faq-a {
+                color: #475569;
+                font-size: 0.85rem;
+                line-height: 1.7;
+            }
+            footer {
+                text-align: center;
+                color: #94a3b8;
+                font-size: 0.77rem;
+                padding: 1.5rem 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <header>
+                <div style="margin-bottom: 0.55rem; display: flex; gap: 6px; flex-wrap: wrap">
+                    <span class="badge bg">HackerRank</span>
+                    <span class="badge bb">O(1)</span>
+                    <span class="badge by">数式算出</span>
+                </div>
+                <h1>Strange Grid</h1>
+                <p>無限グリッド上の座標値を O(1) 算術式で算出</p>
+                <nav>
+                    <a href="#overview">概要</a>
+                    <a href="#steps">ステップ解説</a>
+                    <a href="#diagram">フローチャート</a>
+                    <a href="#code">実装</a>
+                    <a href="#complexity">計算量</a>
+                    <a href="#edgecases">検証</a>
+                    <a href="#faq">FAQ</a>
+                </nav>
+            </header>
+
+            <!-- Overview -->
+            <section id="overview" class="card">
+                <h2>概要</h2>
+                <p>
+                    無限に上方向へ伸びるグリッドが与えられる。底辺が第 1
+                    行、行は下から上へ増加、列は左から右へ増加する。行 r・列 c
+                    に位置するセルの値を求める問題。
+                </p>
+                <div class="gp-wrap" id="ov-grid" style="margin-top: 1rem"></div>
+                <div class="fbox">f(r, c) = 10 × ⌊(r−1)÷2⌋ + 2×(c−1) + (r−1) mod 2</div>
+                <div
+                    style="
+                        background: #f0fdf4;
+                        border-radius: 0.7rem;
+                        border: 1.5px solid #bbf7d0;
+                        padding: 0.68rem 1rem;
+                        margin-top: 0.5rem;
+                    "
+                >
+                    <strong style="color: #065f46">サンプル:</strong>
+                    <span style="font-family: monospace; margin: 0 8px">r=6, c=3</span>
+                    <span style="color: #94a3b8; margin-right: 8px">→</span>
+                    <span
+                        style="
+                            font-family: monospace;
+                            font-weight: 700;
+                            color: #059669;
+                            font-size: 1.12rem;
+                        "
+                        >25</span
+                    >
+                </div>
+            </section>
+
+            <!-- Steps -->
+            <section id="steps" class="card">
+                <h2>ステップ解説</h2>
+                <div class="steps-grid">
+                    <div id="step-list"></div>
+                    <div>
+                        <div class="vis-box">
+                            <div class="vis-t" id="vis-title"></div>
+                            <div class="vis-d" id="vis-desc"></div>
+                        </div>
+                        <div id="vis-content"></div>
+                        <div class="controls">
+                            <button class="ctrl cp" id="btn-play">▶ Play</button>
+                            <button class="ctrl cs" id="btn-prev">← Prev</button>
+                            <button class="ctrl cs" id="btn-next">Next →</button>
+                            <button class="ctrl cs" id="btn-reset">↺ Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flowchart -->
+            <section id="diagram" class="card">
+                <h2>フローチャート</h2>
+                <div style="overflow-x: auto; margin-top: 10px">
+                    <svg
+                        viewBox="0 0 680 560"
+                        style="max-width: 100%; height: auto"
+                        role="img"
+                        aria-label="Strange Grid アルゴリズム フローチャート"
+                    >
+                        <defs>
+                            <marker
+                                id="a0"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="a1"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                        </defs>
+                        <ellipse
+                            cx="340"
+                            cy="48"
+                            rx="110"
+                            ry="28"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="340"
+                            y="48"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Hiragino Sans,Meiryo,sans-serif"
+                            font-weight="700"
+                            font-size="14"
+                            fill="#065f46"
+                        >
+                            入力: r, c
+                        </text>
+                        <line
+                            x1="340"
+                            y1="76"
+                            x2="340"
+                            y2="120"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#a0)"
+                        />
+                        <rect
+                            x="210"
+                            y="120"
+                            width="260"
+                            height="52"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="340"
+                            y="140"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="monospace"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            g = (r − 1) ÷ 2
+                        </text>
+                        <text
+                            x="340"
+                            y="160"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Hiragino Sans,sans-serif"
+                            font-size="11"
+                            fill="#0369a1"
+                        >
+                            グループ番号（0-indexed）
+                        </text>
+                        <line
+                            x1="340"
+                            y1="172"
+                            x2="340"
+                            y2="216"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#a0)"
+                        />
+                        <rect
+                            x="210"
+                            y="216"
+                            width="260"
+                            height="52"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="340"
+                            y="236"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="monospace"
+                            font-size="14"
+                            fill="#0c4a6e"
+                        >
+                            base = 10 × g
+                        </text>
+                        <text
+                            x="340"
+                            y="256"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Hiragino Sans,sans-serif"
+                            font-size="11"
+                            fill="#0369a1"
+                        >
+                            グループの先頭値
+                        </text>
+                        <line
+                            x1="340"
+                            y1="268"
+                            x2="340"
+                            y2="312"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#a0)"
+                        />
+                        <rect
+                            x="210"
+                            y="312"
+                            width="260"
+                            height="52"
+                            rx="10"
+                            fill="#f0fdf4"
+                            stroke="#16a34a"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="340"
+                            y="332"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="monospace"
+                            font-size="13"
+                            fill="#14532d"
+                        >
+                            col_offset = 2 × (c − 1)
+                        </text>
+                        <text
+                            x="340"
+                            y="352"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Hiragino Sans,sans-serif"
+                            font-size="11"
+                            fill="#15803d"
+                        >
+                            列方向のオフセット
+                        </text>
+                        <line
+                            x1="340"
+                            y1="364"
+                            x2="340"
+                            y2="408"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#a0)"
+                        />
+                        <rect
+                            x="210"
+                            y="408"
+                            width="260"
+                            height="52"
+                            rx="10"
+                            fill="#f0fdf4"
+                            stroke="#16a34a"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="340"
+                            y="428"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="monospace"
+                            font-size="13"
+                            fill="#14532d"
+                        >
+                            row_offset = (r − 1) mod 2
+                        </text>
+                        <text
+                            x="340"
+                            y="448"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Hiragino Sans,sans-serif"
+                            font-size="11"
+                            fill="#15803d"
+                        >
+                            グループ内行位置（0 or 1）
+                        </text>
+                        <line
+                            x1="340"
+                            y1="460"
+                            x2="340"
+                            y2="494"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            marker-end="url(#a1)"
+                        />
+                        <ellipse
+                            cx="340"
+                            cy="520"
+                            rx="200"
+                            ry="26"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="340"
+                            y="520"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="monospace"
+                            font-weight="700"
+                            font-size="13"
+                            fill="#065f46"
+                        >
+                            答え = base + col_offset + row_offset
+                        </text>
+                    </svg>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.88rem; color: #475569; line-height: 1.85">
+                    <strong>フローの説明：</strong><br />
+                    1. 入力 (r, c) を受け取る<br />
+                    2. グループ番号 g を整数除算で計算<br />
+                    3. グループ先頭値 base = 10 × g を求める<br />
+                    4. 列オフセット = 2×(c−1) を加算<br />
+                    5. 行オフセット = (r−1) mod 2 を加算<br />
+                    6. 3値の和を出力
+                </p>
+            </section>
+
+            <!-- Code -->
+            <section id="code" class="card">
+                <h2>Python 実装</h2>
+                <div class="codeblk">
+                    <button class="cpbtn" id="cpbtn">コピー</button>
+                    <pre><span class="kw">from</span> __future__ <span class="kw">import</span> annotations
+<span class="kw">import</span> os
+
+
+<span class="kw">def</span> <span class="fn">strangeGrid</span>(<span class="nb">r</span>: <span class="nb">int</span>, <span class="nb">c</span>: <span class="nb">int</span>) -> <span class="nb">int</span>:
+    <span class="st">"""
+    Strange Grid の (r, c) セルの値を返す。
+
+    公式:
+        g          = (r - 1) // 2   # 0-indexed グループ番号
+        base       = 10 * g         # グループ先頭値
+        col_offset = 2 * (c - 1)   # 列方向増分
+        row_offset = (r - 1) % 2   # グループ内行位置 (0 or 1)
+
+    Time  Complexity: O(1)
+    Space Complexity: O(1)
+    """</span>
+    g:          <span class="nb">int</span> = (r - <span class="nm">1</span>) // <span class="nm">2</span>
+    base:       <span class="nb">int</span> = <span class="nm">10</span> * g
+    col_offset: <span class="nb">int</span> = <span class="nm">2</span> * (c - <span class="nm">1</span>)
+    row_offset: <span class="nb">int</span> = (r - <span class="nm">1</span>) % <span class="nm">2</span>
+    <span class="kw">return</span> base + col_offset + row_offset
+
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    fptr = <span class="fn">open</span>(os.environ[<span class="st">"OUTPUT_PATH"</span>], <span class="st">"w"</span>)
+    first_multiple_input = <span class="fn">input</span>().<span class="fn">rstrip</span>().<span class="fn">split</span>()
+    r = <span class="fn">int</span>(first_multiple_input[<span class="nm">0</span>])
+    c = <span class="fn">int</span>(first_multiple_input[<span class="nm">1</span>])
+    result = <span class="fn">strangeGrid</span>(r, c)
+    fptr.<span class="fn">write</span>(<span class="fn">str</span>(result) + <span class="st">"\n"</span>)
+    fptr.<span class="fn">close</span>()</pre>
+                </div>
+            </section>
+
+            <!-- Complexity -->
+            <section id="complexity" class="card">
+                <h2>計算量分析</h2>
+                <div style="display: flex; gap: 12px; margin-bottom: 1.4rem; flex-wrap: wrap">
+                    <div
+                        style="
+                            flex: 1;
+                            min-width: 150px;
+                            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                            border-radius: 1rem;
+                            padding: 0.9rem 1.2rem;
+                            text-align: center;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 0.76rem;
+                                font-weight: 700;
+                                color: #065f46;
+                                margin-bottom: 3px;
+                            "
+                        >
+                            時間計算量
+                        </div>
+                        <div
+                            style="
+                                font-family: monospace;
+                                font-weight: 700;
+                                font-size: 1.6rem;
+                                color: #059669;
+                            "
+                        >
+                            O(1)
+                        </div>
+                    </div>
+                    <div
+                        style="
+                            flex: 1;
+                            min-width: 150px;
+                            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+                            border-radius: 1rem;
+                            padding: 0.9rem 1.2rem;
+                            text-align: center;
+                        "
+                    >
+                        <div
+                            style="
+                                font-size: 0.76rem;
+                                font-weight: 700;
+                                color: #1e3a8a;
+                                margin-bottom: 3px;
+                            "
+                        >
+                            空間計算量
+                        </div>
+                        <div
+                            style="
+                                font-family: monospace;
+                                font-weight: 700;
+                                font-size: 1.6rem;
+                                color: #0a7cff;
+                            "
+                        >
+                            O(1)
+                        </div>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>手法</th>
+                            <th>時間</th>
+                            <th>空間</th>
+                            <th>備考</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong style="color: #065f46">本実装（算術式）</strong>
+                                <span class="badge bg" style="font-size: 0.68rem">採用</span>
+                            </td>
+                            <td>
+                                <span
+                                    style="font-family: monospace; color: #059669; font-weight: 700"
+                                    >O(1)</span
+                                >
+                            </td>
+                            <td>
+                                <span
+                                    style="font-family: monospace; color: #0a7cff; font-weight: 700"
+                                    >O(1)</span
+                                >
+                            </td>
+                            <td style="color: #64748b">除算・剰余・加算のみ</td>
+                        </tr>
+                        <tr>
+                            <td>行単位スキャン</td>
+                            <td>
+                                <span
+                                    style="font-family: monospace; color: #f59e0b; font-weight: 700"
+                                    >O(r)</span
+                                >
+                            </td>
+                            <td>
+                                <span style="font-family: monospace; font-weight: 700">O(1)</span>
+                            </td>
+                            <td style="color: #64748b">行を順次計算</td>
+                        </tr>
+                        <tr>
+                            <td>全探索（仮想）</td>
+                            <td>
+                                <span
+                                    style="font-family: monospace; color: #dc2626; font-weight: 700"
+                                    >O(r×c)</span
+                                >
+                            </td>
+                            <td>
+                                <span
+                                    style="font-family: monospace; color: #dc2626; font-weight: 700"
+                                    >O(r×c)</span
+                                >
+                            </td>
+                            <td style="color: #64748b">グリッド全体を生成</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Edge cases -->
+            <section id="edgecases" class="card">
+                <h2>エッジケースと検証</h2>
+                <div style="overflow-x: auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>r</th>
+                                <th>c</th>
+                                <th>期待値</th>
+                                <th>計算値</th>
+                                <th>備考</th>
+                            </tr>
+                        </thead>
+                        <tbody id="edge-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section id="faq" class="card">
+                <h2>FAQ</h2>
+                <div class="faq">
+                    <div class="faq-q">Q. なぜグループ先頭値が 10 刻みなのか？</div>
+                    <div class="faq-a">
+                        A. 5列 × 2行 で 1 グループ当たり 10 個の整数を消費するため。一般化すると N
+                        列の場合 base = 2N×g となる。
+                    </div>
+                </div>
+                <div class="faq">
+                    <div class="faq-q">Q. r=1 の下行が 0 から始まる根拠は？</div>
+                    <div class="faq-a">
+                        A. 問題の定義によりグリッドの左下が値 0。row_offset=0
+                        がグループ下行に対応するため自然に成立する。
+                    </div>
+                </div>
+                <div class="faq">
+                    <div class="faq-q">Q. 列が 5 列を超えても公式は成立するか？</div>
+                    <div class="faq-a">
+                        A. はい。col_offset = 2×(c−1) は c
+                        が何であっても有効。グループ基底値はグリッドの実際の列数に依存しない。
+                    </div>
+                </div>
+                <div class="faq">
+                    <div class="faq-q">Q. Python の // と % は負の入力で正しく動くか？</div>
+                    <div class="faq-a">
+                        A. 制約 r≥1 より (r−1)≥0 が保証される。Python
+                        の床除算・剰余は非負整数に対して数学的定義と一致するため問題なし。
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                HackerRank — Strange Grid &nbsp;|&nbsp; Python CPython 3.12.4 &nbsp;|&nbsp; O(1)
+            </footer>
+        </div>
+
+        <script>
+            function cellVal(r, c) {
+                return 10 * Math.floor((r - 1) / 2) + 2 * (c - 1) + ((r - 1) % 2);
+            }
+
+            /* Overview grid */
+            (function () {
+                var rows = [6, 5, 4, 3, 2, 1],
+                    cols = [1, 2, 3, 4, 5];
+                var frag = document.createDocumentFragment();
+                var wrap = document.createElement('div');
+                wrap.style.display = 'inline-block';
+
+                var headerDiv = document.createElement('div');
+                headerDiv.style.cssText =
+                    'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                cols.forEach(function (c) {
+                    var cellDiv = document.createElement('div');
+                    cellDiv.style.cssText =
+                        'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
+                    cellDiv.textContent = 'c=' + c;
+                    headerDiv.appendChild(cellDiv);
+                });
+                wrap.appendChild(headerDiv);
+
+                rows.forEach(function (r) {
+                    var gpRow = document.createElement('div');
+                    gpRow.className = 'gp-row';
+
+                    var rl = document.createElement('div');
+                    rl.className = 'rl';
+                    rl.textContent = 'r=' + r;
+                    gpRow.appendChild(rl);
+
+                    var cellContainer = document.createElement('div');
+                    cellContainer.style.cssText = 'display:flex;gap:4px;';
+
+                    cols.forEach(function (c) {
+                        var g = Math.floor((r - 1) / 2);
+                        var cell = document.createElement('div');
+                        cell.className = 'cell ' + (g % 2 === 0 ? 'ca' : 'cb');
+                        cell.textContent = cellVal(r, c);
+                        cellContainer.appendChild(cell);
+                    });
+                    gpRow.appendChild(cellContainer);
+                    wrap.appendChild(gpRow);
+                });
+                frag.appendChild(wrap);
+                var target = document.getElementById('ov-grid');
+                target.textContent = '';
+                target.appendChild(frag);
+            })();
+
+            /* Edge cases */
+            (function () {
+                var cases = [
+                    { r: 1, c: 1, ex: 0, note: '最小入力・原点' },
+                    { r: 2, c: 1, ex: 1, note: 'グループ0 上行' },
+                    { r: 1, c: 2, ex: 2, note: '第2列' },
+                    { r: 3, c: 1, ex: 10, note: 'グループ1 先頭' },
+                    { r: 6, c: 3, ex: 25, note: 'サンプル入力' },
+                    { r: 100, c: 1, ex: 491, note: '大きなr（g=49）' },
+                ];
+                var frag = document.createDocumentFragment();
+                cases.forEach(function (t) {
+                    var got = cellVal(t.r, t.c),
+                        ok = got === t.ex;
+                    var tr = document.createElement('tr');
+
+                    var td1 = document.createElement('td');
+                    td1.style.fontFamily = 'monospace';
+                    td1.textContent = t.r;
+                    tr.appendChild(td1);
+
+                    var td2 = document.createElement('td');
+                    td2.style.fontFamily = 'monospace';
+                    td2.textContent = t.c;
+                    tr.appendChild(td2);
+
+                    var td3 = document.createElement('td');
+                    td3.style.cssText = 'font-family:monospace;font-weight:700;color:#059669;';
+                    td3.textContent = t.ex;
+                    tr.appendChild(td3);
+
+                    var td4 = document.createElement('td');
+                    td4.style.cssText =
+                        'font-family:monospace;font-weight:700;color:' +
+                        (ok ? '#059669' : '#dc2626') +
+                        ';';
+                    td4.textContent = got + ' ' + (ok ? '✓' : '✗');
+                    tr.appendChild(td4);
+
+                    var td5 = document.createElement('td');
+                    td5.style.cssText = 'color:#64748b;font-size:.84rem;';
+                    td5.textContent = t.note;
+                    tr.appendChild(td5);
+
+                    frag.appendChild(tr);
+                });
+                var target = document.getElementById('edge-tbody');
+                target.textContent = '';
+                target.appendChild(frag);
+            })();
+
+            /* Copy */
+            var copyTimeoutId = null;
+            document.getElementById('cpbtn').addEventListener('click', function () {
+                var code = `from __future__ import annotations
+import os
+
+def strangeGrid(r: int, c: int) -> int:
+    g:          int = (r - 1) // 2
+    base:       int = 10 * g
+    col_offset: int = 2 * (c - 1)
+    row_offset: int = (r - 1) % 2
+    return base + col_offset + row_offset
+
+if __name__ == "__main__":
+    fptr = open(os.environ["OUTPUT_PATH"], "w")
+    first_multiple_input = input().rstrip().split()
+    r = int(first_multiple_input[0])
+    c = int(first_multiple_input[1])
+    result = strangeGrid(r, c)
+    fptr.write(str(result) + "\\n")
+    fptr.close()`;
+                var b = document.getElementById('cpbtn');
+
+                function showStatus(text) {
+                    b.textContent = text;
+                    if (copyTimeoutId) clearTimeout(copyTimeoutId);
+                    copyTimeoutId = setTimeout(function () {
+                        b.textContent = 'コピー';
+                    }, 2000);
+                }
+
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard
+                        .writeText(code)
+                        .then(function () {
+                            showStatus('コピー完了!');
+                        })
+                        .catch(function (err) {
+                            console.error('Copy error:', err);
+                            showStatus('コピー失敗');
+                        });
+                } else {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = code;
+                        ta.style.position = 'fixed';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        var res = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        if (res) {
+                            showStatus('コピー完了!');
+                        } else {
+                            showStatus('コピー失敗');
+                        }
+                    } catch (e) {
+                        console.error('Fallback copy error:', e);
+                        showStatus('コピー失敗');
+                    }
+                }
+            });
+
+            /* Steps */
+            var COLS = [1, 2, 3, 4, 5];
+            function buildGridFragment(COLS, rows, cellValFn, highlightClassFn) {
+                var frag = document.createDocumentFragment();
+                var wrap = document.createElement('div');
+                wrap.style.display = 'inline-block';
+
+                var headerDiv = document.createElement('div');
+                headerDiv.style.cssText =
+                    'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                COLS.forEach(function (c) {
+                    var cellDiv = document.createElement('div');
+                    cellDiv.style.cssText =
+                        'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
+                    cellDiv.textContent = 'c=' + c;
+                    headerDiv.appendChild(cellDiv);
+                });
+                wrap.appendChild(headerDiv);
+
+                rows.forEach(function (r) {
+                    var gpRow = document.createElement('div');
+                    gpRow.className = 'gp-row';
+
+                    var rl = document.createElement('div');
+                    rl.className = 'rl';
+                    rl.textContent = 'r=' + r;
+                    gpRow.appendChild(rl);
+
+                    var cellContainer = document.createElement('div');
+                    cellContainer.style.cssText = 'display:flex;gap:4px;';
+
+                    COLS.forEach(function (c) {
+                        var g = Math.floor((r - 1) / 2);
+                        var cell = document.createElement('div');
+
+                        var cClass = g % 2 === 0 ? 'ca' : 'cb';
+                        if (highlightClassFn) {
+                            cClass = highlightClassFn(r, c, g, cClass);
+                        }
+
+                        cell.className = 'cell ' + cClass;
+                        cell.textContent = cellValFn(r, c);
+                        cellContainer.appendChild(cell);
+                    });
+                    gpRow.appendChild(cellContainer);
+                    wrap.appendChild(gpRow);
+                });
+                frag.appendChild(wrap);
+                return frag;
+            }
+
+            var STEPS = [
+                {
+                    title: 'グリッドのパターン把握',
+                    desc: 'グリッドを観察すると行は2行1組のグループをなす。第1・2行がグループ0、第3・4行がグループ1、第5・6行がグループ2…と続く。',
+                    render: function () {
+                        var rows = [6, 5, 4, 3, 2, 1];
+                        var frag = buildGridFragment(COLS, rows, cellVal, null);
+
+                        var legendWrap = document.createElement('div');
+                        legendWrap.style.cssText =
+                            'display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;';
+
+                        var l1 = document.createElement('div');
+                        l1.style.cssText = 'display:flex;align-items:center;gap:6px;';
+                        var b1 = document.createElement('div');
+                        b1.style.cssText =
+                            'width:16px;height:16px;border-radius:3px;background:#ecfdf5;border:1px solid #a7f3d0;';
+                        var s1 = document.createElement('span');
+                        s1.style.cssText = 'font-size:.77rem;color:#475569;';
+                        s1.textContent = 'グループ 0,2… (偶数)';
+                        l1.appendChild(b1);
+                        l1.appendChild(s1);
+                        legendWrap.appendChild(l1);
+
+                        var l2 = document.createElement('div');
+                        l2.style.cssText = 'display:flex;align-items:center;gap:6px;';
+                        var b2 = document.createElement('div');
+                        b2.style.cssText =
+                            'width:16px;height:16px;border-radius:3px;background:#eff6ff;border:1px solid #93c5fd;';
+                        var s2 = document.createElement('span');
+                        s2.style.cssText = 'font-size:.77rem;color:#475569;';
+                        s2.textContent = 'グループ 1,3… (奇数)';
+                        l2.appendChild(b2);
+                        l2.appendChild(s2);
+                        legendWrap.appendChild(l2);
+
+                        frag.appendChild(legendWrap);
+                        return frag;
+                    },
+                },
+                {
+                    title: 'グループ番号 g の計算',
+                    desc: 'グループ番号（0-indexed）は g = (r − 1) ÷ 2（整数除算）で求まる。例: r=6 → g = 5÷2 = 2',
+                    render: function () {
+                        var r = 6,
+                            c = 3,
+                            g = Math.floor((r - 1) / 2);
+                        var rows = [6, 5, 4, 3, 2, 1];
+                        var frag = buildGridFragment(
+                            COLS,
+                            rows,
+                            cellVal,
+                            function (ri, ci, gi, defaultClass) {
+                                return ri === r && ci === c ? 'ch' : defaultClass;
+                            },
+                        );
+
+                        var fbox = document.createElement('div');
+                        fbox.className = 'fbox';
+                        fbox.textContent =
+                            'g = (r − 1) ÷ 2 = (' + r + ' − 1) ÷ 2 = ' + (r - 1) + ' ÷ 2 = ';
+                        var strong = document.createElement('strong');
+                        strong.style.fontSize = '1.2rem';
+                        strong.textContent = g;
+                        fbox.appendChild(strong);
+
+                        frag.appendChild(fbox);
+                        return frag;
+                    },
+                },
+                {
+                    title: '基底値 base の計算',
+                    desc: '各グループの先頭値（列1・下行）は 10×g。グループ0→0、グループ1→10、グループ2→20。',
+                    render: function () {
+                        var r = 6,
+                            g = Math.floor((r - 1) / 2),
+                            base = 10 * g;
+                        var frag = document.createDocumentFragment();
+                        var gcards = document.createElement('div');
+                        gcards.className = 'gcards';
+
+                        [0, 1, 2].forEach(function (gi) {
+                            var gcard = document.createElement('div');
+                            gcard.className = 'gcard' + (gi === g ? ' on' : '');
+
+                            var gcardL = document.createElement('div');
+                            gcardL.className = 'gcard-l';
+                            gcardL.textContent = 'グループ g=' + gi;
+                            gcard.appendChild(gcardL);
+
+                            var gcardV = document.createElement('div');
+                            gcardV.className = 'gcard-v';
+                            gcardV.textContent = 'base = ' + 10 * gi;
+                            gcard.appendChild(gcardV);
+
+                            var gcardS = document.createElement('div');
+                            gcardS.className = 'gcard-s';
+                            gcardS.textContent = 'Row ' + (gi * 2 + 1) + '〜' + (gi * 2 + 2);
+                            gcard.appendChild(gcardS);
+
+                            gcards.appendChild(gcard);
+                        });
+                        frag.appendChild(gcards);
+
+                        var fbox = document.createElement('div');
+                        fbox.className = 'fbox';
+                        fbox.textContent = 'base = 10 × g = 10 × ' + g + ' = ';
+                        var strong = document.createElement('strong');
+                        strong.style.fontSize = '1.2rem';
+                        strong.textContent = base;
+                        fbox.appendChild(strong);
+
+                        frag.appendChild(fbox);
+                        return frag;
+                    },
+                },
+                {
+                    title: '列オフセットの計算',
+                    desc: '列方向は隣の列へ +2 ずつ増える。col_offset = 2×(c−1)。例: c=3 → col_offset = 2×2 = 4',
+                    render: function () {
+                        var c = 3,
+                            col_offset = 2 * (c - 1);
+                        var frag = document.createDocumentFragment();
+                        var wrap = document.createElement('div');
+                        wrap.style.display = 'inline-block';
+
+                        var headerDiv = document.createElement('div');
+                        headerDiv.style.cssText =
+                            'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                        COLS.forEach(function (ci) {
+                            var cellDiv = document.createElement('div');
+                            cellDiv.style.cssText =
+                                'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:' +
+                                (ci === c ? '#059669' : '#64748b') +
+                                ';';
+                            cellDiv.textContent = 'c=' + ci;
+                            headerDiv.appendChild(cellDiv);
+                        });
+                        wrap.appendChild(headerDiv);
+
+                        var gpRow1 = document.createElement('div');
+                        gpRow1.className = 'gp-row';
+                        var rl1 = document.createElement('div');
+                        rl1.className = 'rl';
+                        rl1.style.fontSize = '.65rem';
+                        rl1.textContent = 'offset';
+                        gpRow1.appendChild(rl1);
+                        var cc1 = document.createElement('div');
+                        cc1.style.cssText = 'display:flex;gap:4px;';
+                        COLS.forEach(function (ci) {
+                            var cell = document.createElement('div');
+                            cell.className = 'cell ' + (ci === c ? 'ch' : 'cn');
+                            cell.textContent = 2 * (ci - 1);
+                            cc1.appendChild(cell);
+                        });
+                        gpRow1.appendChild(cc1);
+                        wrap.appendChild(gpRow1);
+
+                        var gpRow2 = document.createElement('div');
+                        gpRow2.className = 'gp-row';
+                        var rl2 = document.createElement('div');
+                        rl2.className = 'rl';
+                        rl2.style.fontSize = '.65rem';
+                        rl2.textContent = 'r=1値';
+                        gpRow2.appendChild(rl2);
+                        var cc2 = document.createElement('div');
+                        cc2.style.cssText = 'display:flex;gap:4px;';
+                        COLS.forEach(function (ci) {
+                            var cell = document.createElement('div');
+                            cell.className = 'cell ca';
+                            cell.style.fontSize = '.8rem';
+                            cell.textContent = cellVal(1, ci);
+                            cc2.appendChild(cell);
+                        });
+                        gpRow2.appendChild(cc2);
+                        wrap.appendChild(gpRow2);
+                        frag.appendChild(wrap);
+
+                        var fbox = document.createElement('div');
+                        fbox.className = 'fbox';
+                        fbox.textContent =
+                            'col_offset = 2 × (c − 1) = 2 × (' +
+                            c +
+                            ' − 1) = 2 × ' +
+                            (c - 1) +
+                            ' = ';
+                        var strong = document.createElement('strong');
+                        strong.style.fontSize = '1.2rem';
+                        strong.textContent = col_offset;
+                        fbox.appendChild(strong);
+
+                        frag.appendChild(fbox);
+                        return frag;
+                    },
+                },
+                {
+                    title: '行オフセットの計算',
+                    desc: 'グループ内の下行が 0、上行が 1。row_offset = (r−1) mod 2。例: r=6 → (6−1) mod 2 = 1',
+                    render: function () {
+                        var r = 6,
+                            row_offset = (r - 1) % 2;
+                        var frag = document.createDocumentFragment();
+                        var wrap = document.createElement('div');
+                        wrap.style.cssText =
+                            'display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;';
+
+                        [1, 2, 3, 4, 5, 6].forEach(function (ri) {
+                            var ro = (ri - 1) % 2,
+                                isA = ri === r;
+                            var b = document.createElement('div');
+                            b.style.cssText =
+                                'flex:1;min-width:56px;text-align:center;border-radius:.7rem;padding:.5rem .2rem;background:' +
+                                (isA ? 'linear-gradient(135deg,#d1fae5,#a7f3d0)' : '#f8fafc') +
+                                ';border:1.5px solid ' +
+                                (isA ? '#00c896' : '#e2e8f0') +
+                                ';';
+
+                            var d1 = document.createElement('div');
+                            d1.style.cssText = 'font-size:.72rem;font-weight:700;color:#64748b;';
+                            d1.textContent = 'r=' + ri;
+                            b.appendChild(d1);
+
+                            var d2 = document.createElement('div');
+                            d2.style.cssText =
+                                'font-family:monospace;font-size:1rem;font-weight:700;color:#065f46;margin-top:2px;';
+                            d2.textContent = ro;
+                            b.appendChild(d2);
+
+                            var d3 = document.createElement('div');
+                            d3.style.cssText =
+                                'font-size:.66rem;color:' +
+                                (ro === 0 ? '#059669' : '#3b82f6') +
+                                ';';
+                            d3.textContent = ro === 0 ? '下行' : '上行';
+                            b.appendChild(d3);
+
+                            wrap.appendChild(b);
+                        });
+                        frag.appendChild(wrap);
+
+                        var fbox = document.createElement('div');
+                        fbox.className = 'fbox';
+                        fbox.textContent =
+                            'row_offset = (r − 1) mod 2 = (' +
+                            r +
+                            ' − 1) mod 2 = ' +
+                            (r - 1) +
+                            ' mod 2 = ';
+                        var strong = document.createElement('strong');
+                        strong.style.fontSize = '1.2rem';
+                        strong.textContent = row_offset;
+                        fbox.appendChild(strong);
+
+                        frag.appendChild(fbox);
+                        return frag;
+                    },
+                },
+                {
+                    title: '最終結果の計算',
+                    desc: 'すべてを加算。f(r,c) = base + col_offset + row_offset = 20 + 4 + 1 = 25。サンプル入力 (r=6, c=3) → 25 ✓',
+                    render: function () {
+                        var r = 6,
+                            c = 3;
+                        var g = Math.floor((r - 1) / 2),
+                            base = 10 * g,
+                            col_offset = 2 * (c - 1),
+                            row_offset = (r - 1) % 2,
+                            answer = base + col_offset + row_offset;
+                        var rows = [6, 5, 4, 3, 2, 1];
+                        var frag = buildGridFragment(COLS, rows, cellVal, function (ri, ci) {
+                            return ri === r && ci === c ? 'ch' : 'cn';
+                        });
+
+                        var resWrap = document.createElement('div');
+                        resWrap.style.cssText =
+                            'background:linear-gradient(135deg,#ecfdf5,#eff6ff);border:2px solid #a7f3d0;border-radius:1rem;padding:1rem 1.2rem;margin-top:12px;';
+
+                        var resG = document.createElement('div');
+                        resG.className = 'res-g';
+                        [
+                            { l: 'g', v: g },
+                            { l: 'base', v: base },
+                            { l: 'col_offset', v: col_offset },
+                            { l: 'row_offset', v: row_offset },
+                        ].forEach(function (it) {
+                            var resI = document.createElement('div');
+                            resI.className = 'res-i';
+
+                            var resL = document.createElement('span');
+                            resL.className = 'res-l';
+                            resL.textContent = it.l;
+                            resI.appendChild(resL);
+
+                            var resN = document.createElement('span');
+                            resN.className = 'res-n';
+                            resN.textContent = it.v;
+                            resI.appendChild(resN);
+
+                            resG.appendChild(resI);
+                        });
+                        resWrap.appendChild(resG);
+
+                        var resTot = document.createElement('div');
+                        resTot.className = 'res-tot';
+                        resTot.textContent =
+                            'f(' +
+                            r +
+                            ', ' +
+                            c +
+                            ') = ' +
+                            base +
+                            ' + ' +
+                            col_offset +
+                            ' + ' +
+                            row_offset +
+                            ' = ';
+                        var resBig = document.createElement('span');
+                        resBig.className = 'res-big';
+                        resBig.textContent = answer;
+                        resTot.appendChild(resBig);
+                        resWrap.appendChild(resTot);
+
+                        frag.appendChild(resWrap);
+                        return frag;
+                    },
+                },
+            ];
+
+            var cur = 1,
+                playing = false,
+                timer = null;
+
+            function renderList() {
+                var frag = document.createDocumentFragment();
+                STEPS.forEach(function (s, i) {
+                    var n = i + 1;
+                    var btn = document.createElement('button');
+                    btn.className = 'step-btn' + (n === cur ? ' active' : '');
+                    btn.dataset.n = n;
+
+                    var stepN = document.createElement('div');
+                    stepN.className = 'step-n';
+                    stepN.textContent = 'Step ' + n + ': ' + s.title;
+                    btn.appendChild(stepN);
+
+                    var stepS = document.createElement('div');
+                    stepS.className = 'step-s';
+                    stepS.textContent = s.desc.substring(0, 44) + (s.desc.length > 44 ? '…' : '');
+                    btn.appendChild(stepS);
+
+                    btn.addEventListener('click', function () {
+                        playing = false;
+                        clearTimeout(timer);
+                        go(+btn.dataset.n);
+                    });
+                    frag.appendChild(btn);
+                });
+                var target = document.getElementById('step-list');
+                target.textContent = '';
+                target.appendChild(frag);
+            }
+
+            function renderVis() {
+                var s = STEPS[cur - 1];
+                document.getElementById('vis-title').textContent = 'Step ' + cur + ': ' + s.title;
+                document.getElementById('vis-desc').textContent = s.desc;
+                var target = document.getElementById('vis-content');
+                target.textContent = '';
+                target.appendChild(s.render());
+            }
+
+            function updCtrl() {
+                document.getElementById('btn-prev').disabled = cur <= 1;
+                document.getElementById('btn-next').disabled = cur >= STEPS.length;
+                document.getElementById('btn-play').disabled = playing;
+            }
+
+            function go(n) {
+                cur = n;
+                renderList();
+                renderVis();
+                updCtrl();
+            }
+
+            document.getElementById('btn-play').addEventListener('click', function () {
+                if (playing) return;
+                playing = true;
+                go(1);
+                function tick() {
+                    if (!playing) return;
+                    if (cur === STEPS.length) {
+                        playing = false;
+                        go(1);
+                        return;
+                    }
+                    go(cur + 1);
+                    timer = setTimeout(tick, 2000);
+                }
+                timer = setTimeout(tick, 2000);
+            });
+            document.getElementById('btn-prev').addEventListener('click', function () {
+                clearTimeout(timer);
+                playing = false;
+                if (cur > 1) go(cur - 1);
+            });
+            document.getElementById('btn-next').addEventListener('click', function () {
+                clearTimeout(timer);
+                playing = false;
+                if (cur < STEPS.length) go(cur + 1);
+            });
+            document.getElementById('btn-reset').addEventListener('click', function () {
+                clearTimeout(timer);
+                playing = false;
+                go(1);
+            });
+
+            go(1);
+        </script>
+    </body>
+</html>

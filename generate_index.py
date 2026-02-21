@@ -78,9 +78,9 @@ class Solution:
     def rewrite_html_content(self, content: str) -> str:
         """
         Rewrite known CDN asset URLs in an HTML document to their corresponding local vendor paths.
-        
+
         Replaces specific external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with local /vendor/... paths so the returned HTML references vendored assets.
-        
+
         Returns:
             The input HTML string with matched CDN URLs substituted by local vendor URLs.
         """
@@ -113,7 +113,7 @@ class Solution:
     def generate_index(self) -> None:
         """
         Generate a static index HTML page under the public directory listing repository HTML files grouped by category.
-        
+
         Scans the repository (excluding common build, VCS, virtualenv and vendor directories), copies required vendor assets into public/vendor, rewrites HTML files to reference local vendored assets, copies those files into the public tree, and produces a themed index at public/index.html with category tabs, search, pagination, per-category icons, total counts, and a UTC generation timestamp. Files in hidden categories (category name starting with '.') or in excluded directories are skipped. If reading or rewriting a file fails, the file is copied as a fallback.
         """
         root_dir = "."
@@ -611,25 +611,25 @@ class Solution:
     <header class="site-header">
         <div class="header-badge">Lab</div>
         <h1 class="site-title">
-            \U0001F9EA Algorithm Study
+            🧪 Algorithm Study
             <span class="title-accent">Index</span>
         </h1>
         <p class="site-subtitle">{total_count} interactive lessons across {domain_count} domains</p>
     </header>
 
     <div class="search-container">
-        <span class="search-icon">\U0001F50D</span>
+        <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" class="search-input"
                placeholder="Search problems... (e.g. Binary Search, DP, LeetCode 91)"
                aria-label="Search problems"
                autocomplete="off">
         <span id="searchCount" class="search-count"></span>
-        <button id="searchClear" class="search-clear" aria-label="Clear search">\u00D7</button>
+        <button id="searchClear" class="search-clear" aria-label="Clear search">&times;</button>
     </div>
 
     <div class="tabs" id="categoryTabs">
         <button class="tab-button active" data-category="all" data-tab-target="All">
-            <span class="tab-icon">\U0001F30D</span> All <span class="tab-count">{total_count}</span>
+            <span class="tab-icon">🌍</span> All <span class="tab-count">{total_count}</span>
         </button>
         {tabs}
     </div>
@@ -888,26 +888,56 @@ class Solution:
         tab_contents_html = ""
         all_files_html = ""
 
-        for category in sorted_categories:
-            files = structure[category]
-            count = len(files)
-            icon = category_icons.get(category, '')
-            css_cat = category.lower()
-            safe_category = html.escape(category, quote=True)
+        def render_category_files(structure, sorted_categories):
+            """
+            Builds HTML fragments for category tabs, per-category file lists, and an aggregated all-files list.
+            
+            Parameters:
+                structure (Dict[str, List[Tuple[str, str]]]): Mapping from category name to a list of (title, relative_path) pairs for files in that category.
+                sorted_categories (List[str]): Ordered list of category names to render; determines the iteration order and tab order.
+            
+            Returns:
+                Tuple[str, str, str]: A 3-tuple with:
+                    - tabs_html: HTML for the category tab buttons (includes icon and item count for each category).
+                    - tab_contents_html: HTML sections for each category containing the per-category file lists and a "no results" placeholder.
+                    - all_files_html: Aggregated HTML list of all file items across all categories.
+            """
+            tabs_html_list = []
+            files_html_sections = []
+            all_files_html_list = [] # Renamed to avoid conflict with outer scope all_files_html
 
-            tabs_html += f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}"><span class="tab-icon">{icon}</span> {safe_category} <span class="tab-count">{count}</span></button>\n'
+            for category in sorted_categories:
+                files = structure[category]
+                css_cat = html.escape(category.lower(), quote=True)
+                safe_category = html.escape(category, quote=True)
+                icon = category_icons.get(category, '📁') # Default icon if not found
 
-            file_list_html = '<ul class="file-list">\n'
-            for title, path in files:
-                encoded_path = urllib.parse.quote(path)
-                safe_title = html.escape(title)
-                safe_path = html.escape(path)
-                item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}"><span class="card-header"><span class="card-icon">{icon}</span><span class="card-title">{safe_title}</span></span><span class="file-path">{safe_path}</span></a></li>\n'
-                file_list_html += item_html
-                all_files_html += item_html
-            file_list_html += '</ul>'
+                tabs_html_list.append(f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}">'
+                                      f'<span class="tab-icon">{icon}</span> {safe_category} '
+                                      f'<span class="tab-count">{len(files)}</span></button>\n')
 
-            tab_contents_html += f'<div id="{safe_category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n'
+                file_list_html = '<ul class="file-list">\n'
+                category_files = []
+                for title, path in files:
+                    encoded_path = urllib.parse.quote(path)
+                    # Use standard GitHub-style path (assuming 'path' is already relative or suitable)
+                    github_path = path # Assuming 'path' is already the desired relative path
+                    safe_title = html.escape(title)
+                    safe_github_path = html.escape(github_path) # Escape path for display
+
+                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}">' \
+                                f'<span class="card-header"><span class="card-icon">{icon}</span>' \
+                                f'<span class="card-title">{safe_title}</span></span><span class="file-path">{safe_github_path}</span></a></li>\n'
+                    category_files.append(item_html)
+                    all_files_html_list.append(item_html) # Add to the list for all files
+                file_list_html += ''.join(category_files) + '</ul>'
+
+                files_html_sections.append(f'<div id="{safe_category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n')
+
+            return ''.join(tabs_html_list), ''.join(files_html_sections), ''.join(all_files_html_list)
+
+        # Call the new function
+        tabs_html, tab_contents_html, all_files_html = render_category_files(structure, sorted_categories)
 
         final_html = html_template.format(
             tabs=tabs_html,

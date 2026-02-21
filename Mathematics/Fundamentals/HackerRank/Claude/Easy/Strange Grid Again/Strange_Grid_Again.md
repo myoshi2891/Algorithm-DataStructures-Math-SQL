@@ -205,7 +205,7 @@ graph LR
   G0 --> G1 --> G2
 ```
 
-> 各グループの偶数行目が `row_offset=0`、奇数行目が `row_offset=1` となる。
+> 奇数行 ($r$ が奇数) が `row_offset=0`、偶数行 ($r$ が偶数) が `row_offset=1` となる。
 > 列方向は $c=1$ から右に進むたびに $+2$ される。
 
 ---
@@ -214,11 +214,11 @@ graph LR
 
 ```mermaid
 graph LR
-  R[行番号 r] --> G[g = floor r-1 / 2]
-  R --> RO[row_offset = r-1 mod 2]
-  C[列番号 c] --> CO[col_offset = 2 × c-1]
-  G --> B[base = 10 × g]
-  B --> ANS[答え = base + col_offset + row_offset]
+  R["行番号 r"] --> G["g = floor((r - 1) / 2)"]
+  R --> RO["row_offset = (r - 1) mod 2"]
+  C["列番号 c"] --> CO["col_offset = 2 × (c - 1)"]
+  G --> B["base = 10 × g"]
+  B --> ANS["答え = base + col_offset + row_offset"]
   CO --> ANS
   RO --> ANS
 ```

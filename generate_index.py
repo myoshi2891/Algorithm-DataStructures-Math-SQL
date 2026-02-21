@@ -624,7 +624,7 @@ class Solution:
                aria-label="Search problems"
                autocomplete="off">
         <span id="searchCount" class="search-count"></span>
-        <button id="searchClear" class="search-clear" aria-label="Clear search">×</button>
+        <button id="searchClear" class="search-clear" aria-label="Clear search">&times;</button>
     </div>
 
     <div class="tabs" id="categoryTabs">
@@ -888,26 +888,42 @@ class Solution:
         tab_contents_html = ""
         all_files_html = ""
 
-        for category in sorted_categories:
-            files = structure[category]
-            count = len(files)
-            icon = category_icons.get(category, '')
-            css_cat = category.lower()
-            safe_category = html.escape(category, quote=True)
+        def render_category_files(structure):
+            tabs_html_list = []
+            files_html_sections = []
+            all_files_html_list = [] # Renamed to avoid conflict with outer scope all_files_html
 
-            tabs_html += f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}"><span class="tab-icon">{icon}</span> {safe_category} <span class="tab-count">{count}</span></button>\n'
+            for category, files in structure.items():
+                css_cat = html.escape(category.lower(), quote=True)
+                safe_category = html.escape(category, quote=True)
+                icon = category_icons.get(category, '📁') # Default icon if not found
 
-            file_list_html = '<ul class="file-list">\n'
-            for title, path in files:
-                encoded_path = urllib.parse.quote(path)
-                safe_title = html.escape(title)
-                safe_path = html.escape(path)
-                item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}"><span class="card-header"><span class="card-icon">{icon}</span><span class="card-title">{safe_title}</span></span><span class="file-path">{safe_path}</span></a></li>\n'
-                file_list_html += item_html
-                all_files_html += item_html
-            file_list_html += '</ul>'
+                tabs_html_list.append(f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}">'
+                                      f'<span class="tab-icon">{icon}</span> {safe_category} '
+                                      f'<span class="tab-count">{len(files)}</span></button>\n')
 
-            tab_contents_html += f'<div id="{safe_category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n'
+                file_list_html = '<ul class="file-list">\n'
+                category_files = []
+                for title, path in files:
+                    encoded_path = urllib.parse.quote(path)
+                    # Use standard GitHub-style path (assuming 'path' is already relative or suitable)
+                    github_path = path # Assuming 'path' is already the desired relative path
+                    safe_title = html.escape(title)
+                    safe_github_path = html.escape(github_path) # Escape path for display
+
+                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}">' \
+                                f'<span class="card-header"><span class="card-icon">{icon}</span>' \
+                                f'<span class="card-title">{safe_title}</span></span><span class="file-path">{safe_github_path}</span></a></li>\n'
+                    category_files.append(item_html)
+                    all_files_html_list.append(item_html) # Add to the list for all files
+                file_list_html += ''.join(category_files) + '</ul>'
+
+                files_html_sections.append(f'<div id="{safe_category}" class="tab-content">\n{file_list_html}\n<div class="no-results"><span class="no-results-icon">\U0001F50E</span>No results found</div>\n</div>\n')
+
+            return ''.join(tabs_html_list), ''.join(files_html_sections), ''.join(all_files_html_list)
+
+        # Call the new function
+        tabs_html, tab_contents_html, all_files_html = render_category_files(structure)
 
         final_html = html_template.format(
             tabs=tabs_html,

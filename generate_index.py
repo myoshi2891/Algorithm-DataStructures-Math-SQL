@@ -78,9 +78,9 @@ class Solution:
     def rewrite_html_content(self, content: str) -> str:
         """
         Rewrite known CDN asset URLs in an HTML document to their corresponding local vendor paths.
-        
+
         Replaces specific external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with local /vendor/... paths so the returned HTML references vendored assets.
-        
+
         Returns:
             The input HTML string with matched CDN URLs substituted by local vendor URLs.
         """
@@ -113,7 +113,7 @@ class Solution:
     def generate_index(self) -> None:
         """
         Generate a static index HTML page under the public directory listing repository HTML files grouped by category.
-        
+
         Scans the repository (excluding common build, VCS, virtualenv and vendor directories), copies required vendor assets into public/vendor, rewrites HTML files to reference local vendored assets, copies those files into the public tree, and produces a themed index at public/index.html with category tabs, search, pagination, per-category icons, total counts, and a UTC generation timestamp. Files in hidden categories (category name starting with '.') or in excluded directories are skipped. If reading or rewriting a file fails, the file is copied as a fallback.
         """
         root_dir = "."
@@ -611,25 +611,25 @@ class Solution:
     <header class="site-header">
         <div class="header-badge">Lab</div>
         <h1 class="site-title">
-            \U0001F9EA Algorithm Study
+            🧪 Algorithm Study
             <span class="title-accent">Index</span>
         </h1>
         <p class="site-subtitle">{total_count} interactive lessons across {domain_count} domains</p>
     </header>
 
     <div class="search-container">
-        <span class="search-icon">\U0001F50D</span>
+        <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" class="search-input"
                placeholder="Search problems... (e.g. Binary Search, DP, LeetCode 91)"
                aria-label="Search problems"
                autocomplete="off">
         <span id="searchCount" class="search-count"></span>
-        <button id="searchClear" class="search-clear" aria-label="Clear search">\u00D7</button>
+        <button id="searchClear" class="search-clear" aria-label="Clear search">×</button>
     </div>
 
     <div class="tabs" id="categoryTabs">
         <button class="tab-button active" data-category="all" data-tab-target="All">
-            <span class="tab-icon">\U0001F30D</span> All <span class="tab-count">{total_count}</span>
+            <span class="tab-icon">🌍</span> All <span class="tab-count">{total_count}</span>
         </button>
         {tabs}
     </div>

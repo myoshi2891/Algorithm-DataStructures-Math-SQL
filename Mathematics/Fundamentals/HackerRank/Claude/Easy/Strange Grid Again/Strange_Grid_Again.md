@@ -176,7 +176,7 @@ $$
 flowchart TD
   Input[入力 r と c] --> CalcG[グループ番号の計算]
   CalcG --> CalcBase[基底値 base = 10 × g]
-  CalcBase --> CalcCol[列オフセット = 2 × c - 1]
+  CalcBase --> CalcCol[列オフセット = 2 × (c - 1)]
   CalcCol --> CalcRow[行オフセット = r-1 mod 2]
   CalcRow --> Sum[合計して出力]
   Sum --> Output[結果]
@@ -281,8 +281,8 @@ from __future__ import annotations
 import os
 
 def strangeGrid(r: int, c: int) -> int:
-"""
-Strange Grid の (r, c) セルの値を返す。
+    """
+    Strange Grid の (r, c) セルの値を返す。
 
     公式:
         g           = (r - 1) // 2          # 0-indexed グループ番号
@@ -316,8 +316,8 @@ Strange Grid の (r, c) セルの値を返す。
     # f(r, c) = base + col_offset + row_offset
     return base + col_offset + row_offset
 
-if **name** == "**main**":
-fptr = open(os.environ["OUTPUT_PATH"], "w")
+if __name__ == "__main__":
+    fptr = open(os.environ["OUTPUT_PATH"], "w")
 
     first_multiple_input = input().rstrip().split()
 
@@ -337,7 +337,7 @@ fptr = open(os.environ["OUTPUT_PATH"], "w")
 | ------------------------------------------------ | --------------------------------------- |
 | $g = \lfloor (r-1)/2 \rfloor$                    | `g = (r - 1) // 2`                      |
 | $\text{base} = 10g$                              | `base = 10 * g`                         |
-| $\text{col\_offset} = 2(c-1)$                    | `col_offset = 2 * (c-1)`                |
+| $\text{col\_offset} = 2(c-1)$                    | `col_offset = 2 * (c - 1)`              |
 | $\text{row\_offset} = (r-1) \bmod 2$             | `row_offset = (r-1) % 2`                |
 | $f(r,c) = \text{base} + \text{col} + \text{row}$ | `return base + col_offset + row_offset` |
 
@@ -386,7 +386,7 @@ strangeGrid = lambda r, c: 10 * ((r-1)//2) + 2*(c-1) + (r-1)%2
 | 3   | 1   | 10     | $g=1, \text{base}=10, +0+0=10$    |
 | 4   | 1   | 11     | $g=1, \text{base}=10, +0+1=11$    |
 | 6   | 3   | 25     | $g=2, \text{base}=20, +4+1=25$    |
-| 100 | 1   | 490    | $g=49, \text{base}=490, +0+1=491$ |
+| 100 | 1   | 491    | $g=49, \text{base}=490, +0+1=491$ |
 
 > **Row 100 の検証**: $g = (100-1)//2 = 49$, $\text{base} = 490$, $\text{row\_offset} = 1$
 > → $f(100, 1) = 490 + 0 + 1 = 491$

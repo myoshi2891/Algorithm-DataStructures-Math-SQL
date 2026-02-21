@@ -406,11 +406,8 @@
             .cpbtn:hover {
                 background: var(--gd);
             }
-            .cpbtn:focus, .cpbtn:focus-visible {
-                outline: 2px solid var(--gd);
-                outline-offset: 2px;
-            }
-            .cpbtn:focus, .cpbtn:focus-visible {
+            .cpbtn:focus,
+            .cpbtn:focus-visible {
                 outline: 2px solid var(--gd);
                 outline-offset: 2px;
             }
@@ -1152,6 +1149,7 @@
             })();
 
             /* Copy */
+            var copyTimeoutId = null;
             document.getElementById('cpbtn').addEventListener('click', function () {
                 var code = `from __future__ import annotations
 import os
@@ -1171,13 +1169,46 @@ if __name__ == "__main__":
     result = strangeGrid(r, c)
     fptr.write(str(result) + "\\n")
     fptr.close()`;
-                navigator.clipboard.writeText(code).then(function () {
-                    var b = document.getElementById('cpbtn');
-                    b.textContent = 'コピー完了!';
-                    setTimeout(function () {
+                var b = document.getElementById('cpbtn');
+
+                function showStatus(text) {
+                    b.textContent = text;
+                    if (copyTimeoutId) clearTimeout(copyTimeoutId);
+                    copyTimeoutId = setTimeout(function () {
                         b.textContent = 'コピー';
                     }, 2000);
-                });
+                }
+
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    navigator.clipboard
+                        .writeText(code)
+                        .then(function () {
+                            showStatus('コピー完了!');
+                        })
+                        .catch(function (err) {
+                            console.error('Copy error:', err);
+                            showStatus('コピー失敗');
+                        });
+                } else {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = code;
+                        ta.style.position = 'fixed';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        var res = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        if (res) {
+                            showStatus('コピー完了!');
+                        } else {
+                            showStatus('コピー失敗');
+                        }
+                    } catch (e) {
+                        console.error('Fallback copy error:', e);
+                        showStatus('コピー失敗');
+                    }
+                }
             });
 
             /* Steps */
@@ -1188,10 +1219,12 @@ if __name__ == "__main__":
                 wrap.style.display = 'inline-block';
 
                 var headerDiv = document.createElement('div');
-                headerDiv.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
+                headerDiv.style.cssText =
+                    'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
                 COLS.forEach(function (c) {
                     var cellDiv = document.createElement('div');
-                    cellDiv.style.cssText = 'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
+                    cellDiv.style.cssText =
+                        'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
                     cellDiv.textContent = 'c=' + c;
                     headerDiv.appendChild(cellDiv);
                 });
@@ -1212,59 +1245,12 @@ if __name__ == "__main__":
                     COLS.forEach(function (c) {
                         var g = Math.floor((r - 1) / 2);
                         var cell = document.createElement('div');
-                        
+
                         var cClass = g % 2 === 0 ? 'ca' : 'cb';
                         if (highlightClassFn) {
                             cClass = highlightClassFn(r, c, g, cClass);
                         }
-                        
-                        cell.className = 'cell ' + cClass;
-                        cell.textContent = cellValFn(r, c);
-                        cellContainer.appendChild(cell);
-                    });
-                    gpRow.appendChild(cellContainer);
-                    wrap.appendChild(gpRow);
-                });
-                frag.appendChild(wrap);
-                return frag;
-            }
 
-            function buildGridFragment(COLS, rows, cellValFn, highlightClassFn) {
-                var frag = document.createDocumentFragment();
-                var wrap = document.createElement('div');
-                wrap.style.display = 'inline-block';
-
-                var headerDiv = document.createElement('div');
-                headerDiv.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;margin-left:48px;';
-                COLS.forEach(function (c) {
-                    var cellDiv = document.createElement('div');
-                    cellDiv.style.cssText = 'width:52px;text-align:center;font-size:.72rem;font-weight:700;color:#64748b;';
-                    cellDiv.textContent = 'c=' + c;
-                    headerDiv.appendChild(cellDiv);
-                });
-                wrap.appendChild(headerDiv);
-
-                rows.forEach(function (r) {
-                    var gpRow = document.createElement('div');
-                    gpRow.className = 'gp-row';
-
-                    var rl = document.createElement('div');
-                    rl.className = 'rl';
-                    rl.textContent = 'r=' + r;
-                    gpRow.appendChild(rl);
-
-                    var cellContainer = document.createElement('div');
-                    cellContainer.style.cssText = 'display:flex;gap:4px;';
-
-                    COLS.forEach(function (c) {
-                        var g = Math.floor((r - 1) / 2);
-                        var cell = document.createElement('div');
-                        
-                        var cClass = g % 2 === 0 ? 'ca' : 'cb';
-                        if (highlightClassFn) {
-                            cClass = highlightClassFn(r, c, g, cClass);
-                        }
-                        
                         cell.className = 'cell ' + cClass;
                         cell.textContent = cellValFn(r, c);
                         cellContainer.appendChild(cell);
@@ -1324,9 +1310,14 @@ if __name__ == "__main__":
                             c = 3,
                             g = Math.floor((r - 1) / 2);
                         var rows = [6, 5, 4, 3, 2, 1];
-                        var frag = buildGridFragment(COLS, rows, cellVal, function(ri, ci, gi, defaultClass) {
-                            return (ri === r && ci === c) ? 'ch' : defaultClass;
-                        });
+                        var frag = buildGridFragment(
+                            COLS,
+                            rows,
+                            cellVal,
+                            function (ri, ci, gi, defaultClass) {
+                                return ri === r && ci === c ? 'ch' : defaultClass;
+                            },
+                        );
 
                         var fbox = document.createElement('div');
                         fbox.className = 'fbox';
@@ -1540,8 +1531,8 @@ if __name__ == "__main__":
                             row_offset = (r - 1) % 2,
                             answer = base + col_offset + row_offset;
                         var rows = [6, 5, 4, 3, 2, 1];
-                        var frag = buildGridFragment(COLS, rows, cellVal, function(ri, ci) {
-                            return (ri === r && ci === c) ? 'ch' : 'cn';
+                        var frag = buildGridFragment(COLS, rows, cellVal, function (ri, ci) {
+                            return ri === r && ci === c ? 'ch' : 'cn';
                         });
 
                         var resWrap = document.createElement('div');

@@ -889,6 +889,19 @@ class Solution:
         all_files_html = ""
 
         def render_category_files(structure, sorted_categories):
+            """
+            Builds HTML fragments for category tabs, per-category file lists, and an aggregated all-files list.
+            
+            Parameters:
+                structure (Dict[str, List[Tuple[str, str]]]): Mapping from category name to a list of (title, relative_path) pairs for files in that category.
+                sorted_categories (List[str]): Ordered list of category names to render; determines the iteration order and tab order.
+            
+            Returns:
+                Tuple[str, str, str]: A 3-tuple with:
+                    - tabs_html: HTML for the category tab buttons (includes icon and item count for each category).
+                    - tab_contents_html: HTML sections for each category containing the per-category file lists and a "no results" placeholder.
+                    - all_files_html: Aggregated HTML list of all file items across all categories.
+            """
             tabs_html_list = []
             files_html_sections = []
             all_files_html_list = [] # Renamed to avoid conflict with outer scope all_files_html

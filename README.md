@@ -1,616 +1,632 @@
-# リポジトリ概要
+# Algorithm-DataStructures-Math-SQL — リポジトリ概要
 
 [![GitHub Stars](https://img.shields.io/github/stars/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/myoshi2891/Algorithm-DataStructures-Math-SQL?style=flat-square)](https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL/network/members)
 ![Languages](https://img.shields.io/badge/Languages-Python%20|%20TypeScript%20|%20JavaScript-blue?style=flat-square)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/myoshi2891/Algorithm-DataStructures-Math-SQL)
 
-## 目的と範囲
+> **関連ドキュメント**: [2×3×3 アーティファクト生成マトリクス](./2.1-the-233-artifact-generation-matrix) | [デュアル AI 実装哲学](./2.2-dual-ai-implementation-philosophy) | [3 層ドキュメントシステム](./2.3-three-tier-progressive-documentation-system) | [開発環境とツール](./3-development-environment-and-tooling)
 
-Algorithm-DataStructures-Math-SQLリポジトリは、決定論的なマルチ言語・マルチAI問題解決ドキュメントシステムを実装しています。各競技プログラミング問題(LeetCode、HackerRank、AtCoderから)に対して、2×3×3の掛け算により正確に18個の成果物を生成します:2つのAI実装 × 3つのプログラミング言語 × 3つのドキュメント階層。
+このリポジトリは、**決定論的なマルチ言語・マルチ AI 問題解決ドキュメントシステム**を実装しています。LeetCode・HackerRank・AtCoder に掲載された各競技プログラミング問題に対し、**2×3×3 マトリクス乗算**（2 AI × 3 言語 × 3 ドキュメント層）によって正確に **18 個のアーティファクト**を生成します。
 
-### 関連ページ
+---
 
-- アーキテクチャの詳細については「2×3×3成果物生成マトリックス」を参照
-- AI実装の哲学については「デュアルAI実装哲学」を参照
-- ドキュメント階層の詳細については「3階層プログレッシブドキュメントシステム」を参照
-- 特定の問題実装については「ドメイン別問題実装」を参照
-- 最適化戦略については「最適化技術とパフォーマンスパターン」を参照
-- 開発セットアップについては「開発環境とツール」を参照
+## 📋 目次
 
-## 2×3×3決定論的生成マトリックス
+- [目的とスコープ](#目的とスコープ)
+- [リポジトリ構造：2×3×3×6 アーキテクチャ](#リポジトリ構造2336-アーキテクチャ)
+- [デュアル AI 実装哲学](#デュアル-ai-実装哲学コードレベルの差別化)
+- [3 層プログレッシブドキュメントシステム](#3-層プログレッシブドキュメントシステム)
+- [ビルドと公開インフラ](#ビルドと公開インフラ)
+- [技術スタックと依存関係管理](#技術スタックと依存関係管理)
+- [ナビゲーションとファイル検索](#ナビゲーションとファイル検索)
+- [リポジトリのメトリクスと規模](#リポジトリのメトリクスと規模)
+- [ファイル命名規則とコード構造](#ファイル命名規則とコード構造)
+- [クイックスタートガイド](#クイックスタートガイド)
 
-リポジトリは、3つの次元の掛け算により、問題ごとに厳格な18ファイル構造を強制します:
+---
 
-```mermaid
-graph TB
-    subgraph "次元1: AIプロバイダー (×2)"
-        A1[Claude Sonnet 4.5]
-        A2[GPT-5.1 Thinking Customized]
-    end
-
-    subgraph "次元2: プログラミング言語 (×3)"
-        L1[Python 3.11.10]
-        L2[TypeScript 5.9.3]
-        L3[JavaScript ES2017]
-    end
-
-    subgraph "次元3: ドキュメント階層 (×3)"
-        D1[Static - README.md]
-        D2[Interactive - README.html]
-        D3[Dynamic - README_react.html]
-    end
-
-    A1 --> L1
-    A1 --> L2
-    A1 --> L3
-    A2 --> L1
-    A2 --> L2
-    A2 --> L3
-
-    L1 --> D1
-    L1 --> D2
-    L1 --> D3
-    L2 --> D1
-    L2 --> D2
-    L2 --> D3
-    L3 --> D1
-    L3 --> D2
-    L3 --> D3
-
-    style A1 fill:#e1f5ff
-    style A2 fill:#e1f5ff
-    style L1 fill:#fff4e1
-    style L2 fill:#fff4e1
-    style L3 fill:#fff4e1
-    style D1 fill:#f0ffe1
-    style D2 fill:#f0ffe1
-    style D3 fill:#f0ffe1
-```
-
-### マトリックス次元仕様
-
-| 次元               | 値                          | ファイルパターン               | コード構造                                                 |
-| ------------------ | --------------------------- | ------------------------------ | ---------------------------------------------------------- |
-| **AIプロバイダー** | Claude Sonnet 4.5           | `claude sonnet 4.5/`           | 競技最適化、型アノテーション信頼、50-150 LOC               |
-|                    | GPT-5.1 Thinking Customized | `gpt 5.1 thinking customized/` | 本番環境の堅牢性、ランタイム検証、80-200 LOC               |
-| **言語**           | Python 3.11.10              | `*.py`                         | `class Solution: def methodName(self, ...) -> ...`         |
-|                    | TypeScript 5.9.3            | `*.ts`                         | `function functionName(...): ReturnType { ... }`           |
-|                    | JavaScript ES2017           | `*.js`                         | `var functionName = function(...) { ... }`                 |
-| **ドキュメント**   | Static                      | `README.md`                    | 3000-5000語、5セクション、純粋なMarkdown                   |
-|                    | Interactive                 | `README.html`                  | Prism.js構文ハイライト、Tailwind CSS、ステップコントロール |
-|                    | Dynamic                     | `README_react.html`            | React 18 UMD、Babel Standalone、リアルタイム入力操作       |
-
-## デュアルAI実装哲学
-
-リポジトリは、各問題に対して哲学的に異なる2つのアプローチを別々のAIプロバイダーを通じて実装します:
-
-```mermaid
-graph LR
-    subgraph "Claude実装"
-        C1[競技プログラミング最適化]
-        C2[型アノテーション信頼]
-        C3[最小限のメソッド]
-        C4[高速実行 44ms]
-        C5[メモリ効率 91.38%]
-    end
-
-    subgraph "GPT実装"
-        G1[本番環境の堅牢性]
-        G2[ランタイム検証]
-        G3[複数メソッド]
-        G4[安定実行 42ms]
-        G5[バランス型 66.05%]
-    end
-
-    C1 --> C4
-    C2 --> C5
-    G1 --> G4
-    G2 --> G5
-
-    style C1 fill:#e1f5ff
-    style C2 fill:#e1f5ff
-    style C3 fill:#e1f5ff
-    style C4 fill:#d4edda
-    style C5 fill:#d4edda
-    style G1 fill:#fff3cd
-    style G2 fill:#fff3cd
-    style G3 fill:#fff3cd
-    style G4 fill:#d4edda
-    style G5 fill:#d4edda
-```
-
-### コード構造比較
-
-Python実装の例:
-
-| 側面                   | Claude実装                                                                | GPT実装                                                                                    |
-| ---------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **メソッド数**         | 単一メソッド: `def isInterleave(self, s1: str, s2: str, s3: str) -> bool` | 複数メソッド: `isInterleave()`, `isInterleave_production()`, `_isInterleave_competitive()` |
-| **検証**               | アノテーション信頼: `if n1 + n2 != n3: return False`                      | ランタイムチェック: `if not isinstance(s1, str): raise TypeError("s1 must be str")`        |
-| **制約**               | 有効性を仮定: 境界チェックなし                                            | 明示的検証: `if len(s1) > 100: raise ValueError("Exceeds constraint")`                     |
-| **実行時間(LeetCode)** | 44ms (60.43%) - Python<br>42ms (98.45%) - TypeScript                      | 42ms (70.90%) - Python<br>54ms (60.46%) - TypeScript                                       |
-| **メモリ効率**         | 91.38パーセンタイル                                                       | 66.05パーセンタイル                                                                        |
-
-## O(1)ルックアップのための6階層ファイル構造
-
-リポジトリは、決定論的なファイル位置を可能にする厳格な6階層ディレクトリ構造を強制します:
+## 目的とスコープ
 
 ```mermaid
 graph TD
-    L1[レベル1: ドメイン<br/>Algorithm, DataStructures, Mathematics, SQL, Shell, Concurrency]
-    L2[レベル2: サブカテゴリ<br/>DynamicProgramming, BinarySearch, Map, Palindrome]
-    L3[レベル3: プラットフォーム<br/>leetcode, hackerrank, atcoder, codeforces]
-    L4[レベル4: 問題<br/>97. Interleaving String, 99. Recover Binary Search Tree]
-    L5[レベル5: AIプロバイダー<br/>claude sonnet 4.5, gpt 5.1 thinking customized]
-    L6[レベル6: 成果物<br/>*.py, *.ts, *.js, README.md, README.html, README_react.html]
+    PROB["競技プログラミング問題<br>LeetCode / HackerRank / AtCoder"]
 
-    L1 --> L2
-    L2 --> L3
-    L3 --> L4
-    L4 --> L5
-    L5 --> L6
+    PROB --> AI["2 AI プロバイダー"]
+    AI --> C["Claude Sonnet 4.5"]
+    AI --> G["GPT 5.1 Thinking Customized"]
 
-    style L1 fill:#e1f5ff
-    style L2 fill:#fff4e1
-    style L3 fill:#f0ffe1
-    style L4 fill:#ffe1f5
-    style L5 fill:#f5e1ff
-    style L6 fill:#ffe1e1
+    C --> LANG_C["3 言語"]
+    G --> LANG_G["3 言語"]
+
+    LANG_C --> PY_C["Python<br>.py"]
+    LANG_C --> TS_C["TypeScript<br>.ts"]
+    LANG_C --> JS_C["JavaScript<br>.js"]
+
+    LANG_G --> PY_G["Python<br>_py.ipynb"]
+    LANG_G --> TS_G["TypeScript<br>_ts.ipynb"]
+    LANG_G --> JS_G["JavaScript<br>_js.ipynb"]
+
+    PY_C & TS_C & JS_C & PY_G & TS_G & JS_G --> DOC["3 ドキュメント層 × 2 AI = 6 ファイル"]
+    DOC --> D1["README.md<br>静的マークダウン"]
+    DOC --> D2["README.html<br>インタラクティブ HTML"]
+    DOC --> D3["README_react.html<br>Dynamic React"]
+
+    style PROB fill:#4A90D9,color:#fff
+    style DOC fill:#27AE60,color:#fff
 ```
 
-### 階層レベル仕様
+---
 
-| レベル              | 目的                     | 例                                                                                | カーディナリティ         |
-| ------------------- | ------------------------ | --------------------------------------------------------------------------------- | ------------------------ |
-| 1. ドメイン         | トップレベル問題カテゴリ | `Algorithm/`, `DataStructures/`, `Mathematics/`, `SQL/`, `Shell/`, `Concurrency/` | 6ディレクトリ            |
-| 2. サブカテゴリ     | アルゴリズム技術         | `DynamicProgramming/`, `BinarySearch/`, `Map/`, `Palindrome/`                     | ドメインごとに可変(2-10) |
-| 3. プラットフォーム | 問題ソース               | `leetcode/`, `hackerrank/`, `atcoder/`, `codeforces/`                             | サブカテゴリごとに2-4    |
-| 4. 問題             | 特定の問題               | `97. Interleaving String/`, `99. Recover Binary Search Tree/`                     | N問題                    |
-| 5. AIプロバイダー   | 実装アプローチ           | `claude sonnet 4.5/`, `gpt 5.1 thinking customized/`                              | 常に2ディレクトリ        |
-| 6. 成果物           | 生成ファイル             | `*.py`, `*.ts`, `*.js`, `README.md`, `README.html`, `README_react.html`           | AIごとに常に6ファイル    |
+## リポジトリ構造：2×3×3×6 アーキテクチャ
 
-### SQLドメインの例外
+### 決定論的アーティファクト生成マトリクス
 
-SQL問題は、レベル5で標準構造から逸脱し、レベル6でプラットフォーム固有のサフィックスを持つ単一の`gpt/`ディレクトリを使用します:
-
-```
-SQL/Leetcode/Basic select/1141. User Activity/
-└── gpt/
-    ├── User_Activity_*_mysql.ipynb       # MySQL 8.0.40
-    ├── User_Activity_*_postgre.ipynb     # PostgreSQL 16.6+
-    └── User_Activity_*_pandas.ipynb      # Pandas 2.2.2 + NumPy
-```
-
-## 3階層プログレッシブドキュメントシステム
-
-各問題は、異なるスキルレベルを対象とした3レベルのドキュメントを受け取ります:
+問題ごとに 3 つの乗算次元を通じて、厳密な **18 ファイル生成パターン**を強制します。
 
 ```mermaid
 graph LR
-    subgraph "階層1: Static"
-        T1[README.md]
-        T1_1[純粋なMarkdown]
-        T1_2[3000-5000語]
-        T1_3[依存関係なし]
+    subgraph MATRIX["2×3×3 マトリクス = 18 アーティファクト / 問題"]
+        AI_DIM["AI 次元 ×2<br>Claude / GPT"]
+        LANG_DIM["言語次元 ×3<br>Py / TS / JS"]
+        DOC_DIM["ドキュメント次元 ×3<br>md / html / react.html"]
     end
 
-    subgraph "階層2: Interactive"
-        T2[README.html]
-        T2_1[Prism.js + Tailwind]
-        T2_2[ステップコントロール]
-        T2_3[状態可視化]
-    end
-
-    subgraph "階層3: Dynamic"
-        T3[README_react.html]
-        T3_1[React 18 Hooks]
-        T3_2[リアルタイム入力]
-        T3_3[AI比較]
-    end
-
-    T1 --> T2
-    T2 --> T3
-
-    style T1 fill:#e1f5ff
-    style T2 fill:#fff4e1
-    style T3 fill:#f0ffe1
-    style T1_1 fill:#d4edda
-    style T1_2 fill:#d4edda
-    style T1_3 fill:#d4edda
-    style T2_1 fill:#d4edda
-    style T2_2 fill:#d4edda
-    style T2_3 fill:#d4edda
-    style T3_1 fill:#d4edda
-    style T3_2 fill:#d4edda
-    style T3_3 fill:#d4edda
+    AI_DIM --> LANG_DIM --> DOC_DIM
 ```
 
-### ドキュメント階層技術仕様
+| 次元                | 数  | 例                                                   | コードパターン                        |
+| ------------------- | --- | ---------------------------------------------------- | ------------------------------------- |
+| **AI プロバイダー** | 2   | `claude sonnet 4.5/`、`gpt 5.1 thinking customized/` | レベル 5 のサブディレクトリ名         |
+| **言語**            | 3   | `*.py`、`*.ts`、`*.js` + Jupyter バリアント          | ファイル拡張子 + Jupyter ノートブック |
+| **ドキュメント**    | 3   | `README.md`、`README.html`、`README_react.html`      | 固定ファイル名パターン                |
 
-| 階層               | ファイル          | 対象                     | 技術スタック                                   | 主要機能                                                                            | ファイルサイズ      |
-| ------------------ | ----------------- | ------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------- |
-| **1. Static**      | README.md         | CS学習者、初心者         | 純粋なMarkdown、依存関係なし                   | 問題概要、アルゴリズム説明、複雑度分析O(n)、実装詳細、最適化議論                    | ~1KB、200-400行     |
-| **2. Interactive** | README.html       | 競技プログラマー         | Prism.js、Tailwind CSS                         | 構文ハイライト、Play/Pause/Stepコントロール、状態可視化、SVGフローチャート描画      | ~50KB、1000-2000行  |
-| **3. Dynamic**     | README_react.html | パフォーマンスエンジニア | React 18 UMD (Local), Babel Standalone (Local) | React Hooks (useState, useEffect)、リアルタイム入力操作、アルゴリズム再実行、AI比較 | ~100KB、2000-4000行 |
+---
 
-### 静的ドキュメント構造(階層1)
+### O(1) 参照のための 6 層ファイル階層
 
-すべての`README.md`ファイルは一貫した5セクション構造に従います:
-
-1. **セクション1 - 概要** (`<h2 id="overview">`): 問題文、制約、例
-2. **セクション2 - アルゴリズム/TLDR** (`<h2 id="tldr">`): 戦略、データ構造、遷移
-3. **セクション3 - 複雑度** (`<h2 id="complexity">`): 時間O(...)、空間O(...)、導出
-4. **セクション4 - 実装** (`<h2 id="impl">`): コードウォークスルー、行ごとの説明
-5. **セクション5 - 最適化** (`<h2 id="cpython">`): 言語固有の最適化、パフォーマンスチューニング
-
-## 問題ドメイン組織
-
-リポジトリは問題を6つのトップレベルドメインに整理し、各ドメインは異なる実装パターンを持ちます:
+決定論的なパス構造により、検索なしに直接ファイルを特定できます。
 
 ```mermaid
-graph TB
-    subgraph "6つのドメイン"
-        D1[Algorithm<br/>アルゴリズム問題]
-        D2[DataStructures<br/>データ構造問題]
-        D3[Mathematics<br/>数学問題]
-        D4[SQL<br/>データベースクエリ]
-        D5[Shell<br/>シェルスクリプト]
-        D6[Concurrency<br/>並行処理]
-    end
+graph TD
+    L1["Level 1: ドメイン<br>Algorithm / DataStructures<br>Mathematics / SQL"]
+    L2["Level 2: アルゴリズム手法<br>DynamicProgramming / BinarySearch / Map"]
+    L3["Level 3: 問題ソース<br>leetcode / hackerrank / atcoder"]
+    L4["Level 4: 具体的な問題<br>97. Interleaving String"]
+    L5["Level 5: AI 実装<br>claude sonnet 4.5<br>gpt 5.1 thinking customized"]
+    L6["Level 6: ファイルアーティファクト<br>Interleaving_String.py<br>README.md etc."]
 
-    style D1 fill:#e1f5ff
-    style D2 fill:#fff4e1
-    style D3 fill:#f0ffe1
-    style D4 fill:#ffe1f5
-    style D5 fill:#f5e1ff
-    style D6 fill:#ffe1e1
+    L1 --> L2 --> L3 --> L4 --> L5 --> L6
+
+    style L1 fill:#E74C3C,color:#fff
+    style L2 fill:#E67E22,color:#fff
+    style L3 fill:#F1C40F,color:#000
+    style L4 fill:#27AE60,color:#fff
+    style L5 fill:#2980B9,color:#fff
+    style L6 fill:#8E44AD,color:#fff
 ```
 
-### ドメイン固有のコードエンティティパターン
+**パスパターン**:
 
-| ドメイン           | Pythonシグネチャ                                                                    | TypeScript/JavaScriptシグネチャ                                      | 例題                     | パスパターン                                          |
-| ------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------- |
-| **Algorithm**      | `class Solution:`<br>`def isInterleave(self, s1: str, s2: str, s3: str) -> bool:`   | `function isInterleave(s1: string, s2: string, s3: string): boolean` | 97. Interleaving String  | `Algorithm/{Subcategory}/leetcode/{N}. {Title}/`      |
-| **DataStructures** | `class Solution:`<br>`def twoSum(self, nums: List[int], target: int) -> List[int]:` | `function twoSum(nums: number[], target: number): number[]`          | 1. Two Sum               | `DataStructures/{Subcategory}/leetcode/{N}. {Title}/` |
-| **Mathematics**    | `class Solution:`<br>`def isPalindrome(self, x: int) -> bool:`                      | `function isPalindrome(x: number): boolean`                          | 9. Palindrome Number     | `Mathematics/{Subcategory}/leetcode/{N}. {Title}/`    |
-| **SQL**            | `def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:`                   | N/A (SQLクエリのみ)                                                  | 1141. User Activity      | `SQL/Leetcode/{Subcategory}/{N}. {Title}/gpt/`        |
-| **Shell**          | N/A (Bashスクリプト)                                                                | N/A (Bashスクリプト)                                                 | 193. Valid Phone Numbers | `Shell/leetcode/{N}. {Title}/`                        |
-| **Concurrency**    | `class Solution:`<br>(threadingモジュール使用)                                      | N/A (通常Go実装)                                                     | 1115. FooBar Alternately | `Concurrency/leetcode/{N}. {Title}/`                  |
+```
+{Domain}/{Subcategory}/{Platform}/{Problem}/{AI}/{Artifact}
+```
 
-## 技術スタックと依存関係ポリシー
+**具体的なパス例**:
 
-リポジトリは、コア実装とドキュメントレイヤーを分離する2階層依存関係ポリシーを強制します:
+```
+Algorithm/DynamicProgramming/leetcode/97. Interleaving String/Claude Sonnet 4.5/
+├── Interleaving_String.py
+├── Interleaving_String.ts
+├── Interleaving_String.js
+├── README.md
+├── README.html
+└── README_react.html
+```
+
+| レベル | 目的                     | 抽出方法   | 値の例                                              |
+| ------ | ------------------------ | ---------- | --------------------------------------------------- |
+| 1      | ドメイン分類             | `parts[0]` | `Algorithm`, `DataStructures`, `Mathematics`, `SQL` |
+| 2      | アルゴリズム手法         | `parts[1]` | `DynamicProgramming`, `BinarySearch`, `Map`         |
+| 3      | 問題ソース               | `parts[2]` | `leetcode`, `hackerrank`, `atcoder`                 |
+| 4      | 具体的な問題             | `parts[3]` | `97. Interleaving String`                           |
+| 5      | AI 実装                  | `parts[4]` | `claude sonnet 4.5`, `gpt 5.1 thinking customized`  |
+| 6      | ファイルアーティファクト | ファイル名 | `Interleaving_String.py`, `README.md`               |
+
+> **SQL ドメインの例外**: レベル 5 では単一の `gpt/` ディレクトリを使用し、レベル 6 でプラットフォーム固有のサフィックスを付与
+
+```
+SQL/Leetcode/Basic select/1141. User Activity/gpt/
+├── User_Activity_*_mysql.ipynb     # MySQL 8.0.40
+├── User_Activity_*_postgre.ipynb   # PostgreSQL 16.6+
+└── User_Activity_*_pandas.ipynb    # Pandas 2.2.2
+```
+
+---
+
+## デュアル AI 実装哲学：コードレベルの差別化
+
+### 対照的な実装パターン
 
 ```mermaid
-graph TB
-    subgraph "コア実装レイヤー"
-        C1[標準ライブラリのみ]
-        C2[外部依存なし]
-        C3[Algorithm/DataStructures/Mathematics]
+graph LR
+    subgraph CLAUDE["Claude Sonnet 4.5<br>競技プログラミング志向"]
+        C1["メソッド数: 1<br>(isInterleave のみ)"]
+        C2["型チェック: アノテーションを信頼"]
+        C3["制約検証: なし"]
+        C4["コード量: 50〜150 行"]
+        C5["実行時間: 44ms (60.43%)"]
+        C6["メモリ: 91.38 パーセンタイル"]
     end
 
-    subgraph "ドキュメントレイヤー"
-        D1[ローカル管理された外部ライブラリ (Vendor)]
-        D2[Prism.js, Tailwind, React]
-        D3[README.html, README_react.html]
+    subgraph GPT["GPT 5.1 Thinking Customized<br>プロダクション志向"]
+        G1["メソッド数: 2+<br>(競技版 + プロダクション版)"]
+        G2["型チェック: isinstance() 実行時検証"]
+        G3["制約検証: 明示的な ValueError"]
+        G4["コード量: 80〜200 行"]
+        G5["実行時間: 42ms (70.90%)"]
+        G6["メモリ: 66.05 パーセンタイル"]
     end
 
-    subgraph "例外: SQLドメイン"
-        S1[Pandas 2.2.2]
-        S2[NumPy 2.3.4]
-        S3[SQL問題のみ]
-    end
-
-    style C1 fill:#d4edda
-    style C2 fill:#d4edda
-    style C3 fill:#d4edda
-    style D1 fill:#fff3cd
-    style D2 fill:#fff3cd
-    style D3 fill:#fff3cd
-    style S1 fill:#f8d7da
-    style S2 fill:#f8d7da
-    style S3 fill:#f8d7da
+    PROB["同一問題"] --> CLAUDE
+    PROB --> GPT
 ```
 
-### 開発環境仕様
+### コード比較
 
-| コンポーネント | バージョン      | 目的                            | 設定ファイル            |
-| -------------- | --------------- | ------------------------------- | ----------------------- |
-| Python         | CPython 3.11.10 | アルゴリズム実装                | `.python-version`       |
-| Node.js        | v22.14.0        | TypeScript/JavaScriptランタイム | `package.json`          |
-| TypeScript     | 5.9.3           | 型安全な実装                    | `package.json`          |
-| Bun            | Lockfile v1     | パッケージ管理                  | `bun.lock`              |
-| Pandas         | 2.2.2           | SQLドメインのみ                 | `requirements.lock.txt` |
-| NumPy          | 2.3.4           | SQLドメインのみ                 | `requirements.lock.txt` |
-| Prettier       | 3.6.2           | コードフォーマット              | `package.json`          |
-| ESLint         | 9.38.0          | リント                          | `package.json`          |
-
-### コア実装制約
-
-**許可されるインポート(Python):**
-
-```python
-# 標準ライブラリのみ
-from typing import List, Optional, Dict, Set, Final
-from collections import defaultdict, deque, Counter
-from itertools import combinations, permutations
-import math
-import heapq
-```
-
-**禁止されるインポート:**
-
-```python
-# ❌ Algorithm/DataStructures/Mathematicsドメインでは許可されない
-import numpy
-import pandas
-import scipy
-```
-
-**JavaScript/TypeScript:**
-
-```javascript
-// 組み込みのみ - 外部ライブラリ不可
-// ❌ 許可されない:
-const _ = require('lodash');
-const R = require('ramda');
-```
-
-**SQLドメインの例外:**
-
-```python
-# ✅ SQL/Leetcode/*/gpt/*.ipynbでのみ許可
-import pandas as pd
-import numpy as np
-
-def daily_active_users(activity: pd.DataFrame) -> pd.DataFrame:
-    # Pandas/NumPy実装はここでは有効
-    ...
-```
-
-## ファイル命名とコード構造規約
-
-リポジトリは、O(1)ファイル位置を可能にする決定論的な命名パターンを強制します:
-
-### ファイルタイプ仕様
-
-| ファイルタイプ       | 命名パターン                                                  | コード構造                                                                                                                                                                                                                   | ファイルサイズ              | パス例                                                                                                                   |
-| -------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **Python実装**       | `{ProblemName}.py` (Claude)<br>`{ProblemName}_py.ipynb` (GPT) | `class Solution:`<br>`def {methodName}(self, ...) -> ...:`<br>ヘルパーメソッドを含む場合あり                                                                                                                                 | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.py`                 |
-| **TypeScript実装**   | `{ProblemName}.ts` (Claude)<br>`{ProblemName}_ts.ipynb` (GPT) | `function {functionName}(...): ReturnType { ... }`<br>または<br>`class Solution { {methodName}(...): ReturnType { ... } }`                                                                                                   | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/gpt 5.1 thinking customized/Interleaving_String_ts.ipynb` |
-| **JavaScript実装**   | `{ProblemName}.js` (Claude)<br>`{ProblemName}_js.ipynb` (GPT) | `var {functionName} = function(...) { ... };`<br>`module.exports = { {functionName} };`                                                                                                                                      | ~50-200行                   | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/Interleaving_String.js`                 |
-| **静的ドキュメント** | `README.md`                                                   | 5セクションMarkdown:<br>1. Overview (`<h2 id="overview">`)<br>2. Algorithm (`<h2 id="tldr">`)<br>3. Complexity (`<h2 id="complexity">`)<br>4. Implementation (`<h2 id="impl">`)<br>5. Optimization (`<h2 id="cpython">`)     | 3000-5000語<br>(~200-400行) | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.md`                              |
-| **対話型HTML**       | `README.html`                                                 | ローカルベンダー管理のスクリプトを読み込むHTML:<br>`<script src="/vendor/prismjs/prism.js"></script>`<br>`<script src="/vendor/tailwindcss/script.js"></script>`<br>ボタン付きステップコントロールシステム                   | 1000-2000行<br>(~50KB)      | `Algorithm/DynamicProgramming/leetcode/97. Interleaving String/claude sonnet 4.5/README.html`                            |
-| **React可視化**      | `README_react.html`                                           | ローカルベンダー管理のスクリプトを読み込むHTML:<br>`<script src="/vendor/react/react.development.js"></script>`<br>`<script src="/vendor/babel/babel.min.js"></script>`<br>`<script type="text/babel">`内のJSXコンポーネント | 2000-4000行<br>(~100KB)     | `Algorithm/BinarySearch/leetcode/99. Recover Binary Search Tree/Claude Opus 4.5/README_react.html`                       |
-
-### コード構造ブリッジ: クラスと関数パターン
-
-**Pythonパターン(Claude):**
+**Claude パターン**（シンプル・直接実装）:
 
 ```python
 class Solution:
     def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
-        # 単一メソッド - 型アノテーション信頼
+        # 型アノテーションを信頼 — バリデーションなし
         n1, n2, n3 = len(s1), len(s2), len(s3)
         if n1 + n2 != n3:
             return False
-        # 実装...
+        # 単一メソッド、直接実装
 ```
 
-**Pythonパターン(GPT):**
+**GPT パターン**（バリデーション付き・プロダクション対応）:
 
 ```python
 class Solution:
     def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
-        # 競技バージョン
+        # 競技版（高速パス）
         ...
 
     def isInterleave_production(self, s1: Any, s2: Any, s3: Any) -> bool:
-        # 検証付き本番バージョン
+        # 実行時バリデーション
         if not isinstance(s1, str):
             raise TypeError("s1 must be str")
         if len(s1) > 100:
-            raise ValueError("Exceeds constraint")
-        # 実装...
+            raise ValueError("Exceeds constraint: len(s1) <= 100")
+        # 検証付きプロダクション版
 ```
 
-**TypeScriptパターン:**
+| 観点                   | Claude 実装          | GPT 実装                                        |
+| ---------------------- | -------------------- | ----------------------------------------------- |
+| **メソッド数**         | 1（`isInterleave`）  | 2+（`isInterleave`、`isInterleave_production`） |
+| **型チェック**         | アノテーションを信頼 | `isinstance()` 実行時チェック                   |
+| **制約バリデーション** | なし                 | 明示的な `if len(s1) > 100: raise ValueError`   |
+| **コード長**           | 50〜150 行           | 80〜200 行                                      |
+| **実行時間（Python）** | 44ms（60.43%）       | 42ms（70.90%）                                  |
+| **メモリ（Python）**   | 91.38 パーセンタイル | 66.05 パーセンタイル                            |
 
-```typescript
-function isInterleave(s1: string, s2: string, s3: string): boolean {
-    const n1 = s1.length;
-    if (n1 + n2 !== n3) return false;
-    // 実装...
+---
+
+## 3 層プログレッシブドキュメントシステム
+
+```mermaid
+graph TD
+    subgraph TIER1["Tier 1: 静的マークダウン (README.md)<br>初学者向け"]
+        T1A["Section 1: 問題概要・制約・例"]
+        T1B["Section 2: アルゴリズム戦略・データ構造"]
+        T1C["Section 3: 時間 O(...) / 空間 O(...) 計算量"]
+        T1D["Section 4: コードウォークスルー"]
+        T1E["Section 5: 言語別最適化・パフォーマンスチューニング"]
+        T1A --> T1B --> T1C --> T1D --> T1E
+    end
+
+    subgraph TIER2["Tier 2: インタラクティブ HTML (README.html)<br>中級者向け"]
+        T2A["Prism.js 1.29.0<br>構文ハイライト"]
+        T2B["Tailwind CSS<br>スタイリング"]
+        T2C["Play/Pause/Step<br>インタラクティブ制御"]
+        T2D["SVG フローチャート"]
+    end
+
+    subgraph TIER3["Tier 3: Dynamic React (README_react.html)<br>上級者向け"]
+        T3A["React 18.3.1<br>リアルタイム実行"]
+        T3B["useState<br>ライブ入力変更"]
+        T3C["useEffect<br>アルゴリズム再実行"]
+        T3D["AI 実装の<br>並列比較"]
+    end
+
+    TIER1 -->|"スキルアップ"| TIER2 -->|"スキルアップ"| TIER3
+```
+
+### Tier 1: 静的マークダウン（`README.md`）
+
+**標準 5 セクション構成**:
+
+| セクション ID | ヘッダー               | コンテンツの目的                             |
+| ------------- | ---------------------- | -------------------------------------------- |
+| 1             | `<h2 id="overview">`   | 問題文・制約・例                             |
+| 2             | `<h2 id="tldr">`       | アルゴリズム戦略・データ構造・状態遷移       |
+| 3             | `<h2 id="complexity">` | 時間 O(...)・空間 O(...)・導出               |
+| 4             | `<h2 id="impl">`       | コードウォークスルー・行ごとの説明           |
+| 5             | `<h2 id="cpython">`    | 言語固有の最適化・パフォーマンスチューニング |
+
+### Tier 2: インタラクティブ HTML（`README.html`）
+
+**技術スタック**:
+
+- **構文ハイライト**: Prism.js 1.29.0（`/vendor/prismjs/prism.js`）
+- **スタイリング**: Tailwind CSS（`/vendor/tailwindcss/script.js`）
+- **インタラクティブ制御**: JavaScript 状態管理付きの Play/Pause/Step ボタン
+
+**主な機能**:
+
+- ステップバイステップのアルゴリズム可視化
+- SVG フローチャートレンダリング
+- 行番号付きコードブロックハイライト
+- 外部 CDN 依存なし（すべてローカルにベンダリング）
+
+### Tier 3: Dynamic React（`README_react.html`）
+
+**技術スタック**:
+
+- **React**: 18.3.1（`/vendor/react/react.development.js`）
+- **React DOM**: 18.3.1（`/vendor/react-dom/react-dom.development.js`）
+- **Babel Standalone**: 7.26.10（`/vendor/babel/babel.min.js`）
+
+**React コンポーネントパターン**:
+
+```jsx
+<script type="text/babel">
+    function AlgorithmDemo() {
+        const [input, setInput] = React.useState("default");
+        const [result, setResult] = React.useState(null);
+
+        // リアルタイムアルゴリズム実行
+        React.useEffect(() => {
+            const output = runAlgorithm(input);
+            setResult(output);
+        }, [input]);
+
+        return (
+            <div>
+                <input onChange={(e) => setInput(e.target.value)} />
+                <ResultDisplay data={result} />
+            </div>
+        );
+    }
+</script>
+```
+
+**主な機能**:
+
+- `useState` によるライブ入力変更
+- `useEffect` によるリアルタイムアルゴリズム再実行
+- AI 実装の並列比較
+- インタラクティブな可視化コンポーネント
+
+---
+
+## ビルドと公開インフラ
+
+### インデックス生成パイプライン
+
+```mermaid
+flowchart TD
+    START["./update_index.sh<br>起動"] --> PY["python3 generate_index.py"]
+
+    PY --> FUNC1["get_html_title()<br><title>タグを正規表現で抽出"]
+    PY --> FUNC2["copy_vendor_files()<br>node_modules → public/vendor へコピー"]
+    PY --> FUNC3["rewrite_html_content()<br>CDN URL をローカルパスに置換"]
+    PY --> FUNC4["generate_index()<br>メインオーケストレーション関数"]
+
+    FUNC2 --> VENDOR["Vendor ファイルマッピング"]
+    VENDOR --> V1["react/umd/*.js → /vendor/react/"]
+    VENDOR --> V2["react-dom/umd/*.js → /vendor/react-dom/"]
+    VENDOR --> V3["@babel/standalone → /vendor/babel/"]
+    VENDOR --> V4["prismjs → /vendor/prismjs/"]
+    VENDOR --> V5["fontawesome → /vendor/fontawesome/"]
+
+    FUNC3 --> REWRITE["URL 書き換えパターン"]
+    REWRITE --> R1["https://unpkg.com/react@18/...<br>→ /vendor/react/react.development.js"]
+    REWRITE --> R2["https://cdn.tailwindcss.com<br>→ /vendor/tailwindcss/script.js"]
+
+    FUNC4 --> INDEX["public/index.html 生成<br>152 問題リンク + カテゴリータブ"]
+
+    FUNC1 & FUNC2 & FUNC3 & FUNC4 --> INDEX
+
+    style START fill:#E74C3C,color:#fff
+    style INDEX fill:#27AE60,color:#fff
+```
+
+### `generate_index.py` の主要関数
+
+| 関数                     | 行      | 目的                                   | コードエンティティ                      |
+| ------------------------ | ------- | -------------------------------------- | --------------------------------------- |
+| `get_html_title()`       | 11-17   | `<title>` タグを正規表現で抽出         | `re.search(r'<title>(.*?)</title>')`    |
+| `copy_vendor_files()`    | 19-77   | node_modules を public/vendor にコピー | `shutil.copy2()`, `shutil.copytree()`   |
+| `rewrite_html_content()` | 78-111  | CDN URL をローカルパスに置換           | 文字列置換マッピング                    |
+| `generate_index()`       | 113-617 | メインオーケストレーション関数         | `os.walk()`, `defaultdict()`, HTML 生成 |
+
+### CI/CD パイプライン
+
+```mermaid
+flowchart LR
+    DEV["開発者<br>コード追加"] -->|git commit| HOOK["Pre-commit Hook<br>update_index.sh 自動実行"]
+    HOOK --> BUILD["generate_index.py<br>インデックス再生成"]
+    BUILD --> AUTO["git-auto-commit-action<br>生成ファイルを自動コミット"]
+    AUTO -->|push/PR| GA["GitHub Actions<br>ビルド・検証"]
+    GA --> DEPLOY["public/index.html<br>公開サイト更新"]
+
+    style DEV fill:#3498DB,color:#fff
+    style DEPLOY fill:#27AE60,color:#fff
+```
+
+---
+
+## 技術スタックと依存関係管理
+
+### コアランタイム環境
+
+| コンポーネント | バージョン           | 設定ファイル      | 目的                                 |
+| -------------- | -------------------- | ----------------- | ------------------------------------ |
+| **Python**     | CPython 3.12.11      | `.python-version` | アルゴリズム実装・ビルドスクリプト   |
+| **Node.js**    | v22.14.0             | `package.json`    | TypeScript/JavaScript ランタイム     |
+| **TypeScript** | 5.9.3                | `package.json`    | 型安全な実装                         |
+| **Bun**        | 1.3.5（Lockfile v1） | `bun.lock`        | パッケージマネージャー（npm の代替） |
+
+### フロントエンド依存関係（ベンダリング済み）
+
+```mermaid
+graph LR
+    subgraph VENDOR["public/vendor/ (~5MB)"]
+        R["React 18.3.1<br>react.development.js"]
+        RD["React DOM 18.3.1<br>react-dom.development.js"]
+        B["Babel 7.26.10<br>babel.min.js"]
+        P["Prism.js 1.29.0<br>prism.js + plugins"]
+        T["Tailwind CSS<br>standalone"]
+        FA["FontAwesome 6.7.2<br>CSS + webfonts"]
+    end
+```
+
+### SQL ドメインの依存関係（例外）
+
+| ライブラリ     | バージョン | 設定                    | 目的                            |
+| -------------- | ---------- | ----------------------- | ------------------------------- |
+| **Pandas**     | 2.2.2      | `requirements.lock.txt` | SQL 問題の代替 DataFrame 操作   |
+| **NumPy**      | 2.3.4      | `requirements.lock.txt` | Pandas ソリューションの数値演算 |
+| **SQLAlchemy** | Latest     | `requirements.lock.txt` | データベース対話レイヤー        |
+
+### コード品質ツール
+
+| ツール           | バージョン | 設定                 | 目的                             |
+| ---------------- | ---------- | -------------------- | -------------------------------- |
+| **Prettier**     | 3.4.2      | `package.json`       | コードフォーマット（JS/TS）      |
+| **ESLint**       | 9.18.0     | `package.json`       | リンティング（JS/TS）            |
+| **Ruff**         | Latest     | Python config        | Python リンティング/フォーマット |
+| **Markdownlint** | N/A        | `.markdownlint.json` | Markdown バリデーション          |
+
+**Markdownlint 設定** (`.markdownlint.json`):
+
+```json
+{
+    "MD013": {
+        "line_length": 1000,
+        "code_blocks": false
+    },
+    "MD033": {
+        "allowed_elements": ["h1", "h2", "p", "i", "footer", "br", "div"]
+    }
 }
 ```
 
-**JavaScriptパターン:**
+---
+
+## ナビゲーションとファイル検索
+
+### カテゴリーベースのナビゲーション
+
+生成された `public/index.html` は、カテゴリーフィルタリング付きのタブインターフェースを実装しています。
+
+```mermaid
+graph TD
+    INDEX["public/index.html<br>メインナビゲーション"]
+
+    INDEX --> TAB_ALL["🌍 All<br>(152 問題)"]
+    INDEX --> TAB_ALGO["🧩 Algorithm<br>(84 問題)"]
+    INDEX --> TAB_DS["🏗 DataStructures<br>(35 問題)"]
+    INDEX --> TAB_MATH["📐 Mathematics<br>(13 問題)"]
+    INDEX --> TAB_JS["⚡ JavaScript<br>(11 問題)"]
+    INDEX --> TAB_CC["🔄 Concurrency<br>(6 問題)"]
+    INDEX --> TAB_SQL["🗄 SQL<br>(3 問題)"]
+
+    TAB_ALGO --> CARD["問題カード<br>├── カードタイトル<br>└── ファイルパス"]
+```
+
+---
+
+## リポジトリのメトリクスと規模
+
+### 問題ドメイン分布
+
+```mermaid
+pie title 問題ドメイン分布（全 152 問題）
+    "Algorithm (84問)" : 84
+    "DataStructures (35問)" : 35
+    "Mathematics (13問)" : 13
+    "JavaScript (11問)" : 11
+    "Concurrency (6問)" : 6
+    "SQL (3問)" : 3
+```
+
+| ドメイン           | 問題数  | ファイル数（18×N） | 割合  |
+| ------------------ | ------- | ------------------ | ----- |
+| **Algorithm**      | 84      | 1,512              | 55.3% |
+| **DataStructures** | 35      | 630                | 23.0% |
+| **Mathematics**    | 13      | 234                | 8.6%  |
+| **JavaScript**     | 11      | 198                | 7.2%  |
+| **Concurrency**    | 6       | 108                | 3.9%  |
+| **SQL**            | 3       | 54                 | 2.0%  |
+| **合計**           | **152** | **2,736**          | 100%  |
+
+### 問題ごとのファイルタイプ内訳
+
+| ファイルタイプ        | 数     | 目的                             | 命名パターン         |
+| --------------------- | ------ | -------------------------------- | -------------------- |
+| Python 実装           | 2      | `class Solution`（アルゴリズム） | `*.py`、`*_py.ipynb` |
+| TypeScript 実装       | 2      | 型安全な関数実装                 | `*.ts`、`*_ts.ipynb` |
+| JavaScript 実装       | 2      | CommonJS `module.exports`        | `*.js`、`*_js.ipynb` |
+| 静的ドキュメント      | 2      | 5 セクションの Markdown          | `README.md`          |
+| インタラクティブ HTML | 2      | Prism.js + Tailwind              | `README.html`        |
+| React 可視化          | 2      | React 18 + Babel                 | `README_react.html`  |
+| **問題ごとの合計**    | **18** | 完全な学習アーティファクトセット | -                    |
+
+### 生成サイト構造
+
+```
+public/
+├── index.html                 # メインナビゲーション（152 リンク、カテゴリータブ）
+├── vendor/                    # ベンダリング済み依存関係（合計 ~5MB）
+│   ├── react/                 # React 18.3.1 UMD
+│   ├── react-dom/             # React DOM 18.3.1
+│   ├── babel/                 # Babel Standalone 7.26.10
+│   ├── prismjs/               # Prism.js 1.29.0 + プラグイン
+│   ├── tailwindcss/           # Tailwind CSS スタンドアロン
+│   └── fontawesome/           # FontAwesome 6.7.2 + webfonts
+├── Algorithm/                 # 84 問題 × 18 ファイル = 1,512 ファイル
+├── DataStructures/            # 35 問題 × 18 ファイル = 630 ファイル
+├── Mathematics/               # 13 問題 × 18 ファイル = 234 ファイル
+├── JavaScript/                # 11 問題 × 18 ファイル = 198 ファイル
+├── Concurrency/               # 6 問題 × 18 ファイル = 108 ファイル
+└── SQL/                       # 3 問題 × 18 ファイル = 54 ファイル
+```
+
+---
+
+## ファイル命名規則とコード構造
+
+### 言語固有のパターン
+
+```mermaid
+graph LR
+    subgraph CLAUDE_FILES["Claude Sonnet 4.5 ファイル"]
+        CF1["Problem.py<br>class Solution"]
+        CF2["Problem.ts<br>function solution()"]
+        CF3["Problem.js<br>module.exports"]
+        CF4["README.md"]
+        CF5["README.html"]
+        CF6["README_react.html"]
+    end
+
+    subgraph GPT_FILES["GPT 5.1 Thinking ファイル（Jupyter）"]
+        GF1["Problem_py.ipynb<br>4 セルのノートブック"]
+        GF2["Problem_ts.ipynb"]
+        GF3["Problem_js.ipynb"]
+        GF4["README.md"]
+        GF5["README.html"]
+        GF6["README_react.html"]
+    end
+```
+
+**Python**:
+
+```python
+class Solution:
+    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
+        """
+        Docstring with Time/Space complexity
+        """
+        # Implementation
+```
+
+**TypeScript**:
+
+```typescript
+function isInterleave(s1: string, s2: string, s3: string): boolean {
+    // 型安全な実装
+}
+```
+
+**JavaScript**:
 
 ```javascript
 var isInterleave = function (s1, s2, s3) {
-    const n1 = s1.length;
-    if (n1 + n2 !== n3) return false;
-    // 実装...
+    // Implementation
 };
 module.exports = { isInterleave };
 ```
 
-## リポジトリメトリクスとパフォーマンスベンチマーク
+### Jupyter ノートブックの構造
 
-### 問題ごとのファイル数
-
-| ファイルタイプ                  | 問題ごとの数     | 目的                                   |
-| ------------------------------- | ---------------- | -------------------------------------- |
-| Python実装(`.py`, `.ipynb`)     | 2 (Claude + GPT) | アルゴリズム実装を含む`class Solution` |
-| TypeScript実装(`.ts`, `.ipynb`) | 2 (Claude + GPT) | 型安全な関数実装                       |
-| JavaScript実装(`.js`, `.ipynb`) | 2 (Claude + GPT) | `module.exports`を含むランタイム実装   |
-| 静的ドキュメント(`README.md`)   | 2 (Claude + GPT) | 3000-5000語の説明                      |
-| 対話型HTML(`README.html`)       | 2 (Claude + GPT) | Prism.js + Tailwind可視化              |
-| 動的React(`README_react.html`)  | 2 (Claude + GPT) | React 18対話型デモ                     |
-| **問題ごとの合計**              | **18ファイル**   | 完全な学習成果物セット                 |
-
-### パフォーマンス比較: Interleaving String (LeetCode 97)
-
-| 実装              | 実行時間 | 上位%  | メモリ | 上位%  |
-| ----------------- | -------- | ------ | ------ | ------ |
-| Claude Python     | 44ms     | 60.43% | 高     | 91.38% |
-| GPT Python        | 42ms     | 70.90% | 低     | 66.05% |
-| Claude TypeScript | 42ms     | 98.45% | 効率的 | 高     |
-| GPT TypeScript    | 54ms     | 60.46% | 中程度 | 中程度 |
-
-**観察:** Claude実装は信頼ベースの最適化により平均10-15%高速な実行時間を達成。GPT実装は検証オーバーヘッドにもかかわらず、明示的な割り当てパターンにより5-10%優れたメモリ効率を示します。
-
-## ナビゲーションと使用パターン
-
-6階層構造は4つの異なるアクセスパターンを可能にします:
-
-### パターン1: プラットフォームベースのナビゲーション
+GPT 実装は以下のセル構造の Jupyter ノートブックを使用します：
 
 ```mermaid
-graph LR
-    A[1. プラットフォーム選択] --> B[2. 問題カテゴリ選択]
-    B --> C[3. 特定の問題選択]
-    C --> D[4. AI実装を並べて比較]
+flowchart TD
+    CELL1["セル 1: 問題分析<br>(Markdown)<br>問題文・制約・例の分析"]
+    CELL2["セル 2: 競技版コード<br>(Python/TS/JS)<br>高速パス実装"]
+    CELL3["セル 3: プロダクション版コード<br>(バリデーション付き)<br>isinstance() チェック・ValueError"]
+    CELL4["セル 4: 最適化ディスカッション<br>(Markdown)<br>トレードオフ・改善案"]
 
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style C fill:#f0ffe1
-    style D fill:#d4edda
+    CELL1 --> CELL2 --> CELL3 --> CELL4
 ```
-
-**パス例:**
-
-```
-leetcode/ → DynamicProgramming/ → 97. Interleaving String/
-  ├── claude sonnet 4.5/     # 速度最適化
-  └── gpt 5.1 thinking/      # 安全性最適化
-```
-
-### パターン2: アルゴリズムパターンベースのナビゲーション
-
-```mermaid
-graph LR
-    A[1. ドメインディレクトリ] --> B[2. アルゴリズムサブカテゴリ]
-    B --> C[3. パターンを使用する問題を閲覧]
-
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style C fill:#f0ffe1
-```
-
-**パス例:**
-
-```
-Algorithm/ → DynamicProgramming/ → leetcode/
-  ├── 97. Interleaving String/
-  └── その他のDP問題...
-```
-
-### パターン3: 言語ベースのナビゲーション
-
-1. `*.py`, `*.ts`, または `*.js` ファイルを検索
-2. すべての問題に3つの言語すべてが存在
-3. APIシグネチャは言語間で一貫
-
-**ファイル例:**
-
-```python
-Interleaving_String.py     # class Solution: def isInterleave(...)
-```
-
-```typescript
-Interleaving_String.ts     # function isInterleave(...): boolean
-```
-
-```javascript
-Interleaving_String.js     # var isInterleave = function(...) {}
-```
-
-### パターン4: ドキュメント階層ベースのナビゲーション
-
-```mermaid
-graph TD
-    A[学習目標に基づいて階層を選択] --> B[階層1: README.md<br/>テキストベースの説明]
-    A --> C[階層2: README.html<br/>対話型ステップコントロール]
-    A --> D[階層3: README_react.html<br/>リアルタイム入力テスト]
-
-    style A fill:#e1f5ff
-    style B fill:#d4edda
-    style C fill:#fff3cd
-    style D fill:#f8d7da
-```
-
-各AIプロバイダーフォルダには3つの階層すべてが含まれます。
 
 ---
 
-## 開発セットアップ
+## クイックスタートガイド
 
-このプロジェクトは、依存関係管理に`bun`を使用し、成果物生成にPythonを使用します。
+### クローンとセットアップ
 
-### 前提条件
+```bash
+# 1. リポジトリをクローン
+git clone https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL.git
+cd Algorithm-DataStructures-Math-SQL
 
-- [Bun](https://bun.sh) (v1.0.0+)
-- Python 3.11+
+# 2. 依存関係をインストール（Bun を使用）
+bun install
 
-### セットアップ手順
+# 3. 公開サイトを生成
+./update_index.sh
 
-1. **リポジトリのクローン**:
+# 4. ローカルで配信
+bun run serve
+# http://127.0.0.1:8080 で開く
+```
 
-    ```bash
-    git clone https://github.com/myoshi2891/Algorithm-DataStructures-Math-SQL.git
-    cd Algorithm-DataStructures-Math-SQL
-    ```
+### 新しい問題の追加
 
-2. **依存関係のインストール**:
+新しい問題を追加する際は、2×3×3 マトリクス構造を必ず守ってください：
 
-    ```bash
-    bun install
-    ```
+```
+{Domain}/{Subcategory}/{Platform}/{Problem}/
+├── claude sonnet 4.5/
+│   ├── {Problem}.py
+│   ├── {Problem}.ts
+│   ├── {Problem}.js
+│   ├── README.md
+│   ├── README.html
+│   └── README_react.html
+└── gpt 5.1 thinking customized/
+    ├── {Problem}_py.ipynb
+    ├── {Problem}_ts.ipynb
+    ├── {Problem}_js.ipynb
+    ├── README.md
+    ├── README.html
+    └── README_react.html
+```
 
-3. **インデックスと成果物のビルド**:
-
-    ```bash
-    ./update_index.sh
-    ```
-
-    これにより、`public/`ディレクトリが生成され、必要なベンダーファイルがコピーされます。
-
-4. **ローカルサーバーの起動**:
-
-    ```bash
-    bun run serve
-    ```
-
-    ブラウザで `http://127.0.0.1:8080` を開いて確認します。
-
----
-
-## インデックスメンテナンス
-
-リポジトリのドキュメントインデックス(`public/index.html`)は自動生成されます。開発者は、新しい問題を追加した後にインデックスを最新の状態に保つために、Gitプレコミットフックを設定することが推奨されます。
-
-詳細なセットアップ手順については、[INDEX_MAINTENANCE.md](INDEX_MAINTENANCE.md)を参照してください。
+ファイルを追加後、`./update_index.sh` を実行して `public/index.html` を再生成してください。
 
 ---
 
-## 貢献
-
-このリポジトリは厳格な構造を維持しています。貢献する場合は、以下を確認してください:
-
-- [ ] 2×3×3マトリックス構造に従っている(18ファイル/問題)
-- [ ] 6階層ディレクトリ構造を遵守している
-- [ ] コア実装に外部依存関係がない(SQLドメインを除く)
-- [ ] すべてのドキュメント階層が存在する(Static/Interactive/Dynamic)
-- [ ] Claude実装とGPT実装の哲学的区別を維持している
-
-## ライセンス
-
-このリポジトリは教育目的のために提供されています。
-
----
+> このリポジトリは、自動ビルドプロセスと厳密なファイル組織パターンを持つ、マルチ言語アルゴリズムドキュメントのための**決定論的・スケーラブルなアーキテクチャ**を実装しており、O(1) ファイル参照と体系的な知識ナビゲーションを実現しています。
 
 **⭐ このプロジェクトが役立ちましたら、ぜひスターを付けてください！**
 
 [![Made with ❤️ by myoshi2891](https://img.shields.io/badge/Made%20with%20❤️%20by-myoshi2891-red?style=flat-square)](https://github.com/myoshi2891)
+
+> このリポジトリは、自動ビルドプロセスと厳密なファイル組織パターンを持つ、マルチ言語アルゴリズムドキュメントのための**決定論的・スケーラブルなアーキテクチャ**を実装しており、O(1) ファイル参照と体系的な知識ナビゲーションを実現しています。

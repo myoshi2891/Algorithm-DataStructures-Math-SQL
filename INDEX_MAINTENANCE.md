@@ -34,9 +34,20 @@ This will populate the `public/` directory with the latest file structure and `i
 
 ## Automatic Update (Git Hook)
 
-You can set up a Git **pre-commit hook** to automatically update the index every time you commit. This ensures `index.html` is always in sync with your changes.
+Git **pre-commit hook** を設定すると、コミットのたびにインデックスが自動更新されます。
 
-### Setup Instructions
+### 自動セットアップ（推奨）
+
+```bash
+make setup   # venv + フック + 依存関係を一括セットアップ
+make hooks   # フックのみインストール
+```
+
+`make hooks` は冪等（既にフックが存在する場合はスキップ）です。
+
+### 手動セットアップ
+
+自動セットアップが使えない場合は以下を実行:
 
 1. Make the wrapper script executable:
 

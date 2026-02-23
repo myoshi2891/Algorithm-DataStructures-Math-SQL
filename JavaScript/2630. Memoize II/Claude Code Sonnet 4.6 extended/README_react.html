@@ -1,0 +1,2207 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 2630 - Memoize II | ネストMap トライ構造</title>
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'DM Sans', sans-serif;
+            }
+            h1,
+            h2,
+            h3 {
+                font-family: 'Syne', sans-serif;
+            }
+            code,
+            pre,
+            .mono {
+                font-family: 'IBM Plex Mono', monospace;
+            }
+            .code-toolbar > .toolbar {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+            }
+            .code-toolbar:hover > .toolbar {
+                opacity: 1;
+            }
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item .copy-to-clipboard-button {
+                background: #10b981;
+                color: white;
+                border-radius: 6px;
+                padding: 0.5rem 1rem;
+                margin-right: 0.5rem;
+                margin-top: 0.5rem;
+                font-size: 1rem;
+                border: none;
+                cursor: pointer;
+                box-shadow: none;
+                transition: background 0.2s;
+            }
+            .code-toolbar > .toolbar .toolbar-item button:hover,
+            .code-toolbar > .toolbar .toolbar-item .copy-to-clipboard-button:hover {
+                background: #059669;
+                color: white;
+            }
+            div.code-toolbar {
+                position: relative;
+            }
+            /* Trie node animation */
+            @keyframes nodeAppear {
+                from {
+                    opacity: 0;
+                    transform: scale(0.5);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+            .node-appear {
+                animation: nodeAppear 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            @keyframes hitPulse {
+                0%,
+                100% {
+                    filter: drop-shadow(0 0 0px #10b981);
+                }
+                50% {
+                    filter: drop-shadow(0 0 12px #10b981);
+                }
+            }
+            .hit-pulse {
+                animation: hitPulse 0.8s ease-in-out 2;
+            }
+        </style>
+    </head>
+    <body class="bg-[linear-gradient(135deg,#f0fdf4_0%,#e0f2fe_100%)] min-h-screen">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- ヘッダー -->
+            <header
+                id="header"
+                class="mb-10 rounded-3xl p-10 shadow-[0_10px_40px_rgba(16,185,129,0.13)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2">
+                    <span
+                        class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full mono"
+                        >LeetCode #2623</span
+                    >
+                    <span class="bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full"
+                        >Medium</span
+                    >
+                </div>
+                <h1 class="text-5xl font-extrabold text-teal-900 mb-2 leading-tight">Memoize</h1>
+                <p class="text-xl text-cyan-700 font-semibold mt-2">
+                    ネスト Map トライ構造 による
+                    <span class="mono bg-white/60 px-2 py-0.5 rounded text-emerald-800">O(k)</span>
+                    キャッシュ実装
+                </p>
+                <nav class="flex flex-wrap gap-3 mt-7" aria-label="セクションナビ">
+                    {["概要","解説","コード","フロー","計算量"].map((label, i) => { const ids =
+                    ["overview","steps","code","diagram","complexity"]; return `<a
+                        href="#${ids[i]}"
+                        class="inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white/80 transition-all hover:shadow-[0_8px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >${label}</a
+                    >`; }).join("")}
+                </nav>
+            </header>
+
+            <!-- 概要 -->
+            <section
+                id="overview"
+                class="bg-white rounded-3xl p-8 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
+            >
+                <h2
+                    class="text-3xl font-extrabold text-cyan-700 mb-4 pb-2 border-b-4 border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-bold text-teal-800 mb-3">📋 問題の要件</h3>
+                        <p class="text-slate-600 leading-7 mb-4">
+                            任意の関数
+                            <code class="bg-slate-100 px-1.5 py-0.5 rounded text-emerald-800"
+                                >fn</code
+                            >
+                            を受け取り、
+                            <strong
+                                >同じ引数列を2回渡した際に fn
+                                を再実行せずキャッシュから結果を返す</strong
+                            >
+                            ラッパー関数を生成します。
+                        </p>
+                        <ul class="space-y-2 text-sm text-slate-600">
+                            <li class="flex gap-2">
+                                <span class="text-emerald-500 font-bold">✓</span> 同一性判定は
+                                <code class="bg-slate-100 px-1 rounded">===</code>（参照同一性）
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-emerald-500 font-bold">✓</span>
+                                引数は任意の型・個数（0個も含む）
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-emerald-500 font-bold">✓</span> fn が
+                                <code class="bg-slate-100 px-1 rounded">undefined</code>
+                                を返すケースも正しくキャッシュ
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-red-400 font-bold">✗</span>
+                                <code class="bg-slate-100 px-1 rounded">JSON.stringify</code>
+                                キー化は不可（参照同一性が失われる）
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-teal-800 mb-3">🧠 解法の核心</h3>
+                        <div class="bg-slate-50 rounded-2xl p-4 space-y-3 text-sm text-slate-700">
+                            <div class="flex gap-3 items-start">
+                                <span
+                                    class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded text-xs mono shrink-0"
+                                    >MAP</span
+                                >
+                                <span
+                                    >引数を1つずつ
+                                    <strong>Map のキー</strong> として辿るトライ木を構築</span
+                                >
+                            </div>
+                            <div class="flex gap-3 items-start">
+                                <span
+                                    class="bg-sky-100 text-sky-700 font-bold px-2 py-0.5 rounded text-xs mono shrink-0"
+                                    >SYM</span
+                                >
+                                <span
+                                    ><strong>Symbol キー</strong> で結果を格納。<code
+                                        class="bg-slate-200 px-1 rounded"
+                                        >undefined</code
+                                    >
+                                    戻り値も
+                                    <code class="bg-slate-200 px-1 rounded">has()</code>
+                                    で正確に判定</span
+                                >
+                            </div>
+                            <div class="flex gap-3 items-start">
+                                <span
+                                    class="bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded text-xs mono shrink-0"
+                                    >OBJ</span
+                                >
+                                <span
+                                    >TrieNode オブジェクト不要。<strong>Map 自体がノード</strong> →
+                                    オブジェクト生成コスト削減</span
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-[#1e293b] rounded-xl p-3 mono text-xs text-green-300">
+                            <div class="text-slate-400 mb-1">// キャッシュ構造のイメージ</div>
+                            <div>
+                                root → Map[arg0] → Map[arg1] →
+                                <span class="text-yellow-300">Map[RESULT] = value</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップインタラクティブ -->
+            <section
+                id="steps"
+                class="bg-white rounded-3xl p-8 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
+            >
+                <h2
+                    class="text-3xl font-extrabold text-cyan-700 mb-4 pb-2 border-b-4 border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="react-steps"></div>
+            </section>
+
+            <!-- コード -->
+            <section
+                id="code"
+                class="bg-white rounded-3xl p-8 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
+            >
+                <h2
+                    class="text-3xl font-extrabold text-cyan-700 mb-4 pb-2 border-b-4 border-emerald-200"
+                >
+                    TypeScript 実装
+                </h2>
+                <p class="text-slate-500 text-sm mb-4">
+                    改善版：TrieNode オブジェクトを廃止し Map 自体をノードとして使用
+                </p>
+                <pre
+                    class="line-numbers rounded-xl overflow-auto"
+                ><code class="language-typescript">type Fn = (...params: any) => any;
+
+function memoize(fn: Fn): Fn {
+    // Symbol をクロージャ内に閉じ込め、外部アクセスを防止
+    // いかなる引数値とも衝突しないことをコンパイル時・実行時両方で保証
+    const RESULT = Symbol('result');
+
+    // ノード = Map 自体（TrieNodeオブジェクト不要）
+    // 再帰型: 次の引数への経路 or 結果値を保持
+    type CacheMap = Map&lt;unknown, CacheMap | unknown&gt;;
+
+    const root: CacheMap = new Map();
+
+    return function (...args: unknown[]): unknown {
+        let node = root;
+
+        // 各引数を順にトライを辿る
+        // 経路がなければ新規 Map ノードを作成
+        for (const arg of args) {
+            if (!node.has(arg)) {
+                node.set(arg, new Map() as CacheMap);
+            }
+            // 直前ブロックで set 済み → non-null assertion は安全
+            node = node.get(arg) as CacheMap;
+        }
+
+        // 終端ノードにキャッシュがあればそれを返す
+        // ※ has() で判定 → fn が undefined を返す場合も正確に動作
+        if (node.has(RESULT)) {
+            return node.get(RESULT); // キャッシュヒット: fn を呼ばない
+        }
+
+        // キャッシュミス: fn を実行して終端ノードに格納
+        const result: unknown = fn(...args);
+        node.set(RESULT, result);
+
+        return result;
+    };
+}</code></pre>
+            </section>
+
+            <!-- フローチャート -->
+            <section
+                id="diagram"
+                class="bg-white rounded-3xl p-8 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
+            >
+                <h2
+                    class="text-3xl font-extrabold text-cyan-700 mb-4 pb-2 border-b-4 border-emerald-200"
+                >
+                    フローチャート
+                </h2>
+                <div class="mt-5 overflow-x-auto flex justify-center">
+                    <svg
+                        viewBox="0 0 720 960"
+                        style="max-width: 720px; width: 100%; height: auto"
+                        role="img"
+                        aria-label="Memoize flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!--
+          座標設計（リデザイン）:
+            メイン縦列   cx=220  （左寄せ）
+            右ブランチ   cx=520  (HasCheck, Create, Advance)
+            紫ループバック  x=660  （右端外側）
+            緑バイパス      x=690  （さらに右外側）
+            左(CacheHit)    cx=60
+        -->
+
+                        <!-- ① 開始 -->
+                        <circle cx="178" cy="48" r="14" fill="#10b981" />
+                        <text
+                            x="178"
+                            y="48"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ①
+                        </text>
+                        <ellipse
+                            cx="220"
+                            cy="48"
+                            rx="120"
+                            ry="28"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="230"
+                            y="48"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-family="Syne,sans-serif"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            開始: fn 呼び出し
+                        </text>
+
+                        <path
+                            d="M 220 76 L 220 102"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ② node = root -->
+                        <circle cx="88" cy="110" r="14" fill="#0284c7" />
+                        <text
+                            x="88"
+                            y="110"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ②
+                        </text>
+                        <rect
+                            x="100"
+                            y="102"
+                            width="280"
+                            height="50"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="240"
+                            y="120"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            node = root
+                        </text>
+                        <text
+                            x="240"
+                            y="139"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-family="IBM Plex Mono,monospace"
+                            fill="#0369a1"
+                        >
+                            args を先頭から順に処理
+                        </text>
+
+                        <path
+                            d="M 220 152 L 220 180"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ③ ArgLoop diamond  center(220,225)  spread: h±120, v±45 -->
+                        <circle cx="86" cy="188" r="14" fill="#f59e0b" />
+                        <text
+                            x="86"
+                            y="188"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ③
+                        </text>
+                        <polygon
+                            points="220,182 350,225 220,268 90,225"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="220"
+                            y="220"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#78350f"
+                        >
+                            次の arg あり?
+                        </text>
+
+                        <!-- ③→右「はい」: ArgLoop右端(350,225) → HasCheck -->
+                        <path
+                            d="M 350 225 L 440 225"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="395"
+                            y="213"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- ④ HasCheck diamond  center(520,225)  spread: h±75, v±35 -->
+                        <circle cx="433" cy="195" r="14" fill="#0284c7" />
+                        <text
+                            x="433"
+                            y="195"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ④
+                        </text>
+                        <polygon
+                            points="520,190 595,225 520,260 445,225"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="520"
+                            y="219"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            node.has
+                        </text>
+                        <text
+                            x="520"
+                            y="237"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-family="IBM Plex Mono,monospace"
+                            fill="#0369a1"
+                        >
+                            (arg)?
+                        </text>
+
+                        <!-- ④↓「いいえ」→ Create -->
+                        <path
+                            d="M 520 260 L 520 300"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="540"
+                            y="284"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- ⑤ 新規 Map を作成 -->
+                        <circle cx="408" cy="310" r="14" fill="#dc2626" />
+                        <text
+                            x="408"
+                            y="310"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑤
+                        </text>
+                        <rect
+                            x="418"
+                            y="300"
+                            width="210"
+                            height="56"
+                            rx="12"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="523"
+                            y="320"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#991b1b"
+                        >
+                            新規 Map を作成
+                        </text>
+                        <text
+                            x="523"
+                            y="340"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-family="IBM Plex Mono,monospace"
+                            fill="#dc2626"
+                        >
+                            node.set(arg, new Map)
+                        </text>
+
+                        <!-- ⑤→⑥ Advance -->
+                        <path
+                            d="M 520 356 L 520 390"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ④→右「はい」バイパス: HasCheck右端→大きく右→下→Advance右端 -->
+                        <path
+                            d="M 595 225 L 690 225 L 690 420 L 630 420"
+                            stroke="#059669"
+                            stroke-width="2"
+                            stroke-dasharray="8,4"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="680"
+                            y="203"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+                        <text
+                            x="680"
+                            y="220"
+                            font-size="11"
+                            font-family="DM Sans,sans-serif"
+                            fill="#059669"
+                        >
+                            （既存）
+                        </text>
+
+                        <!-- ⑥ node を進める -->
+                        <circle cx="408" cy="400" r="14" fill="#64748b" />
+                        <text
+                            x="408"
+                            y="400"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑥
+                        </text>
+                        <rect
+                            x="418"
+                            y="390"
+                            width="210"
+                            height="56"
+                            rx="12"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="523"
+                            y="412"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#334155"
+                        >
+                            node を進める
+                        </text>
+                        <text
+                            x="523"
+                            y="432"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-family="IBM Plex Mono,monospace"
+                            fill="#475569"
+                        >
+                            node = node.get(arg)
+                        </text>
+
+                        <!-- ⑥→ArgLoop 紫ループバック: Advance左端→左→上→ArgLoop右端 -->
+                        <path
+                            d="M 418 420 L 380 420 L 380 225 L 350 225"
+                            stroke="#a855f7"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowPurple)"
+                        />
+                        <text
+                            x="372"
+                            y="320"
+                            text-anchor="end"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#a855f7"
+                        >
+                            次の
+                        </text>
+                        <text
+                            x="372"
+                            y="338"
+                            text-anchor="end"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#a855f7"
+                        >
+                            arg へ
+                        </text>
+                        <text
+                            x="372"
+                            y="353"
+                            text-anchor="end"
+                            font-size="11"
+                            font-family="DM Sans,sans-serif"
+                            fill="#c084fc"
+                        >
+                            （ループ）
+                        </text>
+
+                        <!-- ③↓「いいえ」: args 全消費 → has(RESULT)? -->
+                        <path
+                            d="M 220 268 L 220 316"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="234"
+                            y="296"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- ⑦ has(RESULT)? diamond  center(220,365)  spread: h±120, v±45 -->
+                        <circle cx="86" cy="325" r="14" fill="#f59e0b" />
+                        <text
+                            x="86"
+                            y="325"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑦
+                        </text>
+                        <polygon
+                            points="220,318 350,365 220,412 90,365"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="220"
+                            y="356"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-family="IBM Plex Mono,monospace"
+                            font-weight="700"
+                            fill="#78350f"
+                        >
+                            has(RESULT)?
+                        </text>
+                        <text
+                            x="220"
+                            y="376"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#92400e"
+                        >
+                            キャッシュ確認
+                        </text>
+
+                        <!-- ⑦→左「はい」: キャッシュヒットへ -->
+                        <path
+                            d="M 90 365 L 40 365 L 40 470"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+                        <text
+                            x="50"
+                            y="348"
+                            text-anchor="end"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#059669"
+                        >
+                            はい ✓
+                        </text>
+
+                        <!-- ⑧ キャッシュヒット -->
+                        <circle cx="15" cy="460" r="14" fill="#10b981" />
+                        <text
+                            x="15"
+                            y="460"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑧
+                        </text>
+                        <rect
+                            x="18"
+                            y="470"
+                            width="140"
+                            height="56"
+                            rx="12"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="88"
+                            y="490"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="Syne,sans-serif"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            キャッシュ
+                        </text>
+                        <text
+                            x="88"
+                            y="510"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="Syne,sans-serif"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            ヒット! ⚡
+                        </text>
+
+                        <!-- ⑧→終了: CacheHit下→左を通って終了ノードへ -->
+                        <path
+                            d="M 40 526 L 40 900 L 100 900"
+                            stroke="#059669"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowGreen)"
+                        />
+
+                        <!-- ⑦↓「いいえ」→ fn実行 -->
+                        <path
+                            d="M 220 412 L 220 540"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrowRed)"
+                        />
+                        <text
+                            x="234"
+                            y="480"
+                            font-size="14"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- ⑨ fn 実行（キャッシュミス） -->
+                        <circle cx="75" cy="555" r="14" fill="#a855f7" />
+                        <text
+                            x="75"
+                            y="555"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑨
+                        </text>
+                        <rect
+                            x="85"
+                            y="542"
+                            width="300"
+                            height="56"
+                            rx="12"
+                            fill="#fdf4ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="235"
+                            y="562"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#581c87"
+                        >
+                            fn(...args) を実行
+                        </text>
+                        <text
+                            x="235"
+                            y="582"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            fill="#7e22ce"
+                        >
+                            キャッシュミス: fn を呼び出す
+                        </text>
+
+                        <path
+                            d="M 220 598 L 220 630"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ⑩ 結果を格納 -->
+                        <circle cx="75" cy="645" r="14" fill="#64748b" />
+                        <text
+                            x="75"
+                            y="645"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑩
+                        </text>
+                        <rect
+                            x="85"
+                            y="632"
+                            width="300"
+                            height="56"
+                            rx="12"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="235"
+                            y="652"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#334155"
+                        >
+                            node.set(RESULT, result)
+                        </text>
+                        <text
+                            x="235"
+                            y="672"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            fill="#475569"
+                        >
+                            終端ノードにキャッシュ格納
+                        </text>
+
+                        <path
+                            d="M 220 688 L 220 726"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ⑪ result を返す -->
+                        <circle cx="75" cy="740" r="14" fill="#0284c7" />
+                        <text
+                            x="75"
+                            y="740"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑪
+                        </text>
+                        <rect
+                            x="85"
+                            y="728"
+                            width="300"
+                            height="56"
+                            rx="12"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="235"
+                            y="748"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="600"
+                            fill="#0c4a6e"
+                        >
+                            result を返す
+                        </text>
+                        <text
+                            x="235"
+                            y="768"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            fill="#0369a1"
+                        >
+                            次回同じ引数はキャッシュから
+                        </text>
+
+                        <path
+                            d="M 220 784 L 220 870"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            fill="none"
+                            marker-end="url(#arrow)"
+                        />
+
+                        <!-- ⑫ 終了 -->
+                        <circle cx="78" cy="880" r="14" fill="#10b981" />
+                        <text
+                            x="78"
+                            y="880"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="700"
+                            fill="white"
+                        >
+                            ⑫
+                        </text>
+                        <ellipse
+                            cx="220"
+                            cy="900"
+                            rx="120"
+                            ry="28"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="230"
+                            y="900"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-family="Syne,sans-serif"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            終了: 値を返す
+                        </text>
+
+                        <!-- 凡例 -->
+                        <rect
+                            x="418"
+                            y="520"
+                            width="280"
+                            height="160"
+                            rx="14"
+                            fill="#f8fafc"
+                            stroke="#e2e8f0"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="440"
+                            y="542"
+                            font-size="13"
+                            font-family="DM Sans,sans-serif"
+                            font-weight="700"
+                            fill="#334155"
+                        >
+                            🗂 凡例
+                        </text>
+                        <line
+                            x1="440"
+                            y1="560"
+                            x2="480"
+                            y2="560"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="490"
+                            y="564"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#059669"
+                        >
+                            はい / キャッシュHIT
+                        </text>
+                        <line
+                            x1="440"
+                            y1="584"
+                            x2="480"
+                            y2="584"
+                            stroke="#dc2626"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="490"
+                            y="588"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#dc2626"
+                        >
+                            いいえ / キャッシュMISS
+                        </text>
+                        <line
+                            x1="440"
+                            y1="608"
+                            x2="480"
+                            y2="608"
+                            stroke="#a855f7"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="490"
+                            y="612"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#a855f7"
+                        >
+                            ループバック
+                        </text>
+                        <line
+                            x1="440"
+                            y1="632"
+                            x2="480"
+                            y2="632"
+                            stroke="#059669"
+                            stroke-width="2"
+                            stroke-dasharray="8,4"
+                        />
+                        <text
+                            x="490"
+                            y="636"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#059669"
+                        >
+                            バイパス（既存ノード）
+                        </text>
+                        <line
+                            x1="440"
+                            y1="656"
+                            x2="480"
+                            y2="656"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="490"
+                            y="660"
+                            font-size="12"
+                            font-family="DM Sans,sans-serif"
+                            fill="#64748b"
+                        >
+                            通常の処理フロー
+                        </text>
+                    </svg>
+                </div>
+                <div class="mt-6 bg-slate-50 rounded-2xl p-5 text-sm text-slate-600 leading-7">
+                    <strong class="text-slate-800 text-base">フローの説明：</strong><br />
+                    1. ラッパー関数が呼ばれると、<code class="bg-slate-200 px-1 rounded">root</code>
+                    から引数を1つずつ Map でたどる<br />
+                    2. 経路上のノードが存在しなければ新規 Map を作成し、現在ノードを更新する（<span
+                        class="text-purple-600 font-semibold"
+                        >紫ループ</span
+                    >）<br />
+                    3. 全引数を消費した終端ノードで
+                    <code class="bg-slate-200 px-1 rounded">has(RESULT)</code> をチェック<br />
+                    4. <span class="text-emerald-600 font-semibold">キャッシュヒット</span>（<span
+                        class="text-emerald-600"
+                        >緑</span
+                    >）なら即座に返す。<span class="text-red-500 font-semibold">キャッシュミス</span
+                    >（<span class="text-red-500">赤</span>）なら fn を実行して格納
+                </div>
+            </section>
+
+            <!-- 計算量 -->
+            <section
+                id="complexity"
+                class="bg-white rounded-3xl p-8 mb-8 shadow-[0_4px_24px_rgba(0,0,0,0.07)]"
+            >
+                <h2
+                    class="text-3xl font-extrabold text-cyan-700 mb-6 pb-2 border-b-4 border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div
+                        class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 text-center"
+                    >
+                        <div
+                            class="text-slate-500 text-sm font-semibold mb-2 uppercase tracking-wide"
+                        >
+                            時間計算量（1回の呼び出し）
+                        </div>
+                        <div class="text-5xl font-extrabold text-emerald-700 mono mb-2">O(k)</div>
+                        <div class="text-slate-500 text-sm">k = 引数の個数。各 Map 操作は O(1)</div>
+                    </div>
+                    <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-6 text-center">
+                        <div
+                            class="text-slate-500 text-sm font-semibold mb-2 uppercase tracking-wide"
+                        >
+                            空間計算量（全体）
+                        </div>
+                        <div class="text-5xl font-extrabold text-sky-700 mono mb-2">O(n·k)</div>
+                        <div class="text-slate-500 text-sm">
+                            n = ユニーク呼び出し数、k = 引数の個数
+                        </div>
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-teal-800 mb-4">
+                    旧実装 vs 新実装（Map ノード化）の比較
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th
+                                    class="p-3 text-left font-bold text-slate-700 border border-slate-200 rounded-tl-lg"
+                                >
+                                    比較項目
+                                </th>
+                                <th
+                                    class="p-3 text-center font-bold text-slate-500 border border-slate-200"
+                                >
+                                    旧実装（TrieNode obj）
+                                </th>
+                                <th
+                                    class="p-3 text-center font-bold text-emerald-700 border border-slate-200 rounded-tr-lg"
+                                >
+                                    新実装（Map 直接）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    ノード構造
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center mono text-xs text-slate-500"
+                                >
+                                    &#123;children:Map, hasResult, result&#125;
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center mono text-xs text-emerald-700 font-bold"
+                                >
+                                    Map のみ
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-slate-50/50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    オブジェクト生成
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-red-500">
+                                    Object + Map（2重）
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center text-emerald-600 font-bold"
+                                >
+                                    Map のみ
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    キャッシュ確認
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center mono text-xs text-slate-500"
+                                >
+                                    node.hasResult（boolean）
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center mono text-xs text-emerald-700 font-bold"
+                                >
+                                    map.has(RESULT)（Symbol）
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-slate-50/50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    undefined 戻り値
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-amber-500">
+                                    hasResult フラグが必要
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center text-emerald-600 font-bold"
+                                >
+                                    has() で自然に対応
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700 rounded-bl-lg"
+                                >
+                                    V8 JIT 親和性
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-slate-500">
+                                    Hidden Class 最適化が複雑
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center text-emerald-600 font-bold rounded-br-lg"
+                                >
+                                    均一な Map 形状で最適化しやすい
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- React Step Visualization -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ===== Step Data =====
+            const stepsData = [
+                {
+                    step: 1,
+                    title: 'memoize(fn) 呼び出し',
+                    desc: 'memoize に fn を渡す。内部で root Map（空）と RESULT Symbol が生成される。ラッパー関数を返す。',
+                    visual: { type: 'init' },
+                },
+                {
+                    step: 2,
+                    title: '1回目: fn(2, 2) → トライを辿る',
+                    desc: 'args = [2, 2]。root から arg=2 を探す。ノードがないので新規 Map を作成し node を進める。',
+                    visual: { type: 'traverse', args: [2, 2], depth: 1, hit: false },
+                },
+                {
+                    step: 3,
+                    title: '1回目: 引数2つ目も辿る',
+                    desc: 'arg=2（2個目）。前ステップで作った Map から同様に新規 Map を作成。これが終端ノード。',
+                    visual: { type: 'traverse', args: [2, 2], depth: 2, hit: false },
+                },
+                {
+                    step: 4,
+                    title: '1回目: キャッシュミス → fn実行',
+                    desc: '終端ノードに RESULT シンボルなし。fn(2, 2) を実行 → 結果4。node.set(RESULT, 4) で格納。',
+                    visual: { type: 'miss', args: [2, 2], result: 4 },
+                },
+                {
+                    step: 5,
+                    title: '2回目: fn(2, 2) → 同一経路',
+                    desc: 'args = [2, 2]。同じオブジェクト参照（===）なのでトライの同一経路をたどる。',
+                    visual: { type: 'traverse', args: [2, 2], depth: 2, hit: false, cached: true },
+                },
+                {
+                    step: 6,
+                    title: '2回目: キャッシュヒット!',
+                    desc: '終端ノードに has(RESULT) = true。fn を呼ばずに 4 を直接返す。callCount は増えない。',
+                    visual: { type: 'hit', args: [2, 2], result: 4 },
+                },
+                {
+                    step: 7,
+                    title: '3回目: fn(1, 2) → 別の経路',
+                    desc: 'args = [1, 2]。arg=1 は root に存在しないので新規ノードを作成。別のトライ経路を構築。',
+                    visual: { type: 'miss', args: [1, 2], result: 3 },
+                },
+                {
+                    step: 8,
+                    title: '完成したトライ構造',
+                    desc: 'root から2つの経路: [2→2→4] と [1→2→3]。次回 fn(2,2) や fn(1,2) はすべてキャッシュから返る。',
+                    visual: { type: 'final' },
+                },
+            ];
+
+            // ===== Trie SVG Visualization =====
+            function TrieViz({ visual }) {
+                const { type } = visual;
+
+                // Common defs
+                const Defs = () => (
+                    <defs>
+                        <marker
+                            id="va"
+                            markerWidth="8"
+                            markerHeight="8"
+                            refX="7"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L8,3 z" fill="#64748b" />
+                        </marker>
+                        <marker
+                            id="vg"
+                            markerWidth="8"
+                            markerHeight="8"
+                            refX="7"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L8,3 z" fill="#10b981" />
+                        </marker>
+                        <marker
+                            id="vo"
+                            markerWidth="8"
+                            markerHeight="8"
+                            refX="7"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L8,3 z" fill="#f59e0b" />
+                        </marker>
+                        <marker
+                            id="vr"
+                            markerWidth="8"
+                            markerHeight="8"
+                            refX="7"
+                            refY="3"
+                            orient="auto"
+                            markerUnits="strokeWidth"
+                        >
+                            <path d="M0,0 L0,6 L8,3 z" fill="#ef4444" />
+                        </marker>
+                    </defs>
+                );
+
+                // Node components
+                const MapNode = ({
+                    cx,
+                    cy,
+                    label,
+                    sub,
+                    color = '#e0f2fe',
+                    stroke = '#0284c7',
+                    textColor = '#0c4a6e',
+                    className = '',
+                }) => (
+                    <g className={className}>
+                        <rect
+                            x={cx - 52}
+                            y={cy - 22}
+                            width="104"
+                            height="44"
+                            rx="10"
+                            fill={color}
+                            stroke={stroke}
+                            strokeWidth="2"
+                        />
+                        <text
+                            x={cx}
+                            y={cy - 5}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="14"
+                            fontFamily="IBM Plex Mono,monospace"
+                            fontWeight="700"
+                            fill={textColor}
+                        >
+                            {label}
+                        </text>
+                        {sub && (
+                            <text
+                                x={cx}
+                                y={cy + 12}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="11"
+                                fontFamily="DM Sans,sans-serif"
+                                fill={textColor + 'aa'}
+                            >
+                                {sub}
+                            </text>
+                        )}
+                    </g>
+                );
+
+                const Edge = ({ x1, y1, x2, y2, label, color = '#64748b', marker = 'va' }) => (
+                    <g>
+                        <path
+                            d={`M ${x1} ${y1} L ${x2} ${y2}`}
+                            stroke={color}
+                            strokeWidth="2"
+                            fill="none"
+                            markerEnd={`url(#${marker})`}
+                        />
+                        {label && (
+                            <text
+                                x={(x1 + x2) / 2 + 8}
+                                y={(y1 + y2) / 2 - 6}
+                                fontSize="13"
+                                fontFamily="DM Sans,sans-serif"
+                                fontWeight="700"
+                                fill={color}
+                            >
+                                {label}
+                            </text>
+                        )}
+                    </g>
+                );
+
+                if (type === 'init') {
+                    return (
+                        <svg
+                            viewBox="0 0 500 200"
+                            style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+                        >
+                            <Defs />
+                            <MapNode
+                                cx={250}
+                                cy={60}
+                                label="root Map"
+                                sub="空の Map"
+                                color="#f0fdf4"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            <text
+                                x={250}
+                                y={120}
+                                textAnchor="middle"
+                                fontSize="14"
+                                fontFamily="DM Sans,sans-serif"
+                                fill="#64748b"
+                            >
+                                RESULT = Symbol('result')
+                            </text>
+                            <rect
+                                x={120}
+                                y={140}
+                                width="260"
+                                height="36"
+                                rx="8"
+                                fill="#fdf4ff"
+                                stroke="#c084fc"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={250}
+                                y={158}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontFamily="IBM Plex Mono,monospace"
+                                fill="#7e22ce"
+                            >
+                                Symbol('result') → ユニークキー
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'traverse') {
+                    const { args, depth, cached } = visual;
+                    const active1 = depth >= 1;
+                    const active2 = depth >= 2;
+                    return (
+                        <svg
+                            viewBox="0 0 500 260"
+                            style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+                        >
+                            <Defs />
+                            <MapNode
+                                cx={250}
+                                cy={40}
+                                label="root"
+                                sub="Map"
+                                color="#f0fdf4"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            <Edge
+                                x1={250}
+                                y1={62}
+                                x2={250}
+                                y2={98}
+                                label={`arg=${args[0]}`}
+                                color={active1 ? '#f59e0b' : '#cbd5e1'}
+                                marker={active1 ? 'vo' : 'va'}
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={120}
+                                label={`Map[${args[0]}]`}
+                                sub={active1 ? '作成済み' : '?'}
+                                color={active1 ? '#fef3c7' : '#f8fafc'}
+                                stroke={active1 ? '#f59e0b' : '#cbd5e1'}
+                                textColor={active1 ? '#92400e' : '#94a3b8'}
+                                className={active1 && !cached ? 'node-appear' : ''}
+                            />
+                            <Edge
+                                x1={250}
+                                y1={142}
+                                x2={250}
+                                y2={178}
+                                label={`arg=${args[1]}`}
+                                color={active2 ? '#0ea5e9' : '#cbd5e1'}
+                                marker={active2 ? 'vg' : 'va'}
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={200}
+                                label={`Map[${args[1]}]`}
+                                sub={active2 ? '終端ノード' : '?'}
+                                color={active2 ? '#e0f2fe' : '#f8fafc'}
+                                stroke={active2 ? '#0284c7' : '#cbd5e1'}
+                                textColor={active2 ? '#0c4a6e' : '#94a3b8'}
+                                className={active2 && !cached ? 'node-appear' : ''}
+                            />
+                            {active2 && (
+                                <>
+                                    <text
+                                        x={250}
+                                        y={242}
+                                        textAnchor="middle"
+                                        fontSize="13"
+                                        fontFamily="IBM Plex Mono,monospace"
+                                        fill="#dc2626"
+                                    >
+                                        has(RESULT) → false → キャッシュミス
+                                    </text>
+                                </>
+                            )}
+                        </svg>
+                    );
+                }
+
+                if (type === 'miss') {
+                    const { args, result } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 500 310"
+                            style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+                        >
+                            <Defs />
+                            <MapNode
+                                cx={250}
+                                cy={40}
+                                label="root"
+                                sub="Map"
+                                color="#f0fdf4"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            <Edge
+                                x1={250}
+                                y1={62}
+                                x2={250}
+                                y2={98}
+                                label={`${args[0]}`}
+                                color="#64748b"
+                                marker="va"
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={120}
+                                label={`Map[${args[0]}]`}
+                                color="#e0f2fe"
+                                stroke="#0284c7"
+                                textColor="#0c4a6e"
+                            />
+                            <Edge
+                                x1={250}
+                                y1={142}
+                                x2={250}
+                                y2={178}
+                                label={`${args[1]}`}
+                                color="#64748b"
+                                marker="va"
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={200}
+                                label={`Map[${args[1]}]`}
+                                sub="終端ノード"
+                                color="#fdf4ff"
+                                stroke="#a855f7"
+                                textColor="#581c87"
+                            />
+                            <Edge x1={250} y1={222} x2={250} y2={248} color="#a855f7" marker="vg" />
+                            <rect
+                                x={160}
+                                y={250}
+                                width="180"
+                                height="36"
+                                rx="10"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={250}
+                                y={268}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontFamily="IBM Plex Mono,monospace"
+                                fontWeight="700"
+                                fill="#065f46"
+                            >
+                                RESULT → {result} ✓
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'hit') {
+                    const { args, result } = visual;
+                    return (
+                        <svg
+                            viewBox="0 0 500 300"
+                            style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+                        >
+                            <Defs />
+                            <MapNode
+                                cx={250}
+                                cy={40}
+                                label="root"
+                                sub="Map"
+                                color="#f0fdf4"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            <Edge
+                                x1={250}
+                                y1={62}
+                                x2={250}
+                                y2={98}
+                                label={`${args[0]}`}
+                                color="#10b981"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={120}
+                                label={`Map[${args[0]}]`}
+                                color="#d1fae5"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            <Edge
+                                x1={250}
+                                y1={142}
+                                x2={250}
+                                y2={178}
+                                label={`${args[1]}`}
+                                color="#10b981"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={250}
+                                cy={200}
+                                label={`Map[${args[1]}]`}
+                                sub="キャッシュヒット!"
+                                color="#d1fae5"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                                className="hit-pulse"
+                            />
+                            <rect
+                                x={155}
+                                y={235}
+                                width="190"
+                                height="36"
+                                rx="10"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2.5"
+                            />
+                            <text
+                                x={250}
+                                y={253}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="14"
+                                fontFamily="IBM Plex Mono,monospace"
+                                fontWeight="700"
+                                fill="#065f46"
+                            >
+                                has(RESULT) → {result} ⚡
+                            </text>
+                            <text
+                                x={250}
+                                y={286}
+                                textAnchor="middle"
+                                fontSize="13"
+                                fontFamily="DM Sans,sans-serif"
+                                fill="#10b981"
+                                fontWeight="700"
+                            >
+                                fn は呼ばれていない!
+                            </text>
+                        </svg>
+                    );
+                }
+
+                if (type === 'final') {
+                    return (
+                        <svg
+                            viewBox="0 0 500 300"
+                            style={{ width: '100%', maxWidth: '500px', height: 'auto' }}
+                        >
+                            <Defs />
+                            {/* root */}
+                            <MapNode
+                                cx={250}
+                                cy={40}
+                                label="root"
+                                sub="Map"
+                                color="#f0fdf4"
+                                stroke="#10b981"
+                                textColor="#065f46"
+                            />
+                            {/* left branch: 2 */}
+                            <Edge
+                                x1={210}
+                                y1={62}
+                                x2={150}
+                                y2={108}
+                                label="2"
+                                color="#0284c7"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={150}
+                                cy={130}
+                                label="Map[2]"
+                                color="#e0f2fe"
+                                stroke="#0284c7"
+                                textColor="#0c4a6e"
+                            />
+                            <Edge
+                                x1={150}
+                                y1={152}
+                                x2={150}
+                                y2={188}
+                                label="2"
+                                color="#0284c7"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={150}
+                                cy={210}
+                                label="Map[2]"
+                                sub="終端"
+                                color="#dbeafe"
+                                stroke="#0284c7"
+                                textColor="#1e40af"
+                            />
+                            <rect
+                                x={98}
+                                y={240}
+                                width="104"
+                                height="32"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={150}
+                                y={256}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontFamily="IBM Plex Mono,monospace"
+                                fontWeight="700"
+                                fill="#065f46"
+                            >
+                                RESULT→4
+                            </text>
+                            {/* right branch: 1 */}
+                            <Edge
+                                x1={290}
+                                y1={62}
+                                x2={350}
+                                y2={108}
+                                label="1"
+                                color="#a855f7"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={350}
+                                cy={130}
+                                label="Map[1]"
+                                color="#fdf4ff"
+                                stroke="#a855f7"
+                                textColor="#581c87"
+                            />
+                            <Edge
+                                x1={350}
+                                y1={152}
+                                x2={350}
+                                y2={188}
+                                label="2"
+                                color="#a855f7"
+                                marker="vg"
+                            />
+                            <MapNode
+                                cx={350}
+                                cy={210}
+                                label="Map[2]"
+                                sub="終端"
+                                color="#faf5ff"
+                                stroke="#a855f7"
+                                textColor="#6b21a8"
+                            />
+                            <rect
+                                x={298}
+                                y={240}
+                                width="104"
+                                height="32"
+                                rx="8"
+                                fill="#d1fae5"
+                                stroke="#10b981"
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={350}
+                                y={256}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontFamily="IBM Plex Mono,monospace"
+                                fontWeight="700"
+                                fill="#065f46"
+                            >
+                                RESULT→3
+                            </text>
+                        </svg>
+                    );
+                }
+
+                return null;
+            }
+
+            // ===== Main StepsApp =====
+            function StepsApp() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => {
+                    if (isPlaying) return;
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+                const handlePrev = () => {
+                    setIsPlaying(false);
+                    setActiveStep((s) => Math.max(1, s - 1));
+                };
+                const handleNext = () => {
+                    setIsPlaying(false);
+                    setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                };
+                const handleReset = () => {
+                    setIsPlaying(false);
+                    setActiveStep(1);
+                };
+                const handleStepClick = (step) => {
+                    setIsPlaying(false);
+                    setActiveStep(step);
+                };
+
+                const btnBase =
+                    'px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow disabled:opacity-40 disabled:cursor-not-allowed';
+
+                return (
+                    <div
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2"
+                        style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 3fr)' }}
+                    >
+                        {/* Left: step list */}
+                        <div>
+                            <h3 className="mt-0 mb-3 text-teal-800 text-lg font-bold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-current={isActive ? 'step' : undefined}
+                                            className={[
+                                                'w-full text-left rounded-xl border-2 transition-all cursor-pointer px-4 py-3',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)] translate-x-1'
+                                                    : 'bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-1',
+                                            ].join(' ')}
+                                        >
+                                            <div
+                                                className={[
+                                                    'text-sm font-bold mb-0.5',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-xs text-slate-400 truncate">
+                                                {step.desc.substring(0, 48)}…
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Right: viz + controls (優先表示) */}
+                        <div className="flex flex-col">
+                            <div className="rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                    <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-0.5 rounded-full mono">
+                                        Step {currentStepData.step}/{stepsData.length}
+                                    </span>
+                                    <h3 className="text-teal-800 text-lg font-bold m-0">
+                                        {currentStepData.title}
+                                    </h3>
+                                </div>
+                                <p className="text-slate-600 text-sm leading-7 m-0 text-center">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <div className="flex justify-center my-4">
+                                <TrieViz visual={currentStepData.visual} />
+                            </div>
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                    aria-label="自動再生"
+                                    className={[
+                                        btnBase,
+                                        'text-white bg-[linear-gradient(135deg,#10b981,#059669)] hover:shadow-[0_6px_16px_rgba(16,185,129,0.35)] hover:-translate-y-0.5',
+                                    ].join(' ')}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handlePrev}
+                                    disabled={activeStep <= 1}
+                                    aria-label="前のステップ"
+                                    className={[
+                                        btnBase,
+                                        'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300',
+                                    ].join(' ')}
+                                >
+                                    ← Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    disabled={activeStep >= stepsData.length}
+                                    aria-label="次のステップ"
+                                    className={[
+                                        btnBase,
+                                        'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300',
+                                    ].join(' ')}
+                                >
+                                    Next →
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleReset}
+                                    aria-label="リセット"
+                                    className={[
+                                        btnBase,
+                                        'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200',
+                                    ].join(' ')}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('react-steps'));
+            root.render(<StepsApp />);
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <script>
+            // nav links from header
+            document.querySelectorAll('header nav').forEach((nav) => {
+                const labels = ['概要', '解説', 'コード', 'フロー', '計算量'];
+                const ids = ['overview', 'steps', 'code', 'diagram', 'complexity'];
+                const frag = document.createDocumentFragment();
+                labels.forEach((label, i) => {
+                    const link = document.createElement('a');
+                    link.href = `#${ids[i]}`;
+                    link.className =
+                        'inline-block px-5 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white/80 transition-all hover:shadow-[0_8px_20px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600';
+                    link.textContent = label;
+                    frag.appendChild(link);
+                });
+                nav.replaceChildren(frag);
+            });
+            Prism.highlightAll();
+        </script>
+    </body>
+</html>

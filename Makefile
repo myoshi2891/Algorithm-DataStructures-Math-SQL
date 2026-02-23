@@ -8,8 +8,18 @@ REQ ?= requirements.txt
 ensure-venv:
 	@test -d $(VENV) || ($(PYTHON) -m venv $(VENV))
 
+.PHONY: hooks
+hooks:
+	@if [ ! -f .git/hooks/pre-commit ]; then \
+		printf '#!/bin/bash\n\necho "Updating public index..."\n./update_index.sh || exit 1\n\nif ! git diff --quiet public; then\n    echo "Staging updated public directory..."\n    git add public\nfi\n' > .git/hooks/pre-commit; \
+		chmod +x .git/hooks/pre-commit; \
+		echo "pre-commit hook installed"; \
+	else \
+		echo "pre-commit hook already exists (skipped)"; \
+	fi
+
 .PHONY: setup
-setup: ensure-venv
+setup: ensure-venv hooks
 	@. $(VENV)/bin/activate; \
 	$(PYTHON) -m pip install --upgrade pip; \
 	test -f $(REQ) && pip install -r $(REQ) || true; \

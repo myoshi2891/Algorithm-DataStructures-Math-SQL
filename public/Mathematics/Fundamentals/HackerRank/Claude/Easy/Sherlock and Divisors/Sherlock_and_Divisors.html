@@ -4,8 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>HackerRank: Divisors Divisible by 2</title>
-        <script src="/vendor/react/react.development.js"></script>
-        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/react/react.production.min.js"></script>
+        <script src="/vendor/react-dom/react-dom.production.min.js"></script>
         <script src="/vendor/babel/babel.min.js"></script>
         <script src="/vendor/tailwindcss/script.js"></script>
         <link
@@ -409,7 +409,7 @@ if __name__ == "__main__":
                                 6 ✅
                             </td>
                             <td class="border border-slate-200 px-4 py-2 text-slate-600">
-                                完全平方 m=18
+                                完全平方 n=36（√n=6）
                             </td>
                         </tr>
                     </tbody>
@@ -470,15 +470,26 @@ if __name__ == "__main__":
         <script>
             function copyCode() {
                 var c = document.getElementById('codeBlock').textContent;
-                navigator.clipboard.writeText(c).then(function () {
-                    var b = document.getElementById('copyBtn');
-                    b.textContent = 'Copied!';
-                    b.classList.add('copied');
-                    setTimeout(function () {
-                        b.textContent = 'Copy';
-                        b.classList.remove('copied');
-                    }, 2000);
-                });
+                navigator.clipboard
+                    .writeText(c)
+                    .then(function () {
+                        var b = document.getElementById('copyBtn');
+                        b.textContent = 'Copied!';
+                        b.classList.add('copied');
+                        setTimeout(function () {
+                            b.textContent = 'Copy';
+                            b.classList.remove('copied');
+                        }, 2000);
+                    })
+                    .catch(function () {
+                        var b = document.getElementById('copyBtn');
+                        b.textContent = 'Failed';
+                        b.classList.add('copied');
+                        setTimeout(function () {
+                            b.textContent = 'Copy';
+                            b.classList.remove('copied');
+                        }, 2000);
+                    });
             }
         </script>
 
@@ -1233,21 +1244,31 @@ if __name__ == "__main__":
                 return raw.map((s, i) => ({ ...s, step: i + 1 }));
             }
 
+            const MAX_N = 10_000_000;
+
             function StepsSection() {
                 const [N, setN] = useState(8);
                 const [edit, setEdit] = useState('8');
                 const [steps, setSteps] = useState(() => makeSteps(8));
                 const [cur, setCur] = useState(1);
                 const [play, setPlay] = useState(false);
+                const [err, setErr] = useState('');
                 const tr = useRef(null);
                 const apply = () => {
                     const v = parseInt(edit, 10);
-                    if (!isNaN(v) && v >= 1) {
-                        setN(v);
-                        setSteps(makeSteps(v));
-                        setCur(1);
-                        setPlay(false);
+                    if (isNaN(v) || v < 1) {
+                        setErr('1 以上の整数を入力してください');
+                        return;
                     }
+                    if (v > MAX_N) {
+                        setErr(`上限は ${MAX_N.toLocaleString()} です`);
+                        return;
+                    }
+                    setErr('');
+                    setN(v);
+                    setSteps(makeSteps(v));
+                    setCur(1);
+                    setPlay(false);
                 };
                 useEffect(() => {
                     if (!play) return;
@@ -1291,6 +1312,9 @@ if __name__ == "__main__":
                             >
                                 適用
                             </button>
+                            {err && (
+                                <span className="text-red-500 text-xs font-bold dm">{err}</span>
+                            )}
                             <div className="flex gap-2 flex-wrap">
                                 {presets.map((v) => (
                                     <button

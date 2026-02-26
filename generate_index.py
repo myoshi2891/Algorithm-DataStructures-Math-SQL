@@ -84,15 +84,22 @@ class Solution:
 
     def rewrite_html_content(self, content: str) -> str:
         """
-        Rewrite CDN asset URLs in HTML to local /vendor/ paths.
-
-        Replaces known external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with corresponding /vendor/... paths and removes `integrity` and `crossorigin` attributes from `<link>` and `<script>` tags that reference those local vendor files.
-
+        Rewrite HTML to replace known CDN asset URLs with local `/vendor/` paths and remove SRI and crossorigin attributes from tags that reference those local assets.
+        
         Parameters:
             content (str): HTML document content to rewrite.
-
+        
         Returns:
-            str: The HTML content with matching CDN URLs substituted by local vendor URLs and SRI/crossorigin attributes stripped for vendored assets.
+            str: HTML content with matching CDN URLs substituted by local `/vendor/` URLs and `integrity`/`crossorigin` attributes removed from tags that reference `/vendor/`.
+        """
+        """
+        Remove `integrity` and `crossorigin` attributes from a matched <link> or <script> tag when it references a `/vendor/` path.
+        
+        Parameters:
+            match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
+        
+        Returns:
+            str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
         """
         replacements = [
             # React
@@ -125,13 +132,13 @@ class Solution:
         # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
         def strip_sri(match: re.Match[str]) -> str:
             """
-            Remove Subresource Integrity (`integrity`) and `crossorigin` attributes from an HTML <link> or <script> tag if the tag references a `/vendor/` path.
-
+            Remove `integrity` and `crossorigin` attributes from an HTML `<link>` or `<script>` tag that references a `/vendor/` path.
+            
             Parameters:
-                match (re.Match): A regex match object whose matched text is the full HTML tag.
-
+                match (typing.Match[str]): Regex match whose matched text is the full HTML tag to process.
+            
             Returns:
-                str: The original tag text with `integrity` and `crossorigin` attributes removed when the tag contains `/vendor/`; otherwise the original tag text unchanged.
+                str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
             """
             tag_text = match.group(0)
             if '/vendor/' in tag_text:

@@ -177,7 +177,8 @@ class Solution:
 
                     # Append disambiguator if 'detailed' is in the filename
                     if 'detailed' in filename.lower():
-                        title += ' (detailed)'
+                        if '(detailed)' not in title.lower():
+                            title += ' (detailed)'
 
                     structure[category].append((title, rel_path))
 

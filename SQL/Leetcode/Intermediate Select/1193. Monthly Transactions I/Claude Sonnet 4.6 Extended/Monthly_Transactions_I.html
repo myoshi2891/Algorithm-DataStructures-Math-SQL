@@ -1131,7 +1131,7 @@ def monthly_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
                 { id: 121, country: 'US', state: 'approved', amount: 1000, date: '2018-12-18' },
                 { id: 122, country: 'US', state: 'declined', amount: 2000, date: '2018-12-19' },
                 { id: 123, country: 'US', state: 'approved', amount: 2000, date: '2019-01-01' },
-                { id: 124, country: 'NULL', state: 'approved', amount: 2000, date: '2019-01-07' },
+                { id: 124, country: null, state: 'approved', amount: 2000, date: '2019-01-07' },
             ];
 
             function StepViz({ type }) {
@@ -1207,10 +1207,10 @@ def monthly_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
                                             y={y + 2}
                                             textAnchor="middle"
                                             fontSize="12"
-                                            fill={r.country === 'NULL' ? '#d97706' : '#1e293b'}
-                                            fontWeight={r.country === 'NULL' ? 'bold' : 'normal'}
+                                            fill={r.country === null ? '#d97706' : '#1e293b'}
+                                            fontWeight={r.country === null ? 'bold' : 'normal'}
                                         >
-                                            {r.country}
+                                            {r.country === null ? 'NULL' : r.country}
                                         </text>
                                         <rect
                                             x="206"
@@ -1984,9 +1984,27 @@ def monthly_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
             const root = ReactDOM.createRoot(document.getElementById('steps-root'));
             root.render(<StepsApp />);
 
-            setTimeout(() => {
-                Prism.highlightAll();
-            }, 300);
+            const initPrism = () => {
+                if (window.requestIdleCallback) {
+                    requestIdleCallback(() => Prism.highlightAll());
+                } else if (window.requestAnimationFrame) {
+                    requestAnimationFrame(() => Prism.highlightAll());
+                } else {
+                    setTimeout(() => Prism.highlightAll(), 300);
+                }
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPrism);
+            } else {
+                initPrism();
+            }
+            if (typeof MutationObserver !== 'undefined') {
+                const observer = new MutationObserver(() => initPrism());
+                observer.observe(document.getElementById('steps-root'), {
+                    childList: true,
+                    subtree: true,
+                });
+            }
         </script>
     </body>
 </html>

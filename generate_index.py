@@ -174,6 +174,11 @@ class Solution:
                         title = self.get_html_title(filepath)
                     except Exception:
                         title = os.path.basename(filepath)
+
+                    # Append disambiguator if 'detailed' is in the filename
+                    if 'detailed' in filename.lower():
+                        title += ' (detailed)'
+
                     structure[category].append((title, rel_path))
 
         # Sort categories and files
@@ -891,11 +896,11 @@ class Solution:
         def render_category_files(structure, sorted_categories):
             """
             Builds HTML fragments for category tabs, per-category file lists, and an aggregated all-files list.
-            
+
             Parameters:
                 structure (Dict[str, List[Tuple[str, str]]]): Mapping from category name to a list of (title, relative_path) pairs for files in that category.
                 sorted_categories (List[str]): Ordered list of category names to render; determines the iteration order and tab order.
-            
+
             Returns:
                 Tuple[str, str, str]: A 3-tuple with:
                     - tabs_html: HTML for the category tab buttons (includes icon and item count for each category).

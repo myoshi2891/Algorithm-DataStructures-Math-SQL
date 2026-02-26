@@ -81,7 +81,7 @@ GROUP BY
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | **`TO_CHAR(trans_date, 'YYYY-MM')`** | `DATE_TRUNC('month', ...)` でも可だが、文字列で `YYYY-MM` を直接得るにはこちらが簡潔                   |
 | **`COUNT(*) FILTER (WHERE ...)`**    | PostgreSQL 独自の ANSI SQL:2003 拡張。`CASE WHEN` より読みやすく、オプティマイザにも意図が伝わりやすい |
-| **`SUM(amount) FILTER (...)`**       | `ELSE 0` 不要で NULL-safe かつ明快                                                                     |
+| **`SUM(amount) FILTER (...)`**       | 対象行が 0 件のとき **`NULL`** を返すため、必ず `COALESCE(..., 0)` で囲む必要がある                    |
 | **GROUP BY のキー統一**              | `SELECT` と `GROUP BY` の `TO_CHAR(...)` 式を完全一致させることが必須                                  |
 | **インデックス戦略**                 | `(trans_date, country, state, amount)` の複合インデックスで Index-Only Scan が期待できる               |
 

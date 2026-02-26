@@ -101,14 +101,15 @@ class Solution:
             (r'https://cdn\.tailwindcss\.com(?:@[^/]+)?', '/vendor/tailwindcss/script.js'),
             # PrismJS
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism\.min\.css', '/vendor/prismjs/themes/prism.css'),
-            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/line-numbers/prism-line-numbers\.min\.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
-            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/toolbar/prism-toolbar\.min\.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
              # FontAwesome
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/font-awesome/[^/]+/css/all\.min\.css', '/vendor/fontawesome/css/all.min.css'),
             # jsDelivr generic patterns for Prism JS and CSS (often used interchangeably)
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/prism\.min\.js', '/vendor/prismjs/prism.js'),
-            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-[a-zA-Z0-9_-]+\.min\.js', '/vendor/prismjs/prism.js'), # Will be stripped to generic or could be mapped specifically. For now mapped to prism.js as standard bundle, but usually we just want local bundles.
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-core\.min\.js', '/vendor/prismjs/prism.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/themes/prism(?:-[a-zA-Z0-9_-]+)?\.min\.css', '/vendor/prismjs/themes/prism.css'),
         ]
 

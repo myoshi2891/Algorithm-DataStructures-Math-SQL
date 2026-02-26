@@ -86,27 +86,35 @@ class Solution:
         """
         replacements = [
             # React
-            ('https://unpkg.com/react@18/umd/react.development.js', '/vendor/react/react.development.js'),
-            ('https://unpkg.com/react@18/umd/react.production.min.js', '/vendor/react/react.production.min.js'),
-            ('https://unpkg.com/react-dom@18/umd/react-dom.development.js', '/vendor/react-dom/react-dom.development.js'),
-            ('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', '/vendor/react-dom/react-dom.production.min.js'),
+            (r'https://unpkg\.com/react@[^/]+/umd/react\.development\.js', '/vendor/react/react.development.js'),
+            (r'https://unpkg\.com/react@[^/]+/umd/react\.production\.min\.js', '/vendor/react/react.production.min.js'),
+            (r'https://unpkg\.com/react-dom@[^/]+/umd/react-dom\.development\.js', '/vendor/react-dom/react-dom.development.js'),
+            (r'https://unpkg\.com/react-dom@[^/]+/umd/react-dom\.production\.min\.js', '/vendor/react-dom/react-dom.production.min.js'),
             # Babel
-            ('https://unpkg.com/@babel/standalone/babel.min.js', '/vendor/babel/babel.min.js'),
-            ('https://unpkg.com/@babel/standalone/babel.js', '/vendor/babel/babel.min.js'),
+            (r'https://unpkg\.com/@babel/standalone(?:@[^/]+)?/babel\.min\.js', '/vendor/babel/babel.min.js'),
+            (r'https://unpkg\.com/@babel/standalone(?:@[^/]+)?/babel\.js', '/vendor/babel/babel.min.js'),
             # Tailwind
-            ('https://cdn.tailwindcss.com', '/vendor/tailwindcss/script.js'),
+            (r'https://cdn\.tailwindcss\.com(?:@[^/]+)?', '/vendor/tailwindcss/script.js'),
             # PrismJS
-            # Handle minified vs unminified mapping. Node modules usually has unminified.
-            # We map the CDN .min.css requests to our local .css files (which we copied from node_modules)
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css', '/vendor/prismjs/themes/prism.css'),
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism\.min\.css', '/vendor/prismjs/themes/prism.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/line-numbers/prism-line-numbers\.min\.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/toolbar/prism-toolbar\.min\.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
              # FontAwesome
-            ('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', '/vendor/fontawesome/css/all.min.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/font-awesome/[^/]+/css/all\.min\.css', '/vendor/fontawesome/css/all.min.css'),
         ]
 
-        for old, new in replacements:
-            content = content.replace(old, new)
+        for pattern_str, new in replacements:
+            content = re.sub(pattern_str, new, content)
+
+        # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
+        def strip_sri(match):
+            tag_text = match.group(0)
+            if '/vendor/' in tag_text:
+                tag_text = re.sub(r'\s*integrity="[^"]+"', '', tag_text)
+                tag_text = re.sub(r'\s*crossorigin="[^"]+"', '', tag_text)
+            return tag_text
+
+        content = re.sub(r'<(?:link|script)[^>]+>', strip_sri, content)
 
         return content
 
@@ -931,7 +939,8 @@ class Solution:
                     safe_title = html.escape(title)
                     safe_github_path = html.escape(github_path) # Escape path for display
 
-                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}">' \
+                    safe_encoded_path = html.escape(encoded_path, quote=True)
+                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{safe_encoded_path}">' \
                                 f'<span class="card-header"><span class="card-icon">{icon}</span>' \
                                 f'<span class="card-title">{safe_title}</span></span><span class="file-path">{safe_github_path}</span></a></li>\n'
                     category_files.append(item_html)

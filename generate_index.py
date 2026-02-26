@@ -4,7 +4,6 @@ import datetime
 import html
 import urllib.parse
 import shutil
-import typing
 from collections import defaultdict
 from typing import List, Tuple, Dict
 
@@ -52,6 +51,13 @@ class Solution:
             "node_modules/prismjs/plugins/toolbar/prism-toolbar.js",
             "node_modules/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js",
         ]
+
+        prism_langs = [
+            'python', 'javascript', 'typescript', 'sql', 'java', 'c', 'cpp', 'csharp', 'bash', 'json', 'clike',
+            'css', 'markup', 'go', 'rust', 'ruby', 'swift', 'php'
+        ]
+        for lang in prism_langs:
+            prism_plugins.append(f"node_modules/prismjs/components/prism-{lang}.min.js")
 
         for src in prism_plugins:
              if os.path.exists(src):
@@ -117,7 +123,7 @@ class Solution:
             content = re.sub(pattern_str, new, content)
 
         # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
-        def strip_sri(match: typing.Match[str]) -> str:
+        def strip_sri(match: re.Match[str]) -> str:
             """
             Remove Subresource Integrity (`integrity`) and `crossorigin` attributes from an HTML <link> or <script> tag if the tag references a `/vendor/` path.
 

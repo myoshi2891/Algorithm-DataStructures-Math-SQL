@@ -77,36 +77,56 @@ class Solution:
 
     def rewrite_html_content(self, content: str) -> str:
         """
-        Rewrite known CDN asset URLs in an HTML document to their corresponding local vendor paths.
-
-        Replaces specific external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with local /vendor/... paths so the returned HTML references vendored assets.
-
+        Rewrite CDN asset URLs in HTML to local /vendor/ paths.
+        
+        Replaces known external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with corresponding /vendor/... paths and removes `integrity` and `crossorigin` attributes from `<link>` and `<script>` tags that reference those local vendor files.
+        
+        Parameters:
+            content (str): HTML document content to rewrite.
+        
         Returns:
-            The input HTML string with matched CDN URLs substituted by local vendor URLs.
+            str: The HTML content with matching CDN URLs substituted by local vendor URLs and SRI/crossorigin attributes stripped for vendored assets.
         """
         replacements = [
             # React
-            ('https://unpkg.com/react@18/umd/react.development.js', '/vendor/react/react.development.js'),
-            ('https://unpkg.com/react@18/umd/react.production.min.js', '/vendor/react/react.production.min.js'),
-            ('https://unpkg.com/react-dom@18/umd/react-dom.development.js', '/vendor/react-dom/react-dom.development.js'),
-            ('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', '/vendor/react-dom/react-dom.production.min.js'),
+            (r'https://unpkg\.com/react@[^/]+/umd/react\.development\.js', '/vendor/react/react.development.js'),
+            (r'https://unpkg\.com/react@[^/]+/umd/react\.production\.min\.js', '/vendor/react/react.production.min.js'),
+            (r'https://unpkg\.com/react-dom@[^/]+/umd/react-dom\.development\.js', '/vendor/react-dom/react-dom.development.js'),
+            (r'https://unpkg\.com/react-dom@[^/]+/umd/react-dom\.production\.min\.js', '/vendor/react-dom/react-dom.production.min.js'),
             # Babel
-            ('https://unpkg.com/@babel/standalone/babel.min.js', '/vendor/babel/babel.min.js'),
-            ('https://unpkg.com/@babel/standalone/babel.js', '/vendor/babel/babel.min.js'),
+            (r'https://unpkg\.com/@babel/standalone(?:@[^/]+)?/babel\.min\.js', '/vendor/babel/babel.min.js'),
+            (r'https://unpkg\.com/@babel/standalone(?:@[^/]+)?/babel\.js', '/vendor/babel/babel.min.js'),
             # Tailwind
-            ('https://cdn.tailwindcss.com', '/vendor/tailwindcss/script.js'),
+            (r'https://cdn\.tailwindcss\.com(?:@[^/]+)?', '/vendor/tailwindcss/script.js'),
             # PrismJS
-            # Handle minified vs unminified mapping. Node modules usually has unminified.
-            # We map the CDN .min.css requests to our local .css files (which we copied from node_modules)
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css', '/vendor/prismjs/themes/prism.css'),
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
-            ('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism\.min\.css', '/vendor/prismjs/themes/prism.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/line-numbers/prism-line-numbers\.min\.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/toolbar/prism-toolbar\.min\.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
              # FontAwesome
-            ('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', '/vendor/fontawesome/css/all.min.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/font-awesome/[^/]+/css/all\.min\.css', '/vendor/fontawesome/css/all.min.css'),
         ]
 
-        for old, new in replacements:
-            content = content.replace(old, new)
+        for pattern_str, new in replacements:
+            content = re.sub(pattern_str, new, content)
+
+        # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
+        def strip_sri(match):
+            """
+            Remove Subresource Integrity (`integrity`) and `crossorigin` attributes from an HTML <link> or <script> tag if the tag references a `/vendor/` path.
+            
+            Parameters:
+                match (re.Match): A regex match object whose matched text is the full HTML tag.
+            
+            Returns:
+                str: The original tag text with `integrity` and `crossorigin` attributes removed when the tag contains `/vendor/`; otherwise the original tag text unchanged.
+            """
+            tag_text = match.group(0)
+            if '/vendor/' in tag_text:
+                tag_text = re.sub(r'\s*integrity="[^"]+"', '', tag_text)
+                tag_text = re.sub(r'\s*crossorigin="[^"]+"', '', tag_text)
+            return tag_text
+
+        content = re.sub(r'<(?:link|script)[^>]+>', strip_sri, content)
 
         return content
 
@@ -174,6 +194,12 @@ class Solution:
                         title = self.get_html_title(filepath)
                     except Exception:
                         title = os.path.basename(filepath)
+
+                    # Append disambiguator if 'detailed' is in the filename
+                    if 'detailed' in filename.lower():
+                        if '(detailed)' not in title.lower():
+                            title += ' (detailed)'
+
                     structure[category].append((title, rel_path))
 
         # Sort categories and files
@@ -891,11 +917,11 @@ class Solution:
         def render_category_files(structure, sorted_categories):
             """
             Builds HTML fragments for category tabs, per-category file lists, and an aggregated all-files list.
-            
+
             Parameters:
                 structure (Dict[str, List[Tuple[str, str]]]): Mapping from category name to a list of (title, relative_path) pairs for files in that category.
                 sorted_categories (List[str]): Ordered list of category names to render; determines the iteration order and tab order.
-            
+
             Returns:
                 Tuple[str, str, str]: A 3-tuple with:
                     - tabs_html: HTML for the category tab buttons (includes icon and item count for each category).
@@ -925,7 +951,8 @@ class Solution:
                     safe_title = html.escape(title)
                     safe_github_path = html.escape(github_path) # Escape path for display
 
-                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{encoded_path}">' \
+                    safe_encoded_path = html.escape(encoded_path, quote=True)
+                    item_html = f'<li class="file-item" data-category="{css_cat}"><a class="file-link" href="{safe_encoded_path}">' \
                                 f'<span class="card-header"><span class="card-icon">{icon}</span>' \
                                 f'<span class="card-title">{safe_title}</span></span><span class="file-path">{safe_github_path}</span></a></li>\n'
                     category_files.append(item_html)

@@ -77,12 +77,15 @@ class Solution:
 
     def rewrite_html_content(self, content: str) -> str:
         """
-        Rewrite known CDN asset URLs in an HTML document to their corresponding local vendor paths.
-
-        Replaces specific external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with local /vendor/... paths so the returned HTML references vendored assets.
-
+        Rewrite CDN asset URLs in HTML to local /vendor/ paths.
+        
+        Replaces known external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with corresponding /vendor/... paths and removes `integrity` and `crossorigin` attributes from `<link>` and `<script>` tags that reference those local vendor files.
+        
+        Parameters:
+            content (str): HTML document content to rewrite.
+        
         Returns:
-            The input HTML string with matched CDN URLs substituted by local vendor URLs.
+            str: The HTML content with matching CDN URLs substituted by local vendor URLs and SRI/crossorigin attributes stripped for vendored assets.
         """
         replacements = [
             # React
@@ -108,6 +111,15 @@ class Solution:
 
         # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
         def strip_sri(match):
+            """
+            Remove Subresource Integrity (`integrity`) and `crossorigin` attributes from an HTML <link> or <script> tag if the tag references a `/vendor/` path.
+            
+            Parameters:
+                match (re.Match): A regex match object whose matched text is the full HTML tag.
+            
+            Returns:
+                str: The original tag text with `integrity` and `crossorigin` attributes removed when the tag contains `/vendor/`; otherwise the original tag text unchanged.
+            """
             tag_text = match.group(0)
             if '/vendor/' in tag_text:
                 tag_text = re.sub(r'\s*integrity="[^"]+"', '', tag_text)

@@ -78,13 +78,22 @@ class Solution:
 
     def rewrite_html_content(self, content: str) -> str:
         """
-        Rewrite HTML content by replacing known CDN asset URLs with local /vendor/ paths and removing `integrity` and `crossorigin` attributes from tags that reference those local vendor files.
+        Rewrite HTML to replace known CDN asset URLs with local `/vendor/` paths and remove SRI and crossorigin attributes from tags that reference those local assets.
         
         Parameters:
             content (str): HTML document content to rewrite.
         
         Returns:
-            str: HTML content with matching CDN URLs substituted with local vendor URLs and SRI/crossorigin attributes removed from tags referencing `/vendor/`.
+            str: HTML content with matching CDN URLs substituted by local `/vendor/` URLs and `integrity`/`crossorigin` attributes removed from tags that reference `/vendor/`.
+        """
+        """
+        Remove `integrity` and `crossorigin` attributes from a matched <link> or <script> tag when it references a `/vendor/` path.
+        
+        Parameters:
+            match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
+        
+        Returns:
+            str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
         """
         replacements = [
             # React
@@ -117,13 +126,13 @@ class Solution:
         # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
         def strip_sri(match: typing.Match[str]) -> str:
             """
-            Strip `integrity` and `crossorigin` attributes from a <link> or <script> tag that references a `/vendor/` path.
+            Remove `integrity` and `crossorigin` attributes from an HTML `<link>` or `<script>` tag that references a `/vendor/` path.
             
             Parameters:
-                match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
+                match (typing.Match[str]): Regex match whose matched text is the full HTML tag to process.
             
             Returns:
-                str: The tag text with `integrity` and `crossorigin` attributes removed when the tag contains `/vendor/`, otherwise the original tag text.
+                str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
             """
             tag_text = match.group(0)
             if '/vendor/' in tag_text:

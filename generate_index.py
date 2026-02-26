@@ -85,21 +85,12 @@ class Solution:
     def rewrite_html_content(self, content: str) -> str:
         """
         Rewrite HTML to replace known CDN asset URLs with local `/vendor/` paths and remove SRI and crossorigin attributes from tags that reference those local assets.
-        
+
         Parameters:
             content (str): HTML document content to rewrite.
-        
+
         Returns:
             str: HTML content with matching CDN URLs substituted by local `/vendor/` URLs and `integrity`/`crossorigin` attributes removed from tags that reference `/vendor/`.
-        """
-        """
-        Remove `integrity` and `crossorigin` attributes from a matched <link> or <script> tag when it references a `/vendor/` path.
-        
-        Parameters:
-            match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
-        
-        Returns:
-            str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
         """
         replacements = [
             # React
@@ -120,8 +111,8 @@ class Solution:
             # jsDelivr generic patterns for Prism JS and CSS (often used interchangeably)
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/prism\.min\.js', '/vendor/prismjs/prism.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-core\.min\.js', '/vendor/prismjs/prism.js'),
-            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.js'),
-            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.min.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.min.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/themes/prism(?:-[a-zA-Z0-9_-]+)?\.min\.css', '/vendor/prismjs/themes/prism.css'),
         ]
@@ -133,10 +124,10 @@ class Solution:
         def strip_sri(match: re.Match[str]) -> str:
             """
             Remove `integrity` and `crossorigin` attributes from an HTML `<link>` or `<script>` tag that references a `/vendor/` path.
-            
+
             Parameters:
-                match (typing.Match[str]): Regex match whose matched text is the full HTML tag to process.
-            
+                match (re.Match[str]): Regex match whose matched text is the full HTML tag to process.
+
             Returns:
                 str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
             """

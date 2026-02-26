@@ -4,6 +4,7 @@ import datetime
 import html
 import urllib.parse
 import shutil
+import typing
 from collections import defaultdict
 from typing import List, Tuple, Dict
 
@@ -77,15 +78,31 @@ class Solution:
 
     def rewrite_html_content(self, content: str) -> str:
         """
-        Rewrite CDN asset URLs in HTML to local /vendor/ paths.
-        
-        Replaces known external CDN links (React, Babel, Tailwind, PrismJS, FontAwesome, etc.) with corresponding /vendor/... paths and removes `integrity` and `crossorigin` attributes from `<link>` and `<script>` tags that reference those local vendor files.
-        
+        Replace known CDN asset URLs in the HTML with local `/vendor/` paths and remove `integrity`/`crossorigin` attributes from tags that reference `/vendor/`.
+         
         Parameters:
             content (str): HTML document content to rewrite.
+         
+        Returns:
+            str: HTML content with matching CDN URLs substituted by local `/vendor/` URLs and `integrity`/`crossorigin` attributes removed from tags that reference `/vendor/`.
+        """
+        """
+        Remove `integrity` and `crossorigin` attributes from a matched `<link>` or `<script>` tag when it references a `/vendor/` path.
+         
+        Parameters:
+            match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
+         
+        Returns:
+            str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
+        """
+        """
+        Remove `integrity` and `crossorigin` attributes from a matched <link> or <script> tag when it references a `/vendor/` path.
+        
+        Parameters:
+            match (typing.Match[str]): A regex match whose matched text is the full HTML tag.
         
         Returns:
-            str: The HTML content with matching CDN URLs substituted by local vendor URLs and SRI/crossorigin attributes stripped for vendored assets.
+            str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
         """
         replacements = [
             # React
@@ -100,25 +117,31 @@ class Solution:
             (r'https://cdn\.tailwindcss\.com(?:@[^/]+)?', '/vendor/tailwindcss/script.js'),
             # PrismJS
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism\.min\.css', '/vendor/prismjs/themes/prism.css'),
-            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/line-numbers/prism-line-numbers\.min\.css', '/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css'),
-            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/toolbar/prism-toolbar\.min\.css', '/vendor/prismjs/plugins/toolbar/prism-toolbar.css'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
              # FontAwesome
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/font-awesome/[^/]+/css/all\.min\.css', '/vendor/fontawesome/css/all.min.css'),
+            # jsDelivr generic patterns for Prism JS and CSS (often used interchangeably)
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/prism\.min\.js', '/vendor/prismjs/prism.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-core\.min\.js', '/vendor/prismjs/prism.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/themes/prism(?:-[a-zA-Z0-9_-]+)?\.min\.css', '/vendor/prismjs/themes/prism.css'),
         ]
 
         for pattern_str, new in replacements:
             content = re.sub(pattern_str, new, content)
 
         # Strip integrity and crossorigin attributes from tags referencing local /vendor/ files
-        def strip_sri(match):
+        def strip_sri(match: typing.Match[str]) -> str:
             """
-            Remove Subresource Integrity (`integrity`) and `crossorigin` attributes from an HTML <link> or <script> tag if the tag references a `/vendor/` path.
+            Remove `integrity` and `crossorigin` attributes from an HTML `<link>` or `<script>` tag that references a `/vendor/` path.
             
             Parameters:
-                match (re.Match): A regex match object whose matched text is the full HTML tag.
+                match (typing.Match[str]): Regex match whose matched text is the full HTML tag to process.
             
             Returns:
-                str: The original tag text with `integrity` and `crossorigin` attributes removed when the tag contains `/vendor/`; otherwise the original tag text unchanged.
+                str: The tag text with `integrity` and `crossorigin` attributes removed if the tag contains `/vendor/`, otherwise the original tag text.
             """
             tag_text = match.group(0)
             if '/vendor/' in tag_text:

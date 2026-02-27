@@ -323,8 +323,9 @@ k >> 1        # BINARY_OP (RSHIFT)
 ### 入出力の最適化（大量テストケース向け）
 
 ```python
-import sys
 from __future__ import annotations
+
+import sys
 
 def halloweenParty(k: int) -> int:
     return (k >> 1) * ((k + 1) >> 1)

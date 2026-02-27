@@ -13,7 +13,7 @@ To maintain high-quality, standardized Markdown files that serve as the foundati
 ## SDD Workflow (4 Phases)
 
 1. **仕様策定 (Spec & Requirements)**: `docs/spec.md` → `docs/requirements.md`
-2. **設計 (Design)**: `docs/design.md` & `.agent/rules.md`
+2. **設計 (Design)**: `docs/design.md` & `.agent/rules/*.md`
 3. **エージェント実行 (Execution)**: `docs/tasks.md` & `workflows/`
 4. **検証 (Verification)**: Artifacts (Walkthrough, Screenshots, Recordings), Feedback Loop into Knowledge Base
 

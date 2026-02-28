@@ -91,6 +91,11 @@ python generate_index.py   # public/index.html 再生成
 - `file://` URLはブロックされる → `python -m http.server 8765 --directory public` でローカルサーバー起動
 - `ruff` / `black` はグローバル未インストールの場合あり → `python -c "import py_compile; ..."` でシンタックスチェック代替
 
+### 定性・定量評価のガイドライン
+
+- 実装手法（例: `in` 演算子と `??=` 演算子など）を比較する際、「Aの方がBよりも確実に軽量/高速である」といった絶対的なパフォーマンスの断言は**避ける**こと。
+- その代わり、セマンティクスの違い（例: `Object.create(null)` 等）を解説するか、V8エンジンのインラインキャッシュ（IC）などによって「実行環境に依存してパフォーマンスが逆転・変化する」といった中立的な補足を必ず含めること。
+
 ## SVGフローチャートガイドライン
 
 `.agent/workflows/svg_flowchart_guidelines.md` に詳細あり。主要ポイント:

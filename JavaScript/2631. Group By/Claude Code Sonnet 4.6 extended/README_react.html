@@ -273,8 +273,8 @@
                         <li class="flex items-start gap-2">
                             <span class="text-emerald-500 font-bold text-base leading-5">✓</span>
                             <span
-                                ><strong class="text-slate-700">in 演算子</strong>：??=
-                                より軽量なキー存在確認</span
+                                ><strong class="text-slate-700">in 演算子 vs ??=</strong
+                                >：キーの存在確認におけるセマンティクスの違い（Object.create(null)との併用）</span
                             >
                         </li>
                         <li class="flex items-start gap-2">
@@ -337,7 +337,7 @@ Array.prototype.groupBy = function&lt;T&gt;(
         const item = this[i];   // ③ this 参照を1回に抑制
         const key = fn(item);   // コールバックでキーを生成
 
-        // ④ in 演算子: ??= より軽量（型変換コストなし）
+        // ④ in 演算子: プロトタイプなしオブジェクトのキー存在確認
         if (key in result) {
             result[key].push(item);  // キー存在: 既存配列へ追加
         } else {
@@ -1336,7 +1336,7 @@ Array.prototype.groupBy = function&lt;T&gt;(
                             className="slide-in mt-4 rounded-xl overflow-hidden border border-slate-200"
                         >
                             <div className="bg-slate-700 text-white text-xs px-4 py-2 font-bold">
-                                キー存在確認フロー（in 演算子 vs ??=）
+                                キー存在確認フロー（in 演算子と ??= の違い）
                             </div>
                             <div className="bg-slate-900 text-slate-200 p-4 text-xs mono leading-6">
                                 <div className="text-slate-400">{'// ✅ in 演算子（推奨）'}</div>
@@ -1361,10 +1361,12 @@ Array.prototype.groupBy = function&lt;T&gt;(
                                 </div>
                                 <div>{'}'}</div>
                                 <div className="mt-3 text-slate-400">
-                                    {'// ❌ ??= (比較: nullish判定+代入の2ステップ)'}
+                                    {'// ??= (Nullish coalescing assignment)'}
                                 </div>
                                 <div className="text-red-400">
-                                    {'(acc[key] ??= []).push(item); // やや重い'}
+                                    {
+                                        '(acc[key] ??= []).push(item); // V8のIC最適化が効きやすいケースもある'
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -1543,7 +1545,7 @@ Array.prototype.groupBy = function&lt;T&gt;(
             const beforeCode = `Array.prototype.groupBy = function(fn) {
     // ❌ reduce: n回スタックフレーム生成
     return this.reduce((acc, item) => {
-        // ❌ ??= : nullish判定+代入の2ステップ
+        // ??= : V8最適化が効きやすい簡潔な記法
         (acc[fn(item)] ??= []).push(item);
         return acc;
     }, {}); // ❌ {} : プロトタイプ汚染リスク
@@ -1693,7 +1695,7 @@ Array.prototype.groupBy = function&lt;T&gt;(
                                             '毎ループ this.length',
                                             'const len にキャッシュ',
                                         ],
-                                        ['キー確認', '??=（2ステップ）', 'in演算子（1ステップ）'],
+                                        ['キー確認', '??= 演算子', 'in 演算子'],
                                         ['Memory Beats', '~40%', '~70%+'],
                                     ].map(([point, before, after]) => (
                                         <tr key={point} className="hover:bg-slate-50">

@@ -231,7 +231,7 @@ class Solution:
         }
         total_count = sum(len(v) for v in structure.values())
         domain_count = len(sorted_categories)
-        current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
 
         # HTML Template — "Refined Lab" デザイン
         html_template = """<!DOCTYPE html>

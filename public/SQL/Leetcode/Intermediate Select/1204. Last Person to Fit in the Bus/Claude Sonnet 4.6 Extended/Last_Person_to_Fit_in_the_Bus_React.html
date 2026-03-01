@@ -430,6 +430,9 @@ def last_passenger(queue: pd.DataFrame) -> pd.DataFrame:
     # side='right': 1000 より大きくなる最初の位置 → -1 で最後の有効位置
     last_pos = np.searchsorted(cum_w, 1000, side='right') - 1
 
+    if last_pos < 0:
+        return pd.DataFrame({'person_name': []})
+
     return pd.DataFrame({'person_name': [names_sorted[last_pos]]})
 
 
@@ -1363,6 +1366,11 @@ LIMIT 1;</code></pre>
             }
 
             function CumsumVisual({ data }) {
+                const lastIndex = data.cumvals.reduce(
+                    (lastIdx, v, i) => (v <= data.limit ? i : lastIdx),
+                    -1,
+                );
+
                 return (
                     <div className="mt-4">
                         <div className="text-xs font-bold text-slate-500 mb-2">{data.label}</div>
@@ -1375,7 +1383,7 @@ LIMIT 1;</code></pre>
                                         className={[
                                             'flex flex-col items-center rounded-xl p-2 border-2 transition',
                                             ok
-                                                ? i === 2
+                                                ? i === lastIndex
                                                     ? 'bg-emerald-200 border-emerald-500'
                                                     : 'bg-emerald-50 border-emerald-300'
                                                 : 'bg-red-50 border-red-300',

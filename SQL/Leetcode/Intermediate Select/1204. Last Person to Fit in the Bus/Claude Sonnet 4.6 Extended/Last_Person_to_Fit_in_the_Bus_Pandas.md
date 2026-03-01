@@ -46,7 +46,10 @@ def last_passenger(queue: pd.DataFrame) -> pd.DataFrame:
 
     # Step3: 条件を満たす最後の行（最大 turn）を idxmax で取得
     #        cum_w は turn 昇順なので、最後の True のインデックス = 答え
-    last_idx = mask[mask].index[-1]   # O(N)
+    valid_mask = mask[mask]
+    if valid_mask.empty:
+        return pd.DataFrame({'person_name': []})
+    last_idx = valid_mask.index[-1]   # O(N)
 
     # Step4: 仕様列のみ返却
     return pd.DataFrame({'person_name': [queue.at[last_idx, 'person_name']]})
@@ -235,6 +238,9 @@ def last_passenger(queue: pd.DataFrame) -> pd.DataFrame:
     # side='right': 1000 より大きくなる最初の位置を返す → -1 で最後の有効位置
     last_pos = np.searchsorted(cum_w, 1000, side='right') - 1
 
+    if last_pos < 0:
+        return pd.DataFrame({'person_name': []})
+
     return pd.DataFrame(
         {'person_name': [names[order[last_pos]]]}
     )
@@ -276,6 +282,9 @@ def last_passenger(queue: pd.DataFrame) -> pd.DataFrame:
 
     cum_w    = weights_sorted.cumsum()        # O(N)
     last_pos = np.searchsorted(cum_w, 1000, side='right') - 1
+
+    if last_pos < 0:
+        return pd.DataFrame({'person_name': []})
 
     return pd.DataFrame(
         {'person_name': [names_sorted[last_pos]]}

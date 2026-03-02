@@ -72,7 +72,7 @@ $$\bar{c} = \frac{1}{n} \sum_{j=1}^{n} c_j = \frac{1}{n} \sum_{i=1}^{m} \sum_{j=
 flowchart TD
   Start[開始] --> Init[総和 S を 0 で初期化]
   Init --> Loop[操作 i を 1 から m まで繰り返す]
-  Loop --> Calc[寄与 = v × b - a + 1 を S に加算]
+  Loop --> Calc[寄与 = v × (b - a + 1) を S に加算]
   Calc --> Check{全操作完了?}
   Check -- No --> Loop
   Check -- Yes --> Avg[平均 = S を n で整数除算]
@@ -339,11 +339,11 @@ n=5, ops=[[1,2,100],[2,5,100],[3,4,100]]
 
 **Q2. `//` は本当に floor と等価か？**
 
-Python の `//` は切り捨て除算（床関数）であり、$S \ge 0$ かつ $n > 0$ の場合は
+Python の `//` はすべての整数（負の値を含む）に対して切り捨て除算（数学的な床関数）を実装しており、
 
 $$S \,\mathbin{//}\, n = \left\lfloor \frac{S}{n} \right\rfloor$$
 
-が成立する。負の値を含む場合は `math.floor(S / n)` の方が安全だが、本問では $v \ge 0$ が保証されるため `//` で十分。
+が成立する。本問では $v \ge 0$ が保証されるため `//` で十分。
 
 ---
 

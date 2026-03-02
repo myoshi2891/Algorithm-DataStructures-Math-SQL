@@ -220,16 +220,27 @@ def solve_production(n: int, operations: List[List[int]]) -> int:
         ValueError: n が正でない、または操作が制約違反の場合
         TypeError:  引数の型が不正な場合
     """
-    if not isinstance(n, int) or n <= 0:
+    if not isinstance(n, int):
+        raise TypeError(f"n は整数である必要があります: {type(n)}")
+    if n <= 0:
         raise ValueError(f"n は正の整数である必要があります: {n}")
-    if not operations:
+
+    if not isinstance(operations, (list, tuple)):
+        raise TypeError(f"operations はリストまたはタプルである必要があります: {type(operations)}")
+    if len(operations) == 0:
         return 0
 
     total: int = 0
     for op in operations:
+        if not isinstance(op, (list, tuple)):
+            raise TypeError(f"各操作はリストまたはタプルである必要があります: {type(op)}")
         if len(op) != 3:
-            raise ValueError(f"操作は 3 要素のリストである必要があります: {op}")
+            raise ValueError(f"操作は 3 要素である必要があります: {op}")
+
         a, b, v = op
+        if not (isinstance(a, int) and isinstance(b, int) and isinstance(v, int)):
+            raise TypeError(f"操作の要素 a, b, v はすべて整数である必要があります: {a}, {b}, {v}")
+
         if not (1 <= a <= b <= n):
             raise ValueError(f"無効なインデックス範囲 [{a}, {b}]（n={n}）")
         if v < 0:
@@ -243,19 +254,17 @@ def solve_production(n: int, operations: List[List[int]]) -> int:
 # HackerRank エントリポイント
 # ──────────────────────────────────────────────
 if __name__ == '__main__':
-    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+    with open(os.environ['OUTPUT_PATH'], 'w') as fptr:
+        first_multiple_input = input().rstrip().split()
+        n = int(first_multiple_input[0])
+        m = int(first_multiple_input[1])
 
-    first_multiple_input = input().rstrip().split()
-    n = int(first_multiple_input[0])
-    m = int(first_multiple_input[1])
+        operations: List[List[int]] = []
+        for _ in range(m):
+            operations.append(list(map(int, input().rstrip().split())))
 
-    operations: List[List[int]] = []
-    for _ in range(m):
-        operations.append(list(map(int, input().rstrip().split())))
-
-    result = solve(n, operations)
-    fptr.write(str(result) + '\n')
-    fptr.close()
+        result = solve(n, operations)
+        fptr.write(str(result) + '\n')
 ```
 
 ---

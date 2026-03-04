@@ -238,7 +238,7 @@ flowchart TD
     A_F --> B
     B --> C & D
     C --> E
-    D --> E
+    D --> F
     E --> F
     F --> G
 

@@ -56,9 +56,9 @@ step5: 63 / 100    = 0.63  ✅
 
 ---
 
-## 3) 修正版実装（指定シグネチャ厳守）
+## 3) 参考実装（初期方針・非推奨）
 
-> **原則: `notna + copy → float 除算 → groupby.agg → ROUND_HALF_UP`**
+> **初期方針: 直感的な手順だがパフォーマンス面で非推奨**
 
 ```python
 # Analyze Complexity
@@ -108,7 +108,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 4) 修正前 vs 修正後 — 差分
+## 4) 修正前 vs 修正後（参考実装において） — 差分
 
 ```diff
 - agg["quality"]               = agg["quality"].round(2)
@@ -120,7 +120,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 5) アルゴリズム説明
+## 5) アルゴリズム説明（参考実装）
 
 | API / 手法                                  | 役割                                                 |
 | ------------------------------------------- | ---------------------------------------------------- |
@@ -142,7 +142,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 6) 計算量（概算）
+## 6) 計算量概算（参考実装）
 
 | 処理           | 計算量   | 備考                       |
 | -------------- | -------- | -------------------------- |
@@ -154,7 +154,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 7) 図解（Mermaid）
+## 7) 図解 Mermaid（参考実装）
 
 ```mermaid
 flowchart TD
@@ -178,7 +178,7 @@ flowchart TD
 
 ---
 
-## 8) 検証トレース（バグ再現 + 修正確認）
+## 8) 検証トレース（参考実装・バグ再現 + 修正確認）
 
 ```python
 # テストケース: quality = 0.625 (float64 で正確に表現される → 丸め方式の差が出る)
@@ -206,17 +206,11 @@ queries2 = pd.DataFrame({
 # Cat: poor_%  = 1/3*100 = 33.33          ✅
 ```
 
-## 2) Pandas 2.2.2 — パフォーマンス改善版
+## 9) 最終提出版（最適化実装）
 
-## 0) 前提2
+> **原則: `to_numpy()[mask] → float 除算 → groupby.mean() → ROUND_HALF_UP`**
 
-- 環境: **Python 3.10.15 / pandas 2.2.2**
-- **指定シグネチャ厳守**（関数名 `queries_stats`・引数 `queries`・返却列・順序）
-- I/O 禁止、不要な `print` や `sort_values` 禁止
-
----
-
-## 1) ボトルネック分析
+### ボトルネック分析
 
 ```
 Runtime 332ms / Beats 35.40%
@@ -246,7 +240,7 @@ df["poor"]  = (df["rating"] < 3).astype("float64")
 
 ---
 
-## 2) 改善戦略
+## 10) 改善戦略
 
 | 戦略                                 | 手法                                                | 効果                          |
 | ------------------------------------ | --------------------------------------------------- | ----------------------------- |
@@ -257,12 +251,12 @@ df["poor"]  = (df["rating"] < 3).astype("float64")
 
 ```
 float32(0.07) = 0.07000000029802322...  ← 精度落ちで丸めが狂う ❌
-float64(0.07) = 0.07000000000000000...  ← 安全 ✅
+float64(0.07) ≈ 0.07000000000000000666...  ← 近似ではあるが、本問の ROUND_HALF_UP（小数2桁丸め）には十分な精度を持ち実用上安全 ✅
 ```
 
 ---
 
-## 3) 最適化版実装
+## 11) 最適化版実装（指定シグネチャ厳守）
 
 ```python
 # Analyze Complexity
@@ -311,7 +305,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 4) 変更差分
+## 12) 変更差分（参考実装から最適化版へ）
 
 ```diff
 - df = queries[queries["query_name"].notna()].copy()   # 全列コピー（result含む）
@@ -342,7 +336,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 5) アルゴリズム説明2
+## 13) アルゴリズム説明（最適化版）
 
 | API / 手法                 | 役割                            | 最適化ポイント                |
 | -------------------------- | ------------------------------- | ----------------------------- |
@@ -363,7 +357,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 6) 計算量
+## 14) 計算量（最適化版）
 
 | 処理                        | 計算量   | 備考                       |
 | --------------------------- | -------- | -------------------------- |
@@ -375,7 +369,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 7) ベンチマーク（N=100,000行、500クエリ名）
+## 15) ベンチマーク（N=100,000行、500クエリ名）
 
 ```
              Runtime    Peak Memory
@@ -389,7 +383,7 @@ final    :   22.7 ms    7.97 MB   ← result 列スキップ + copy=False
 
 ---
 
-## 8) 図解（Mermaid）
+## 16) 図解 Mermaid（最適化版）
 
 ```mermaid
 flowchart TD
@@ -418,7 +412,7 @@ flowchart TD
 
 ---
 
-## 9) 検証
+## 17) 検証
 
 ```python
 # 例題

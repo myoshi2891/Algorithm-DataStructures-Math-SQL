@@ -188,7 +188,6 @@ LATERAL版:    233ms / 47%  ← 不要な二重スキャン
 | 原因                 | 詳細                                      |
 | -------------------- | ----------------------------------------- |
 | `::NUMERIC` キャスト | 任意精度演算 → CPU ネイティブより**低速** |
-| `WHERE IS NOT NULL`  | 全行フィルタスキャンの追加コスト          |
 
 ---
 
@@ -200,12 +199,13 @@ LATERAL版:    233ms / 47%  ← 不要な二重スキャン
 
 SELECT
     query_name,
-    ROUND(AVG(rating * 1.0 / position)::NUMERIC, 2)          AS quality,
+    ROUND(AVG(rating::float8 / position)::NUMERIC, 2)          AS quality,
     ROUND(
         COUNT(*) FILTER (WHERE rating < 3) * 100.0 / COUNT(*),
         2
     )                                                          AS poor_query_percentage
 FROM  Queries
+WHERE query_name IS NOT NULL
 GROUP BY query_name;
 ```
 
@@ -213,13 +213,10 @@ GROUP BY query_name;
 
 ```diff
 - ROUND(AVG(rating::NUMERIC / position), 2)
-+ ROUND(AVG(rating * 1.0 / position)::NUMERIC, 2)
++ ROUND(AVG(rating::float8 / position)::NUMERIC, 2)
 
-  -- ↑ 中間計算を FLOAT(* 1.0) で行い、最後だけ NUMERIC にキャスト
+  -- ↑ 中間計算を float8（倍精度浮動小数点）で行い、最後だけ NUMERIC にキャスト
   -- NUMERIC演算はソフトウェア実装 → FLOATはCPUネイティブ命令で高速
-
-- WHERE query_name IS NOT NULL
-  -- ↑ 問題の制約上 NULL は存在しないため削除
 ```
 
 ---
@@ -229,14 +226,16 @@ GROUP BY query_name;
 ```mermaid
 flowchart TD
     A["Queries テーブル\nフルスキャン O(N)"]
+    A_F["WHERE query_name IS NOT NULL\nNULL行を除外"]
     B["GROUP BY query_name\nHash Aggregate"]
-    C["AVG(rating * 1.0 / position)\nFLOAT演算 CPU ネイティブ ⚡"]
+    C["AVG(rating::float8 / position)\nFLOAT演算 CPU ネイティブ ⚡"]
     D["FILTER(rating < 3)\nCOUNT条件集計"]
     E["::NUMERIC キャスト\n最後の1回のみ"]
     F["ROUND(..., 2)"]
     G["出力"]
 
-    A --> B
+    A --> A_F
+    A_F --> B
     B --> C & D
     C --> E
     D --> E
@@ -255,7 +254,7 @@ flowchart TD
 【遅い】 rating::NUMERIC / position
          ↑全行でNUMERIC(任意精度)演算 → ソフトウェアエミュレーション
 
-【速い】 rating * 1.0 / position
+【速い】 rating::float8 / position
          ↑FLOAT64演算 → x86 FPU / SIMD 命令で処理
          最後に ::NUMERIC は ROUND() のため1回だけ
 ```

@@ -242,12 +242,12 @@ df["poor"]  = (df["rating"] < 3).astype("float64")
 
 ## 10) 改善戦略
 
-| 戦略                                 | 手法                                                | 効果                          |
-| ------------------------------------ | --------------------------------------------------- | ----------------------------- |
-| **不要列を触らない**                 | `.to_numpy()[mask]` で必要列だけを numpy 配列に抽出 | `result` 列のコピーゼロ       |
-| **copy=False**                       | `pd.DataFrame({...}, copy=False)`                   | numpy 配列を参照渡し          |
-| **`.to_numpy()` で集計後の値を取得** | pandas インデックスのオーバーヘッドを排除           | 丸め処理が高速化              |
-| **float32 は使わない**               | `float32` は精度落ちで ROUND_HALF_UP が狂う         | 精度保証のため `float64` 固定 |
+| 戦略                                 | 手法                                                | 効果                                       |
+| ------------------------------------ | --------------------------------------------------- | ------------------------------------------ |
+| **不要列を触らない**                 | `.to_numpy()[mask]` で必要列だけを numpy 配列に抽出 | `result` 列のコピーゼロ                    |
+| **copy=False**                       | `pd.DataFrame({...}, copy=False)`                   | numpy 配列を参照渡し（コピー回避を試みる） |
+| **`.to_numpy()` で集計後の値を取得** | pandas インデックスのオーバーヘッドを排除           | 丸め処理が高速化                           |
+| **float32 は使わない**               | `float32` は精度落ちで ROUND_HALF_UP が狂う         | 精度保証のため `float64` 固定              |
 
 ```
 float32(0.07) = 0.07000000029802322...  ← 精度落ちで丸めが狂う ❌
@@ -286,7 +286,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
     score = rat / pos
     poor  = (rat < 3).astype("float64")
 
-    # Step4) 最小 DataFrame を copy=False で構築（numpy 配列を参照渡し）
+    # Step4) 最小 DataFrame を copy=False で構築（コピー回避を試みる）
     tmp = pd.DataFrame({"q": names, "s": score, "p": poor}, copy=False)
 
     # Step5) groupby + .mean()（named agg より高速な Cython パス）
@@ -324,7 +324,7 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 + pos   = queries["position"].to_numpy(dtype="float64")[mask]
 + rat   = queries["rating"].to_numpy(dtype="float64")[mask]
 + tmp   = pd.DataFrame({"q": names, "s": rat/pos, "p": (rat<3).astype("float64")},
-+                       copy=False)                        # 参照渡し
++                       copy=False)                        # コピー回避を試みる
 + agg   = tmp.groupby("q", sort=False, as_index=False).mean()  # Cython 最適パス
 + v     = agg[["s","p"]].to_numpy()                        # pandas オーバーヘッド排除
 + return pd.DataFrame({
@@ -341,19 +341,21 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 | API / 手法                 | 役割                            | 最適化ポイント                |
 | -------------------------- | ------------------------------- | ----------------------------- |
 | `.to_numpy()[mask]`        | 列ごとに必要部分だけ抽出        | `result` 列を完全スキップ     |
-| `pd.DataFrame(copy=False)` | numpy 配列を参照渡しで DF 構築  | メモリコピーゼロ              |
+| `pd.DataFrame(copy=False)` | コピー回避を試みて DF 構築      | メモリコピーを極力減らす      |
 | `.groupby().mean()`        | Cython 最適化された集計パス     | named `agg()` より高速        |
 | `agg[cols].to_numpy()`     | 集計結果を numpy 配列として取得 | pandas インデックス管理を排除 |
 | `np.floor(v*100+0.5)/100`  | ROUND_HALF_UP（SQL 互換）       | ベクトル演算で全行一括処理    |
 
 **NULL / 重複 / 型の保証:**
 
-| ケース              | 対処                                                  |
-| ------------------- | ----------------------------------------------------- |
-| `query_name = NULL` | `.notna().to_numpy()` で mask を作成し明示除外        |
-| 重複行              | 仕様上カウント対象 → 除外不要                         |
-| 型の精度            | `float32` は精度落ちのリスクあり → `float64` 固定     |
-| ROUND_HALF_UP       | `np.floor(x*100+0.5)/100` で SQL `ROUND()` と完全一致 |
+| ケース              | 対処                                                                        |
+| ------------------- | --------------------------------------------------------------------------- |
+| `query_name = NULL` | `.notna().to_numpy()` で mask を作成し明示除外                              |
+| 重複行              | 仕様上カウント対象 → 除外不要                                               |
+| 型の精度            | `float32` は精度落ちのリスクあり → `float64` 固定                           |
+| ROUND_HALF_UP       | 本問の非負データ範囲では `np.floor(x*100+0.5)/100` は SQL `ROUND()` と一致※ |
+
+> ※ 負の数に対する挙動（例: PostgreSQL `ROUND(-1.5)` = `-2` に対して上記数式は `-1` になる等）は異なりますが、本問の quality と poor_query_percentage は非負であるため問題ありません。
 
 ---
 
@@ -389,7 +391,7 @@ final    :   22.7 ms    7.97 MB   ← result 列スキップ + copy=False
 flowchart TD
     A["入力: queries DataFrame<br>query_name / result / position / rating"]
     B["notna().to_numpy() → mask<br>bool配列 O(N)"]
-    C["to_numpy()[mask] × 3列のみ<br>result 列を完全スキップ ✅<br>copy=False で参照渡し ✅"]
+    C["to_numpy()[mask] × 3列のみ<br>result 列を完全スキップ ✅<br>copy=False でコピー回避を試みる ✅"]
     D["numpy ベクトル演算<br>score = rat / pos<br>poor  = rat < 3 → float64"]
     E["pd.DataFrame(copy=False)<br>最小構成の一時 DF"]
     F["groupby.mean()<br>Cython 最適化パス 🔥<br>sort=False でハッシュのみ"]

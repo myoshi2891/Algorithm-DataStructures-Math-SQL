@@ -111,7 +111,7 @@ GROUP BY g.query_name;
 | ポイント                           | 詳細                                                                                    |
 | ---------------------------------- | --------------------------------------------------------------------------------------- |
 | **`rating::NUMERIC / position`**   | `INT / INT` は整数除算になるため、`::NUMERIC` で明示キャスト                            |
-| **`FILTER (WHERE rating < 3)`**    | PostgreSQL 独自の条件付き集計。`SUM(CASE WHEN...)` より高速・簡潔                       |
+| **`FILTER (WHERE rating < 3)`**    | PostgreSQL 独自の条件付き集計。`SUM(CASE WHEN...)` に比べて簡潔で可読性が高い           |
 | **`AVG(is_poor) * 100.0`**         | is_poor を 0/1 にすると `AVG = 割合`。`* 100` でパーセント変換                          |
 | **`ROUND(..., 2)`**                | `NUMERIC` 型に対して正確に小数2桁を保証（`FLOAT` は誤差あり）                           |
 | **`WHERE query_name IS NOT NULL`** | 重複行ではなく、`GROUP BY` により独立したNULLグループが生成されるのを防ぐために除外する |
@@ -232,7 +232,7 @@ GROUP BY query_name;
 flowchart TD
     A["Queries テーブル<br>フルスキャン O(N)"]
     A_F["WHERE query_name IS NOT NULL<br>NULL行を除外"]
-    B["GROUP BY query_name<br>Hash Aggregate"]
+    B["GROUP BY query_name<br>HashAggregate / GroupAggregate<br>(プランナがコスト等から選択)"]
     C["AVG(rating::float8 / position)<br>FLOAT演算 CPU ネイティブ ⚡"]
     D["FILTER(rating < 3)<br>COUNT条件集計"]
     E["::NUMERIC キャスト<br>最後の1回のみ"]

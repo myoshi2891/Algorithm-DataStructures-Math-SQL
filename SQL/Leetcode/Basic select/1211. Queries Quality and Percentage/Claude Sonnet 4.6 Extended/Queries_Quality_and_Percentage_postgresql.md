@@ -1,0 +1,278 @@
+# PostgreSQL 16.6+
+
+## 0) 前提
+
+- エンジン: **PostgreSQL 16.6+**
+- 並び順: 任意
+- `NOT IN` 回避（`EXISTS` / `LEFT JOIN ... IS NULL` を推奨）
+- 判定は `rating < 3` 基準、表示は小数点以下2桁
+
+---
+
+## 1) 問題
+
+- 各 `query_name` ごとに **quality**（rating/position の平均）と **poor_query_percentage**（rating < 3 の割合 %）を求める
+- 入力:
+
+```
+Queries(query_name VARCHAR, result VARCHAR, position INT, rating INT)
+```
+
+- 出力:
+
+```
+query_name | quality (NUMERIC, 小数2桁) | poor_query_percentage (NUMERIC, 小数2桁)
+```
+
+---
+
+## 2) 最適解（単一クエリ）
+
+> `GROUP BY` + 条件付き集計 `FILTER` で一発完結。ウィンドウ不要なシンプル集計問題。
+
+```sql
+-- Runtime 223 ms
+-- Beats 66.01%
+
+SELECT
+    query_name,
+    ROUND(
+        AVG(rating::NUMERIC / position),
+        2
+    )                                              AS quality,
+    ROUND(
+        COUNT(*) FILTER (WHERE rating < 3)
+            * 100.0
+            / COUNT(*),
+        2
+    )                                              AS poor_query_percentage
+FROM  Queries
+WHERE query_name IS NOT NULL          -- NULLクエリ名は除外（重複行対策）
+GROUP BY query_name;
+```
+
+---
+
+### 代替①：CTE で前処理を明示（可読性重視）
+
+```sql
+-- Runtime 240 ms
+-- Beats 36.77%
+
+WITH stats AS (
+    SELECT
+        query_name,
+        -- 各行の貢献スコア
+        rating::NUMERIC / position           AS score,
+        -- poor 判定フラグ（1 or 0）
+        CASE WHEN rating < 3 THEN 1 ELSE 0 END AS is_poor
+    FROM  Queries
+    WHERE query_name IS NOT NULL
+)
+SELECT
+    query_name,
+    ROUND(AVG(score),             2) AS quality,
+    ROUND(AVG(is_poor) * 100.0,   2) AS poor_query_percentage
+FROM  stats
+GROUP BY query_name;
+```
+
+---
+
+### 代替②：LATERAL を使って「グループごとの明細確認」（デバッグ用）
+
+```sql
+-- Runtime 233 ms
+-- Beats 46.57%
+
+SELECT
+    g.query_name,
+    ROUND(AVG(d.score),           2) AS quality,
+    ROUND(AVG(d.is_poor) * 100.0, 2) AS poor_query_percentage
+FROM (
+    SELECT DISTINCT query_name
+    FROM   Queries
+    WHERE  query_name IS NOT NULL
+) g
+JOIN LATERAL (
+    SELECT
+        rating::NUMERIC / position           AS score,
+        CASE WHEN rating < 3 THEN 1 ELSE 0 END AS is_poor
+    FROM  Queries q
+    WHERE q.query_name = g.query_name
+) d ON TRUE
+GROUP BY g.query_name;
+```
+
+---
+
+## 3) 要点解説
+
+| ポイント                           | 詳細                                                                |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| **`rating::NUMERIC / position`**   | `INT / INT` は整数除算になるため、`::NUMERIC` で明示キャスト        |
+| **`FILTER (WHERE rating < 3)`**    | PostgreSQL 独自の条件付き集計。`SUM(CASE WHEN...)` より高速・簡潔   |
+| **`AVG(is_poor) * 100.0`**         | is_poor を 0/1 にすると `AVG = 割合`。`* 100` でパーセント変換      |
+| **`ROUND(..., 2)`**                | `NUMERIC` 型に対して正確に小数2桁を保証（`FLOAT` は誤差あり）       |
+| **`WHERE query_name IS NOT NULL`** | 重複行が許容されるテーブルのため、NULL の query_name を防御的に除外 |
+
+---
+
+## 4) 計算量（概算）
+
+| 処理                  | 計算量                                                                         |
+| --------------------- | ------------------------------------------------------------------------------ |
+| フルスキャン          | **O(N)**（N = Queries の総行数）                                               |
+| GROUP BY ハッシュ集計 | **O(N)** 平均（ハッシュが収まる場合）                                          |
+| インデックス利用時    | `query_name` に B-tree インデックスがあれば **Index Scan → O(N log N)** に近似 |
+
+---
+
+## 5) 図解（Mermaid）
+
+```mermaid
+flowchart TD
+    A["入力: Queries テーブル\n(query_name, result, position, rating)"]
+    B["WHERE query_name IS NOT NULL\nNULL行を除外"]
+    C["GROUP BY query_name\nグループ化"]
+    D["AVG(rating::NUMERIC / position)\n→ quality"]
+    E["COUNT FILTER(rating < 3) * 100.0 / COUNT(*)\n→ poor_query_percentage"]
+    F["ROUND(..., 2)\n小数2桁に丸め"]
+    G["出力: query_name / quality / poor_query_percentage"]
+
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    D --> F
+    E --> F
+    F --> G
+```
+
+---
+
+## 6) 検証（例題トレース）
+
+```
+Dog:
+  quality            = ((5/1) + (5/2) + (1/200)) / 3
+                     = (5.0 + 2.5 + 0.005) / 3
+                     = 7.505 / 3
+                     ≈ 2.50  ✅
+
+  poor_query_%       = 1行(rating=1) / 3行 * 100
+                     = 33.33 ✅
+
+Cat:
+  quality            = ((2/5) + (3/3) + (4/7)) / 3
+                     = (0.4 + 1.0 + 0.5714...) / 3
+                     = 1.9714... / 3
+                     ≈ 0.66  ✅
+
+  poor_query_%       = 1行(rating=2) / 3行 * 100
+                     = 33.33 ✅
+```
+
+## パフォーマンス改善分析
+
+## 🔍 ボトルネック特定
+
+```
+最適解(単一): 223ms / 66%
+CTE版:        240ms / 37%  ← +17ms のオーバーヘッド
+LATERAL版:    233ms / 47%  ← 不要な二重スキャン
+```
+
+**原因は主に2点：**
+
+| 原因                 | 詳細                                      |
+| -------------------- | ----------------------------------------- |
+| `::NUMERIC` キャスト | 任意精度演算 → CPU ネイティブより**低速** |
+| `WHERE IS NOT NULL`  | 全行フィルタスキャンの追加コスト          |
+
+---
+
+## ✅ 改善版（推奨）
+
+```sql
+-- Runtime 221 ms
+-- Beats 71.65%
+
+SELECT
+    query_name,
+    ROUND(AVG(rating * 1.0 / position)::NUMERIC, 2)          AS quality,
+    ROUND(
+        COUNT(*) FILTER (WHERE rating < 3) * 100.0 / COUNT(*),
+        2
+    )                                                          AS poor_query_percentage
+FROM  Queries
+GROUP BY query_name;
+```
+
+### 変更点の差分
+
+```diff
+- ROUND(AVG(rating::NUMERIC / position), 2)
++ ROUND(AVG(rating * 1.0 / position)::NUMERIC, 2)
+
+  -- ↑ 中間計算を FLOAT(* 1.0) で行い、最後だけ NUMERIC にキャスト
+  -- NUMERIC演算はソフトウェア実装 → FLOATはCPUネイティブ命令で高速
+
+- WHERE query_name IS NOT NULL
+  -- ↑ 問題の制約上 NULL は存在しないため削除
+```
+
+---
+
+## 5) 図解（Mermaid）2
+
+```mermaid
+flowchart TD
+    A["Queries テーブル\nフルスキャン O(N)"]
+    B["GROUP BY query_name\nHash Aggregate"]
+    C["AVG(rating * 1.0 / position)\nFLOAT演算 CPU ネイティブ ⚡"]
+    D["FILTER(rating < 3)\nCOUNT条件集計"]
+    E["::NUMERIC キャスト\n最後の1回のみ"]
+    F["ROUND(..., 2)"]
+    G["出力"]
+
+    A --> B
+    B --> C & D
+    C --> E
+    D --> E
+    E --> F
+    F --> G
+
+    style C fill:#d4edda,stroke:#28a745
+    style E fill:#fff3cd,stroke:#ffc107
+```
+
+---
+
+## 📊 キャスト戦略の比較
+
+```
+【遅い】 rating::NUMERIC / position
+         ↑全行でNUMERIC(任意精度)演算 → ソフトウェアエミュレーション
+
+【速い】 rating * 1.0 / position
+         ↑FLOAT64演算 → x86 FPU / SIMD 命令で処理
+         最後に ::NUMERIC は ROUND() のため1回だけ
+```
+
+---
+
+## 💡 さらなる高速化（インデックス戦略）
+
+```sql
+-- query_name での GROUP BY が多い場合
+CREATE INDEX idx_queries_name ON Queries(query_name);
+
+-- カバリングインデックス（position, rating も含める）
+CREATE INDEX idx_queries_cover
+    ON Queries(query_name)
+    INCLUDE (position, rating);
+-- → Index Only Scan でテーブル本体へのアクセスをゼロに
+```
+
+> LeetCode 環境ではインデックス作成不可ですが、本番DBでは有効です。

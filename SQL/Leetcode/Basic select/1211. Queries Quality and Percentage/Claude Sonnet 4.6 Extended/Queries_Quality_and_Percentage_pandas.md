@@ -158,11 +158,11 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
 ```mermaid
 flowchart TD
-    A["入力: queries DataFrame\nquery_name / result / position / rating"]
-    B["notna + .copy()\nNULL除外 & CoW解消"]
-    C["rating / position → score (float64)\nrating < 3 → poor (float64)"]
-    D["groupby(sort=False, as_index=False)\n.agg(quality=mean, poor_%=mean)\nハッシュ集計 1パス"]
-    E["np.floor(quality * 100 + 0.5) / 100\nnp.floor(poor_% * 10000 + 0.5) / 100\nROUND_HALF_UP ← SQL互換 ✅"]
+    A["入力: queries DataFrame<br>query_name / result / position / rating"]
+    B["notna + .copy()<br>NULL除外 & CoW解消"]
+    C["rating / position → score (float64)<br>rating < 3 → poor (float64)"]
+    D["groupby(sort=False, as_index=False)<br>.agg(quality=mean, poor_%=mean)<br>ハッシュ集計 1パス"]
+    E["np.floor(quality * 100 + 0.5) / 100<br>np.floor(poor_% * 10000 + 0.5) / 100<br>ROUND_HALF_UP ← SQL互換 ✅"]
     F["出力: query_name / quality / poor_query_percentage"]
 
     A --> B
@@ -393,13 +393,13 @@ final    :   22.7 ms    7.97 MB   ← result 列スキップ + copy=False
 
 ```mermaid
 flowchart TD
-    A["入力: queries DataFrame\nquery_name / result / position / rating"]
-    B["notna().to_numpy() → mask\nbool配列 O(N)"]
-    C["to_numpy()[mask] × 3列のみ\nresult 列を完全スキップ ✅\ncopy=False で参照渡し ✅"]
-    D["numpy ベクトル演算\nscore = rat / pos\npoor  = rat < 3 → float64"]
-    E["pd.DataFrame(copy=False)\n最小構成の一時 DF"]
-    F["groupby.mean()\nCython 最適化パス 🔥\nsort=False でハッシュのみ"]
-    G["to_numpy() で値取得\nnp.floor ROUND_HALF_UP"]
+    A["入力: queries DataFrame<br>query_name / result / position / rating"]
+    B["notna().to_numpy() → mask<br>bool配列 O(N)"]
+    C["to_numpy()[mask] × 3列のみ<br>result 列を完全スキップ ✅<br>copy=False で参照渡し ✅"]
+    D["numpy ベクトル演算<br>score = rat / pos<br>poor  = rat < 3 → float64"]
+    E["pd.DataFrame(copy=False)<br>最小構成の一時 DF"]
+    F["groupby.mean()<br>Cython 最適化パス 🔥<br>sort=False でハッシュのみ"]
+    G["to_numpy() で値取得<br>np.floor ROUND_HALF_UP"]
     H["出力: query_name / quality / poor_query_percentage"]
 
     A --> B

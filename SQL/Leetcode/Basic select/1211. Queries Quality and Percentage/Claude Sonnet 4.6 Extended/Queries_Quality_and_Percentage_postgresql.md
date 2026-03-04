@@ -132,12 +132,12 @@ GROUP BY g.query_name;
 
 ```mermaid
 flowchart TD
-    A["入力: Queries テーブル\n(query_name, result, position, rating)"]
-    B["WHERE query_name IS NOT NULL\nNULL行を除外"]
-    C["GROUP BY query_name\nグループ化"]
-    D["AVG(rating::NUMERIC / position)\n→ quality"]
-    E["COUNT FILTER(rating < 3) * 100.0 / COUNT(*)\n→ poor_query_percentage"]
-    F["ROUND(..., 2)\n小数2桁に丸め"]
+    A["入力: Queries テーブル<br>(query_name, result, position, rating)"]
+    B["WHERE query_name IS NOT NULL<br>NULL行を除外"]
+    C["GROUP BY query_name<br>グループ化"]
+    D["AVG(rating::NUMERIC / position)<br>→ quality"]
+    E["COUNT FILTER(rating < 3) * 100.0 / COUNT(*)<br>→ poor_query_percentage"]
+    F["ROUND(..., 2)<br>小数2桁に丸め"]
     G["出力: query_name / quality / poor_query_percentage"]
 
     A --> B
@@ -191,7 +191,12 @@ LATERAL版:    233ms / 47%  ← 不要な二重スキャン
 
 ---
 
-## ✅ 改善版（推奨）
+## ✅ 改善版（推奨・要件緩和時）
+
+> **⚠️ 注意: 実行時間のブレと精度のトレードオフ**
+> LeetCode 上での `223 ms → 221 ms` の変化は**ベンチマークのブレの範囲内**（ノイズ）である可能性が高いです。
+> 中間集計に `float8`（倍精度浮動小数点）を利用すると、ネイティブ CPU 処理により微小なパフォーマンス向上が期待できますが、同時に**浮動小数点演算特有の丸め誤差（Precision Loss）**が発生するリスクがあります。
+> 本問のように `ROUND(..., 2)` で小数第2位までに丸める場合は許容範囲内となりますが、金融系やより厳密な精度が求められるケースでは、パフォーマンスを犠牲にしても**元解法の `NUMERIC` のまま計算するアプローチ**が推奨されます。
 
 ```sql
 -- Runtime 221 ms
@@ -209,14 +214,14 @@ WHERE query_name IS NOT NULL
 GROUP BY query_name;
 ```
 
-### 変更点の差分
+### 変更点の差分と影響
 
 ```diff
 - ROUND(AVG(rating::NUMERIC / position), 2)
 + ROUND(AVG(rating::float8 / position)::NUMERIC, 2)
 
   -- ↑ 中間計算を float8（倍精度浮動小数点）で行い、最後だけ NUMERIC にキャスト
-  -- NUMERIC演算はソフトウェア実装 → FLOATはCPUネイティブ命令で高速
+  -- NUMERIC演算はソフトウェア実装で正確無比 → FLOATはCPUネイティブ命令で高速だが誤差に注意
 ```
 
 ---
@@ -225,12 +230,12 @@ GROUP BY query_name;
 
 ```mermaid
 flowchart TD
-    A["Queries テーブル\nフルスキャン O(N)"]
-    A_F["WHERE query_name IS NOT NULL\nNULL行を除外"]
-    B["GROUP BY query_name\nHash Aggregate"]
-    C["AVG(rating::float8 / position)\nFLOAT演算 CPU ネイティブ ⚡"]
-    D["FILTER(rating < 3)\nCOUNT条件集計"]
-    E["::NUMERIC キャスト\n最後の1回のみ"]
+    A["Queries テーブル<br>フルスキャン O(N)"]
+    A_F["WHERE query_name IS NOT NULL<br>NULL行を除外"]
+    B["GROUP BY query_name<br>Hash Aggregate"]
+    C["AVG(rating::float8 / position)<br>FLOAT演算 CPU ネイティブ ⚡"]
+    D["FILTER(rating < 3)<br>COUNT条件集計"]
+    E["::NUMERIC キャスト<br>最後の1回のみ"]
     F["ROUND(..., 2)"]
     G["出力"]
 

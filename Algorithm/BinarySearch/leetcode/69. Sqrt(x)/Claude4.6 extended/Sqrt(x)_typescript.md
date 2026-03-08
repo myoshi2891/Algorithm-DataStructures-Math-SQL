@@ -86,9 +86,9 @@ function mySqrt(x: number): number {
     let high: number = x >> 1; // == Math.floor(x / 2), ビットシフトで整数除算
 
     // Loop Invariant:
-    //   low  の時点では low * low <= x が未確認
-    //   high の時点では high * high >= x が未確認
-    //   → 最終的に low > high になった時点で high = floor(√x)
+    //   (low - 1) * (low - 1) <= x  (lowより小さい値の二乗はx以下)
+    //   (high + 1) * (high + 1) > x  (highより大きい値の二乗はxより大きい)
+    //   → この不変条件により、ループ終了時に high = floor(√x) が保証される
     while (low <= high) {
         // オーバーフロー防止: (low + high) >>> 1
         const mid: number = (low + high) >>> 1;
@@ -107,8 +107,10 @@ function mySqrt(x: number): number {
     }
 
     // ループ終了後、high = floor(√x)
-    // 例: x=8 → mid=3(9>8) → high=2, mid=1(1<8) → low=2
-    //     low=high=2 → mid=2(4<8) → low=3 → 終了: high=2 ✓
+    // 例: x=8 → 初期 low=1, high=4
+    //     Iter1: mid=2, sq=4<8 → low=3
+    //     Iter2: mid=3, sq=9>8 → high=2
+    //     終了: low(3) > high(2) → return high=2 ✓
     return high;
 }
 ```

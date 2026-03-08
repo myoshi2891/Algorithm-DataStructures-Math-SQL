@@ -24,6 +24,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
@@ -350,9 +351,9 @@
     // エッジケース: x=0, x=1 は即リターン
     if (x < 2) return x;
 
-    // 探索範囲: [1, x >> 1]
+    // 探索範囲: [1, x >>> 1]
     let low: number = 1;
-    let high: number = x >> 1;  // x / 2（ビットシフト整数除算）
+    let high: number = x >>> 1;  // x / 2（符号なし右シフト整数除算）
 
     // Loop Invariant:
     //   low  - 1 の二乗は x 以下
@@ -964,40 +965,55 @@ graph TD
 
             function TraceTable({ x }) {
                 const rows = [];
-                let low = 1,
-                    high = x >> 1;
-                let iter = 0;
-                while (low <= high && iter < 20) {
-                    iter++;
-                    const mid = (low + high) >> 1;
-                    const sq = mid * mid;
-                    let action = '';
-                    if (sq === x) {
-                        rows.push({ iter, low, high, mid, sq, action: 'return mid ✓' });
-                        break;
-                    } else if (sq < x) {
-                        action = `low = ${mid + 1}`;
-                        rows.push({ iter, low, high, mid, sq, action });
-                        low = mid + 1;
-                    } else {
-                        action = `high = ${mid - 1}`;
-                        rows.push({ iter, low, high, mid, sq, action });
-                        high = mid - 1;
-                    }
-                }
-                if (
-                    rows.length === 0 ||
-                    rows[rows.length - 1].action.startsWith('low') ||
-                    rows[rows.length - 1].action.startsWith('high')
-                ) {
+
+                // 早期リターンケース: x < 2
+                if (x < 2) {
                     rows.push({
-                        iter: iter + 1,
-                        low,
-                        high,
+                        iter: 0,
+                        low: '-',
+                        high: '-',
                         mid: '-',
                         sq: '-',
-                        action: `return high=${high} ✓`,
+                        action: `x < 2 → return ${x} ✓`,
                     });
+                } else {
+                    let low = 1,
+                        high = x >>> 1;
+                    let iter = 0;
+
+                    // 二分探索ループ: 実装と同じ終了条件 (while low <= high)
+                    while (low <= high) {
+                        iter++;
+                        const mid = (low + high) >>> 1;
+                        const sq = mid * mid;
+                        let action = '';
+
+                        if (sq === x) {
+                            rows.push({ iter, low, high, mid, sq, action: `return mid=${mid} ✓` });
+                            break;
+                        } else if (sq < x) {
+                            action = `low = ${mid + 1}`;
+                            rows.push({ iter, low, high, mid, sq, action });
+                            low = mid + 1;
+                        } else {
+                            action = `high = ${mid - 1}`;
+                            rows.push({ iter, low, high, mid, sq, action });
+                            high = mid - 1;
+                        }
+                    }
+
+                    // ループ終了後: high = floor(√x)
+                    // 完全平方数でない場合のみ最終行を追加
+                    if (rows.length === 0 || !rows[rows.length - 1].action.includes('return mid')) {
+                        rows.push({
+                            iter: iter + 1,
+                            low,
+                            high,
+                            mid: '-',
+                            sq: '-',
+                            action: `return high=${high} ✓`,
+                        });
+                    }
                 }
 
                 return (

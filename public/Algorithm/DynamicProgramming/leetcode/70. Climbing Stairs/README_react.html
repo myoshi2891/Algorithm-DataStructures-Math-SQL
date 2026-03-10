@@ -1,0 +1,1872 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 70 - Climbing Stairs | フィボナッチDP</title>
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Noto Sans JP', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            .mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            /* Prism toolbar override */
+            .code-toolbar > .toolbar {
+                top: 0.6em;
+                right: 0.8em;
+                opacity: 1 !important;
+            }
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+            .code-toolbar > .toolbar .toolbar-item button:hover,
+            .code-toolbar > .toolbar .toolbar-item a:hover {
+                background: #059669 !important;
+                color: white !important;
+            }
+
+            /* Step card transition */
+            .step-btn {
+                transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Stair animation */
+            @keyframes stepUp {
+                0% {
+                    transform: translateY(6px);
+                    opacity: 0;
+                }
+                100% {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            .stair-anim {
+                animation: stepUp 0.35s ease forwards;
+            }
+
+            /* Fibonacci highlight */
+            @keyframes fibPulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                }
+                50% {
+                    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.25);
+                }
+            }
+            .fib-pulse {
+                animation: fibPulse 1.2s ease-in-out infinite;
+            }
+        </style>
+    </head>
+    <body class="bg-[linear-gradient(135deg,#f0fdf4,#e0f2fe)] min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 py-8">
+            <!-- ===== HEADER ===== -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2">
+                    <span
+                        class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >LeetCode 70</span
+                    >
+                    <span
+                        class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >Easy</span
+                    >
+                    <span
+                        class="bg-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >Dynamic Programming</span
+                    >
+                </div>
+                <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1">
+                    Climbing Stairs
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    フィボナッチDP（ローリング変数）による O(n) / O(1) 実装
+                </p>
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#fibonacci"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フィボナッチ可視化</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >計算量</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ===== OVERVIEW ===== -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <!-- 指標カード (純粋HTML) -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(1)</div>
+                        <div class="text-xs mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            1 &le; n &le; 45
+                        </div>
+                        <div class="text-xs mt-1">制約</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            Fibonacci DP
+                        </div>
+                        <div class="text-xs mt-1">手法</div>
+                    </div>
+                </div>
+
+                <!-- 問題文 -->
+                <div class="bg-slate-50 rounded-xl p-5 mb-4 border border-slate-200">
+                    <h3 class="outfit font-bold text-teal-800 text-lg mb-2">問題文</h3>
+                    <p class="text-slate-700 leading-7 text-sm">
+                        <code
+                            class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-mono text-sm"
+                            >n</code
+                        >
+                        段の階段を登ります。 毎回 <strong>1歩</strong> または
+                        <strong>2歩</strong> だけ登れるとき、 頂上への
+                        <strong>異なる登り方の総数</strong> を返してください。
+                    </p>
+                </div>
+
+                <!-- 入出力例 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+                        <div class="font-bold text-emerald-800 text-sm mb-2">Example 1</div>
+                        <div class="font-mono text-xs text-slate-700 space-y-1">
+                            <div>入力: <span class="text-emerald-700 font-bold">n = 2</span></div>
+                            <div>出力: <span class="text-emerald-700 font-bold">2</span></div>
+                            <div class="text-slate-500 mt-2">1+1 / 2</div>
+                        </div>
+                    </div>
+                    <div class="bg-sky-50 rounded-xl p-4 border border-sky-200">
+                        <div class="font-bold text-sky-800 text-sm mb-2">Example 2</div>
+                        <div class="font-mono text-xs text-slate-700 space-y-1">
+                            <div>入力: <span class="text-sky-700 font-bold">n = 3</span></div>
+                            <div>出力: <span class="text-sky-700 font-bold">3</span></div>
+                            <div class="text-slate-500 mt-2">1+1+1 / 1+2 / 2+1</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 本質 -->
+                <div class="bg-amber-50 rounded-xl p-5 border border-amber-200">
+                    <div class="font-bold text-amber-800 mb-2">💡 問題の本質</div>
+                    <p class="text-slate-700 text-sm leading-7">
+                        n段目に到達するには <strong>必ず</strong> 直前の2パターンから来る：<br />
+                        ① (n-1)段目から<strong>1歩</strong>　② (n-2)段目から<strong>2歩</strong
+                        ><br />
+                        よって
+                        <code class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-mono"
+                            >f(n) = f(n-1) + f(n-2)</code
+                        >
+                        → <strong>フィボナッチ数列そのもの！</strong>
+                    </p>
+                </div>
+            </section>
+
+            <!-- ===== STEPS (React) ===== -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ===== FIBONACCI VISUALIZER (React) ===== -->
+            <section id="fibonacci" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    フィボナッチ数列 インタラクティブ可視化
+                </h2>
+                <div id="fib-root"></div>
+            </section>
+
+            <!-- ===== CODE ===== -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python 実装
+                </h2>
+
+                <!-- タブ切り替え (React) -->
+                <div id="code-root"></div>
+            </section>
+
+            <!-- ===== FLOWCHART ===== -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+                <div class="mt-5 overflow-x-auto">
+                    <!--
+        viewBox設計:
+        - 幅: 560px固定（center x=280）
+        - ボックス: x=60, width=440（60〜500）で統一
+        - 終了楕円: cy=870, ry=28 → 下端=898 → viewBox高さ=940
+        - 全テキスト: x=280, text-anchor="middle" で中央揃え
+        - SVG属性: ケバブケース使用
+      -->
+                    <svg
+                        viewBox="0 0 560 940"
+                        style="
+                            max-width: 560px;
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                        "
+                        role="img"
+                        aria-label="Climbing Stairs algorithm flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="fc-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="fc-arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="fc-arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="fc-arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- 開始（楕円） -->
+                        <ellipse
+                            cx="280"
+                            cy="48"
+                            rx="110"
+                            ry="28"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="48"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#065f46"
+                            font-family="Outfit,sans-serif"
+                        >
+                            開始
+                        </text>
+
+                        <line
+                            x1="280"
+                            y1="76"
+                            x2="280"
+                            y2="103"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- 入力 -->
+                        <rect
+                            x="60"
+                            y="108"
+                            width="440"
+                            height="52"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="126"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#0c4a6e"
+                            font-family="Outfit,sans-serif"
+                        >
+                            入力受け取り
+                        </text>
+                        <text
+                            x="280"
+                            y="148"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#0369a1"
+                            font-family="JetBrains Mono,monospace"
+                        >
+                            n: int (1 &lt;= n &lt;= 45)
+                        </text>
+
+                        <line
+                            x1="280"
+                            y1="160"
+                            x2="280"
+                            y2="187"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- 条件1: n <= 2 ? -->
+                        <polygon
+                            points="280,192 460,240 280,288 100,240"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="234"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#78350f"
+                            font-family="Outfit,sans-serif"
+                        >
+                            n &lt;= 2 ?
+                        </text>
+
+                        <!-- Yes: 右へ水平 → 折れ線でreturn nボックス上端へ -->
+                        <!-- 水平線（矢印なし） -->
+                        <line
+                            x1="460"
+                            y1="240"
+                            x2="520"
+                            y2="240"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="488"
+                            y="230"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#059669"
+                            font-weight="bold"
+                        >
+                            Yes
+                        </text>
+                        <!-- 垂直線（矢印あり）→ return n ボックス上端へ -->
+                        <line
+                            x1="520"
+                            y1="240"
+                            x2="520"
+                            y2="267"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <rect
+                            x="488"
+                            y="267"
+                            width="66"
+                            height="34"
+                            rx="8"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="521"
+                            y="284"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            return n
+                        </text>
+
+                        <!-- No: 下 -->
+                        <line
+                            x1="280"
+                            y1="288"
+                            x2="280"
+                            y2="315"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <text
+                            x="258"
+                            y="304"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#dc2626"
+                            font-weight="bold"
+                        >
+                            No
+                        </text>
+
+                        <!-- 初期化 -->
+                        <rect
+                            x="60"
+                            y="320"
+                            width="440"
+                            height="70"
+                            rx="10"
+                            fill="#f1f5f9"
+                            stroke="#64748b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="340"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#1e293b"
+                            font-family="Outfit,sans-serif"
+                        >
+                            変数初期化
+                        </text>
+                        <line
+                            x1="80"
+                            y1="353"
+                            x2="480"
+                            y2="353"
+                            stroke="#cbd5e1"
+                            stroke-width="1"
+                        />
+                        <text
+                            x="280"
+                            y="370"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#475569"
+                            font-family="JetBrains Mono,monospace"
+                        >
+                            prev2 = 1 (f1) prev1 = 2 (f2)
+                        </text>
+
+                        <line
+                            x1="280"
+                            y1="390"
+                            x2="280"
+                            y2="417"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ループ条件 -->
+                        <polygon
+                            points="280,422 460,470 280,518 100,470"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="464"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#78350f"
+                            font-family="Outfit,sans-serif"
+                        >
+                            ループ残り &gt; 0 ?
+                        </text>
+
+                        <!-- ループ Yes: 下 → ローリング更新へ -->
+                        <line
+                            x1="280"
+                            y1="518"
+                            x2="280"
+                            y2="545"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <text
+                            x="258"
+                            y="534"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#059669"
+                            font-weight="bold"
+                        >
+                            Yes
+                        </text>
+
+                        <!-- ローリング更新 -->
+                        <rect
+                            x="60"
+                            y="550"
+                            width="440"
+                            height="70"
+                            rx="10"
+                            fill="#ede9fe"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="570"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#4c1d95"
+                            font-family="Outfit,sans-serif"
+                        >
+                            ローリング更新（タプル代入）
+                        </text>
+                        <line
+                            x1="80"
+                            y1="583"
+                            x2="480"
+                            y2="583"
+                            stroke="#ddd6fe"
+                            stroke-width="1"
+                        />
+                        <text
+                            x="280"
+                            y="602"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#5b21b6"
+                            font-family="JetBrains Mono,monospace"
+                        >
+                            prev2, prev1 = prev1, prev1 + prev2
+                        </text>
+
+                        <!-- ループバック（左側：ローリング更新 → ループ条件） -->
+                        <line x1="60" y1="585" x2="30" y2="585" stroke="#a855f7" stroke-width="2" />
+                        <line x1="30" y1="585" x2="30" y2="470" stroke="#a855f7" stroke-width="2" />
+                        <line
+                            x1="30"
+                            y1="470"
+                            x2="98"
+                            y2="470"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowPurple)"
+                        />
+                        <text
+                            x="14"
+                            y="530"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#a855f7"
+                            font-weight="bold"
+                            transform="rotate(-90, 14, 530)"
+                        >
+                            ループバック
+                        </text>
+
+                        <!--
+          ループ No: 右→下→左 の折れ線で「結果を返す」ボックス右端へ直接接続
+          経路: (460,470) → (545,470) → (545,687) → (502,687)
+          結果を返すボックス: x=60, y=652, w=440, h=70 → 右端x=500, center-y=687
+        -->
+                        <text
+                            x="498"
+                            y="460"
+                            text-anchor="middle"
+                            font-size="11"
+                            fill="#dc2626"
+                            font-weight="bold"
+                        >
+                            No
+                        </text>
+                        <!-- 右へ水平 -->
+                        <line
+                            x1="460"
+                            y1="470"
+                            x2="545"
+                            y2="470"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <!-- 下へ垂直 -->
+                        <line
+                            x1="545"
+                            y1="470"
+                            x2="545"
+                            y2="687"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <!-- 左へ水平（矢印あり）→ 結果を返すボックス右端へ -->
+                        <line
+                            x1="545"
+                            y1="687"
+                            x2="502"
+                            y2="687"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+
+                        <!-- 出力 -->
+                        <rect
+                            x="60"
+                            y="652"
+                            width="440"
+                            height="70"
+                            rx="12"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2.5"
+                        />
+                        <text
+                            x="280"
+                            y="672"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="14"
+                            font-weight="bold"
+                            fill="#065f46"
+                            font-family="Outfit,sans-serif"
+                        >
+                            結果を返す
+                        </text>
+                        <line
+                            x1="80"
+                            y1="685"
+                            x2="480"
+                            y2="685"
+                            stroke="#a7f3d0"
+                            stroke-width="1"
+                        />
+                        <text
+                            x="280"
+                            y="703"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            fill="#047857"
+                            font-family="JetBrains Mono,monospace"
+                        >
+                            return prev1 → f(n) の値
+                        </text>
+
+                        <line
+                            x1="280"
+                            y1="722"
+                            x2="280"
+                            y2="749"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+
+                        <!-- 終了（楕円）: cy=777, ry=28 → 下端=805, viewBox=940 で余裕あり -->
+                        <ellipse
+                            cx="280"
+                            cy="777"
+                            rx="110"
+                            ry="28"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="777"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="16"
+                            font-weight="bold"
+                            fill="#065f46"
+                            font-family="Outfit,sans-serif"
+                        >
+                            終了
+                        </text>
+
+                        <!-- 凡例 -->
+                        <rect
+                            x="60"
+                            y="830"
+                            width="440"
+                            height="88"
+                            rx="10"
+                            fill="#f8fafc"
+                            stroke="#e2e8f0"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="280"
+                            y="850"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-weight="bold"
+                            fill="#475569"
+                        >
+                            凡例
+                        </text>
+                        <line
+                            x1="80"
+                            y1="860"
+                            x2="480"
+                            y2="860"
+                            stroke="#e2e8f0"
+                            stroke-width="1"
+                        />
+                        <ellipse
+                            cx="100"
+                            cy="878"
+                            rx="18"
+                            ry="10"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="100"
+                            y="878"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="9"
+                            fill="#065f46"
+                        >
+                            開始/終了
+                        </text>
+                        <rect
+                            x="140"
+                            y="869"
+                            width="60"
+                            height="18"
+                            rx="4"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="170"
+                            y="878"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="9"
+                            fill="#0c4a6e"
+                        >
+                            処理
+                        </text>
+                        <polygon
+                            points="240,878 260,868 280,878 260,888"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="260"
+                            y="878"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="9"
+                            fill="#78350f"
+                        >
+                            条件
+                        </text>
+                        <rect
+                            x="300"
+                            y="869"
+                            width="60"
+                            height="18"
+                            rx="4"
+                            fill="#ede9fe"
+                            stroke="#a855f7"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="330"
+                            y="878"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="9"
+                            fill="#4c1d95"
+                        >
+                            DP更新
+                        </text>
+                        <rect
+                            x="380"
+                            y="869"
+                            width="60"
+                            height="18"
+                            rx="4"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="410"
+                            y="878"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="9"
+                            fill="#065f46"
+                        >
+                            出力
+                        </text>
+
+                        <text
+                            x="280"
+                            y="905"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="10"
+                            fill="#94a3b8"
+                        >
+                            紫の矢印 = ループバック / 緑の矢印 = 成功パス / 赤の矢印 = 条件分岐
+                        </text>
+                    </svg>
+                </div>
+                <p class="mt-6 text-slate-700 leading-8 text-sm">
+                    <strong class="text-lg text-teal-800">フローの説明：</strong><br />
+                    1. 入力
+                    <code class="bg-slate-100 px-1 rounded font-mono">n</code> を受け取り、<code
+                        class="bg-slate-100 px-1 rounded font-mono"
+                        >n &le; 2</code
+                    >
+                    なら即
+                    <code class="bg-slate-100 px-1 rounded font-mono">n</code>
+                    を返す（基底条件）。<br />
+                    2.
+                    <code class="bg-slate-100 px-1 rounded font-mono">prev2=1, prev1=2</code>
+                    で初期化後、<code class="bg-slate-100 px-1 rounded font-mono">n-2</code>
+                    回ループで更新。<br />
+                    3. タプル代入
+                    <code class="bg-slate-100 px-1 rounded font-mono"
+                        >prev2, prev1 = prev1, prev1+prev2</code
+                    >
+                    で一時変数ゼロの安全なローリング更新。<br />
+                    4. ループ終了後に
+                    <code class="bg-slate-100 px-1 rounded font-mono">prev1</code>（= f(n)）を返す。
+                </p>
+            </section>
+
+            <!-- ===== COMPLEXITY ===== -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-emerald-50">
+                                <th
+                                    class="text-left p-3 border border-emerald-200 text-teal-800 font-bold"
+                                >
+                                    アプローチ
+                                </th>
+                                <th
+                                    class="text-center p-3 border border-emerald-200 text-teal-800 font-bold"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="text-center p-3 border border-emerald-200 text-teal-800 font-bold"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="text-left p-3 border border-emerald-200 text-teal-800 font-bold"
+                                >
+                                    備考
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-red-50">
+                                <td class="p-3 border border-slate-200 font-mono text-sm">
+                                    再帰（素朴）
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center font-bold text-red-600"
+                                >
+                                    O(2ⁿ)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center">O(n)</td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    n=45 で約35兆回呼び出し → TLE確定
+                                </td>
+                            </tr>
+                            <tr class="bg-yellow-50">
+                                <td class="p-3 border border-slate-200 font-mono text-sm">
+                                    メモ化再帰 @cache
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center font-bold text-yellow-600"
+                                >
+                                    O(n)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-yellow-600">
+                                    O(n)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    コールスタック + 辞書でヒープ消費
+                                </td>
+                            </tr>
+                            <tr class="bg-blue-50">
+                                <td class="p-3 border border-slate-200 font-mono text-sm">
+                                    DP配列 (list)
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center font-bold text-blue-600"
+                                >
+                                    O(n)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-blue-600">
+                                    O(n)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    直感的だが配列サイズnが無駄
+                                </td>
+                            </tr>
+                            <tr class="bg-emerald-50 font-bold">
+                                <td
+                                    class="p-3 border border-emerald-300 font-mono text-sm text-emerald-800"
+                                >
+                                    ✅ ローリング変数（採用）
+                                </td>
+                                <td
+                                    class="p-3 border border-emerald-300 text-center text-emerald-700"
+                                >
+                                    O(n)
+                                </td>
+                                <td
+                                    class="p-3 border border-emerald-300 text-center text-emerald-700"
+                                >
+                                    O(1) ★
+                                </td>
+                                <td class="p-3 border border-emerald-300 text-emerald-700">
+                                    変数2個のみ・ヒープゼロ
+                                </td>
+                            </tr>
+                            <tr class="bg-violet-50">
+                                <td class="p-3 border border-slate-200 font-mono text-sm">
+                                    定数テーブル
+                                </td>
+                                <td
+                                    class="p-3 border border-slate-200 text-center font-bold text-violet-600"
+                                >
+                                    O(1)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center text-violet-600">
+                                    O(1)
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    n≦45限定。参照のみ。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div class="font-bold text-slate-700 mb-2 text-sm">
+                        📐 n=45 の結果値（オーバーフロー確認）
+                    </div>
+                    <div class="font-mono text-xs text-slate-600 space-y-1">
+                        <div>
+                            f(45) = <span class="text-emerald-700 font-bold">1,836,311,903</span>
+                        </div>
+                        <div>
+                            i32::MAX = 2,147,483,647 →
+                            <span class="text-emerald-700">✅ 収まる</span>
+                        </div>
+                        <div>
+                            Python int = 任意精度 →
+                            <span class="text-emerald-700">✅ オーバーフロー不要</span>
+                        </div>
+                        <div>
+                            f(46) = 2,971,215,073 &gt; i32::MAX →
+                            <span class="text-red-600">⚠️ C/Java/Rust では i64 が必要</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===== REACT COMPONENTS ===== -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ====================================================
+            // STEP DATA
+            // ====================================================
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '問題の本質を掴む',
+                    desc: 'n段目に到達する経路は、必ず「(n-1)段目から1歩」または「(n-2)段目から2歩」の2パターンのみ。したがって f(n) = f(n-1) + f(n-2) が成立する。これはフィボナッチ数列そのものだ。',
+                    visual: 'fibonacci_insight',
+                },
+                {
+                    step: 2,
+                    title: '基底条件を確認する',
+                    desc: 'n=1 は [1] の1通り、n=2 は [1+1] と [2] の2通り。ループ開始前に n<=2 ならそのまま n を返すことで、エッジケースを安全に処理する。',
+                    visual: 'base_case',
+                },
+                {
+                    step: 3,
+                    title: '変数を初期化する',
+                    desc: 'ローリング変数 prev2=1（f(1)）, prev1=2（f(2)）で開始。配列・辞書は不要で、スタック変数2個のみで空間O(1)を達成する。',
+                    visual: 'init',
+                },
+                {
+                    step: 4,
+                    title: 'タプル代入でローリング更新',
+                    desc: 'prev2, prev1 = prev1, prev1 + prev2 を n-2 回繰り返す。Pythonのタプル代入は右辺を先に評価するため、一時変数が不要。これがCPythonの最適化ポイント。',
+                    visual: 'rolling',
+                },
+                {
+                    step: 5,
+                    title: '結果を返す',
+                    desc: 'ループ終了時の prev1 が f(n) の値。n=45 の結果は 1,836,311,903 で i32::MAX 以内。Python の int は任意精度なのでオーバーフロー考慮不要。',
+                    visual: 'result',
+                },
+            ];
+
+            // ====================================================
+            // STEP VISUALIZATION
+            // ====================================================
+            function StepVisualization({ visual, step }) {
+                const fib = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+
+                if (visual === 'fibonacci_insight') {
+                    return (
+                        <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div className="text-xs font-bold text-slate-500 mb-3">
+                                f(n) = f(n-1) + f(n-2)
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                                    <div key={n} className="flex flex-col items-center">
+                                        <div
+                                            className={[
+                                                'w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold font-mono',
+                                                n <= 2
+                                                    ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-400'
+                                                    : 'bg-sky-100 text-sky-800 border-2 border-sky-300',
+                                            ].join(' ')}
+                                        >
+                                            {fib[n - 1]}
+                                        </div>
+                                        <div className="text-xs text-slate-400 mt-1">f({n})</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-3">
+                                <span className="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
+                                    緑 = 基底条件
+                                </span>
+                                <span className="ml-2 bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded">
+                                    青 = f(n-1)+f(n-2)
+                                </span>
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (visual === 'base_case') {
+                    return (
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-200 text-center">
+                                <div className="font-mono font-bold text-emerald-800">n = 1</div>
+                                <div className="text-xs text-slate-500 mt-1">パターン</div>
+                                <div className="mt-2 flex justify-center gap-1">
+                                    <span className="bg-emerald-200 text-emerald-900 text-xs px-2 py-1 rounded font-mono">
+                                        1
+                                    </span>
+                                </div>
+                                <div className="mt-2 font-bold text-emerald-700">→ return 1</div>
+                            </div>
+                            <div className="bg-sky-50 rounded-xl p-3 border border-sky-200 text-center">
+                                <div className="font-mono font-bold text-sky-800">n = 2</div>
+                                <div className="text-xs text-slate-500 mt-1">パターン</div>
+                                <div className="mt-2 flex justify-center gap-1 flex-wrap">
+                                    <span className="bg-sky-200 text-sky-900 text-xs px-2 py-1 rounded font-mono">
+                                        1+1
+                                    </span>
+                                    <span className="bg-sky-200 text-sky-900 text-xs px-2 py-1 rounded font-mono">
+                                        2
+                                    </span>
+                                </div>
+                                <div className="mt-2 font-bold text-sky-700">→ return 2</div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (visual === 'init') {
+                    return (
+                        <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div className="text-xs font-bold text-slate-500 mb-3 font-mono">
+                                初期状態（n=5の場合）
+                            </div>
+                            <div className="flex gap-4 justify-center">
+                                <div className="text-center">
+                                    <div className="bg-emerald-100 border-2 border-emerald-400 rounded-lg w-16 h-12 flex items-center justify-center font-mono font-bold text-emerald-800 text-lg">
+                                        1
+                                    </div>
+                                    <div className="text-xs text-slate-500 mt-1">prev2 = f(1)</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="bg-sky-100 border-2 border-sky-400 rounded-lg w-16 h-12 flex items-center justify-center font-mono font-bold text-sky-800 text-lg">
+                                        2
+                                    </div>
+                                    <div className="text-xs text-slate-500 mt-1">prev1 = f(2)</div>
+                                </div>
+                            </div>
+                            <div className="mt-3 text-xs text-slate-600 text-center font-mono">
+                                残りループ回数: n - 2 = 3 回
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (visual === 'rolling') {
+                    const trace = [
+                        { prev2: 1, prev1: 2, iter: 0, label: '初期値' },
+                        { prev2: 2, prev1: 3, iter: 1, label: 'i=1 → f(3)=3' },
+                        { prev2: 3, prev1: 5, iter: 2, label: 'i=2 → f(4)=5' },
+                        { prev2: 5, prev1: 8, iter: 3, label: 'i=3 → f(5)=8' },
+                    ];
+                    return (
+                        <div className="mt-4 overflow-x-auto">
+                            <table className="w-full text-xs border-collapse">
+                                <thead>
+                                    <tr className="bg-violet-50">
+                                        <th className="p-2 border border-violet-200 text-violet-800">
+                                            ステップ
+                                        </th>
+                                        <th className="p-2 border border-violet-200 text-violet-800">
+                                            prev2
+                                        </th>
+                                        <th className="p-2 border border-violet-200 text-violet-800">
+                                            prev1
+                                        </th>
+                                        <th className="p-2 border border-violet-200 text-violet-800">
+                                            意味
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {trace.map((row, i) => (
+                                        <tr
+                                            key={i}
+                                            className={
+                                                i === trace.length - 1
+                                                    ? 'bg-emerald-50 font-bold'
+                                                    : 'bg-white'
+                                            }
+                                        >
+                                            <td className="p-2 border border-slate-200 text-center">
+                                                {row.iter}
+                                            </td>
+                                            <td className="p-2 border border-slate-200 text-center font-mono">
+                                                {row.prev2}
+                                            </td>
+                                            <td
+                                                className={[
+                                                    'p-2 border border-slate-200 text-center font-mono font-bold',
+                                                    i === trace.length - 1
+                                                        ? 'text-emerald-700'
+                                                        : 'text-sky-700',
+                                                ].join(' ')}
+                                            >
+                                                {row.prev1}
+                                            </td>
+                                            <td className="p-2 border border-slate-200 text-slate-500">
+                                                {row.label}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                }
+
+                if (visual === 'result') {
+                    return (
+                        <div className="mt-4 bg-emerald-50 rounded-xl p-4 border border-emerald-200 text-center">
+                            <div className="text-xs font-bold text-slate-500 mb-2">
+                                n=45 の最大値確認
+                            </div>
+                            <div className="font-mono text-2xl font-bold text-emerald-700">
+                                1,836,311,903
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                                f(45) — i32::MAX (2,147,483,647) 以内 ✅
+                            </div>
+                            <div className="mt-3 text-xs text-slate-600">
+                                Python int は任意精度 → オーバーフロー考慮不要
+                            </div>
+                        </div>
+                    );
+                }
+
+                return null;
+            }
+
+            // ====================================================
+            // STEPS COMPONENT
+            // ====================================================
+            function StepsComponent() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* ステップ一覧 */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold outfit">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'step-btn w-full text-left text-[0.95rem] rounded-xl border-2 cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => {
+                                                setActiveStep(step.step);
+                                                setIsPlaying(false);
+                                            }}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1 text-sm',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-xs mt-1">
+                                                {step.desc.substring(0, 45)}...
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 詳細パネル */}
+                        <div className="my-auto">
+                            <div className="rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-lg font-bold outfit">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7 text-sm mt-2">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} step={activeStep} />
+
+                            {/* コントロール */}
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+                                    onClick={() => setIsPlaying(true)}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            {/* プログレス */}
+                            <div className="mt-4 flex gap-1 justify-center">
+                                {stepsData.map((s) => (
+                                    <div
+                                        key={s.step}
+                                        className={[
+                                            'h-1.5 rounded-full transition-all',
+                                            activeStep === s.step
+                                                ? 'w-8 bg-emerald-500'
+                                                : 'w-2 bg-slate-200',
+                                        ].join(' ')}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ====================================================
+            // FIBONACCI VISUALIZER
+            // ====================================================
+            function FibVisualizer() {
+                const [n, setN] = useState(6);
+                const [highlighted, setHighlighted] = useState(null);
+
+                const fibValues = [];
+                let a = 1,
+                    b = 2;
+                fibValues.push({ n: 1, val: 1, type: 'base' });
+                fibValues.push({ n: 2, val: 2, type: 'base' });
+                for (let i = 3; i <= n; i++) {
+                    let c = a + b;
+                    fibValues.push({ n: i, val: c, type: 'dp' });
+                    a = b;
+                    b = c;
+                }
+
+                return (
+                    <div>
+                        <div className="flex items-center gap-4 mb-6">
+                            <label className="font-semibold text-slate-700 text-sm">n =</label>
+                            <input
+                                type="range"
+                                min={1}
+                                max={10}
+                                value={n}
+                                onChange={(e) => {
+                                    setN(parseInt(e.target.value));
+                                    setHighlighted(null);
+                                }}
+                                className="w-48 accent-emerald-500"
+                            />
+                            <span className="font-mono font-bold text-emerald-700 text-lg">
+                                {n}
+                            </span>
+                        </div>
+
+                        {/* フィボナッチ列 */}
+                        <div className="flex flex-wrap gap-3 mb-6">
+                            {fibValues.map((f) => (
+                                <button
+                                    key={f.n}
+                                    type="button"
+                                    onClick={() => setHighlighted(f.n === highlighted ? null : f.n)}
+                                    className={[
+                                        'flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition',
+                                        f.n === highlighted
+                                            ? 'bg-emerald-100 border-emerald-500 shadow-lg scale-110'
+                                            : f.type === 'base'
+                                              ? 'bg-emerald-50 border-emerald-300 hover:border-emerald-400'
+                                              : 'bg-sky-50 border-sky-300 hover:border-sky-400',
+                                    ].join(' ')}
+                                >
+                                    <div
+                                        className={[
+                                            'font-mono font-bold text-lg',
+                                            f.n === highlighted
+                                                ? 'text-emerald-800'
+                                                : f.type === 'base'
+                                                  ? 'text-emerald-700'
+                                                  : 'text-sky-700',
+                                        ].join(' ')}
+                                    >
+                                        {f.val}
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">f({f.n})</div>
+                                    {f.type === 'base' && (
+                                        <div className="text-xs text-emerald-500 mt-0.5">基底</div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* 選択ノードの内訳 */}
+                        {highlighted && highlighted >= 3 && (
+                            <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 text-sm">
+                                <div className="font-bold text-amber-800 mb-2">
+                                    f({highlighted}) の内訳
+                                </div>
+                                <div className="font-mono text-slate-700">
+                                    f({highlighted}) = f({highlighted - 1}) + f({highlighted - 2}) ={' '}
+                                    <span className="text-sky-700 font-bold">
+                                        {fibValues[highlighted - 2]?.val}
+                                    </span>
+                                    &nbsp;+&nbsp;
+                                    <span className="text-emerald-700 font-bold">
+                                        {fibValues[highlighted - 3]?.val}
+                                    </span>
+                                    &nbsp;=&nbsp;
+                                    <span className="text-amber-700 font-bold">
+                                        {fibValues[highlighted - 1]?.val}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {highlighted && highlighted < 3 && (
+                            <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200 text-sm">
+                                <div className="font-bold text-emerald-800">
+                                    f({highlighted}) は基底条件 → 直接 {highlighted} を返す
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 結果 */}
+                        <div className="mt-4 flex items-center gap-3 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div className="text-sm text-slate-600">f({n}) =</div>
+                            <div className="font-mono font-bold text-2xl text-emerald-700">
+                                {fibValues[n - 1]?.val}
+                            </div>
+                            <div className="text-sm text-slate-500">通りの登り方</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ====================================================
+            // CODE TABS
+            // ====================================================
+            const codeSnippets = {
+                python: `from __future__ import annotations
+from typing import Final
+
+
+class Solution:
+    """
+    LeetCode 70 - Climbing Stairs
+    フィボナッチDP（ローリング変数・空間O(1)）
+
+    Time:  O(n)
+    Space: O(1)
+    """
+
+    def climbStairs(self, n: int) -> int:
+        # --- 基底条件 ---
+        # n=1 → 1通り / n=2 → 2通り
+        if n <= 2:
+            return n
+
+        # --- ローリング変数DP ---
+        prev2: int = 1  # f(n-2): f(1) = 1
+        prev1: int = 2  # f(n-1): f(2) = 2
+
+        # n-2 回更新: f(3) → f(4) → ... → f(n)
+        for _ in range(n - 2):
+            # タプル代入で右辺を先に評価（一時変数不要）
+            prev2, prev1 = prev1, prev1 + prev2
+
+        # ループ終了時: prev1 = f(n)
+        return prev1
+
+    # --------------------------------------------------
+    # 業務開発版（エラーハンドリング付き）
+    # --------------------------------------------------
+    def climbStairs_production(self, n: int) -> int:
+        """
+        Raises:
+            TypeError:  n が int でない場合
+            ValueError: n が 1..45 の範囲外の場合
+        """
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError(f"n must be int, got {type(n).__name__}")
+
+        MAX_N: Final[int] = 45
+        if not (1 <= n <= MAX_N):
+            raise ValueError(f"n must satisfy 1 <= n <= {MAX_N}, got {n}")
+
+        if n <= 2:
+            return n
+
+        prev2: int = 1
+        prev1: int = 2
+        for _ in range(n - 2):
+            prev2, prev1 = prev1, prev1 + prev2
+        return prev1`,
+
+                typescript: `// Branded Type: 制約付き n を型レベルで表現
+type ValidN = number & { readonly _brand: "ValidStairN" };
+
+function isValidN(n: number): n is ValidN {
+  return Number.isInteger(n) && n >= 1 && n <= 45;
+}
+
+/**
+ * 階段の登り方パターン数（競技版）
+ * @complexity Time: O(n), Space: O(1)
+ */
+function climbStairs(n: number): number {
+  if (n <= 2) return n;
+
+  let prev2: number = 1; // f(n-2)
+  let prev1: number = 2; // f(n-1)
+
+  for (let i = 2; i < n; i++) {
+    [prev2, prev1] = [prev1, prev1 + prev2];
+  }
+
+  return prev1;
+}
+
+/**
+ * 業務開発版（Branded Type + エラーハンドリング）
+ * @throws {TypeError}  n が整数でない場合
+ * @throws {RangeError} n が 1..45 の範囲外の場合
+ * @complexity Time: O(1) — 定数テーブル参照
+ */
+function climbStairsTable(n: number): number {
+  if (!Number.isInteger(n)) {
+    throw new TypeError(\`n must be an integer, got \${typeof n}: \${n}\`);
+  }
+  if (!isValidN(n)) {
+    throw new RangeError(\`n must satisfy 1 <= n <= 45, got \${n}\`);
+  }
+
+  const STAIRS_TABLE = [
+    0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610,
+    987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368,
+    75025, 121393, 196418, 317811, 514229, 832040, 1346269,
+    2178309, 3524578, 5702887, 9227465, 14930352, 24157817,
+    39088169, 63245986, 102334155, 165580141, 267914296,
+    433494437, 701408733, 1134903170, 1836311903,
+  ] as const;
+
+  return STAIRS_TABLE[n];
+}`,
+
+                rust: `/// 階段の登り方パターン数（競技版）
+///
+/// # Complexity
+/// - Time:  O(n)
+/// - Space: O(1) — スタック変数のみ、ヒープアロケーションなし
+#[inline]
+fn climb_stairs_competitive(n: i32) -> i32 {
+    if n <= 2 {
+        return n;
+    }
+
+    let mut prev2: i32 = 1; // f(n-2)
+    let mut prev1: i32 = 2; // f(n-1)
+
+    // n-2 回ローリング更新
+    for _ in 2..n {
+        (prev2, prev1) = (prev1, prev1 + prev2);
+    }
+
+    prev1
+}
+
+// LeetCode 提出フォーマット
+impl Solution {
+    pub fn climb_stairs(n: i32) -> i32 {
+        climb_stairs_competitive(n)
+    }
+}
+
+// カスタムエラー型（業務開発版）
+#[derive(Debug, Clone, PartialEq)]
+enum StairError {
+    BelowMinimum(i32),
+    AboveMaximum(i32),
+}
+
+impl std::fmt::Display for StairError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BelowMinimum(n) => write!(f, "n={n} is below minimum (1)"),
+            Self::AboveMaximum(n) => write!(f, "n={n} exceeds maximum (45)"),
+        }
+    }
+}
+
+fn climb_stairs_production(n: i32) -> Result<i32, StairError> {
+    match n {
+        i32::MIN..=0 => return Err(StairError::BelowMinimum(n)),
+        46..=i32::MAX => return Err(StairError::AboveMaximum(n)),
+        _ => {}
+    }
+    if n <= 2 { return Ok(n); }
+
+    let (_, result) = (2..n).fold(
+        (1_i32, 2_i32),
+        |(prev2, prev1), _| (prev1, prev1 + prev2),
+    );
+    Ok(result)
+}`,
+            };
+
+            const langLabels = {
+                python: 'Python',
+                typescript: 'TypeScript',
+                rust: 'Rust',
+            };
+
+            const prismLang = {
+                python: 'language-python',
+                typescript: 'language-typescript',
+                rust: 'language-rust',
+            };
+
+            function CodeTabs() {
+                const [activeLang, setActiveLang] = useState('python');
+
+                useEffect(() => {
+                    setTimeout(() => {
+                        if (window.Prism) window.Prism.highlightAll();
+                    }, 50);
+                }, [activeLang]);
+
+                return (
+                    <div>
+                        {/* タブ */}
+                        <div className="flex gap-2 mb-4 flex-wrap">
+                            {Object.keys(codeSnippets).map((lang) => (
+                                <button
+                                    key={lang}
+                                    type="button"
+                                    onClick={() => setActiveLang(lang)}
+                                    className={[
+                                        'px-4 py-2 rounded-lg font-bold text-sm transition border-2',
+                                        activeLang === lang
+                                            ? 'bg-emerald-500 text-white border-emerald-500 shadow'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400',
+                                    ].join(' ')}
+                                >
+                                    {langLabels[lang]}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* コード */}
+                        <pre
+                            className="line-numbers rounded-xl overflow-x-auto text-sm"
+                            style={{ margin: 0 }}
+                        >
+                            <code className={prismLang[activeLang]}>
+                                {codeSnippets[activeLang]}
+                            </code>
+                        </pre>
+
+                        {/* 注釈 */}
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200 text-xs">
+                                <div className="font-bold text-emerald-800 mb-1">Python 特徴</div>
+                                <div className="text-slate-600">
+                                    タプル代入・任意精度int・型アノテーション
+                                </div>
+                            </div>
+                            <div className="bg-sky-50 rounded-lg p-3 border border-sky-200 text-xs">
+                                <div className="font-bold text-sky-800 mb-1">TypeScript 特徴</div>
+                                <div className="text-slate-600">
+                                    Branded Type・as const テーブル・型ガード
+                                </div>
+                            </div>
+                            <div className="bg-violet-50 rounded-lg p-3 border border-violet-200 text-xs">
+                                <div className="font-bold text-violet-800 mb-1">Rust 特徴</div>
+                                <div className="text-slate-600">
+                                    i32 Copy・ヒープゼロ・fold ゼロコスト抽象化
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ====================================================
+            // MOUNT
+            // ====================================================
+            ReactDOM.createRoot(document.getElementById('steps-root')).render(<StepsComponent />);
+            ReactDOM.createRoot(document.getElementById('fib-root')).render(<FibVisualizer />);
+            ReactDOM.createRoot(document.getElementById('code-root')).render(<CodeTabs />);
+        </script>
+    </body>
+</html>

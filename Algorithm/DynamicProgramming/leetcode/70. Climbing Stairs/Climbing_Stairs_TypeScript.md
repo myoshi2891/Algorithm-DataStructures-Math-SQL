@@ -133,7 +133,7 @@ const STAIRS_TABLE = [
  * @param n - 階段の段数 (制約: 1 <= n <= 45)
  * @returns 頂上への異なる登り方の総数
  * @throws {TypeError}  n が整数でない場合
- * @throws {RangeError} n が 1..45 の範囲外の場合
+ * @throws {TypeError} n が 1..45 の範囲外の場合
  * @complexity Time: O(1), Space: O(1)
  */
 function climbStairsTable(n: number): number {

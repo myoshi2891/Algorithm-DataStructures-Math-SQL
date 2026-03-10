@@ -78,8 +78,6 @@ impl std::fmt::Display for StairError {
 
 impl std::error::Error for StairError {}
 
-type StairResult = Result<i32, StairError>;
-
 // ================================================================
 // ✅ 業務開発版: Result + fold イテレータ（ゼロコスト抽象化）
 //    エラーハンドリング・可読性・Rustイディオム重視

@@ -63,7 +63,6 @@ f(5) = 8                        ← f(4) + f(3) = 8
 ## 4. 実装
 
 ```python
-from typing import Optional
 from functools import cache
 
 

@@ -282,6 +282,7 @@ if __name__ == "__main__":
 ```python
 # asyncio版（参考）
 import asyncio
+import inspect
 from typing import Callable, Coroutine, Any
 
 def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, None]]:
@@ -298,7 +299,7 @@ def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, 
         async def delayed():
             await asyncio.sleep(t / 1000.0)
             result = fn(*args, **kwargs)
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 await result
 
         task = asyncio.create_task(delayed())
@@ -496,16 +497,17 @@ def throttle(fn: Callable, t: float) -> Callable:
     def throttled(*args, **kwargs):
         nonlocal last_call
         now = time.time()
-        
+        should_call = False
+
         with lock:
             if now - last_call >= t / 1000.0:
                 last_call = now
-                # 注: fn自体が長時間ブロックする可能性がある場合は
-                # 別スレッドで実行するか、lockのスコープを狭めるなどの工夫が必要
-                fn(*args, **kwargs)
+                should_call = True
 
-    return throttled
-```
+        if should_call:
+            fn(*args, **kwargs)
+
+    return throttled```
 
 ### Q6. LeetCodeで提出できる？
 

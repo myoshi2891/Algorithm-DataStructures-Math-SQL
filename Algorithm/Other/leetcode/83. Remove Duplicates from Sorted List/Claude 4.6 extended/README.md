@@ -4,16 +4,16 @@
 
 - [Overview](#overview)
 - [Algorithm](#algorithm)
-  - [アルゴリズム要点 TL;DR](#tldr)
-  - [図解](#figures)
-  - [正しさのスケッチ](#correctness)
-  - [FAQ](#faq)
+    - [アルゴリズム要点 TL;DR](#tldr)
+    - [図解](#figures)
+    - [正しさのスケッチ](#correctness)
+    - [FAQ](#faq)
 - [Complexity](#complexity)
 - [Implementation](#implementation)
-  - [Python 実装](#impl)
-  - [エッジケースと検証観点](#edgecases)
+    - [Python 実装](#impl)
+    - [エッジケースと検証観点](#edgecases)
 - [Optimization](#optimization)
-  - [CPython 最適化ポイント](#cpython)
+    - [CPython 最適化ポイント](#cpython)
 
 ---
 

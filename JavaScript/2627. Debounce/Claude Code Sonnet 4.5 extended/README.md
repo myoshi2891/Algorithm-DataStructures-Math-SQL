@@ -491,7 +491,7 @@ from threading import Lock
 
 # throttle の例（参考）
 def throttle(fn: Callable, t: float) -> Callable:
-    last_call: float = time.monotonic()
+    last_call: float = 0.0
     lock = Lock()
 
     def throttled(*args, **kwargs):

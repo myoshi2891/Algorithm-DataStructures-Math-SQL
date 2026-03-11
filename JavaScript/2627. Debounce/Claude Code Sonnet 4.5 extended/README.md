@@ -404,7 +404,7 @@ t1.start()
 t2.start()
 ```
 
-**注意**: 本実装は `threading.Lock` を使用して `timer` への同時アクセスを保護しているためスレッドセーフです。
+**注意**: 本実装は `threading.Lock` を使用して `timer` の管理（タイマーの生成と `timer.cancel()` の呼び出し）のみを保護しており、ラップされた関数 `fn` 自体のスレッドセーフ性や、`t = 0` の場合のレースコンディションを保証するものではありません。
 
 ### 6. メモリリーク防止
 
@@ -491,12 +491,12 @@ from threading import Lock
 
 # throttle の例（参考）
 def throttle(fn: Callable, t: float) -> Callable:
-    last_call: float = 0.0
+    last_call: float = time.monotonic()
     lock = Lock()
 
     def throttled(*args, **kwargs):
         nonlocal last_call
-        now = time.time()
+        now = time.monotonic()
         should_call = False
 
         with lock:

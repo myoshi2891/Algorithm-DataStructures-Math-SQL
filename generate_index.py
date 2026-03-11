@@ -104,16 +104,21 @@ class Solution:
             (r'https://unpkg\.com/@babel/standalone(?:@[^/]+)?/babel\.js', '/vendor/babel/babel.min.js'),
             # Tailwind
             (r'https://cdn\.tailwindcss\.com(?:@[^/]+)?', '/vendor/tailwindcss/script.js'),
-            # PrismJS
+            # PrismJS CSS (cdnjs)
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism-([a-zA-Z0-9_-]+)\.min\.css', r'/vendor/prismjs/themes/prism-\1.css'),
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/themes/prism\.min\.css', '/vendor/prismjs/themes/prism.css'),
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
+            # PrismJS JS (cdnjs)
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/prism\.min\.js', '/vendor/prismjs/prism.js'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.min.js'),
+            (r'https://cdnjs\.cloudflare\.com/ajax/libs/prism/[^/]+/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
              # FontAwesome
             (r'https://cdnjs\.cloudflare\.com/ajax/libs/font-awesome/[^/]+/css/all\.min\.css', '/vendor/fontawesome/css/all.min.css'),
             # jsDelivr generic patterns for Prism JS and CSS (often used interchangeably)
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/prism\.min\.js', '/vendor/prismjs/prism.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-core\.min\.js', '/vendor/prismjs/prism.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/components/prism-([a-zA-Z0-9_-]+)\.min\.js', r'/vendor/prismjs/components/prism-\1.min.js'),
-            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.min.js'),
+            (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/themes/prism(?:-[a-zA-Z0-9_-]+)?\.min\.css', '/vendor/prismjs/themes/prism.css'),
         ]

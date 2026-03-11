@@ -143,8 +143,7 @@ graph LR
 ```python
 from __future__ import annotations
 from typing import Callable, Any
-from threading import Timer
-
+from threading import Timer, Lock
 
 def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
     """
@@ -171,18 +170,23 @@ def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
     """
     # タイマーオブジェクトを保持するクロージャ変数
     timer: Timer | None = None
+    lock = Lock()
 
     def debounced_func(*args: Any, **kwargs: Any) -> None:
         nonlocal timer
 
-        # 既存のタイマーがあればキャンセル
-        if timer is not None:
-            timer.cancel()
+        with lock:
+            # 既存のタイマーがあればキャンセル
+            if timer is not None:
+                timer.cancel()
 
-        # 新しいタイマーをセット（t/1000 秒後に fn を実行）
-        # threading.Timer は秒単位なので、ミリ秒を秒に変換
-        timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-        timer.start()
+            # 新しいタイマーをセット（t/1000 秒後に fn を実行）
+            # threading.Timer は秒単位なので、ミリ秒を秒に変換
+            local_timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+            timer = local_timer
+        
+        # ロック外でタイマーを開始して、ロックの保持時間を最小化する
+        local_timer.start()
 
     return debounced_func
 
@@ -205,18 +209,21 @@ class Solution:
             デバウンスされた関数
         """
         timer: Timer | None = None
+        lock = Lock()
 
         def debounced(*args: Any, **kwargs: Any) -> None:
             nonlocal timer
+            with lock:
+                # 基底条件: タイマーが存在すればキャンセル
+                if timer is not None:
+                    timer.cancel()
 
-            # 基底条件: タイマーが存在すればキャンセル
-            if timer is not None:
-                timer.cancel()
-
-            # 遷移: 新しいタイマーを作成して開始
-            # t ミリ秒 = t/1000 秒
-            timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-            timer.start()
+                # 遷移: 新しいタイマーを作成して開始
+                # t ミリ秒 = t/1000 秒
+                local_timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+                timer = local_timer
+                
+            local_timer.start()
 
         return debounced
 
@@ -275,6 +282,7 @@ if __name__ == "__main__":
 ```python
 # asyncio版（参考）
 import asyncio
+import inspect
 from typing import Callable, Coroutine, Any
 
 def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, None]]:
@@ -290,7 +298,9 @@ def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, 
 
         async def delayed():
             await asyncio.sleep(t / 1000.0)
-            fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
+            if inspect.isawaitable(result):
+                await result
 
         task = asyncio.create_task(delayed())
 
@@ -318,17 +328,23 @@ if timer is not None:
 **クラスベース**:
 
 ```python
+from threading import Timer, Lock
+
 class Debouncer:
     def __init__(self, fn: Callable, t: float):
         self.fn = fn
         self.t = t
         self.timer: Timer | None = None
+        self.lock = Lock()
 
     def __call__(self, *args, **kwargs):
-        if self.timer:
-            self.timer.cancel()
-        self.timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
-        self.timer.start()
+        with self.lock:
+            if self.timer:
+                self.timer.cancel()
+            local_timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
+            self.timer = local_timer
+            
+        local_timer.start()
 ```
 
 ### 4. GIL（Global Interpreter Lock）の影響
@@ -388,7 +404,7 @@ t1.start()
 t2.start()
 ```
 
-**注意**: `threading.Timer` 自体はスレッドセーフだが、`nonlocal timer` への同時アクセスは保護されていない。本格的なマルチスレッド環境では `Lock` が必要。
+**注意**: 本実装は `threading.Lock` を使用して `timer` の管理（タイマーの生成と `timer.cancel()` の呼び出し）のみを保護しており、ラップされた関数 `fn` 自体のスレッドセーフ性や、`t = 0` の場合のレースコンディションを保証するものではありません。
 
 ### 6. メモリリーク防止
 
@@ -470,14 +486,25 @@ my_func_debounced = debounce(my_func, 100)
 - **throttle**: 最初の呼び出しを即座に実行し、以降 `t` ミリ秒間は無視
 
 ```python
+import time
+from threading import Lock
+
 # throttle の例（参考）
 def throttle(fn: Callable, t: float) -> Callable:
-    last_call = [0.0]
+    last_call: float = 0.0
+    lock = Lock()
 
     def throttled(*args, **kwargs):
-        now = time.time()
-        if now - last_call[0] >= t / 1000.0:
-            last_call[0] = now
+        nonlocal last_call
+        now = time.monotonic()
+        should_call = False
+
+        with lock:
+            if now - last_call >= t / 1000.0:
+                last_call = now
+                should_call = True
+
+        if should_call:
             fn(*args, **kwargs)
 
     return throttled

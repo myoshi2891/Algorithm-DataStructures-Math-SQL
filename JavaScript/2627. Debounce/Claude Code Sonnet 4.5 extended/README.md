@@ -143,8 +143,7 @@ graph LR
 ```python
 from __future__ import annotations
 from typing import Callable, Any
-from threading import Timer
-
+from threading import Timer, Lock
 
 def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
     """
@@ -171,18 +170,20 @@ def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
     """
     # タイマーオブジェクトを保持するクロージャ変数
     timer: Timer | None = None
+    lock = Lock()
 
     def debounced_func(*args: Any, **kwargs: Any) -> None:
         nonlocal timer
 
-        # 既存のタイマーがあればキャンセル
-        if timer is not None:
-            timer.cancel()
+        with lock:
+            # 既存のタイマーがあればキャンセル
+            if timer is not None:
+                timer.cancel()
 
-        # 新しいタイマーをセット（t/1000 秒後に fn を実行）
-        # threading.Timer は秒単位なので、ミリ秒を秒に変換
-        timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-        timer.start()
+            # 新しいタイマーをセット（t/1000 秒後に fn を実行）
+            # threading.Timer は秒単位なので、ミリ秒を秒に変換
+            timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+            timer.start()
 
     return debounced_func
 
@@ -194,6 +195,7 @@ class Solution:
     実際のLeetCodeにはこの問題はJavaScript/TypeScriptのみだが、
     Pythonで同等の機能を提供
     """
+    from threading import Timer, Lock
 
     def debounce(self, fn: Callable[..., Any], t: int) -> Callable[..., None]:
         """
@@ -205,18 +207,19 @@ class Solution:
             デバウンスされた関数
         """
         timer: Timer | None = None
+        lock = Lock()
 
         def debounced(*args: Any, **kwargs: Any) -> None:
             nonlocal timer
+            with lock:
+                # 基底条件: タイマーが存在すればキャンセル
+                if timer is not None:
+                    timer.cancel()
 
-            # 基底条件: タイマーが存在すればキャンセル
-            if timer is not None:
-                timer.cancel()
-
-            # 遷移: 新しいタイマーを作成して開始
-            # t ミリ秒 = t/1000 秒
-            timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-            timer.start()
+                # 遷移: 新しいタイマーを作成して開始
+                # t ミリ秒 = t/1000 秒
+                timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+                timer.start()
 
         return debounced
 
@@ -290,7 +293,9 @@ def debounce_async(fn: Callable, t: float) -> Callable[..., Coroutine[Any, Any, 
 
         async def delayed():
             await asyncio.sleep(t / 1000.0)
-            fn(*args, **kwargs)
+            result = fn(*args, **kwargs)
+            if asyncio.iscoroutine(result):
+                await result
 
         task = asyncio.create_task(delayed())
 
@@ -318,17 +323,21 @@ if timer is not None:
 **クラスベース**:
 
 ```python
+from threading import Timer, Lock
+
 class Debouncer:
     def __init__(self, fn: Callable, t: float):
         self.fn = fn
         self.t = t
         self.timer: Timer | None = None
+        self.lock = Lock()
 
     def __call__(self, *args, **kwargs):
-        if self.timer:
-            self.timer.cancel()
-        self.timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
-        self.timer.start()
+        with self.lock:
+            if self.timer:
+                self.timer.cancel()
+            self.timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
+            self.timer.start()
 ```
 
 ### 4. GIL（Global Interpreter Lock）の影響
@@ -470,6 +479,7 @@ my_func_debounced = debounce(my_func, 100)
 - **throttle**: 最初の呼び出しを即座に実行し、以降 `t` ミリ秒間は無視
 
 ```python
+import time
 # throttle の例（参考）
 def throttle(fn: Callable, t: float) -> Callable:
     last_call = [0.0]

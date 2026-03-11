@@ -46,7 +46,9 @@ def price_at_given_date(products: pd.DataFrame) -> pd.DataFrame:
 
     # --- 各製品の最新価格を取得（groupby + idxmax）
     if not before_target.empty:
-        latest_idx = before_target.groupby('product_id')['change_date'].idxmax()
+        # 同じ日付の場合は最新のインデックスを使用
+        latest_idx = before_target.sort_values('change_date').groupby('product_id').tail(1).index
+
         latest_prices = before_target.loc[latest_idx, ['product_id', 'new_price']]
     else:
         latest_prices = pd.DataFrame(columns=['product_id', 'new_price'])

@@ -95,7 +95,7 @@ impl Solution {
 
         // ── ガード節 ────────────────────────────────────────────────────
         // 空リスト or ノード1つ → 重複なし、所有権をそのまま返す
-        if matches!(head, None | Some(ref node) if node.next.is_none()) {
+        if head.is_none() || head.as_ref().unwrap().next.is_none() {
             return head;
         }
 

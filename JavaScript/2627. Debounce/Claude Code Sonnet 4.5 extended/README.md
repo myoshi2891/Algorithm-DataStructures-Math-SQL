@@ -182,8 +182,11 @@ def debounce(fn: Callable[..., Any], t: float) -> Callable[..., None]:
 
             # 新しいタイマーをセット（t/1000 秒後に fn を実行）
             # threading.Timer は秒単位なので、ミリ秒を秒に変換
-            timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-            timer.start()
+            local_timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+            timer = local_timer
+        
+        # ロック外でタイマーを開始して、ロックの保持時間を最小化する
+        local_timer.start()
 
     return debounced_func
 
@@ -195,7 +198,6 @@ class Solution:
     実際のLeetCodeにはこの問題はJavaScript/TypeScriptのみだが、
     Pythonで同等の機能を提供
     """
-    from threading import Timer, Lock
 
     def debounce(self, fn: Callable[..., Any], t: int) -> Callable[..., None]:
         """
@@ -218,8 +220,10 @@ class Solution:
 
                 # 遷移: 新しいタイマーを作成して開始
                 # t ミリ秒 = t/1000 秒
-                timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
-                timer.start()
+                local_timer = Timer(t / 1000.0, fn, args=args, kwargs=kwargs)
+                timer = local_timer
+                
+            local_timer.start()
 
         return debounced
 
@@ -336,8 +340,10 @@ class Debouncer:
         with self.lock:
             if self.timer:
                 self.timer.cancel()
-            self.timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
-            self.timer.start()
+            local_timer = Timer(self.t / 1000.0, self.fn, args, kwargs)
+            self.timer = local_timer
+            
+        local_timer.start()
 ```
 
 ### 4. GIL（Global Interpreter Lock）の影響
@@ -397,7 +403,7 @@ t1.start()
 t2.start()
 ```
 
-**注意**: `threading.Timer` 自体はスレッドセーフだが、`nonlocal timer` への同時アクセスは保護されていない。本格的なマルチスレッド環境では `Lock` が必要。
+**注意**: 本実装は `threading.Lock` を使用して `timer` への同時アクセスを保護しているためスレッドセーフです。
 
 ### 6. メモリリーク防止
 

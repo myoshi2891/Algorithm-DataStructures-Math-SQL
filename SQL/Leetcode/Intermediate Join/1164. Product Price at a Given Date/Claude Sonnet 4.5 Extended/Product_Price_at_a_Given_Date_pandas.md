@@ -46,8 +46,8 @@ def price_at_given_date(products: pd.DataFrame) -> pd.DataFrame:
 
     # --- 各製品の最新価格を取得（groupby + idxmax）
     if not before_target.empty:
-        # 同じ日付の場合は最新のインデックスを使用
-        latest_idx = before_target.sort_values('change_date').groupby('product_id').tail(1).index
+        # idxmax() で O(N) にて各製品の最新日付のインデックスを取得（同日の場合は最初の行を使用）
+        latest_idx = before_target.groupby('product_id')['change_date'].idxmax()
 
         latest_prices = before_target.loc[latest_idx, ['product_id', 'new_price']]
     else:
@@ -187,20 +187,6 @@ ID: bierner.markdown-mermaid
 2. "Markdown Preview Mermaid" で検索
 3. インストール
 4. Markdownプレビューを再読み込み
-
----
-
-## 📊 セクション分類表
-
-| セクション     | 形式                | 記法                   |
-| -------------- | ------------------- | ---------------------- |
-| 見出し・説明文 | **Markdown**        | そのまま記述           |
-| 実装コード     | **コードブロック**  | ` ```python `          |
-| テスト実行例   | **コードブロック**  | ` ```python `          |
-| 出力結果       | **コードブロック**  | ` ``` ` (言語指定なし) |
-| フローチャート | **Mermaidブロック** | ` ```mermaid `         |
-| 表             | **Markdown**        | `\| 列1 \| 列2 \|`     |
-| 箇条書き       | **Markdown**        | `*` or `-` or `1.`     |
 
 ---
 

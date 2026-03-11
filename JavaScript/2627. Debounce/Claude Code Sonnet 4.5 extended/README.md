@@ -507,7 +507,8 @@ def throttle(fn: Callable, t: float) -> Callable:
         if should_call:
             fn(*args, **kwargs)
 
-    return throttled```
+    return throttled
+```
 
 ### Q6. LeetCodeで提出できる？
 

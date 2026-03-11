@@ -486,15 +486,23 @@ my_func_debounced = debounce(my_func, 100)
 
 ```python
 import time
+from threading import Lock
+
 # throttle の例（参考）
 def throttle(fn: Callable, t: float) -> Callable:
-    last_call = [0.0]
+    last_call: float = 0.0
+    lock = Lock()
 
     def throttled(*args, **kwargs):
+        nonlocal last_call
         now = time.time()
-        if now - last_call[0] >= t / 1000.0:
-            last_call[0] = now
-            fn(*args, **kwargs)
+        
+        with lock:
+            if now - last_call >= t / 1000.0:
+                last_call = now
+                # 注: fn自体が長時間ブロックする可能性がある場合は
+                # 別スレッドで実行するか、lockのスコープを狭めるなどの工夫が必要
+                fn(*args, **kwargs)
 
     return throttled
 ```

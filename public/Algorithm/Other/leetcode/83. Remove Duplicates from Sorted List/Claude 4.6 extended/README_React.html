@@ -1211,13 +1211,35 @@ impl Solution {
                     if (window.Prism) window.Prism.highlightAll();
                 }, [tab]);
 
+                const handleKeyDown = (e, keys) => {
+                    const idx = keys.indexOf(tab);
+                    if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const nextIdx = (idx + 1) % keys.length;
+                        setTab(keys[nextIdx]);
+                        document.getElementById(`${keys[nextIdx]}-tab`)?.focus();
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prevIdx = (idx - 1 + keys.length) % keys.length;
+                        setTab(keys[prevIdx]);
+                        document.getElementById(`${keys[prevIdx]}-tab`)?.focus();
+                    }
+                };
+
+                const keys = Object.keys(codeData);
+
                 return (
                     <div>
-                        <div className="flex gap-2 mb-4 flex-wrap">
+                        <div className="flex gap-2 mb-4 flex-wrap" role="tablist">
                             {Object.entries(codeData).map(([key, { label }]) => (
                                 <button
                                     key={key}
                                     type="button"
+                                    role="tab"
+                                    aria-selected={tab === key}
+                                    id={`${key}-tab`}
+                                    aria-controls={`${key}-panel`}
+                                    tabIndex={tab === key ? 0 : -1}
                                     className={[
                                         'tab-btn outfit px-4 py-1.5 rounded-lg font-bold text-sm border-2 border-slate-200 bg-white transition',
                                         tab === key
@@ -1225,12 +1247,13 @@ impl Solution {
                                             : 'text-slate-600 hover:border-emerald-400',
                                     ].join(' ')}
                                     onClick={() => setTab(key)}
+                                    onKeyDown={(e) => handleKeyDown(e, keys)}
                                 >
                                     {label}
                                 </button>
                             ))}
                         </div>
-                        <div key={tab} className="fade-slide">
+                        <div key={tab} className="fade-slide" role="tabpanel" id={`${tab}-panel`} aria-labelledby={`${tab}-tab`}>
                             <pre
                                 className="line-numbers"
                                 style={{ borderRadius: '12px', fontSize: '13px' }}

@@ -65,11 +65,11 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
     // どちらかの配列が空になるまで大きい方を末尾から書き込む
     while (i >= 0 && j >= 0) {
-        if (nums1[i] >= nums2[j]) {
-            nums1[k] = nums1[i];
+        if (nums1[i]! >= nums2[j]!) {
+            nums1[k] = nums1[i]!;
             i--;
         } else {
-            nums1[k] = nums2[j];
+            nums1[k] = nums2[j]!;
             j--;
         }
         k--;
@@ -95,7 +95,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
 **型安全インデックス管理**
 
-`i >= 0` / `j >= 0` のガードにより、TypeScript の `strict: true` 環境でも `number` 型のインデックスが負にならないことが実行フロー上保証されます。`noUncheckedIndexedAccess` を有効にした場合でも、ガード後の `nums1[i]` は `number` として安全にアクセスできます。
+`i >= 0` / `j >= 0` のガードにより、TypeScript の `strict: true` 環境でも `number` 型のインデックスが負にならないことが実行フロー上保証されます。ただし `noUncheckedIndexedAccess` を有効にした場合、ガードだけでは `number | undefined` のままになるため、`nums1[i]!` のように非 null アサーションを用いるか、`if (i in nums1)` 等で存在チェックを行い型を明示的に狭める必要があります。
 
 **`while` vs イテレータ**
 

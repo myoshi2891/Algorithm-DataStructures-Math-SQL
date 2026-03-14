@@ -78,7 +78,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
     // nums2 の残余要素をコピー
     // （nums1 の残余は既に正しい位置にあるため操作不要）
     while (j >= 0) {
-        nums1[k] = nums2[j];
+        nums1[k] = nums2[j]!;
         j--;
         k--;
     }

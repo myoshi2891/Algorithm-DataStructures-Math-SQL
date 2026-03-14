@@ -2,17 +2,15 @@
 
 ---
 
-## 目次（Table of Contents）
+## Overview
+
+### 目次（Table of Contents）
 
 - [Overview](#overview)
 - [Algorithm](#algorithm)
 - [Complexity](#complexity)
 - [Implementation](#implementation)
 - [Optimization](#optimization)
-
----
-
-## Overview
 
 ### 問題要約
 
@@ -153,7 +151,7 @@ k - i = (m + n - 1 - step_count) - (m - 1 - i_decrements)
 | ----------------------------- | ----------------- | -------- | --------------------------------------- |
 | 本実装（後ろから 3 ポインタ） | O(m+n)            | **O(n)** | スライス代入の空間コストを含む            |
 | 前から + 一時バッファ         | O(m+n)            | O(m)     | `nums1[:m]` を `list()` でコピー        |
-| `nums1 + nums2` 後 `.sort()`  | O((m+n) log(m+n)) | O(1)     | Timsort は C 実装で高速だが計算量は劣る |
+| `nums1 + nums2` 後 `.sort()`  | O((m+n) log(m+n)) | O(m+n)     | Timsort は C 実装で高速だが計算量は劣る |
 | `heapq.merge` + スライス代入  | O(m+n)            | O(m+n)   | 一時リストが発生                        |
 
 ---
@@ -277,7 +275,7 @@ nums1[:] = merged
 ```
 
 O(m+n) だが一時リストが O(m+n) の追加空間を消費する。
-空間計算量の観点で本実装（O(1)）に劣る。
+空間計算量の観点で、スライス代入 `nums1[:j+1] = nums2[:j+1]` を用いる本実装（最悪ケース O(n)）に劣る。
 
 **Q6. 等値要素の扱いはどうなるか？**
 

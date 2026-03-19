@@ -205,10 +205,6 @@ class Solution:
 > - **前方参照**：クラスや関数の定義より前に、その型名を文字列 `"ClassName"` で書くPythonの慣用的な書き方。Python 3.10以降は `from __future__ import annotations` で省略できる
 
 ```python
-# Runtime 0 ms
-# Beats 100.00%
-# Memory 12.55 MB
-# Beats 47.63%
 class Solution(object):
     def isSameTree(self, p, q):
         """

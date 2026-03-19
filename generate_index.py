@@ -955,7 +955,7 @@ class Solution:
                 safe_category = html.escape(category, quote=True)
                 icon = category_icons.get(category, '📁') # Default icon if not found
 
-                tabs_html_list.append(f'<button class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}">'
+                tabs_html_list.append(f'<button type="button" class="tab-button" data-category="{css_cat}" data-tab-target="{safe_category}">'
                                       f'<span class="tab-icon">{icon}</span> {safe_category} '
                                       f'<span class="tab-count">{len(files)}</span></button>\n')
 

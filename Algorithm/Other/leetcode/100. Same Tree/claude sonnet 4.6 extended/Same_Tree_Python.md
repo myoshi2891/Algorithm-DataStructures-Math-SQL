@@ -117,10 +117,7 @@ class Solution:
         #   「根の値が同じ」かつ「左の子木が同じ」かつ「右の子木が同じ」
         # `and` の短絡評価により、左が False なら右の再帰は実行されない。
         # 不一致が見つかった時点で即座に False を返せるので効率的。
-        left_same: bool = self.isSameTree(p.left, q.left)
-        right_same: bool = self.isSameTree(p.right, q.right)
-
-        return left_same and right_same
+        return self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)
 ```
 
 ---
@@ -159,15 +156,15 @@ class Solution:
 >   → ① p,q ともに非 None → パス
 >   → ② どちらも非 None → パス
 >   → ③ 1 == 1 → パス
->   → ④ left_same = isSameTree(p.left, q.left) を呼び出す
+>   → ④ isSameTree(p.left, q.left) を呼び出す
 >
 > 呼び出し②: isSameTree(p=Node(2), q=None)
 >   → ① p は非 None → パス
 >   → ② q は None → return False ← ここで終了！
 >
 > 呼び出し①に戻る:
->   → left_same = False
->   → False and ... → and の短絡評価で right_same の再帰は実行されない
+>   → 左の子木の比較結果が False
+>   → and の短絡評価により、右の子木 (p.right, q.right) の再帰は実行されない
 >   → return False
 >
 > 全体の結果: False

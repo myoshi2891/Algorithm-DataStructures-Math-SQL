@@ -2,19 +2,15 @@
 
 <h2 id="toc">目次</h2>
 
-- [概要](#overview)
-- [アルゴリズム要点 TL;DR](#tldr)
-- [図解](#figures)
-- [正しさのスケッチ](#correctness)
-- [計算量](#complexity)
-- [Python 実装](#impl)
-- [CPython 最適化ポイント](#cpython)
-- [エッジケースと検証観点](#edgecases)
-- [FAQ](#faq)
+- [Overview](#overview)
+- [Algorithm](#algorithm)
+- [Complexity](#complexity)
+- [Implementation](#implementation)
+- [Optimization](#optimization)
 
 ---
 
-<h2 id="overview">概要</h2>
+<h2 id="overview">Overview</h2>
 
 **LeetCode 94 — Binary Tree Inorder Traversal**
 
@@ -33,9 +29,33 @@
 - 空木（`root is None`）は空リスト `[]` を返す
 - Python のデフォルト再帰上限（1,000）に依存しない反復実装を提供する
 
+### FAQ
+
+**Q1. なぜ再帰ではなく反復で実装するのか？**
+
+A. Follow-up で明示要求されているほか、Python のデフォルト再帰上限（1,000）を超える深さの木でスタックオーバーフローが発生するリスクがある。反復実装は `sys.setrecursionlimit()` 変更なしに任意深さの木を安全に処理できる。
+
+**Q2. Morris Traversal（O(1) 空間）を選ばなかった理由は？**
+
+A. Morris Traversal はノードの `left` ポインタを一時的に書き換えるため副作用がある（Pure function ではない）。本実装は入力ツリーへの書き込みを一切行わないため、関数の呼び出し前後でツリー構造が変化しない。可読性・安全性の観点からも反復スタック実装が優れている。
+
+**Q3. `stack.pop()` の結果を `Optional[TreeNode]` にしなくていいのか？**
+
+A. `while` ループの条件 `cur is not None or stack` により、Ph2 に到達する時点でスタックが空でないことが保証される。ただし型推論上は `stack.pop()` の戻り値が `TreeNode` と確定しないため、`node: TreeNode = stack.pop()` と明示的な型注釈を付与している。
+
+**Q4. `list` と `deque` どちらをスタックとして使うべきか？**
+
+A. 末尾への `append` / `pop(-1)` のみの操作なら CPython では `list` の方が高速。`deque` は両端操作が O(1) であるメリットが活きるのは `appendleft` / `popleft` を使う場合（BFS のキューなど）。スタック用途では `list` で十分。
+
+**Q5. `from __future__ import annotations` が必要な理由は？**
+
+A. Python 3.11 以降で `Optional[TreeNode]` の前方参照を文字列評価（PEP 563）するため。`TreeNode` クラスが `TYPE_CHECKING` ブロック内にある場合でも、実行時に評価が遅延されることでランタイムエラーを回避できる。
+
 ---
 
-<h2 id="tldr">アルゴリズム要点 TL;DR</h2>
+<h2 id="algorithm">Algorithm</h2>
+
+### アルゴリズム要点 TL;DR
 
 - **戦略**: 明示スタック＋カーソルポインタによる反復中順走査
 - **データ構造**: `list[TreeNode]`（スタック）、`Optional[TreeNode]`（カーソル）
@@ -48,11 +68,9 @@
 - **空間計算量**: O(N) — 明示スタックの最大深さ（最悪：左偏木）
 - **再帰なし**: コールスタックを消費しないため深い木でも安全
 
----
+### 図解
 
-<h2 id="figures">図解</h2>
-
-### フローチャート
+#### フローチャート
 
 ```mermaid
 flowchart TD
@@ -73,9 +91,7 @@ flowchart TD
 
 > **読み方**: 左端まで積む（Ph1）→ pop して記録（Ph2）→ 右へ移動（Ph3）の3フェーズを繰り返す。カーソルとスタックが共に空になった時点で終了。
 
----
-
-### データフロー図
+#### データフロー図
 
 ```mermaid
 graph LR
@@ -101,9 +117,7 @@ graph LR
 
 > **データの流れ**: `root` → Noneガード → カーソル初期化 → 3フェーズのループ → `result` リストとして返却。
 
----
-
-### 具体的なトレース例
+#### 具体的なトレース例
 
 `root = [1, null, 2, 3]`（ツリー構造は下記）
 
@@ -129,11 +143,9 @@ graph LR
 
 **Output: `[1, 3, 2]`** ✅
 
----
+### 正しさのスケッチ
 
-<h2 id="correctness">正しさのスケッチ</h2>
-
-### ループ不変条件
+#### ループ不変条件
 
 > 「`result` には、まだスタックに入っていない・未訪問でもない全ノードの値が中順で格納されている」
 
@@ -143,13 +155,13 @@ graph LR
 2. **Ph2 完了後**: `pop` したノードは左部分木を全て処理済み → 自身の値を記録するのが中順で正しい
 3. **Ph3 完了後**: `cur = node.right` により、右部分木が次の未処理対象になる
 
-### 網羅性
+#### 網羅性
 
 - **左部分木**: Ph1 のループで再帰的に処理
 - **根（自身）**: Ph2 の `pop` + `record` で処理
 - **右部分木**: Ph3 でカーソルを移動 → 次の Ph1 が処理
 
-### 基底条件（終了性）
+#### 基底条件（終了性）
 
 - 各反復で必ず `stack.pop()` が1回実行される（スタックサイズが単調減少）
 - `cur` が `None` になりスタックも空になれば `while` ループが終了
@@ -157,7 +169,9 @@ graph LR
 
 ---
 
-<h2 id="complexity">計算量</h2>
+<h2 id="complexity">Complexity</h2>
+
+### 計算量
 
 | 観点           | 値   | 理由                                                   |
 | -------------- | ---- | ------------------------------------------------------ |
@@ -176,7 +190,9 @@ graph LR
 
 ---
 
-<h2 id="impl">Python 実装</h2>
+<h2 id="implementation">Implementation</h2>
+
+### Python 実装
 
 ```python
 from __future__ import annotations
@@ -196,7 +212,6 @@ if TYPE_CHECKING:
             left: Optional[TreeNode] = None,
             right: Optional[TreeNode] = None,
         ) -> None: ...
-
 
 # LeetCode 実行時フォールバック（TreeNode が未定義の環境向け）
 try:
@@ -268,11 +283,32 @@ class Solution:
         return result
 ```
 
+### エッジケースと検証観点
+
+| ケース               | 入力                     | 期待出力              | 本実装の挙動                                      |
+| -------------------- | ------------------------ | --------------------- | ------------------------------------------------- |
+| **空木**             | `root = None`            | `[]`                  | 冒頭ガードで即 `return []`                        |
+| **単一ノード**       | `root = [1]`             | `[1]`                 | Ph1 で push、Ph2 で記録、Ph3 で `cur=None` → 終了 |
+| **左偏木（深さ N）** | `[1,2,null,3,null,...]`  | `[N,...,2,1]`         | スタック深さ N まで積んでから順次 pop             |
+| **右偏木（深さ N）** | `[1,null,2,null,3]`      | `[1,2,3]`             | Ph1 は毎回 1 回のみ push（スタック深さ常に 1）    |
+| **完全二分木**       | `[1,2,3,4,5,null,8,...]` | `[4,2,6,5,7,1,3,9,8]` | 全フェーズが均等に動作                            |
+| **負の値**           | `root = [-100]`          | `[-100]`              | `node.val` をそのまま記録（符号処理なし）         |
+| **全ノード同値**     | `[0,0,0,0,0]`            | `[0,0,0,0,0]`         | 値の重複は問題なし（インデックス管理不要）        |
+
+#### 静的型チェック（Pylance 対応確認点）
+
+- `root: Optional[TreeNode]` — `None` との Union を明示
+- `stack: list[TreeNode]` — 非 None のみ格納を型で保証
+- `cur: Optional[TreeNode]` — カーソルの nullable を型で追跡
+- `node: TreeNode` — `stack.pop()` 後に型を明示し `node.val` / `node.right` の属性アクセスを安全化
+
 ---
 
-<h2 id="cpython">CPython 最適化ポイント</h2>
+<h2 id="optimization">Optimization</h2>
 
-### list.append / list.pop の C 実装活用
+### CPython 最適化ポイント
+
+#### list.append / list.pop の C 実装活用
 
 ```python
 # CPython の list は動的配列。append/pop(-1) は均償 O(1) で C レイヤーで動作
@@ -282,7 +318,7 @@ node = stack.pop()  # C 実装: pop(-1) はリアロケーション不要
 
 > `collections.deque` は両端 O(1) が売りだが、末尾のみの操作なら `list` の方が CPython では高速。
 
-### 属性アクセスのローカル変数キャッシュ
+#### 属性アクセスのローカル変数キャッシュ
 
 ```python
 # N が大きい場合（本問題は N ≤ 100 なので省略可）
@@ -300,63 +336,10 @@ while cur is not None or stack:
 
 > N ≤ 100 の本問題では効果は誤差範囲だが、N が大きいユースケースへの応用時に有効。
 
-### 再帰上限の回避
+#### 再帰上限の回避
 
 ```python
 # Python デフォルト再帰上限: sys.getrecursionlimit() = 1000
 # 深さ N の木で再帰 DFS を使うと N > 1000 でクラッシュ
 # → 本実装の反復スタックは sys.setrecursionlimit() 不要で安全
 ```
-
----
-
-<h2 id="edgecases">エッジケースと検証観点</h2>
-
-| ケース               | 入力                     | 期待出力              | 本実装の挙動                                      |
-| -------------------- | ------------------------ | --------------------- | ------------------------------------------------- |
-| **空木**             | `root = None`            | `[]`                  | 冒頭ガードで即 `return []`                        |
-| **単一ノード**       | `root = [1]`             | `[1]`                 | Ph1 で push、Ph2 で記録、Ph3 で `cur=None` → 終了 |
-| **左偏木（深さ N）** | `[1,2,null,3,null,...]`  | `[N,...,2,1]`         | スタック深さ N まで積んでから順次 pop             |
-| **右偏木（深さ N）** | `[1,null,2,null,3]`      | `[1,2,3]`             | Ph1 は毎回 1 回のみ push（スタック深さ常に 1）    |
-| **完全二分木**       | `[1,2,3,4,5,null,8,...]` | `[4,2,6,5,7,1,3,9,8]` | 全フェーズが均等に動作                            |
-| **負の値**           | `root = [-100]`          | `[-100]`              | `node.val` をそのまま記録（符号処理なし）         |
-| **全ノード同値**     | `[0,0,0,0,0]`            | `[0,0,0,0,0]`         | 値の重複は問題なし（インデックス管理不要）        |
-
-### 静的型チェック（Pylance 対応確認点）
-
-- `root: Optional[TreeNode]` — `None` との Union を明示
-- `stack: list[TreeNode]` — 非 None のみ格納を型で保証
-- `cur: Optional[TreeNode]` — カーソルの nullable を型で追跡
-- `node: TreeNode` — `stack.pop()` 後に型を明示し `node.val` / `node.right` の属性アクセスを安全化
-
----
-
-<h2 id="faq">FAQ</h2>
-
-**Q1. なぜ再帰ではなく反復で実装するのか？**
-
-A. Follow-up で明示要求されているほか、Python のデフォルト再帰上限（1,000）を超える深さの木でスタックオーバーフローが発生するリスクがある。反復実装は `sys.setrecursionlimit()` 変更なしに任意深さの木を安全に処理できる。
-
----
-
-**Q2. Morris Traversal（O(1) 空間）を選ばなかった理由は？**
-
-A. Morris Traversal はノードの `left` ポインタを一時的に書き換えるため副作用がある（Pure function ではない）。本実装は入力ツリーへの書き込みを一切行わないため、関数の呼び出し前後でツリー構造が変化しない。可読性・安全性の観点からも反復スタック実装が優れている。
-
----
-
-**Q3. `stack.pop()` の結果を `Optional[TreeNode]` にしなくていいのか？**
-
-A. `while` ループの条件 `cur is not None or stack` により、Ph2 に到達する時点でスタックが空でないことが保証される。ただし型推論上は `stack.pop()` の戻り値が `TreeNode` と確定しないため、`node: TreeNode = stack.pop()` と明示的な型注釈を付与している。
-
----
-
-**Q4. `list` と `deque` どちらをスタックとして使うべきか？**
-
-A. 末尾への `append` / `pop(-1)` のみの操作なら CPython では `list` の方が高速。`deque` は両端操作が O(1) であるメリットが活きるのは `appendleft` / `popleft` を使う場合（BFS のキューなど）。スタック用途では `list` で十分。
-
----
-
-**Q5. `from __future__ import annotations` が必要な理由は？**
-
-A. Python 3.11 以降で `Optional[TreeNode]` の前方参照を文字列評価（PEP 563）するため。`TreeNode` クラスが `TYPE_CHECKING` ブロック内にある場合でも、実行時に評価が遅延されることでランタイムエラーを回避できる。

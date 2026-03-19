@@ -210,7 +210,7 @@ impl Solution {
 
 ### 所有権・借用・ライフタイムの活用
 
-`Rc<RefCell<TreeNode>>` という型は、Rustの所有権ルール（「値の所有者は常に1人」）では木構造のような「複数の場所から参照されるデータ」を表現できないため使われています。`Rc` が「複数の共有所有者」を実現し、`RefCell` が「実行時の借用チェック」を提供します。`borrow()` で取り出した `Ref<p_node>` は `p_ref` という変数に束縛されており、この変数のスコープを超えて生きることはありません。これによりダングリングポインタが原理的に発生しません。
+`Rc<RefCell<TreeNode>>` という型は、Rustの所有権ルール（「値の所有者は常に1人」）では木構造のような「複数の場所から参照されるデータ」を表現できないため使われています。`Rc` が「複数の共有所有者」を実現し、`RefCell` が「実行時の借用チェック」を提供します。`Rc<RefCell<TreeNode>>::borrow()` で取り出した `Ref<TreeNode>` は `p_ref` などの変数に束縛されており、この変数のスコープを超えて生きることはありません。これによりダングリングポインタが原理的に発生しません。
 
 ### ゼロコスト抽象化
 
@@ -218,59 +218,10 @@ impl Solution {
 
 ### エラーハンドリング設計
 
-本問題の戻り値は `bool` で十分なため `Result` は使用していません。`borrow()` がパニックする可能性は「既に `borrow_mut()` で可変借用中の場合」のみですが、本実装では `borrow_mut()` を一切呼ばないため実行時パニックは発生しません。`.expect()` などの明示的なパニック制御も不要です。
+本問題の戻り値は `bool` で十分なため `Result` は使用していません。`Rc<RefCell<...>>` に対して `borrow()` を呼ぶと、もし外部で同時に `borrow_mut()` を使って可変借用されていれば実行時パニックする可能性があります。しかし、本実装では `borrow_mut()` を一切呼ばず、シングルスレッド環境での参照のみを行うため、通常はパニックしません。そのため `.expect()` などの明示的なパニック制御も不要としています。
 
 > 📖 **最終用語まとめ**
 >
 > - **`Ref<T>`**：`RefCell::borrow()` が返す型。スコープを抜けると自動的に借用が解放される
 > - **網羅性チェック**：`match` で全パターンを列挙しないとコンパイルエラーになるRustの仕組み。バグの原因となるケース漏れを防ぐ
 > - **参照カウント**：`Rc<T>` が内部で持つカウンター。`clone()` で +1、変数がドロップされると -1。0になったらメモリ解放
-
-```rust
-use std::rc::Rc;
-use std::cell::RefCell;
-
-impl Solution {
-    pub fn is_same_tree(
-        p: Option<Rc<RefCell<TreeNode>>>,
-        q: Option<Rc<RefCell<TreeNode>>>,
-    ) -> bool {
-        match (p, q) {
-            // ① 両方 None → 葉の先端に到達。構造が同じなので true
-            (None, None) => true,
-
-            // ② 片方だけ Some → 構造が違う → false
-            // `|` で「どちらのパターンでも同じ処理」をまとめて表現
-            (Some(_), None) | (None, Some(_)) => false,
-
-            // ③ 両方 Some → 値を取り出して比較し、再帰で子木を確認
-            (Some(p_node), Some(q_node)) => {
-                // .borrow() で RefCell の中身への共有参照を取り出す。
-                // 実行時借用チェックが走るが、borrow_mut() を使わない
-                // 本実装ではパニックは発生しない。
-                let p_ref = p_node.borrow();
-                let q_ref = q_node.borrow();
-
-                // 値が違えば即 false（以降の再帰を省略できる）
-                if p_ref.val != q_ref.val {
-                    return false;
-                }
-
-                // 左の子木を再帰比較。
-                // clone() は Rc の参照カウントを +1 するだけで O(1)。
-                // ディープコピー（全ノード複製）は発生しない。
-                let left_same =
-                    Self::is_same_tree(p_ref.left.clone(), q_ref.left.clone());
-
-                // 左が不一致なら右を見るまでもなく false
-                if !left_same {
-                    return false;
-                }
-
-                // 右の子木を再帰比較し、その結果をそのまま返す
-                Self::is_same_tree(p_ref.right.clone(), q_ref.right.clone())
-            }
-        }
-    }
-}
-```

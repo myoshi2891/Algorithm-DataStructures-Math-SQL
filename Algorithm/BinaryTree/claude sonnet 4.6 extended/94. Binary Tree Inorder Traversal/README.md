@@ -49,7 +49,7 @@ A. 末尾への `append` / `pop(-1)` のみの操作なら CPython では `list`
 
 **Q5. `from __future__ import annotations` が必要な理由は？**
 
-A. Python 3.11 以降で `Optional[TreeNode]` の前方参照を文字列評価（PEP 563）するため。`TreeNode` クラスが `TYPE_CHECKING` ブロック内にある場合でも、実行時に評価が遅延されることでランタイムエラーを回避できる。
+A. 型ヒントの遅延評価（PEP 563）を有効化し、`Optional[TreeNode]` などの前方参照を文字列として扱うため。これにより、`TreeNode` クラスが `TYPE_CHECKING` ブロック内にある場合でも、実行時に評価が遅延されることでランタイムエラーを回避できる。
 
 ---
 

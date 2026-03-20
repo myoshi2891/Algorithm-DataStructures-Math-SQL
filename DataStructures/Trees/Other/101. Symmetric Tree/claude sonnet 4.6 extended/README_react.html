@@ -1,0 +1,2016 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode #101 Symmetric Tree — 完全解説</title>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Prism.js -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <!-- React 18 -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Noto Sans JP', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            .mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            /* Prism toolbar override */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+
+            /* details summary triangle hide */
+            details > summary {
+                list-style: none;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+
+            /* step button active state */
+            .step-active {
+                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                border-color: #10b981;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            }
+        </style>
+    </head>
+
+    <body class="bg-gradient-to-br from-emerald-50 via-sky-50 to-slate-100 min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 py-8">
+            <!-- ===== HEADER ===== -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <span
+                        class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >LeetCode #101</span
+                    >
+                    <span
+                        class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >Easy</span
+                    >
+                    <span
+                        class="bg-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >Tree / DFS / BFS</span
+                    >
+                </div>
+                <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1 leading-tight">
+                    Symmetric Tree
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1 outfit">
+                    再帰 DFS + 反復 BFS による O(n) 実装
+                </p>
+
+                <!-- 一言要約 -->
+                <div
+                    class="mt-4 text-base text-teal-800 bg-white/70 rounded-xl px-4 py-3 inline-block border border-teal-100 shadow-sm"
+                >
+                    💡
+                    一言で言うと：「<strong>二分木が中心軸を境に鏡写しになっているかを判定する問題</strong>」
+                </div>
+
+                <!-- ナビゲーション（純粋HTML） -->
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >計算量</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ===== OVERVIEW ===== -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <!-- 一言要約 -->
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「二分木の左右が完全に鏡写しかどうかを確認する問題」
+                    </p>
+                    <p class="text-slate-600 text-sm mt-2 leading-7">
+                        「鏡写し」とは、木の中心軸（ルート）を境に、左サブツリーを裏返すと右サブツリーとぴったり重なる状態です。
+                        単に「左右の値が同じ」だけでは不十分で、<strong>構造（形）と値の両方</strong>が対応していなければなりません。
+                    </p>
+                </div>
+
+                <!-- なぜ難しいのか -->
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-sm mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-sm space-y-2 list-disc list-inside leading-7">
+                        <li>
+                            「左と右が同じ構造」ではなく「<strong>左の左 ↔ 右の右</strong>、<strong
+                                >左の右 ↔ 右の左</strong
+                            >」という交差した対応関係を正確に追う必要がある
+                        </li>
+                        <li>
+                            ノードが
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">None</code
+                            >（存在しない）の場合のケースを3パターン（両方None・片方None・両方あり）に分けて処理しないとバグになる
+                        </li>
+                        <li>
+                            値が全て同じでも構造が非対称なケース（例：<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >[2,2,2,null,2]</code
+                            >）で誤検知しやすい
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 入出力例 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                    <div class="rounded-xl border-2 border-emerald-200 p-4 bg-emerald-50">
+                        <div class="font-semibold text-emerald-800 text-sm mb-2">
+                            ✅ 例1：対称な木
+                        </div>
+                        <pre
+                            class="text-slate-700 text-xs font-mono leading-6 bg-white rounded-lg p-3 border border-emerald-100 overflow-x-auto"
+                        >
+入力: [1, 2, 2, 3, 4, 4, 3]
+出力: True
+
+       1
+      / \
+     2   2
+    / \ / \
+   3  4 4  3
+
+理由: 左右が完全に鏡写し
+  左の左子(3) ↔ 右の右子(3) ✅
+  左の右子(4) ↔ 右の左子(4) ✅</pre
+                        >
+                    </div>
+                    <div class="rounded-xl border-2 border-red-200 p-4 bg-red-50">
+                        <div class="font-semibold text-red-700 text-sm mb-2">
+                            ❌ 例2：非対称な木
+                        </div>
+                        <pre
+                            class="text-slate-700 text-xs font-mono leading-6 bg-white rounded-lg p-3 border border-red-100 overflow-x-auto"
+                        >
+入力: [1, 2, 2, null, 3, null, 3]
+出力: False
+
+       1
+      / \
+     2   2
+      \   \
+       3   3
+
+理由: 左の左子がnullだが
+  右の右子はnull → 非対称 ❌</pre
+                        >
+                    </div>
+                </div>
+
+                <!-- 指標カード -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(h)</div>
+                        <div class="text-xs mt-1">空間計算量（再帰）</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            1〜1000
+                        </div>
+                        <div class="text-xs mt-1">ノード数の制約</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            -100〜100
+                        </div>
+                        <div class="text-xs mt-1">ノード値の範囲</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== STEPS (React) ===== -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-2 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-500 text-sm mb-5 leading-7">
+                    各ステップをクリックすると詳細が表示されます。▶ Play で自動再生も可能です。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ===== CODE ===== -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python 実装
+                </h2>
+
+                <!-- コードの骨格 -->
+                <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>
+                            <code class="bg-white px-1 rounded mono text-xs">isSymmetric</code
+                            >：エントリーポイント。root が None なら即
+                            True、そうでなければヘルパーへ
+                        </li>
+                        <li>
+                            <code class="bg-white px-1 rounded mono text-xs">_is_mirror</code
+                            >：2つのノードを受け取り、3ケース（両方None・片方None・両方あり）で鏡写し判定
+                        </li>
+                        <li>値が等しく、外側ペア・内側ペアも再帰的に鏡写しなら True を返す</li>
+                        <li>
+                            <code class="bg-white px-1 rounded mono text-xs"
+                                >isSymmetricIterative</code
+                            >：deque を使う反復版（スタック深度制限を回避したい場合）
+                        </li>
+                    </ol>
+                </div>
+
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from collections import deque
+
+
+# LeetCode が提供する TreeNode クラス（提出時はコメント済みのものを使用）
+# class TreeNode(object):
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+
+class Solution(object):
+
+    # =========================================================
+    # 解法①: 再帰版（メイン）
+    # =========================================================
+    def isSymmetric(self, root):
+        """
+        二分木が鏡写し（対称）かどうかを再帰で判定する。
+
+        :type  root: Optional[TreeNode]
+        :rtype: bool
+
+        Time:  O(n) - 全ノードを1回ずつ訪問する
+        Space: O(h) - 再帰スタックの深さ（h = 木の高さ）
+        """
+        # rootがNone（空の木）は「対称」と定義する
+        if root is None:
+            return True
+
+        # rootは中心軸なので比較しない。左子と右子を最初のペアとして渡す
+        return self._is_mirror(root.left, root.right)
+
+    def _is_mirror(self, left, right):
+        """
+        2つのノードが「鏡写し」の関係かどうかを再帰的に確認するヘルパー。
+
+        :type  left:  Optional[TreeNode]
+        :type  right: Optional[TreeNode]
+        :rtype: bool
+        """
+        # ── 基底条件① ──
+        # 両方Noneなら「空同士」= 対称 → True
+        # 例: 葉ノードの子（存在しない位置）同士を比較した場合
+        if left is None and right is None:
+            return True
+
+        # ── 基底条件② ──
+        # 片方だけNoneなら「一方だけ枝がある」= 非対称 → False
+        # `is None` を使う: `== None` より高速（同一性チェック）
+        if left is None or right is None:
+            return False
+
+        # ── 再帰ステップ ──
+        # 3条件を `and` で繋ぐ。短絡評価で値が違えば即Falseを返す
+        return (
+            left.val == right.val                          # 条件1: 値が同じか？
+            and self._is_mirror(left.left, right.right)   # 条件2: 外側ペア
+            and self._is_mirror(left.right, right.left)   # 条件3: 内側ペア
+        )
+
+    # =========================================================
+    # 解法②: 反復版（フォローアップ）
+    # =========================================================
+    def isSymmetricIterative(self, root):
+        """
+        二分木が鏡写しかどうかを反復（deque）で判定する。
+        RecursionError が心配な場合はこちらを使う。
+
+        deque を使う理由: list.pop(0) は O(n) だが
+                          deque.popleft() は O(1) で高速。
+
+        :type  root: Optional[TreeNode]
+        :rtype: bool
+
+        Time:  O(n)  Space: O(w) - wは木の最大幅
+        """
+        if root is None:
+            return True
+
+        # dequeに「鏡ペア」をタプルで格納して順番に比較する
+        queue = deque()
+        queue.append((root.left, root.right))
+
+        while queue:
+            # FIFO（先入れ先出し）でペアを取り出す
+            left, right = queue.popleft()
+
+            if left is None and right is None:
+                continue           # 両方None → OK、次のペアへ
+            if left is None or right is None:
+                return False       # 片方だけNone → 非対称
+            if left.val != right.val:
+                return False       # 値が違う → 非対称
+
+            # 次に確認すべき鏡ペアをキューに追加
+            queue.append((left.left, right.right))   # 外側ペア
+            queue.append((left.right, right.left))   # 内側ペア
+
+        return True</code></pre>
+
+                <!-- 動作トレース -->
+                <div class="mt-5 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-sm mb-2">
+                        ▶ 入力例
+                        <code class="bg-white px-1 rounded mono text-xs"
+                            >root = [1, 2, 2, 3, 4, 4, 3]</code
+                        >
+                        での動作トレース（再帰版）
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs font-mono leading-7 overflow-x-auto whitespace-pre"
+                    >
+isSymmetric(root=1)
+  → root != None → _is_mirror(root.left=2, root.right=2)
+
+_is_mirror(left=Node(2), right=Node(2))
+  → 両方Noneでない、片方Noneでない
+  → 2 == 2 ✅
+  → _is_mirror(left.left=Node(3), right.right=Node(3))  ← 外側ペア
+
+    _is_mirror(left=Node(3), right=Node(3))
+      → 3 == 3 ✅
+      → _is_mirror(None, None) → True ✅
+      → _is_mirror(None, None) → True ✅
+      → True ✅
+
+  → _is_mirror(left.right=Node(4), right.left=Node(4))  ← 内側ペア
+
+    _is_mirror(left=Node(4), right=Node(4))
+      → 4 == 4 ✅
+      → _is_mirror(None, None) → True ✅
+      → _is_mirror(None, None) → True ✅
+      → True ✅
+
+最終結果: True and True and True = True ✅</pre
+                    >
+                </div>
+
+                <!-- Example 2 trace -->
+                <div class="mt-3 p-4 rounded-xl bg-red-50 border border-red-200">
+                    <p class="text-red-700 font-semibold text-sm mb-2">
+                        ▶ 入力例
+                        <code class="bg-white px-1 rounded mono text-xs"
+                            >root = [1, 2, 2, null, 3, null, 3]</code
+                        >
+                        での動作トレース（短絡評価の効果）
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs font-mono leading-7 overflow-x-auto whitespace-pre"
+                    >
+_is_mirror(left=Node(2), right=Node(2))
+  → 2 == 2 ✅
+  → _is_mirror(left.left=None, right.right=Node(3))  ← 外側ペア
+
+    _is_mirror(left=None, right=Node(3))
+      → 片方だけ None → False ❌ ← ここで即終了！
+
+  → False なので and の短絡評価が働き
+    内側ペアの _is_mirror は呼ばれない（省エネ！）
+
+最終結果: False ❌</pre
+                    >
+                </div>
+            </section>
+
+            <!-- ===== DIAGRAM ===== -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+
+                <!-- フローチャートの読み方 -->
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        🗺️ フローチャートの読み方
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <ellipse
+                                    cx="14"
+                                    cy="9"
+                                    rx="13"
+                                    ry="8"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>楕円（緑）= 開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <rect
+                                    x="1"
+                                    y="2"
+                                    width="26"
+                                    height="14"
+                                    rx="3"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>四角（青）= 処理ステップ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <polygon
+                                    points="14,1 27,9 14,17 1,9"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>ひし形（黄）= 条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="inline-block w-4 h-0.5 bg-emerald-500"></span
+                                ><span>はい</span>
+                                <span class="inline-block w-4 h-0.5 bg-red-500 ml-2"></span
+                                ><span>いいえ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-slate-600 text-sm mb-4 leading-7">
+                    この図は
+                    <code class="bg-slate-100 px-1 rounded mono text-xs"
+                        >_is_mirror(left, right)</code
+                    >
+                    ヘルパー関数の処理の流れを表しています。
+                    上から下へ読み進め、ひし形の分岐で「はい/いいえ」のどちらかの経路を進みます。
+                </p>
+
+                <div class="mt-4 overflow-x-auto">
+                    <!--
+        SVG設計（静的HTML → ケバブケース属性使用）:
+        viewBox: 0 0 560 760
+        ボックス: x=80, width=400（中心x=280）
+        全テキスト: x=280, text-anchor="middle"
+        最終要素: ellipse cy=720 ry=24 → 下端744 + 余白16 = 760
+      -->
+                    <svg
+                        viewBox="0 0 560 760"
+                        style="
+                            max-width: 560px;
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                        "
+                        role="img"
+                        aria-label="Symmetric Tree フローチャート"
+                    >
+                        <defs>
+                            <!--
+            markerUnits="userSpaceOnUse": マーカーのサイズを SVG ユーザー座標で直接指定。
+            refX=tip の x 座標 → 矢印の先端をラインの終点に正確に合わせる。
+            pathの tip は (12,5) → refX=12, refY=5 で先端=ライン終点に一致。
+          -->
+                            <marker
+                                id="fc-arrow"
+                                markerWidth="14"
+                                markerHeight="10"
+                                refX="12"
+                                refY="5"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,10 L12,5 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="fc-arrowGreen"
+                                markerWidth="14"
+                                markerHeight="10"
+                                refX="12"
+                                refY="5"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,10 L12,5 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="fc-arrowRed"
+                                markerWidth="14"
+                                markerHeight="10"
+                                refX="12"
+                                refY="5"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,10 L12,5 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="fc-arrowPurple"
+                                markerWidth="14"
+                                markerHeight="10"
+                                refX="12"
+                                refY="5"
+                                orient="auto"
+                                markerUnits="userSpaceOnUse"
+                            >
+                                <path d="M0,0 L0,10 L12,5 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- ① 開始 ellipse cy=40 -->
+                        <ellipse
+                            cx="280"
+                            cy="40"
+                            rx="100"
+                            ry="26"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="40"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+
+                        <!-- line 66 → 84 -->
+                        <line
+                            x1="280"
+                            y1="66"
+                            x2="280"
+                            y2="84"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ② root is None? diamond cy=112 hh=28 hw=110 -->
+                        <polygon
+                            points="280,84 390,112 280,140 170,112"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="107"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            root is None?
+                        </text>
+                        <text x="280" y="121" text-anchor="middle" font-size="10" fill="#92400e">
+                            （空の木か？）
+                        </text>
+
+                        <!-- Yes → right side: True を返す -->
+                        <line
+                            x1="390"
+                            y1="112"
+                            x2="460"
+                            y2="112"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <rect
+                            x="460"
+                            y="96"
+                            width="90"
+                            height="32"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="505"
+                            y="112"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            True を返す
+                        </text>
+                        <text x="415" y="105" text-anchor="middle" font-size="10" fill="#059669">
+                            はい
+                        </text>
+
+                        <!-- No → down -->
+                        <line
+                            x1="280"
+                            y1="140"
+                            x2="280"
+                            y2="160"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <text x="268" y="153" text-anchor="end" font-size="10" fill="#dc2626">
+                            いいえ
+                        </text>
+
+                        <!-- ③ is_mirror を呼ぶ rect y=160 h=48 -->
+                        <rect
+                            x="80"
+                            y="160"
+                            width="400"
+                            height="48"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="178"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#1e40af"
+                        >
+                            _is_mirror(root.left, root.right)
+                        </text>
+                        <text x="280" y="196" text-anchor="middle" font-size="10" fill="#3b82f6">
+                            左子と右子を「最初の鏡ペア」として渡す
+                        </text>
+
+                        <!-- line 208 → 228 -->
+                        <line
+                            x1="280"
+                            y1="208"
+                            x2="280"
+                            y2="228"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ④ 両方 None? diamond cy=258 -->
+                        <polygon
+                            points="280,228 400,258 280,288 160,258"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="252"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            left と right
+                        </text>
+                        <text
+                            x="280"
+                            y="266"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            両方 None?
+                        </text>
+
+                        <!-- Yes → right: True を返す -->
+                        <line
+                            x1="400"
+                            y1="258"
+                            x2="460"
+                            y2="258"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <rect
+                            x="460"
+                            y="242"
+                            width="90"
+                            height="32"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="505"
+                            y="258"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            True を返す
+                        </text>
+                        <text x="428" y="250" text-anchor="middle" font-size="10" fill="#059669">
+                            はい
+                        </text>
+
+                        <!-- No → down -->
+                        <line
+                            x1="280"
+                            y1="288"
+                            x2="280"
+                            y2="308"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <text x="268" y="301" text-anchor="end" font-size="10" fill="#dc2626">
+                            いいえ
+                        </text>
+
+                        <!-- ⑤ 片方 None? diamond cy=338 -->
+                        <polygon
+                            points="280,308 400,338 280,368 160,338"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="332"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            left または right
+                        </text>
+                        <text
+                            x="280"
+                            y="346"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            片方だけ None?
+                        </text>
+
+                        <!-- Yes → right: False を返す（はい=緑、結果ボックスは赤） -->
+                        <line
+                            x1="400"
+                            y1="338"
+                            x2="460"
+                            y2="338"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <rect
+                            x="460"
+                            y="322"
+                            width="90"
+                            height="32"
+                            rx="6"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="505"
+                            y="338"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#991b1b"
+                        >
+                            False を返す
+                        </text>
+                        <text x="428" y="330" text-anchor="middle" font-size="10" fill="#059669">
+                            はい
+                        </text>
+
+                        <!-- No → down -->
+                        <line
+                            x1="280"
+                            y1="368"
+                            x2="280"
+                            y2="388"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <text x="268" y="381" text-anchor="end" font-size="10" fill="#dc2626">
+                            いいえ
+                        </text>
+
+                        <!-- ⑥ left.val == right.val? diamond cy=418 -->
+                        <polygon
+                            points="280,388 400,418 280,448 160,418"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="412"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            left.val
+                        </text>
+                        <text
+                            x="280"
+                            y="426"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            == right.val?
+                        </text>
+
+                        <!-- No → right: False を返す -->
+                        <line
+                            x1="400"
+                            y1="418"
+                            x2="460"
+                            y2="418"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <rect
+                            x="460"
+                            y="402"
+                            width="90"
+                            height="32"
+                            rx="6"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="505"
+                            y="418"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#991b1b"
+                        >
+                            False を返す
+                        </text>
+                        <text x="428" y="410" text-anchor="middle" font-size="10" fill="#dc2626">
+                            いいえ
+                        </text>
+
+                        <!-- Yes → down -->
+                        <line
+                            x1="280"
+                            y1="448"
+                            x2="280"
+                            y2="468"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <text x="255" y="461" font-size="10" fill="#059669">はい</text>
+
+                        <!-- ⑦ 外側ペアを再帰 rect y=468 h=48 -->
+                        <rect
+                            x="80"
+                            y="468"
+                            width="400"
+                            height="48"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="486"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#1e40af"
+                        >
+                            外側ペアを再帰確認
+                        </text>
+                        <text x="280" y="504" text-anchor="middle" font-size="10" fill="#3b82f6">
+                            _is_mirror(left.left, right.right)
+                        </text>
+
+                        <!-- line 516 → 536 -->
+                        <line
+                            x1="280"
+                            y1="516"
+                            x2="280"
+                            y2="536"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ⑧ 内側ペアを再帰 rect y=536 h=48 -->
+                        <rect
+                            x="80"
+                            y="536"
+                            width="400"
+                            height="48"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="554"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#1e40af"
+                        >
+                            内側ペアを再帰確認
+                        </text>
+                        <text x="280" y="572" text-anchor="middle" font-size="10" fill="#3b82f6">
+                            _is_mirror(left.right, right.left)
+                        </text>
+
+                        <!-- line 584 → 604 -->
+                        <line
+                            x1="280"
+                            y1="584"
+                            x2="280"
+                            y2="604"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ⑨ 結果を and で結合 rect y=604 h=44 -->
+                        <rect
+                            x="80"
+                            y="604"
+                            width="400"
+                            height="44"
+                            rx="8"
+                            fill="#f3e8ff"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="622"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#6b21a8"
+                        >
+                            3条件の AND で結合
+                        </text>
+                        <text x="280" y="638" text-anchor="middle" font-size="10" fill="#9333ea">
+                            値一致 and 外側OK and 内側OK
+                        </text>
+
+                        <!-- line 648 → 668 -->
+                        <line
+                            x1="280"
+                            y1="648"
+                            x2="280"
+                            y2="668"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ⑩ 終了 ellipse cy=694 -->
+                        <ellipse
+                            cx="280"
+                            cy="694"
+                            rx="100"
+                            ry="26"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="694"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="bold"
+                            fill="#065f46"
+                        >
+                            終了（結果を返す）
+                        </text>
+                    </svg>
+                </div>
+
+                <!-- 代表例でのフロー追跡 -->
+                <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-sm mb-2">
+                        🔎 入力例
+                        <code class="mono text-xs bg-white px-1 rounded"
+                            >[1, 2, 2, 3, 4, 4, 3]</code
+                        >
+                        でのフロー追跡
+                    </p>
+                    <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>「開始」ノード → 入力 root=1 を受け取る</li>
+                        <li>「root is None?」ノード → root=1 なので「いいえ」の経路へ</li>
+                        <li>
+                            「_is_mirror を呼ぶ」ノード → _is_mirror(left=2, right=2) を呼び出す
+                        </li>
+                        <li>「両方 None?」ノード → 両方ノードが存在するので「いいえ」の経路へ</li>
+                        <li>「片方だけ None?」ノード → どちらもNoneでないので「いいえ」の経路へ</li>
+                        <li>「left.val == right.val?」ノード → 2 == 2 なので「はい」の経路へ</li>
+                        <li>「外側ペアを再帰」ノード → _is_mirror(3, 3) を呼び True が返る</li>
+                        <li>「内側ペアを再帰」ノード → _is_mirror(4, 4) を呼び True が返る</li>
+                        <li>「3条件の AND で結合」ノード → True and True and True = True</li>
+                        <li>「終了」ノード → True を返す ✅</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- ===== COMPLEXITY ===== -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <!-- Big-O 早見表 -->
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-600 font-semibold text-sm mb-3">
+                        📖 Big-O 記法の読み方（入力サイズ n
+                        が大きくなるにつれて処理時間がどう増えるかの目安）
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono text-base mb-1">O(1)</div>
+                            <div class="leading-5">
+                                常に一定<br /><span class="text-emerald-600"
+                                    >例：辞書の直接引き</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n)</div>
+                            <div class="leading-5">
+                                入力に比例<br /><span class="text-sky-600"
+                                    >例：リストを1回走査</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n log n)</div>
+                            <div class="leading-5">
+                                n より少し多い<br /><span class="text-amber-600"
+                                    >例：ソートアルゴリズム</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n²)</div>
+                            <div class="leading-5">
+                                入力の2乗<br /><span class="text-red-600"
+                                    >例：二重ループ総当たり</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 計算量テーブル -->
+                <div class="overflow-x-auto mb-5">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-emerald-50 to-sky-50">
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-left text-slate-700 font-semibold"
+                                >
+                                    解法
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-center text-slate-700 font-semibold"
+                                >
+                                    時間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-center text-slate-700 font-semibold"
+                                >
+                                    空間計算量
+                                </th>
+                                <th
+                                    class="border border-slate-200 px-4 py-3 text-center text-slate-700 font-semibold"
+                                >
+                                    最悪ケース（空間）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white hover:bg-emerald-50 transition">
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-medium text-slate-700"
+                                >
+                                    再帰（DFS）
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center font-mono font-bold text-emerald-700"
+                                >
+                                    O(n)
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center font-mono font-bold text-sky-700"
+                                >
+                                    O(h)
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center text-slate-500 text-xs"
+                                >
+                                    O(n)（一直線の木）
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50 hover:bg-emerald-50 transition">
+                                <td
+                                    class="border border-slate-200 px-4 py-3 font-medium text-slate-700"
+                                >
+                                    反復（BFS with deque）
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center font-mono font-bold text-emerald-700"
+                                >
+                                    O(n)
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center font-mono font-bold text-sky-700"
+                                >
+                                    O(w)
+                                </td>
+                                <td
+                                    class="border border-slate-200 px-4 py-3 text-center text-slate-500 text-xs"
+                                >
+                                    O(n)（完全二分木最下段）
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- なぜこの計算量になるか -->
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-sm leading-7">
+                        <strong>時間計算量 O(n)</strong
+                        >：どちらの解法も、各ノードを最大1回ずつ訪問します。n個のノードがある木では、最大
+                        n/2 ペアを比較するため O(n/2) = O(n) です。<br />
+                        <strong>空間計算量（再帰）O(h)</strong>：h
+                        は木の高さです。再帰呼び出しは「コールスタック（＝関数の呼び出し履歴を記録するメモリ領域）」に積み重なります。最悪ケースの一直線の木では
+                        h = n になるため O(n) です。バランスの取れた木では h = log n になります。<br />
+                        <strong>空間計算量（反復）O(w)</strong>：w は木の最大幅です。deque
+                        には同じ深さのペアが格納されるため、完全二分木の最下段（= n/2
+                        個のノード）が最悪ケースで O(n) になります。
+                    </p>
+                </div>
+
+                <!-- 解法比較 -->
+                <div class="mt-5 p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <p class="text-violet-800 font-semibold text-sm mb-3">
+                        ⚡ 再帰 vs 反復：どちらを選ぶか
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="bg-white rounded-lg p-3 border border-violet-100">
+                            <p class="font-semibold text-teal-700 mb-1">🌀 再帰版を選ぶ場面</p>
+                            <ul
+                                class="text-slate-600 text-xs space-y-1 list-disc list-inside leading-6"
+                            >
+                                <li>コードの読みやすさを優先したい</li>
+                                <li>ノード数が1000以内（デフォルトスタック上限内）</li>
+                                <li>「鏡写しの定義」をそのままコードに落としたい</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-violet-100">
+                            <p class="font-semibold text-sky-700 mb-1">🔁 反復版を選ぶ場面</p>
+                            <ul
+                                class="text-slate-600 text-xs space-y-1 list-disc list-inside leading-6"
+                            >
+                                <li>深い木（深さ &gt; 1000）で RecursionError が心配</li>
+                                <li>スタックオーバーフローを完全に回避したい</li>
+                                <li>本番環境など安全性を最優先にしたい</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== GLOSSARY ===== -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> BFS（幅優先探索）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Breadth-First Search
+                            の略。同じ深さのノードを左から右へ横断していく探索方法。キューと相性が良い。
+                            この問題の反復版で使用。対義語はDFS（深さ優先探索）。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> DFS（深さ優先探索）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Depth-First Search
+                            の略。根から葉へ向かって深く潜っていく探索方法。再帰と相性が良い。
+                            この問題の再帰版で使用。木を「縦に」探索するイメージ。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> collections.deque（デック）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Python
+                            標準ライブラリの両端キュー。「前からも後ろからも出し入れできる箱」のようなデータ構造。
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">popleft()</code>
+                            がO(1)で高速（<code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >list.pop(0)</code
+                            >
+                            はO(n)）。 C言語で実装されているため Pure Python より大幅に高速。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> コールスタック
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数が呼び出されるたびに積み重なる「呼び出し履歴」のメモリ領域。
+                            再帰呼び出しが深くなるほど消費するメモリが増える。
+                            Pythonはデフォルトで1000回の再帰呼び出しまで許容（<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >sys.getrecursionlimit()</code
+                            >）。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 基底条件
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            再帰の終了条件。「これ以上再帰しない」と判断して値を返す条件。
+                            基底条件がないと無限再帰（スタックオーバーフロー）になる。
+                            この問題では「両方None → True」「片方None → False」の2つが基底条件。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 再帰（Recursion）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数が自分自身を呼び出す仕組み。木の探索に非常に相性が良い。
+                            「鏡写しかどうか」の定義（=
+                            値が同じで、さらに外側・内側ペアも鏡写し）をそのままコードに書き下せる。
+                            ロシアのマトリョーシカ人形のように「大きい問題を小さい同じ問題に分解する」イメージ。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 短絡評価（Short-circuit
+                            Evaluation）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">A and B</code>
+                            でAが
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">False</code>
+                            なら、Bをまったく評価せず即座に
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">False</code>
+                            を返す仕組み。
+                            この問題では値が違えば外側・内側ペアの再帰呼び出しが省略される。
+                            非対称が早い段階で分かるほど効果が大きい最適化テクニック。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 二分木（Binary Tree）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            各ノードが最大2つの子（left と right）を持つ木構造のデータ構造。
+                            家系図に例えると、各人物が最大2人の子供を持てる構造。 LeetCodeでは
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">TreeNode</code>
+                            クラスで表現され、<code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >.val</code
+                            >, <code class="bg-slate-100 px-1 rounded mono text-xs">.left</code>,
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">.right</code>
+                            の3つの属性を持つ。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> FIFO（先入れ先出し）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            First In First Out
+                            の略。最初に入れたものを最初に取り出すキューの動作原則。
+                            コンビニのおにぎり棚に例えると、奥から補充して手前から取り出す仕組み（賞味期限管理）と同じ。
+                            deque の
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">append()</code>
+                            で末尾追加、<code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >popleft()</code
+                            >
+                            で先頭取り出しにより実現する。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> RecursionError
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Pythonの再帰呼び出し上限（デフォルト1000回）を超えたときに発生するエラー。
+                            深さ1000の一直線の木で再帰版を使うと発生する可能性がある。
+                            <code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >sys.setrecursionlimit(n)</code
+                            >
+                            で上限を変更可能。または反復版を使うことで根本的に回避できる。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-slate-400 text-sm py-4">
+                LeetCode #101 Symmetric Tree — Python 解説ページ
+            </footer>
+        </div>
+        <!-- /max-w-5xl -->
+
+        <!-- Prism.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- React Step Component -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            // ============================================================
+            // 木の視覚化コンポーネント（JSX内 → camelCase属性）
+            // ============================================================
+            function TreeViz({ highlightLeft, highlightRight, highlightRoot }) {
+                // ノードの座標 [cx, cy]
+                const nodes = {
+                    root: [280, 38],
+                    L: [160, 98],
+                    R: [400, 98],
+                    LL: [90, 158],
+                    LR: [230, 158],
+                    RL: [350, 158],
+                    RR: [470, 158],
+                };
+
+                // エッジ
+                const edges = [
+                    [nodes.root, nodes.L],
+                    [nodes.root, nodes.R],
+                    [nodes.L, nodes.LL],
+                    [nodes.L, nodes.LR],
+                    [nodes.R, nodes.RL],
+                    [nodes.R, nodes.RR],
+                ];
+
+                // ノード値
+                const vals = { root: 1, L: 2, R: 2, LL: 3, LR: 4, RL: 4, RR: 3 };
+
+                function nodeColor(key) {
+                    if (key === 'root' && highlightRoot)
+                        return { fill: '#fef3c7', stroke: '#f59e0b', text: '#92400e' };
+                    if (
+                        (key === 'L' || key === 'R') &&
+                        (highlightLeft === 'L' || highlightRight === 'R')
+                    )
+                        return { fill: '#d1fae5', stroke: '#059669', text: '#065f46' };
+                    const hl = new Set([highlightLeft, highlightRight]);
+                    if (hl.has(key)) return { fill: '#bfdbfe', stroke: '#2563eb', text: '#1e40af' };
+                    return { fill: '#f8fafc', stroke: '#94a3b8', text: '#475569' };
+                }
+
+                // ラベル（日本語）
+                const labels = {
+                    root: 'ルート',
+                    L: '左子',
+                    R: '右子',
+                    LL: '左.左',
+                    LR: '左.右',
+                    RL: '右.左',
+                    RR: '右.右',
+                };
+
+                return (
+                    <svg
+                        viewBox="0 0 560 198"
+                        style={{
+                            width: '100%',
+                            maxWidth: 560,
+                            height: 'auto',
+                            display: 'block',
+                            margin: '0 auto',
+                        }}
+                    >
+                        {/* エッジ */}
+                        {edges.map(([a, b], i) => (
+                            <line
+                                key={i}
+                                x1={a[0]}
+                                y1={a[1] + 16}
+                                x2={b[0]}
+                                y2={b[1] - 16}
+                                stroke="#cbd5e1"
+                                strokeWidth="2"
+                            />
+                        ))}
+                        {/* ノード */}
+                        {Object.entries(nodes).map(([key, [cx, cy]]) => {
+                            const c = nodeColor(key);
+                            return (
+                                <g key={key}>
+                                    <circle
+                                        cx={cx}
+                                        cy={cy}
+                                        r="22"
+                                        fill={c.fill}
+                                        stroke={c.stroke}
+                                        strokeWidth="2.5"
+                                    />
+                                    <text
+                                        x={cx}
+                                        y={cy}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fontWeight="700"
+                                        fill={c.text}
+                                    >
+                                        {vals[key]}
+                                    </text>
+                                    <text
+                                        x={cx}
+                                        y={cy + 32}
+                                        textAnchor="middle"
+                                        fontSize="9"
+                                        fill="#94a3b8"
+                                    >
+                                        {labels[key]}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                    </svg>
+                );
+            }
+
+            // ============================================================
+            // ステップデータ
+            // ============================================================
+            const stepsData = [
+                {
+                    step: 1,
+                    title: 'root の確認',
+                    desc:
+                        'まず isSymmetric 関数が root を受け取ります。' +
+                        'root が None（空の木）であれば、定義上「対称」なので即座に True を返します。' +
+                        '例）root=Node(1) → None ではないので次のステップへ進む。',
+                    visual: 'root',
+                    hl: { root: true, L: null, R: null },
+                    vars: { root: 'Node(val=1)', left: '未確定', right: '未確定' },
+                },
+                {
+                    step: 2,
+                    title: '最初の鏡ペアを設定',
+                    desc:
+                        'root 自身は中心軸なので比較しません。root.left と root.right を「最初の鏡ペア」として _is_mirror に渡します。' +
+                        'なぜなら、対称性とは「左サブツリーを鏡に映したものが右サブツリーと一致するか」を確認することだからです。' +
+                        '例）root=Node(1) → _is_mirror(left=Node(2), right=Node(2)) を呼ぶ。',
+                    visual: 'pair_LR',
+                    hl: { root: false, L: 'L', R: 'R' },
+                    vars: {
+                        比較中: '_is_mirror(left, right)',
+                        left: 'Node(val=2)',
+                        right: 'Node(val=2)',
+                    },
+                },
+                {
+                    step: 3,
+                    title: '基底条件①：両方 None チェック',
+                    desc:
+                        'left と right が両方 None であれば、「空同士」= 対称なので True を返します。' +
+                        'これは葉ノードのさらに下（存在しない位置）を比較したとき（= 再帰の終端）に成立します。' +
+                        '例）_is_mirror(None, None) → True を返す（葉ノードの子が存在しない場合）。',
+                    visual: 'both_none',
+                    hl: { root: false, L: null, R: null },
+                    vars: { left: 'None', right: 'None', 判定: '両方 None → True ✅' },
+                },
+                {
+                    step: 4,
+                    title: '基底条件②：片方 None チェック',
+                    desc:
+                        'left か right のどちらか片方だけ None であれば、一方だけ枝がある = 非対称なので False を返します。' +
+                        '両方 None でないことが確認できた後にこのチェックを行うため、このケースは「ちょうど1つが None」の場合です。' +
+                        '例）_is_mirror(None, Node(3)) → 片方だけ None → False を返す。',
+                    visual: 'one_none',
+                    hl: { root: false, L: null, R: 'RR' },
+                    vars: {
+                        left: 'None ← 存在しない',
+                        right: 'Node(val=3) ← 存在する',
+                        判定: '片方だけ None → False ❌',
+                    },
+                },
+                {
+                    step: 5,
+                    title: '値の比較',
+                    desc:
+                        '両方ノードが存在する場合、まず left.val と right.val が等しいかを確認します。' +
+                        '値が異なれば、構造が同じでも鏡写しとは言えないので即座に False を返します（短絡評価）。' +
+                        '例）left=Node(2), right=Node(2) → 2 == 2 ✅ → 次のステップへ。',
+                    visual: 'val_check',
+                    hl: { root: false, L: 'L', R: 'R' },
+                    vars: { 'left.val': '2', 'right.val': '2', 判定: '2 == 2 → True ✅' },
+                },
+                {
+                    step: 6,
+                    title: '外側ペアの再帰確認',
+                    desc:
+                        'left.left と right.right（外側ペア）が鏡写しかを再帰で確認します。' +
+                        '「外側ペア」とは木の外側に対応するノード同士のことで、正しい鏡対応の一部です。' +
+                        '例）left.left=Node(3), right.right=Node(3) → _is_mirror(3, 3) → True ✅',
+                    visual: 'outer_pair',
+                    hl: { root: false, L: null, R: null, LL: 'LL', RR: 'RR' },
+                    vars: {
+                        外側ペア: 'left.left vs right.right',
+                        'left.left': 'Node(val=3)',
+                        'right.right': 'Node(val=3)',
+                        判定: 'True ✅',
+                    },
+                },
+                {
+                    step: 7,
+                    title: '内側ペアの再帰確認',
+                    desc:
+                        'left.right と right.left（内側ペア）が鏡写しかを再帰で確認します。' +
+                        '「内側ペア」とは木の内側に対応するノード同士で、外側ペアとは逆方向の対応です。' +
+                        '例）left.right=Node(4), right.left=Node(4) → _is_mirror(4, 4) → True ✅ → 全条件OK → True を返す！',
+                    visual: 'inner_pair',
+                    hl: { root: false, L: null, R: null, LR: 'LR', RL: 'RL' },
+                    vars: {
+                        内側ペア: 'left.right vs right.left',
+                        'left.right': 'Node(val=4)',
+                        'right.left': 'Node(val=4)',
+                        判定: 'True ✅ → 最終結果 True 🎉',
+                    },
+                },
+            ];
+
+            // ============================================================
+            // StepVisualization
+            // ============================================================
+            function StepVisualization({ visual, step }) {
+                const s = stepsData[step - 1];
+                const hl = s.hl;
+
+                return (
+                    <div className="mt-4">
+                        {/* 木の視覚化 */}
+                        <div className="rounded-xl border-2 border-slate-100 bg-gradient-to-b from-slate-50 to-white p-3">
+                            <p className="text-xs text-slate-400 mb-2 text-center font-semibold">
+                                入力例: root = [1, 2, 2, 3, 4, 4, 3]
+                            </p>
+                            <TreeViz
+                                highlightRoot={hl.root}
+                                highlightLeft={hl.LL || hl.LR || hl.L || null}
+                                highlightRight={hl.RR || hl.RL || hl.R || null}
+                            />
+                            <div className="flex flex-wrap justify-center gap-3 mt-3 text-xs">
+                                <span className="flex items-center gap-1">
+                                    <span
+                                        style={{
+                                            display: 'inline-block',
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: '50%',
+                                            background: '#bfdbfe',
+                                            border: '2px solid #2563eb',
+                                        }}
+                                    ></span>
+                                    現在の比較対象
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span
+                                        style={{
+                                            display: 'inline-block',
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: '50%',
+                                            background: '#d1fae5',
+                                            border: '2px solid #059669',
+                                        }}
+                                    ></span>
+                                    左子・右子ペア
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span
+                                        style={{
+                                            display: 'inline-block',
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: '50%',
+                                            background: '#fef3c7',
+                                            border: '2px solid #f59e0b',
+                                        }}
+                                    ></span>
+                                    ルート（中心軸）
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* 変数の状態パネル */}
+                        <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                            <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+                                🔍 現在の変数の状態
+                            </div>
+                            {Object.entries(s.vars).map(([k, v]) => (
+                                <div
+                                    key={k}
+                                    className={[
+                                        'py-0.5',
+                                        k === '判定'
+                                            ? 'text-emerald-700 font-semibold'
+                                            : 'text-sky-700',
+                                    ].join(' ')}
+                                >
+                                    <span className="text-slate-400">{k}</span>
+                                    <span className="text-slate-300 mx-1">=</span>
+                                    <span>{v}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            // ============================================================
+            // メインコンポーネント
+            // ============================================================
+            function StepsApp() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handlePlay = () => setIsPlaying(true);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* ステップ一覧 */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-base font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-sm rounded-xl border-2 transition cursor-pointer px-4 py-3',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : 'bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-0.5',
+                                            ].join(' ')}
+                                            onClick={() => {
+                                                setActiveStep(step.step);
+                                                setIsPlaying(false);
+                                            }}
+                                            aria-label={'ステップ' + step.step + ': ' + step.title}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-0.5',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-400 text-xs leading-5">
+                                                {step.desc.substring(0, 48)}...
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 詳細パネル */}
+                        <div>
+                            {/* 前ステップとの繋がり */}
+                            {activeStep > 1 && (
+                                <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                    ← 前のステップ（Step {activeStep - 1}）では「
+                                    {stepsData[activeStep - 2].title}」を行いました
+                                </div>
+                            )}
+
+                            <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                        {activeStep} / {stepsData.length}
+                                    </span>
+                                    <h3 className="mt-0 text-teal-800 text-base font-bold">
+                                        {currentStepData.title}
+                                    </h3>
+                                </div>
+                                <p className="text-slate-600 leading-7 text-sm">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <StepVisualization visual={currentStepData.visual} step={activeStep} />
+
+                            {/* ボタン */}
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            {/* 完了メッセージ */}
+                            {activeStep === stepsData.length && (
+                                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                    🎉
+                                    全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            // Mount
+            const root = ReactDOM.createRoot(document.getElementById('steps-root'));
+            root.render(<StepsApp />);
+
+            // Prism highlight
+            setTimeout(() => {
+                Prism.highlightAll();
+            }, 200);
+        </script>
+    </body>
+</html>

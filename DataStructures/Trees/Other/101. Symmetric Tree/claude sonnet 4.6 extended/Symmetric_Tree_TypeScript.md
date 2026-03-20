@@ -205,7 +205,7 @@ Example 2: [1,2,2,null,3,null,3]
 
 isMirror(left=2, right=2)
   ├─ 2.val === 2.val ✅
-  ├─ isMirror(null, null)  ← 左の左子(null) vs 右の右子(3)
+  ├─ isMirror(null, 3)  ← 左の左子(null) vs 右の右子(3)
   │    → 片方がnull、もう片方が3 → false ❌ ← ここで即終了！
   → false ❌ 最終結果: false
 ```
@@ -228,12 +228,15 @@ function isSymmetricIterative(root: TreeNode | null): boolean {
     // 最初のペア：rootの左子と右子を比較対象として追加
     queue.push([root.left, root.right]);
 
+    // 先頭インデックス（shift()のO(n)を避けるためのO(1)ポインタ）
+    let head = 0;
+
     // キューが空になるまで（= 全ペアの比較が終わるまで）ループ
-    while (queue.length > 0) {
+    while (head < queue.length) {
         // キューの先頭からペアを取り出す（分割代入で左・右に分ける）
-        const [left, right] = queue.shift()!;
-        // ↑ shift()はキューの先頭要素を取り出すメソッド
-        // ↑ ! は「nullでないことを保証するnon-null assertion」（whileでlength>0を確認済みのため安全）
+        const [left, right] = queue[head];
+        head++;
+        // ↑ [head]で先頭要素をO(1)で読み取り、headを進める
 
         // ケース①：両方nullならこのペアはOK → 次のペアへ
         if (left === null && right === null) continue;

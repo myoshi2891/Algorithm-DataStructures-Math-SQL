@@ -102,15 +102,16 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
     // キューとは「先に入れたものが先に出る（FIFO）」データ構造。
     // レジの行列と同じイメージで、最初にルートノードを並ばせる。
     const queue: TreeNode[] = [root];
+    // パフォーマンス最適化のため、queue.shift() (O(n)) を使わず head インデックス (O(1)) を用いる
+    let head = 0;
 
     // ── BFS メインループ ─────────────────────────────────────────
-    // キューが空になるまで繰り返す。
-    // 「キューが空 = 未処理のノードがなくなった」ことを意味する。
-    while (queue.length > 0) {
+    // 未処理のノードがなくなるまで（head が queue の長さに追いつくまで）繰り返す。
+    while (head < queue.length) {
         // 現在の階層にいるノード数を確定させる。
         // ループ中にキューへ子ノードを追加していくため、
         // 「今の階層のノード数」をループ開始時点で固定しておく必要がある。
-        const levelSize: number = queue.length;
+        const levelSize: number = queue.length - head;
 
         // この階層のノード値を格納する一時配列。
         // 後で偶奇に応じて逆順にするため、先に全値を収集する。
@@ -119,10 +120,8 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
         // ── 現在の階層を全て処理する ───────────────────────────────
         for (let i = 0; i < levelSize; i++) {
             // キューの先頭からノードを取り出す。
-            // shift() は配列の先頭を取り出す操作（BFS の「先入れ先出し」を実現）。
-            // ここで取り出すのは必ず TreeNode（null が入ることはない）
-            // のでアサーション（!）で TypeScript に伝える。
-            const node = queue.shift()!;
+            // head インデックスを進めることで O(1) でのデキューを実現。
+            const node = queue[head++];
 
             // 現在ノードの値を収集する。
             // ジグザグ処理は後でまとめて行うため、ここでは単純に追加。

@@ -172,14 +172,16 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
 ┌─────────────────────────────────────────────────────────┐
 │ Step 0: 初期状態                                         │
 │   queue   = [Node(3)]                                   │
+│   head    = 0                                           │
 │   result  = []                                          │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
 │ Step 1: 階層 0 を処理（result.length=0 → 偶数 → そのまま）│
 │   levelSize  = 1                                        │
-│   取り出し   : Node(3) → levelValues = [3]              │
-│   子を追加   : queue = [Node(9), Node(20)]              │
+│   取り出し   : queue[0] = Node(3) → head は 1 に        │
+│               levelValues = [3]                         │
+│   子を追加   : queue = [Node(3), Node(9), Node(20)]     │
 │   偶数階層   : reverse しない → [3]                     │
 │   result     = [[3]]                                    │
 └─────────────────────────────────────────────────────────┘
@@ -187,10 +189,12 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
 ┌─────────────────────────────────────────────────────────┐
 │ Step 2: 階層 1 を処理（result.length=1 → 奇数 → 逆順）  │
 │   levelSize  = 2                                        │
-│   取り出し   : Node(9)  → levelValues = [9]             │
-│               Node(20) → levelValues = [9, 20]         │
+│   取り出し   : queue[1] = Node(9) → head は 2 に        │
+│               queue[2] = Node(20) → head は 3 に       │
+│               levelValues = [9, 20]                     │
 │   子を追加   : Node(9) の子は null / Node(20) の子追加  │
-│               queue = [Node(15), Node(7)]               │
+│               queue = [Node(3), Node(9), Node(20),      │
+│                        Node(15), Node(7)]               │
 │   奇数階層   : reverse → [20, 9]                        │
 │   result     = [[3], [20, 9]]                           │
 └─────────────────────────────────────────────────────────┘
@@ -198,14 +202,16 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
 ┌─────────────────────────────────────────────────────────┐
 │ Step 3: 階層 2 を処理（result.length=2 → 偶数 → そのまま）│
 │   levelSize  = 2                                        │
-│   取り出し   : Node(15) → levelValues = [15]            │
-│               Node(7)  → levelValues = [15, 7]         │
-│   子を追加   : 子は全て null → queue = []               │
+│   取り出し   : queue[3] = Node(15) → head は 4 に       │
+│               queue[4] = Node(7) → head は 5 に        │
+│               levelValues = [15, 7]                     │
+│   子を追加   : 子は全て null                            │
+│               queue (要素追加なし、長さ5のまま)         │
 │   偶数階層   : reverse しない → [15, 7]                  │
 │   result     = [[3], [20, 9], [15, 7]]                  │
 └─────────────────────────────────────────────────────────┘
 
-✅ queue が空になったのでループ終了
+✅ head === queue.length (5 === 5) となったのでループ終了
 🎉 最終出力: [[3], [20, 9], [15, 7]]
 ```
 

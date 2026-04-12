@@ -223,13 +223,14 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
 
     const result: number[][] = [];
     const queue: TreeNode[] = [root];
+    let head = 0;
 
-    while (queue.length > 0) {
-        const levelSize: number = queue.length;
+    while (head < queue.length) {
+        const levelSize: number = queue.length - head;
         const levelValues: number[] = [];
 
         for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift()!;
+            const node = queue[head++];
             levelValues.push(node.val);
             if (node.left !== null) queue.push(node.left);
             if (node.right !== null) queue.push(node.right);
@@ -247,17 +248,11 @@ function zigzagLevelOrder(root: TreeNode | null): number[][] {
 
 # TypeScript固有の最適化観点
 
-### `shift()!` の Non-null アサーション（`!`）について
+### O(1) デキューと型安全性について
 
-TypeScriptは `Array.shift()` の戻り値型を `T | undefined` と判断します。しかし今回は `levelSize = queue.length` でサイズを固定し、`levelSize` 回だけループしているため、**ループ内で `shift()` が `undefined` を返すことは構造上ありえません**。そのため `!` アサーション（＝「私が保証するのでundefinedチェックは不要」と伝える記号）を使うことで型エラーを回避しています。
+TypeScriptにおいて配列へのインデックスアクセス（例：`queue[head]`）の戻り値はコンパイラ設定によって `T | undefined` と解釈されることがありますが、今回は `head < queue.length` および `levelSize = queue.length - head` によってループ回数を厳密に制御しているため、**ループ内で `queue[head++]` が `undefined` を返すことは構造上ありえません**。
 
-```typescript
-// TypeScript がエラーを出す（T | undefined を node: TreeNode に代入できない）
-const node: TreeNode = queue.shift(); // ❌
-
-// ! で「undefined にならないことを私が保証する」と伝える
-const node = queue.shift()!; // ✅
-```
+また、`Array.shift()` は先頭要素を取り出した後に残りの全要素を左にシフトするため O(n) のコストがかかりますが、先頭インデックス `head` を進める方式（`queue[head++]`）を採用することで、要素のシフトを回避し O(1) でのデキュー（取り出し）を実現しています。これにより、アルゴリズム全体が O(n^2) に悪化することを防いでいます。
 
 ### なぜ `const` で `queue` を宣言するか
 
@@ -268,8 +263,7 @@ const node = queue.shift()!; // ✅
 > 📖 **このセクションで登場した用語**
 >
 > - **BFS（幅優先探索）**：キューを使って階層ごとに探索する方法。パン屋のレジ行列のように「先に来た人が先に処理される」
-> - **キュー（Queue）**：先入れ先出し（FIFO）のデータ構造。`push` で末尾追加、`shift` で先頭取り出し
+> - **キュー（Queue）**：先入れ先出し（FIFO）のデータ構造。TypeScript では配列とインデックス（`head`）を使って擬似的に高速なキューを実現できる
 > - **ガード節（早期リターン）**：関数の冒頭でエラーや特殊ケースをチェックし、すぐ `return` する書き方。後続のコードをシンプルに保てる
-> - **Non-null アサーション（`!`）**：TypeScriptに「この値は絶対に null/undefined ではない」と伝える記号。使いすぎると危険なので、「構造上あり得ない」と証明できる場合のみ使う
+> - **O(1) / O(n)**：処理の計算量を示す表記。O(1) はデータ量に関わらず一定時間、O(n) はデータ量に比例して時間が増えることを意味する
 > - **reverse()**：配列を破壊的に（元の配列を直接変えて）逆順にするメソッド
-> - **shift()**：配列の先頭要素を取り出すメソッド。取り出した要素は配列から削除される

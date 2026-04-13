@@ -4,19 +4,22 @@
 
 ## 目次（Table of Contents）
 
-- [概要](#overview)
-- [アルゴリズム要点 TL;DR](#tldr)
-- [図解](#figures)
-- [正しさのスケッチ](#correctness)
-- [計算量](#complexity)
-- [Python 実装](#impl)
-- [CPython 最適化ポイント](#cpython)
-- [エッジケースと検証観点](#edgecases)
-- [FAQ](#faq)
+- [Overview](#overview)
+- [Algorithm](#algorithm)
+    - [アルゴリズム要点 TL;DR](#tldr)
+    - [図解](#figures)
+    - [正しさのスケッチ](#correctness)
+- [Complexity](#complexity)
+- [Implementation](#implementation)
+    - [Python 実装](#impl)
+    - [エッジケースと検証観点](#edgecases)
+- [Optimization](#optimization)
+    - [CPython 最適化ポイント](#cpython)
+    - [FAQ](#faq)
 
 ---
 
-<h2 id="overview">概要</h2>
+<h2 id="overview">Overview</h2>
 
 > 💡 この問題は、一言で言うと「木（ツリー）の一番深いところまで何段あるかを数える問題」です。
 
@@ -67,7 +70,9 @@
 
 ---
 
-<h2 id="tldr">アルゴリズム要点（TL;DR）</h2>
+<h2 id="algorithm">Algorithm</h2>
+
+<h3 id="tldr">アルゴリズム要点（TL;DR）</h3>
 
 > 💡 TL;DR（Too Long; Didn't Read）とは「長くて読めない人向けの要約」です。
 > ここではアルゴリズム全体の戦略を箇条書きでまとめます。詳細は後の章で説明するので、
@@ -101,7 +106,7 @@
 
 ---
 
-<h2 id="figures">図解</h2>
+<h3 id="figures">図解</h3>
 
 > 💡 この章では、アルゴリズムの「処理の流れ」を視覚的に示します。
 > Mermaidフローチャートの読み方：
@@ -269,7 +274,7 @@ return 3 ✅
 
 ---
 
-<h2 id="correctness">正しさのスケッチ</h2>
+<h3 id="correctness">正しさのスケッチ</h3>
 
 > 💡 この章では「なぜこのアルゴリズムが常に正しい答えを返すと言えるか」の根拠を整理します。
 > 数学的な厳密な証明ではなく、「直感的に納得できる理由」のスケッチです。
@@ -308,7 +313,7 @@ return 3 ✅
 
 ---
 
-<h2 id="complexity">計算量</h2>
+<h2 id="complexity">Complexity</h2>
 
 > 💡 計算量とは「入力が大きくなるにつれて、処理にかかる時間・メモリがどう増えるか」の目安です。
 
@@ -355,7 +360,9 @@ LeetCode制約（最大10,000ノード）では、どちらも実用上は問題
 
 ---
 
-<h2 id="impl">Python 実装</h2>
+<h2 id="implementation">Implementation</h2>
+
+<h3 id="impl">Python 実装</h3>
 
 > 💡 コードを読む前に、実装の**全体的な骨格**を確認しましょう。
 
@@ -559,7 +566,9 @@ Call 1 の最終結果: 1 + max(1, 2) = 3 ✅
 
 ---
 
-<h2 id="cpython">CPython 最適化ポイント</h2>
+<h2 id="optimization">Optimization</h2>
+
+<h3 id="cpython">CPython 最適化ポイント</h3>
 
 > 💡 この章では「同じ処理でも Python の書き方によって速さが変わる理由」を説明します。
 > 最適化テクニックは**最適化前 → 最適化後 → なぜ速くなるか**の3点セットで示します。
@@ -606,35 +615,34 @@ return 1 + max(left_depth, right_depth)
 ### 最適化③：`root is None` vs `not root` の違い
 
 ```python
-# ── 危険な書き方：not root──────────────────────────────────────────
+# ── 安全ではない書き方：not root────────────────────────────────────────
 if not root:
     return 0
-# 問題点：TreeNode(val=0) の場合、カスタム __bool__ が定義されていると
-# True/False が予期しない値になりうる。
-# pylance も型を正確に絞り込めないことがある。
+# 問題点：None チェックの意図が不明瞭になります。
 
-# ── 安全な書き方：is None────────────────────────────────────────────
+# ── 推奨される書き方：is None──────────────────────────────────────────
 if root is None:
     return 0
-# 理由：None との同一性チェックなので、あらゆる TreeNode に対して安全。
-# pylance がこの分岐以降では root を TreeNode 型として推論できる（型ナローイング）。
+# 理由："is None" を用いることでノードの欠損 (None) を判定する意図が明確になり、
+# pylance などの型チェッカーが、この分岐以降で root の型を確実に TreeNode へ
+# 絞り込む（型ナローイングする）ことができるため推奨されます。
 ```
 
-### 最適化④：`len(queue)` のループ前キャプチャ
+### 重要ポイント：`len(queue)` のループ前キャプチャ（正しさの担保）
 
 ```python
-# ── 最適化前：ループ条件で毎回 len() を呼ぶ（微妙に遅い）────────────
-for _ in range(len(queue)):   # ループのたびに len() を再評価する必要がある
+# ── 意図が不明瞭な書き方：直接 range(len(queue)) と書く────────────
+for _ in range(len(queue)):
 
-# ── 最適化後：ループ前に一度だけキャプチャする（速い）────────────────
-level_size = len(queue)       # len() の呼び出しを1回だけに抑える
-for _ in range(level_size):   # range(level_size) は整数アクセスのみで高速
+# ── 推奨される書き方：ループ前に一度だけキャプチャする────────────────
+level_size = len(queue)       # 現在のレベルのノード数をスナップショットとして固定
+for _ in range(level_size):   # 記録した数だけ厳密に処理する
 
-# なぜ速いか：
-#   Python の属性アクセスはC言語の変数アクセスより低速。
-#   len(queue) は deque の内部長を属性から読み出す操作を含む。
-#   ループ前に整数としてキャプチャしておくと、
-#   ループ中は純粋な整数カウントダウンになり高速になる。
+# なぜ必要か（最適化ではなく正しさのため）：
+#   これは微小な高速化テクニックではなく、アルゴリズムの正しさを保つための重要な設計です。
+#   ループの開始前に len(queue) を level_size にキャプチャしておくことで、現在のBFSレベルにある
+#   ノード数だけを正確に処理できます。ループ中に新しく queue に追加された子ノードが同じレベルの
+#   ノードとして処理されるのを防ぎ、レベルオーダー探索（段ごとの処理）の正しさを維持します。
 ```
 
 > 📖 **この章で登場した用語**
@@ -646,7 +654,7 @@ for _ in range(level_size):   # range(level_size) は整数アクセスのみで
 
 ---
 
-<h2 id="edgecases">エッジケースと検証観点</h2>
+<h3 id="edgecases">エッジケースと検証観点</h3>
 
 > 💡 エッジケースとは「入力が空・最小値・最大値・極端な形状」など、境界的な入力のことです。
 > 普通のテストは通るのに特定の入力でだけバグが発生する、というのがエッジケースの怖さです。
@@ -684,7 +692,7 @@ sys.setrecursionlimit(20000)
 
 ---
 
-<h2 id="faq">FAQ</h2>
+<h3 id="faq">FAQ</h3>
 
 > 💡 ここでは初学者がつまずきやすいポイントをQ&A形式でまとめます。
 > 各回答は「**結論 → 理由 → 補足（具体例）**」の順で書いています。

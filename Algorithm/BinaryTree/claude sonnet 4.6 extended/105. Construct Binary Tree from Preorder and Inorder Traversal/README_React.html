@@ -1,0 +1,2071 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeetCode 105 - 二分木の復元</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: 'Noto Sans JP', sans-serif;
+        background: #0f172a;
+      }
+      .outfit {
+        font-family: 'Outfit', sans-serif;
+      }
+      .mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .glow-card {
+        box-shadow:
+          0 0 0 1px rgba(52, 211, 153, 0.15),
+          0 4px 24px rgba(0, 0, 0, 0.4);
+        transition: box-shadow 0.3s ease;
+      }
+      .glow-card:hover {
+        box-shadow:
+          0 0 0 1px rgba(52, 211, 153, 0.3),
+          0 8px 32px rgba(52, 211, 153, 0.12);
+      }
+      .grid-bg {
+        background-image:
+          linear-gradient(rgba(52, 211, 153, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(52, 211, 153, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+
+      /* ── Prism toolbar ──────────────────────────────────────── */
+      .code-toolbar > .toolbar .toolbar-item a,
+      .code-toolbar > .toolbar .toolbar-item button,
+      .code-toolbar > .toolbar .toolbar-item span {
+        background: #10b981 !important;
+        color: white !important;
+        border-radius: 6px !important;
+        padding: 3px 10px !important;
+        font-size: 12px !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      .code-toolbar > .toolbar {
+        top: 0.5em !important;
+        right: 0.5em !important;
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         FIX 1 — Line-number alignment
+         Root cause: Prism generates absolutely-positioned <span>s
+         inside .line-numbers-rows, each one line tall.  Their height
+         is computed from the element's computed line-height.
+         If the gutter element inherits a different font-size or
+         line-height than the <code> element, the rows drift.
+
+         Solution: pin font-size AND line-height to exactly the same
+         values on (a) pre, (b) code, (c) .line-numbers-rows, and
+         (d) every span inside it.  Use the !important keyword to
+         beat both Prism's own stylesheet and any Tailwind resets.
+      ═══════════════════════════════════════════════════════════ */
+
+      /* 1 — canonical values for the whole block */
+      pre[class*='language-'] {
+        border-radius: 12px !important;
+        font-size: 0.82rem !important; /* single source of truth */
+        line-height: 1.72 !important; /* single source of truth */
+        tab-size: 4;
+        margin: 0;
+      }
+
+      /* 2 — <code> must inherit, not override */
+      pre[class*='language-'] > code {
+        font-size: inherit !important;
+        line-height: inherit !important;
+      }
+
+      /* 3 — line-numbers container */
+      pre.line-numbers {
+        position: relative !important;
+        padding-left: 4em !important; /* gutter(3em) + gap(1em) */
+        counter-reset: linenumber;
+      }
+
+      /* 4 — the gutter strip */
+      .line-numbers .line-numbers-rows {
+        position: absolute !important;
+        pointer-events: none;
+        top: 1em !important; /* = pre's default padding-top in prism-tomorrow */
+        left: 0 !important;
+        width: 3em !important;
+        /* mirror code exactly */
+        font-size: 0.82rem !important;
+        line-height: 1.72 !important;
+        letter-spacing: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        user-select: none;
+      }
+
+      /* 5 — each gutter row: explicit line-height so height = one code line */
+      .line-numbers-rows > span {
+        display: block;
+        counter-increment: linenumber;
+        pointer-events: none;
+        line-height: 1.72 !important; /* MUST match pre */
+        /* do NOT set height or padding — let line-height drive it */
+      }
+
+      /* 6 — the digit */
+      .line-numbers-rows > span::before {
+        content: counter(linenumber);
+        color: #4b5563 !important;
+        display: block;
+        padding-right: 0.8em;
+        text-align: right;
+      }
+
+      /* ── Inline code ──────────────────────────────────────── */
+      code.inline-code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78em;
+        padding: 0.1em 0.45em;
+        border-radius: 4px;
+        background: #1e293b;
+        color: #a5f3fc;
+      }
+
+      /* ── Details ──────────────────────────────────────────── */
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+      details[open] summary .arrow {
+        transform: rotate(90deg);
+      }
+      details summary .arrow {
+        transition: transform 0.2s ease;
+        display: inline-block;
+      }
+
+      /* ── Scrollbar ────────────────────────────────────────── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 3px;
+      }
+
+      .step-btn-active {
+        background: linear-gradient(135deg, #064e3b, #065f46) !important;
+        border-color: #34d399 !important;
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.25) !important;
+      }
+      .tag {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .glow-text {
+        text-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+      }
+    </style>
+  </head>
+  <body class="grid-bg min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 py-10">
+      <!-- HEADER -->
+      <header
+        id="header"
+        class="mb-8 rounded-2xl p-8 glow-card relative overflow-hidden"
+        style="
+          background: linear-gradient(135deg, #0d2818 0%, #0a1628 50%, #0d1f3c 100%);
+          border: 1px solid rgba(52, 211, 153, 0.2);
+        "
+      >
+        <div
+          class="absolute top-0 right-0 w-64 h-64 opacity-5"
+          style="background: radial-gradient(circle, #34d399, transparent); pointer-events: none"
+        ></div>
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="tag" style="background: #064e3b; color: #34d399; border: 1px solid #065f46"
+            >LeetCode #105</span
+          >
+          <span class="tag" style="background: #1e1b4b; color: #a5b4fc; border: 1px solid #312e81"
+            >Medium</span
+          >
+          <span class="tag" style="background: #1c1917; color: #fbbf24; border: 1px solid #292524"
+            >二分木</span
+          >
+          <span class="tag" style="background: #1c1917; color: #fb923c; border: 1px solid #292524"
+            >再帰</span
+          >
+        </div>
+        <h1 class="outfit text-4xl font-black mb-2 glow-text" style="color: #f0fdf4">
+          Construct Binary Tree
+        </h1>
+        <p class="outfit text-xl font-bold mb-1" style="color: #34d399">
+          from Preorder and Inorder Traversal
+        </p>
+        <p class="text-sm mt-2" style="color: #6ee7b7">dict前処理 + 再帰 による O(n) 実装</p>
+        <div
+          class="mt-4 px-4 py-3 rounded-xl inline-block"
+          style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.2)"
+        >
+          <p class="text-sm font-semibold" style="color: #d1fae5">
+            💡 一言で言うと：「2種類の"木の探索順リスト"を手がかりに、元の二分木を復元する問題」
+          </p>
+        </div>
+        <nav class="flex flex-wrap gap-2 mt-6">
+          <a
+            href="#overview"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(255, 255, 255, 0.07);
+              color: #cbd5e1;
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            "
+            >概要</a
+          >
+          <a
+            href="#steps"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(255, 255, 255, 0.07);
+              color: #cbd5e1;
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            "
+            >ステップ解説</a
+          >
+          <a
+            href="#code"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(255, 255, 255, 0.07);
+              color: #cbd5e1;
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            "
+            >コード</a
+          >
+          <a
+            href="#diagram"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(255, 255, 255, 0.07);
+              color: #cbd5e1;
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            "
+            >フローチャート</a
+          >
+          <a
+            href="#complexity"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(255, 255, 255, 0.07);
+              color: #cbd5e1;
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            "
+            >計算量</a
+          >
+          <a
+            href="#glossary"
+            class="inline-block px-3 py-1.5 text-xs font-semibold rounded-lg transition hover:-translate-y-0.5"
+            style="
+              background: rgba(52, 211, 153, 0.12);
+              color: #34d399;
+              border: 1px solid rgba(52, 211, 153, 0.35);
+            "
+            >📖 用語集</a
+          >
+        </nav>
+      </header>
+
+      <!-- OVERVIEW -->
+      <section
+        id="overview"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-6 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          アルゴリズム概要
+        </h2>
+        <div
+          class="mb-5 p-4 rounded-xl"
+          style="background: rgba(52, 211, 153, 0.06); border-left: 3px solid #34d399"
+        >
+          <p class="font-semibold text-sm mb-2" style="color: #6ee7b7">💡 この問題を一言で言うと</p>
+          <p class="text-sm leading-7" style="color: #cbd5e1">
+            <strong style="color: #f0fdf4">preorder（前順）配列の先頭 = ルート</strong>
+            という性質と、
+            <strong style="color: #f0fdf4">inorder（中順）配列上のルート位置 = 左右の境界線</strong>
+            という性質を組み合わせて、
+            元の二分木をノードのクラスインスタンスとして再帰的に復元する問題です。
+          </p>
+        </div>
+        <div
+          class="mb-5 p-4 rounded-xl"
+          style="background: rgba(251, 191, 36, 0.06); border-left: 3px solid #fbbf24"
+        >
+          <p class="font-semibold text-sm mb-2" style="color: #fbbf24">
+            ⚠️ なぜ単純な方法では解けないのか
+          </p>
+          <ul class="text-sm space-y-2 list-disc list-inside" style="color: #cbd5e1">
+            <li>
+              preorder だけではルートは分かっても<strong style="color: #fde68a"
+                >左右の分割点が特定できない</strong
+              >（複数の木が候補になる）
+            </li>
+            <li>
+              inorder だけでは<strong style="color: #fde68a">ルートがどれかを特定できない</strong>
+            </li>
+            <li>
+              2つを組み合わせることで「ルートの左に何ノードあるか」が確定し、はじめて一意に復元できる
+            </li>
+          </ul>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div class="rounded-xl p-3 text-center" style="background: #064e3b; color: #6ee7b7">
+            <div class="font-bold text-sm mono mb-1">O(n)</div>
+            <div class="text-xs mt-1">時間計算量</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background: #1e1b4b; color: #a5b4fc">
+            <div class="font-bold text-sm mono mb-1">O(n)</div>
+            <div class="text-xs mt-1">空間計算量</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background: #1c1917; color: #fbbf24">
+            <div class="font-bold text-xs mono mb-1">1 ≤ n ≤ 3000</div>
+            <div class="text-xs mt-1">制約</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background: #1c1917; color: #fb923c">
+            <div class="font-bold text-xs mono mb-1">dict + 再帰</div>
+            <div class="text-xs mt-1">手法</div>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div
+            class="p-4 rounded-xl"
+            style="background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <p class="text-xs font-semibold mb-3 mono" style="color: #34d399">// 入出力例 1</p>
+            <p class="text-xs mono mb-1" style="color: #cbd5e1">
+              preorder = [<span style="color: #fbbf24">3</span>, 9, 20, 15, 7]
+            </p>
+            <p class="text-xs mono mb-1" style="color: #cbd5e1">
+              inorder = [9, <span style="color: #fbbf24">3</span>, 15, 20, 7]
+            </p>
+            <p class="text-xs mb-2" style="color: #94a3b8">
+              ↑ inorder の「3」の左＝左部分木, 右＝右部分木
+            </p>
+            <p class="text-xs mono" style="color: #6ee7b7">output = [3,9,20,null,null,15,7] ✅</p>
+            <div class="mt-3 text-xs" style="color: #94a3b8">
+              復元された木：<br /><span class="mono" style="color: #a5b4fc"
+                >&nbsp;&nbsp;&nbsp;3<br />&nbsp;&nbsp;/ \<br />&nbsp; 9&nbsp; 20<br />&nbsp;&nbsp;&nbsp;&nbsp;/
+                \<br />&nbsp;&nbsp;&nbsp;15&nbsp; 7</span
+              >
+            </div>
+          </div>
+          <div
+            class="p-4 rounded-xl"
+            style="background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <p class="text-xs font-semibold mb-3 mono" style="color: #34d399">// 入出力例 2</p>
+            <p class="text-xs mono mb-1" style="color: #cbd5e1">
+              preorder = [<span style="color: #fbbf24">-1</span>]
+            </p>
+            <p class="text-xs mono mb-1" style="color: #cbd5e1">
+              inorder = [<span style="color: #fbbf24">-1</span>]
+            </p>
+            <p class="text-xs mb-2" style="color: #94a3b8">
+              ↑ 要素が1つだけ → 単純なルートのみの木
+            </p>
+            <p class="text-xs mono" style="color: #6ee7b7">output = [-1] ✅</p>
+            <div
+              class="mt-3 p-3 rounded-lg text-xs"
+              style="
+                background: rgba(52, 211, 153, 0.06);
+                color: #6ee7b7;
+                border: 1px solid rgba(52, 211, 153, 0.2);
+              "
+            >
+              🔑 アルゴリズムのカギ：preorderの先頭が常にルート。inorderのルート位置で左右を分ける。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEPS -->
+      <section
+        id="steps"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-2 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          ステップバイステップ解説
+        </h2>
+        <p class="text-sm mb-6" style="color: #94a3b8">
+          各ステップをクリックして詳細を確認しましょう。▶ Play で自動再生もできます。
+        </p>
+        <div id="steps-root"></div>
+      </section>
+
+      <!-- CODE -->
+      <section
+        id="code"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-6 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          Python 実装
+        </h2>
+        <div
+          class="mb-5 p-4 rounded-xl"
+          style="background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.15)"
+        >
+          <p class="font-semibold text-sm mb-2" style="color: #6ee7b7">
+            📋 このコードの構造（先に全体像を把握しよう）
+          </p>
+          <ol class="text-sm space-y-1 list-decimal list-inside" style="color: #cbd5e1">
+            <li>入力検証：型チェック・長さ不一致・空リストを早期検出</li>
+            <li>前処理：inorder の「値 → インデックス」を dict 内包表記で O(n) 構築</li>
+            <li>
+              preorder カーソル変数を初期化し、<code class="inline-code">nonlocal</code>
+              で再帰間共有の準備
+            </li>
+            <li>
+              再帰関数 <code class="inline-code">build(lo, hi)</code>：終了判定 → ルート取得 →
+              分割点計算 → 左右の再帰
+            </li>
+          </ol>
+        </div>
+
+        <pre class="line-numbers"><code class="language-python">import sys
+from typing import Optional
+
+# 再帰深度の上限を緩和（デフォルト1000 → 偏った木で3000段になりうる）
+sys.setrecursionlimit(10_000)
+
+
+class Solution:
+    def buildTree(
+        self,
+        preorder: list[int],
+        inorder: list[int],
+    ) -> Optional[TreeNode]:
+        # ① 型チェック
+        if not isinstance(preorder, list) or not isinstance(inorder, list):
+            raise TypeError("Both preorder and inorder must be lists")
+
+        # ② 長さ不一致チェック
+        if len(preorder) != len(inorder):
+            raise ValueError(
+                f"Length mismatch: preorder={len(preorder)}, inorder={len(inorder)}"
+            )
+
+        # ③ 空リストチェック
+        if not preorder:
+            return None
+
+        # ④ 前処理：inorder の「値 → インデックス」を O(n) で dict 構築
+        #    list.index() は毎回 O(n) → 合計 O(n²) になるため dict を使う
+        inorder_index: dict[int, int] = {val: i for i, val in enumerate(inorder)}
+
+        # ⑤ preorder を先頭から消費するカーソルを初期化
+        preorder_idx: int = 0
+
+        def build(lo: int, hi: int) -> Optional[TreeNode]:
+            nonlocal preorder_idx  # 外側のカーソルを書き換えることをPythonに宣言
+
+            # ⑥ 再帰の終了条件：範囲が空 → 部分木なし → None
+            if lo > hi:
+                return None
+
+            # ⑦ preorder の現在位置がこの部分木のルート値
+            root_val: int = preorder[preorder_idx]
+            preorder_idx += 1  # 次の再帰のためにカーソルを進める
+
+            # ⑧ dict でルートの inorder 上の位置を O(1) で取得
+            mid: int = inorder_index[root_val]
+
+            # ⑨ TreeNode を生成し、左右を再帰的に構築して接続
+            #    ★左を先に構築する理由：preorder は「ルート→左→右」の順なので
+            #      左の再帰が終わるまで右のルート値は preorder に現れない
+            node = TreeNode(root_val)
+            node.left = build(lo, mid - 1)    # 左部分木（midの左側）
+            node.right = build(mid + 1, hi)   # 右部分木（midの右側）
+            return node
+
+        # ⑩ inorder 全体（0 〜 n-1）を対象として木全体を構築
+        return build(0, len(inorder) - 1)</code></pre>
+
+        <div
+          class="mt-5 p-4 rounded-xl"
+          style="background: rgba(14, 165, 233, 0.06); border: 1px solid rgba(14, 165, 233, 0.18)"
+        >
+          <p class="font-semibold text-sm mb-3" style="color: #7dd3fc">
+            ▶ 入力例 [3,9,20,15,7] / [9,3,15,20,7] での動作トレース
+          </p>
+          <pre class="text-xs mono leading-7 overflow-x-auto whitespace-pre" style="color: #b0c4d8">
+前処理: inorder_index = {9:0, 3:1, 15:2, 20:3, 7:4}
+
+build(0,4): root=preorder[0]=3, idx→1, mid=1, node=TreeNode(3)
+  └─ .left  = build(0,0): root=preorder[1]=9, idx→2, mid=0, node=TreeNode(9)
+              .left  = build(0,-1) → lo&gt;hi → None
+              .right = build(1, 0) → lo&gt;hi → None
+              ✅ return TreeNode(9)
+  └─ .right = build(2,4): root=preorder[2]=20, idx→3, mid=3, node=TreeNode(20)
+              .left  = build(2,2): root=preorder[3]=15, idx→4 → TreeNode(15)
+              .right = build(4,4): root=preorder[4]=7,  idx→5 → TreeNode(7)
+              ✅ return TreeNode(20, left=15, right=7)
+✅ return TreeNode(3, left=9, right=TreeNode(20,...))</pre
+          >
+        </div>
+      </section>
+
+      <!-- DIAGRAM -->
+      <section
+        id="diagram"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-6 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          処理フローチャート
+        </h2>
+
+        <div
+          class="mb-5 p-4 rounded-xl"
+          style="background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.15)"
+        >
+          <p class="font-semibold text-sm mb-3" style="color: #fbbf24">🗺️ フローチャートの読み方</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs" style="color: #b0bec5">
+            <div class="flex items-center gap-2">
+              <svg width="28" height="20">
+                <ellipse
+                  cx="14"
+                  cy="10"
+                  rx="13"
+                  ry="8"
+                  fill="#064e3b"
+                  stroke="#34d399"
+                  stroke-width="1.5"
+                />
+              </svg>
+              <span>楕円（緑）＝ 開始・終了</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg width="28" height="20">
+                <rect
+                  x="1"
+                  y="3"
+                  width="26"
+                  height="14"
+                  rx="3"
+                  fill="#1e1b4b"
+                  stroke="#818cf8"
+                  stroke-width="1.5"
+                />
+              </svg>
+              <span>四角（紫）＝ 処理ステップ</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg width="28" height="20">
+                <polygon
+                  points="14,1 27,10 14,19 1,10"
+                  fill="#1c1917"
+                  stroke="#fbbf24"
+                  stroke-width="1.5"
+                />
+              </svg>
+              <span>ひし形（黄）＝ 条件分岐</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg width="60" height="22">
+                <line x1="0" y1="6" x2="16" y2="6" stroke="#34d399" stroke-width="2" />
+                <polygon points="16,3 22,6 16,9" fill="#34d399" />
+                <text x="25" y="10" font-size="9" fill="#34d399" font-family="sans-serif">Yes</text>
+                <line x1="0" y1="17" x2="16" y2="17" stroke="#f87171" stroke-width="2" />
+                <polygon points="16,14 22,17 16,20" fill="#f87171" />
+                <text x="25" y="21" font-size="9" fill="#f87171" font-family="sans-serif">No</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          ═══════════════════════════════════════════════════════════
+          FIX 2 — Flowchart arrowheads no longer hidden inside shapes
+          ─────────────────────────────────────────────────────────────
+          The problem: lines ended INSIDE the filled ellipses so the
+          arrowhead was painted over by the shape fill.
+
+          The fix: stop each line at the ellipse BOUNDARY, not past it.
+
+          Diamond 1 (preorder 空?) right vertex → None/例外 ellipse
+            Diamond right vertex: x=440, y=148
+            Ellipse: cx=527, rx=46  → left edge x = 527−46 = 481
+            Gap 3px  → line x2 = 478   (was 502, well inside the fill)
+
+          Diamond 2 (lo>hi?) left vertex → None ellipse
+            Diamond left vertex: x=120, y=534
+            Ellipse: cx=37,  rx=34  → right edge x = 37+34 = 71
+            Gap 3px  → line x2 = 74    (was 58, well inside the fill)
+          ═══════════════════════════════════════════════════════════
+        -->
+        <div class="overflow-x-auto">
+          <svg
+            viewBox="0 0 580 1080"
+            style="max-width: 580px; width: 100%; height: auto; display: block; margin: 0 auto"
+            role="img"
+            aria-label="LeetCode 105 flowchart"
+          >
+            <defs>
+              <marker
+                id="arr-gray"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0,0 L0,6 L7,3 z" fill="#64748b" />
+              </marker>
+              <marker
+                id="arr-green"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0,0 L0,6 L7,3 z" fill="#34d399" />
+              </marker>
+              <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L7,3 z" fill="#f87171" />
+              </marker>
+              <marker
+                id="arr-purple"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0,0 L0,6 L7,3 z" fill="#a78bfa" />
+              </marker>
+            </defs>
+
+            <!-- START -->
+            <ellipse
+              cx="280"
+              cy="40"
+              rx="110"
+              ry="28"
+              fill="#064e3b"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="45"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#6ee7b7"
+            >
+              buildTree 開始
+            </text>
+            <line
+              x1="280"
+              y1="68"
+              x2="280"
+              y2="100"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- DIAMOND 1: empty / length -->
+            <polygon
+              points="280,105 440,148 280,191 120,148"
+              fill="#1c1917"
+              stroke="#fbbf24"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="143"
+              text-anchor="middle"
+              font-size="12"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#fde68a"
+            >
+              preorder が空？
+            </text>
+            <text
+              x="280"
+              y="160"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#fcd34d"
+            >
+              または長さ不一致？
+            </text>
+
+            <!-- Yes → right  (FIX: x2=478, ellipse left edge=481, gap=3px) -->
+            <line
+              x1="440"
+              y1="148"
+              x2="478"
+              y2="148"
+              stroke="#f87171"
+              stroke-width="1.5"
+              marker-end="url(#arr-red)"
+            />
+            <text
+              x="457"
+              y="140"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#f87171"
+            >
+              Yes
+            </text>
+            <ellipse
+              cx="527"
+              cy="148"
+              rx="46"
+              ry="22"
+              fill="#450a0a"
+              stroke="#f87171"
+              stroke-width="1.5"
+            />
+            <text
+              x="527"
+              y="153"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="600"
+              fill="#fca5a5"
+            >
+              None / 例外
+            </text>
+
+            <!-- No ↓ -->
+            <line
+              x1="280"
+              y1="191"
+              x2="280"
+              y2="224"
+              stroke="#34d399"
+              stroke-width="1.5"
+              marker-end="url(#arr-green)"
+            />
+            <text
+              x="294"
+              y="211"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#34d399"
+            >
+              No
+            </text>
+
+            <!-- BUILD DICT -->
+            <rect
+              x="70"
+              y="224"
+              width="420"
+              height="62"
+              rx="10"
+              fill="#1e1b4b"
+              stroke="#818cf8"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="250"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#c7d2fe"
+            >
+              前処理: inorder_index 構築
+            </text>
+            <text
+              x="280"
+              y="271"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'JetBrains Mono',monospace"
+              fill="#a5b4fc"
+            >
+              {val: i for i, val in enumerate(inorder)}
+            </text>
+            <line
+              x1="280"
+              y1="286"
+              x2="280"
+              y2="318"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- INIT CURSOR -->
+            <rect
+              x="70"
+              y="318"
+              width="420"
+              height="52"
+              rx="10"
+              fill="#172554"
+              stroke="#60a5fa"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="341"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#bfdbfe"
+            >
+              preorder_idx = 0 で初期化
+            </text>
+            <text
+              x="280"
+              y="360"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#93c5fd"
+            >
+              （preorder を先頭から消費するカーソル）
+            </text>
+            <line
+              x1="280"
+              y1="370"
+              x2="280"
+              y2="402"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- CALL BUILD -->
+            <ellipse
+              cx="280"
+              cy="426"
+              rx="140"
+              ry="28"
+              fill="#1a0a33"
+              stroke="#a78bfa"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="422"
+              text-anchor="middle"
+              font-size="12"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#d8b4fe"
+            >
+              build(lo=0, hi=n-1) 呼び出し
+            </text>
+            <text
+              x="280"
+              y="440"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#a78bfa"
+            >
+              【再帰開始】
+            </text>
+            <line
+              x1="280"
+              y1="454"
+              x2="280"
+              y2="486"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- DIAMOND 2: lo > hi -->
+            <polygon
+              points="280,491 440,534 280,577 120,534"
+              fill="#1c1917"
+              stroke="#fbbf24"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="529"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#fde68a"
+            >
+              lo &gt; hi ?
+            </text>
+            <text
+              x="280"
+              y="548"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#fcd34d"
+            >
+              （部分木が空）
+            </text>
+
+            <!-- Yes → left  (FIX: x2=74, ellipse right edge=71, gap=3px) -->
+            <line
+              x1="120"
+              y1="534"
+              x2="74"
+              y2="534"
+              stroke="#f87171"
+              stroke-width="1.5"
+              marker-end="url(#arr-red)"
+            />
+            <text
+              x="97"
+              y="526"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#f87171"
+            >
+              Yes
+            </text>
+            <ellipse
+              cx="37"
+              cy="534"
+              rx="34"
+              ry="21"
+              fill="#450a0a"
+              stroke="#f87171"
+              stroke-width="1.5"
+            />
+            <text
+              x="37"
+              y="539"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="600"
+              fill="#fca5a5"
+            >
+              None
+            </text>
+
+            <!-- No ↓ -->
+            <line
+              x1="280"
+              y1="577"
+              x2="280"
+              y2="610"
+              stroke="#34d399"
+              stroke-width="1.5"
+              marker-end="url(#arr-green)"
+            />
+            <text
+              x="294"
+              y="597"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#34d399"
+            >
+              No
+            </text>
+
+            <!-- GET ROOT VAL -->
+            <rect
+              x="70"
+              y="610"
+              width="420"
+              height="62"
+              rx="10"
+              fill="#1e1b4b"
+              stroke="#818cf8"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="636"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#c7d2fe"
+            >
+              root_val = preorder[preorder_idx]
+            </text>
+            <text
+              x="280"
+              y="656"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#a5b4fc"
+            >
+              preorder_idx += 1（カーソルを進める）
+            </text>
+            <line
+              x1="280"
+              y1="672"
+              x2="280"
+              y2="704"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- GET MID -->
+            <rect
+              x="70"
+              y="704"
+              width="420"
+              height="62"
+              rx="10"
+              fill="#1e1b4b"
+              stroke="#818cf8"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="730"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#c7d2fe"
+            >
+              mid = inorder_index[root_val]
+            </text>
+            <text
+              x="280"
+              y="750"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#a5b4fc"
+            >
+              O(1) でルートの inorder 上の位置を取得
+            </text>
+            <line
+              x1="280"
+              y1="766"
+              x2="280"
+              y2="798"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- MAKE NODE + RECURSE -->
+            <rect
+              x="70"
+              y="798"
+              width="420"
+              height="85"
+              rx="10"
+              fill="#0c2520"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="823"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#6ee7b7"
+            >
+              node = TreeNode(root_val)
+            </text>
+            <text
+              x="280"
+              y="844"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#34d399"
+            >
+              node.left = build(lo, mid-1) ← 左部分木
+            </text>
+            <text
+              x="280"
+              y="863"
+              text-anchor="middle"
+              font-size="11"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#34d399"
+            >
+              node.right = build(mid+1, hi) ← 右部分木
+            </text>
+
+            <!-- Recursive back-arrow -->
+            <polyline
+              points="490,840 540,840 540,534 440,534"
+              fill="none"
+              stroke="#a78bfa"
+              stroke-width="1.5"
+              stroke-dasharray="6 3"
+              marker-end="url(#arr-purple)"
+            />
+            <text
+              x="553"
+              y="695"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#a78bfa"
+              transform="rotate(90,553,695)"
+            >
+              再帰呼び出し
+            </text>
+
+            <line
+              x1="280"
+              y1="883"
+              x2="280"
+              y2="916"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- RETURN NODE -->
+            <ellipse
+              cx="280"
+              cy="940"
+              rx="140"
+              ry="28"
+              fill="#064e3b"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="936"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#6ee7b7"
+            >
+              node を返す
+            </text>
+            <text
+              x="280"
+              y="954"
+              text-anchor="middle"
+              font-size="10"
+              font-family="'Noto Sans JP',sans-serif"
+              fill="#34d399"
+            >
+              （親ノードの left / right に接続される）
+            </text>
+            <line
+              x1="280"
+              y1="968"
+              x2="280"
+              y2="1000"
+              stroke="#64748b"
+              stroke-width="1.5"
+              marker-end="url(#arr-gray)"
+            />
+
+            <!-- END -->
+            <ellipse
+              cx="280"
+              cy="1024"
+              rx="110"
+              ry="26"
+              fill="#064e3b"
+              stroke="#34d399"
+              stroke-width="2"
+            />
+            <text
+              x="280"
+              y="1029"
+              text-anchor="middle"
+              font-size="13"
+              font-family="'Noto Sans JP',sans-serif"
+              font-weight="700"
+              fill="#6ee7b7"
+            >
+              復元完了 🎉
+            </text>
+          </svg>
+        </div>
+
+        <div
+          class="mt-5 p-4 rounded-xl"
+          style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1)"
+        >
+          <p class="font-semibold text-sm mb-3" style="color: #b0bec5">
+            🔎 入力例 [3,9,20,15,7] / [9,3,15,20,7] でのフロー追跡
+          </p>
+          <ol class="text-sm space-y-1 list-decimal list-inside leading-7" style="color: #94a3b8">
+            <li>空チェック → 要素5個, 一致 → 続行</li>
+            <li>前処理 → <code class="inline-code">{9:0, 3:1, 15:2, 20:3, 7:4}</code> を構築</li>
+            <li><code class="inline-code">build(0,4)</code>：root=3, mid=1 → node=TreeNode(3)</li>
+            <li>
+              左再帰 <code class="inline-code">build(0,0)</code>：root=9, mid=0 → TreeNode(9),
+              左右ともNone
+            </li>
+            <li>
+              右再帰 <code class="inline-code">build(2,4)</code>：root=20, mid=3 → さらに左右を再帰
+            </li>
+            <li>
+              全ノードが接続され
+              <code class="inline-code" style="color: #34d399">[3,9,20,null,null,15,7]</code> が返る
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- COMPLEXITY -->
+      <section
+        id="complexity"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-6 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          計算量分析
+        </h2>
+        <div
+          class="mb-6 p-4 rounded-xl"
+          style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1)"
+        >
+          <p class="font-semibold text-sm mb-3" style="color: #b0bec5">
+            📖 Big-O 記法の読み方（入力サイズ n が大きくなるにつれて処理時間がどう増えるかの目安）
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <div class="text-center p-3 rounded-lg" style="background: #064e3b; color: #6ee7b7">
+              <div class="font-bold mono text-base mb-1">O(1)</div>
+              <div class="leading-5">
+                常に一定<br /><span style="color: #34d399; font-size: 0.7rem"
+                  >例：dict の直接引き</span
+                >
+              </div>
+            </div>
+            <div class="text-center p-3 rounded-lg" style="background: #1e1b4b; color: #a5b4fc">
+              <div class="font-bold mono text-base mb-1">O(n)</div>
+              <div class="leading-5">
+                入力に比例<br /><span style="color: #818cf8; font-size: 0.7rem"
+                  >例：リストを1回走査</span
+                >
+              </div>
+            </div>
+            <div class="text-center p-3 rounded-lg" style="background: #1c1917; color: #fbbf24">
+              <div class="font-bold mono text-base mb-1">O(n log n)</div>
+              <div class="leading-5">
+                nよりやや多い<br /><span style="color: #f59e0b; font-size: 0.7rem"
+                  >例：ソートアルゴリズム</span
+                >
+              </div>
+            </div>
+            <div class="text-center p-3 rounded-lg" style="background: #1a0000; color: #fca5a5">
+              <div class="font-bold mono text-base mb-1">O(n²)</div>
+              <div class="leading-5">
+                入力の2乗<br /><span style="color: #f87171; font-size: 0.7rem"
+                  >例：二重ループ総当たり</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto mb-5">
+          <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0">
+            <thead>
+              <tr style="background: rgba(52, 211, 153, 0.1)">
+                <th class="px-4 py-3 text-left rounded-tl-lg font-semibold" style="color: #34d399">
+                  アプローチ
+                </th>
+                <th class="px-4 py-3 text-center font-semibold" style="color: #34d399">
+                  時間計算量
+                </th>
+                <th class="px-4 py-3 text-center font-semibold" style="color: #34d399">
+                  空間計算量
+                </th>
+                <th class="px-4 py-3 text-right rounded-tr-lg font-semibold" style="color: #34d399">
+                  備考
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background: rgba(52, 211, 153, 0.06)">
+                <td
+                  class="px-4 py-3"
+                  style="color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.1)"
+                >
+                  ★ dict 前処理 + 再帰（採用）
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono font-bold"
+                  style="color: #34d399; border: 1px solid rgba(52, 211, 153, 0.1)"
+                >
+                  O(n)
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono"
+                  style="color: #34d399; border: 1px solid rgba(52, 211, 153, 0.1)"
+                >
+                  O(n)
+                </td>
+                <td
+                  class="px-4 py-3 text-right text-xs"
+                  style="color: #94a3b8; border: 1px solid rgba(52, 211, 153, 0.1)"
+                >
+                  最速・コード明瞭
+                </td>
+              </tr>
+              <tr style="background: rgba(255, 255, 255, 0.02)">
+                <td
+                  class="px-4 py-3"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  list.index() + 再帰
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono font-bold"
+                  style="color: #f87171; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  O(n²)
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  O(n)
+                </td>
+                <td
+                  class="px-4 py-3 text-right text-xs"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  n=3000でTLEリスク
+                </td>
+              </tr>
+              <tr style="background: rgba(255, 255, 255, 0.02)">
+                <td
+                  class="px-4 py-3"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  反復（スタック）+ dict
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono"
+                  style="color: #a5b4fc; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  O(n)
+                </td>
+                <td
+                  class="px-4 py-3 text-center mono"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  O(n)
+                </td>
+                <td
+                  class="px-4 py-3 text-right text-xs"
+                  style="color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.06)"
+                >
+                  同速だが実装複雑
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="p-4 rounded-xl"
+          style="background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.15)"
+        >
+          <p class="font-semibold text-sm mb-2" style="color: #6ee7b7">🔍 なぜ O(n) になるのか</p>
+          <p class="text-sm leading-7" style="color: #b0bec5">
+            各ノードをちょうど1回だけ処理（<code class="inline-code">build</code> 関数の呼び出し回数
+            = n 回）し、 そのたびに <code class="inline-code">inorder_index[root_val]</code> を
+            <strong style="color: #6ee7b7">O(1)</strong> で取得できるため、合計
+            <strong style="color: #6ee7b7">O(n)</strong> になります。 前処理の dict 構築も
+            <strong style="color: #6ee7b7">O(n)</strong>（全要素を1回ずつ登録）のため、 全体として
+            <strong style="color: #34d399">O(n) + O(n) = O(n)</strong> です。
+          </p>
+        </div>
+      </section>
+
+      <!-- GLOSSARY -->
+      <section
+        id="glossary"
+        class="rounded-2xl p-8 mb-8 glow-card"
+        style="background: #111827; border: 1px solid rgba(255, 255, 255, 0.08)"
+      >
+        <h2
+          class="outfit text-2xl font-bold mb-4 pb-2"
+          style="color: #34d399; border-bottom: 2px solid rgba(52, 211, 153, 0.2)"
+        >
+          📖 用語集
+        </h2>
+        <p class="text-sm mb-5" style="color: #94a3b8">
+          このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。
+        </p>
+        <div class="space-y-2">
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> O(n)・計算量記法（Big-O 記法）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              アルゴリズムの「速さ」や「メモリ使用量」を入力サイズ n に対して表す記法。O(n)
+              は「入力が2倍になると処理も約2倍になる」ことを意味します。O(n²)
+              は「入力が2倍になると処理が約4倍になる」ため遅く、O(1)
+              は「どんな入力でも一定」のため最速です。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> dict（ハッシュテーブル・ハッシュマップ）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              キーから値を平均 O(1) で取り出せる Python
+              の組み込みデータ構造。内部はハッシュテーブル（値の場所を計算で直接求める仕組み）です。図書館の索引カードに例えると、タイトル（キー）から棚番号（値）を即座に引けるイメージです。<code
+                class="inline-code"
+                >dict[key]</code
+              >
+              は平均 O(1) で動作します。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> inorder（中順探索）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              二分木の探索方法のひとつ。「左部分木 → ルート →
+              右部分木」の順にノードを訪れます。この性質により、ルートが inorder
+              配列のどこにあるかを調べると、そのルートの左に何ノードあるか（左部分木のサイズ）が分かります。これが木の復元のカギになります。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> nonlocal キーワード
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              内側の関数から外側（でも
+              <code class="inline-code">global</code>
+              ではない）のスコープにある変数を書き換えるための Python キーワード。Python の
+              <code class="inline-code">int</code> は不変型（immutable）なので
+              <code class="inline-code">+=</code> は新しいオブジェクトを作る再代入になり、<code
+                class="inline-code"
+                >nonlocal</code
+              >
+              なしでは外側の変数が更新されないバグが起きます。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> preorder（前順探索）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              二分木の探索方法のひとつ。「ルート → 左部分木 →
+              右部分木」の順にノードを訪れます。この性質により、<strong style="color: #e2e8f0"
+                >preorder 配列の先頭要素が必ずその部分木のルート</strong
+              >
+              になります。これが再帰の各ステップで「今のルートは何か」を決める根拠になります。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> 再帰（recursion）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              関数が自分自身を呼び出して問題を小さな部分問題に分解して解く手法。木の問題は「木全体 =
+              ルート + 左部分木 +
+              右部分木」という構造を持つため、再帰と非常に相性がよいです。必ず「終了条件（基底条件）」が必要で、今回は
+              <code class="inline-code">lo &gt; hi</code> で終了します。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> 再帰スタック（RecursionError）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              再帰呼び出しのたびに関数の状態（変数など）がメモリに積み重ねられます。Python
+              のデフォルトは深さ 1000 まで。本問では最悪 3000
+              段（完全に偏った木）になりうるため、<code class="inline-code"
+                >sys.setrecursionlimit(10_000)</code
+              >
+              で上限を緩和します。
+            </div>
+          </details>
+          <details
+            class="rounded-xl overflow-hidden"
+            style="border: 1px solid rgba(255, 255, 255, 0.1)"
+          >
+            <summary
+              class="flex items-center gap-2 px-5 py-3 cursor-pointer font-semibold text-sm"
+              style="background: rgba(255, 255, 255, 0.04); color: #34d399; list-style: none"
+            >
+              <span class="arrow">▶</span> 偏った木（Skewed Tree）
+            </summary>
+            <div
+              class="px-5 py-3 text-sm leading-7"
+              style="color: #b0bec5; border-top: 1px solid rgba(255, 255, 255, 0.06)"
+            >
+              すべてのノードが左だけ・または右だけにつながった木。通常の二分木（バランス木）は高さ約
+              log₂(n) ですが、偏った木は高さ n
+              になります。再帰の深さ＝木の高さなので、偏った木では再帰が深くなり
+              <code class="inline-code">RecursionError</code> のリスクがあります。
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <footer class="text-center py-6 text-xs" style="color: #475569">
+        LeetCode 105 · Python (CPython 3.11) · Time O(n) · Space O(n)
+      </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+      const PREORDER = [3, 9, 20, 15, 7];
+      const INORDER = [9, 3, 15, 20, 7];
+      const INORDER_INDEX = { 9: 0, 3: 1, 15: 2, 20: 3, 7: 4 };
+      const stepsData = [
+        {
+          step: 1,
+          title: '2つの配列の役割を理解する',
+          desc: 'まず preorder と inorder それぞれが持つ情報を確認します。なぜ2つが必要かというと、どちらか一方だけでは木を一意に復元できないからです。preorder の先頭は必ずルート、inorder のルート位置が左右の分割点を教えてくれます。',
+          detail:
+            '例）preorder=[3,9,20,15,7] → 先頭の 3 がルート。inorder=[9,3,15,20,7] → 3 の位置(index=1)より左[9]が左部分木、右[15,20,7]が右部分木。',
+          visual: 'intro',
+          state: { preorder_idx: 0, lo: null, hi: null, root_val: null, mid: null },
+        },
+        {
+          step: 2,
+          title: 'inorder_index の構築（前処理）',
+          desc: 'inorder 配列の「値 → インデックス」を dict に登録します。なぜ dict を使うかというと、後でルートの位置を調べるとき list.index() では毎回 O(n) の探索になり全体が O(n²) になるからです。dict なら O(1) で引けます。',
+          detail:
+            'dict 内包表記：{val: i for i, val in enumerate(inorder)} → {9:0, 3:1, 15:2, 20:3, 7:4}',
+          visual: 'dict',
+          state: { preorder_idx: 0, lo: 0, hi: 4, root_val: null, mid: null },
+        },
+        {
+          step: 3,
+          title: 'ルートを取得しカーソルを進める',
+          desc: 'preorder[preorder_idx] がこの部分木のルートです。preorder は「ルート→左→右」の順なので呼ばれた時点の先頭が必ずルート値。取得後にカーソルを +1 して次の再帰の準備をします。',
+          detail:
+            '例）build(0,4) 呼び出し時：preorder[0]=3 がルート。preorder_idx を 0→1 に進める。',
+          visual: 'get_root',
+          state: { preorder_idx: 0, lo: 0, hi: 4, root_val: 3, mid: null },
+        },
+        {
+          step: 4,
+          title: 'mid（分割点）を O(1) で取得',
+          desc: 'inorder_index[root_val] でルートの inorder 上の位置（mid）を O(1) で取得します。この mid を境に、左側（lo〜mid-1）が左部分木のノード群、右側（mid+1〜hi）が右部分木のノード群になります。',
+          detail:
+            '例）root_val=3 → inorder_index[3]=1 → mid=1。inorder[0..0]=[9]が左部分木、inorder[2..4]=[15,20,7]が右部分木。',
+          visual: 'mid',
+          state: { preorder_idx: 1, lo: 0, hi: 4, root_val: 3, mid: 1 },
+        },
+        {
+          step: 5,
+          title: '左部分木を先に再帰構築',
+          desc: 'node.left = build(lo, mid-1) を呼び出します。左を先に処理する理由は preorder が「ルート→左→右」の順なので、左の再帰が終わるまで右のルート値は preorder に現れないからです。',
+          detail:
+            '例）build(0,0) → preorder[1]=9がルート, mid=0 → 左右ともbuild(lo>hi)でNone → TreeNode(9)が返る。',
+          visual: 'left',
+          state: { preorder_idx: 1, lo: 0, hi: 0, root_val: 9, mid: 0 },
+        },
+        {
+          step: 6,
+          title: '右部分木を再帰構築して完成',
+          desc: '左の再帰が完了したら node.right = build(mid+1, hi) を呼び出します。この時点で preorder_idx は右部分木のルートを指しています。全ノードが接続されて木が完成します。',
+          detail:
+            '例）build(2,4) → preorder[2]=20がルート → さらに左右再帰 → TreeNode(20,left=15,right=7)が返り全体が完成。',
+          visual: 'right',
+          state: { preorder_idx: 2, lo: 2, hi: 4, root_val: 20, mid: 3 },
+        },
+      ];
+
+      function ArrayDisplay({ arr, highlightIdx, label, color }) {
+        return (
+          <div className="mb-2">
+            <span className="text-xs font-semibold mr-2 mono" style={{ color: color || '#94a3b8' }}>
+              {label}
+            </span>
+            <span className="mono text-xs" style={{ color: '#64748b' }}>
+              [
+            </span>
+            {arr.map((v, i) => (
+              <span
+                key={i}
+                className="mono text-xs px-1.5 py-0.5 rounded mx-0.5 transition-all"
+                style={{
+                  background:
+                    i === highlightIdx ? (color || '#34d399') + '2a' : 'rgba(255,255,255,0.04)',
+                  color: i === highlightIdx ? color || '#34d399' : '#94a3b8',
+                  border:
+                    i === highlightIdx
+                      ? `1.5px solid ${color || '#34d399'}`
+                      : '1.5px solid rgba(255,255,255,0.06)',
+                  fontWeight: i === highlightIdx ? '700' : '400',
+                }}
+              >
+                {v}
+              </span>
+            ))}
+            <span className="mono text-xs" style={{ color: '#64748b' }}>
+              ]
+            </span>
+          </div>
+        );
+      }
+
+      function TreeViz({ highlighted }) {
+        const edges = [
+          [140, 52, 60, 82],
+          [140, 52, 220, 82],
+          [220, 112, 160, 142],
+          [220, 112, 280, 142],
+        ];
+        const nodes = [
+          { id: 3, x: 140, y: 32 },
+          { id: 9, x: 60, y: 92 },
+          { id: 20, x: 220, y: 92 },
+          { id: 15, x: 160, y: 152 },
+          { id: 7, x: 280, y: 152 },
+        ];
+        return (
+          <svg viewBox="0 0 340 190" style={{ width: '100%', maxWidth: '300px' }}>
+            {edges.map(([x1, y1, x2, y2], i) => (
+              <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#334155" strokeWidth="1.5" />
+            ))}
+            {nodes.map((n) => {
+              const hi = highlighted && highlighted.includes(n.id);
+              return (
+                <g key={n.id}>
+                  <circle
+                    cx={n.x}
+                    cy={n.y + 10}
+                    r={22}
+                    fill={hi ? '#064e3b' : '#1e293b'}
+                    stroke={hi ? '#34d399' : '#334155'}
+                    strokeWidth={hi ? 2.5 : 1.5}
+                  />
+                  <text
+                    x={n.x}
+                    y={n.y + 15}
+                    textAnchor="middle"
+                    fontSize="14"
+                    fontFamily="'JetBrains Mono',monospace"
+                    fontWeight="700"
+                    fill={hi ? '#34d399' : '#94a3b8'}
+                  >
+                    {n.id}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        );
+      }
+
+      function StepVisualization({ visual, state }) {
+        return (
+          <div className="mt-4">
+            <div className="mb-3 flex justify-center">
+              <TreeViz
+                highlighted={
+                  visual === 'intro'
+                    ? [3]
+                    : visual === 'get_root'
+                      ? [3]
+                      : visual === 'mid'
+                        ? [3, 9]
+                        : visual === 'left'
+                          ? [9]
+                          : visual === 'right'
+                            ? [20, 15, 7]
+                            : null
+                }
+              />
+            </div>
+            <div
+              className="p-3 rounded-xl mb-3"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+            >
+              <ArrayDisplay
+                arr={PREORDER}
+                highlightIdx={state.preorder_idx}
+                label="preorder:"
+                color="#fbbf24"
+              />
+              <ArrayDisplay
+                arr={INORDER}
+                highlightIdx={state.mid}
+                label="inorder: "
+                color="#a78bfa"
+              />
+            </div>
+            {visual === 'dict' && (
+              <div
+                className="p-3 rounded-xl mb-3"
+                style={{
+                  background: 'rgba(52,211,153,0.05)',
+                  border: '1px solid rgba(52,211,153,0.2)',
+                }}
+              >
+                <div className="text-xs font-semibold mb-2" style={{ color: '#6ee7b7' }}>
+                  inorder_index（構築中）
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(INORDER_INDEX).map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="px-2 py-1 rounded text-xs mono"
+                      style={{ background: '#1e293b', border: '1px solid #334155' }}
+                    >
+                      <span style={{ color: '#fbbf24' }}>{k}</span>
+                      <span style={{ color: '#64748b' }}>:</span>
+                      <span style={{ color: '#34d399' }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div
+              className="p-3 rounded-xl"
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+            >
+              <div
+                className="text-xs font-semibold mb-2"
+                style={{ color: '#94a3b8', fontFamily: "'Noto Sans JP',sans-serif" }}
+              >
+                🔍 現在の変数の状態
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-xs mono">
+                <div>
+                  <span style={{ color: '#94a3b8' }}>preorder_idx = </span>
+                  <span style={{ color: '#fbbf24', fontWeight: '700' }}>{state.preorder_idx}</span>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8' }}>root_val = </span>
+                  <span style={{ color: '#34d399', fontWeight: '700' }}>
+                    {state.root_val ?? '—'}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8' }}>lo = </span>
+                  <span style={{ color: '#a78bfa', fontWeight: '700' }}>{state.lo ?? '—'}</span>
+                </div>
+                <div>
+                  <span style={{ color: '#94a3b8' }}>hi = </span>
+                  <span style={{ color: '#a78bfa', fontWeight: '700' }}>{state.hi ?? '—'}</span>
+                </div>
+                {state.mid !== null && (
+                  <div className="col-span-2">
+                    <span style={{ color: '#94a3b8' }}>mid = </span>
+                    <span style={{ color: '#fb923c', fontWeight: '700' }}>{state.mid}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function StepsApp() {
+        const [activeStep, setActiveStep] = useState(1);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const timerRef = useRef(null);
+        const current = stepsData[activeStep - 1];
+        useEffect(() => {
+          if (isPlaying) {
+            timerRef.current = setTimeout(() => {
+              if (activeStep === stepsData.length) {
+                setActiveStep(1);
+                setIsPlaying(false);
+              } else setActiveStep((p) => p + 1);
+            }, 2400);
+          }
+          return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+          };
+        }, [isPlaying, activeStep]);
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-sm mb-3" style={{ color: '#6ee7b7' }}>
+                ステップ一覧
+              </h3>
+              <div className="space-y-2">
+                {stepsData.map((s) => {
+                  const isActive = activeStep === s.step;
+                  return (
+                    <button
+                      key={s.step}
+                      type="button"
+                      className={[
+                        'w-full text-left rounded-xl border transition px-4 py-3',
+                        isActive ? 'step-btn-active' : '',
+                      ].join(' ')}
+                      style={{
+                        background: isActive ? undefined : 'rgba(255,255,255,0.03)',
+                        borderColor: isActive ? undefined : 'rgba(255,255,255,0.10)',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        setActiveStep(s.step);
+                        setIsPlaying(false);
+                      }}
+                    >
+                      <div
+                        className="font-bold text-xs mb-1"
+                        style={{ color: isActive ? '#34d399' : '#94a3b8' }}
+                      >
+                        Step {s.step}: {s.title}
+                      </div>
+                      <div
+                        className="text-xs leading-5"
+                        style={{ color: isActive ? '#6ee7b7' : '#64748b' }}
+                      >
+                        {s.desc.substring(0, 58)}…
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              {activeStep > 1 && (
+                <div
+                  className="mb-3 px-3 py-2 rounded-lg text-xs"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    color: '#64748b',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}
+                >
+                  ← 前ステップ（Step {activeStep - 1}）：{stepsData[activeStep - 2].title}
+                </div>
+              )}
+              <div
+                className="rounded-xl p-5 mb-3"
+                style={{
+                  background: 'rgba(52,211,153,0.05)',
+                  border: '1px solid rgba(52,211,153,0.2)',
+                }}
+              >
+                <h3 className="font-bold text-base mb-2" style={{ color: '#34d399' }}>
+                  Step {current.step}: {current.title}
+                </h3>
+                <p className="text-sm leading-7 mb-2" style={{ color: '#b0bec5' }}>
+                  {current.desc}
+                </p>
+                <p
+                  className="text-xs mono leading-6 p-2 rounded"
+                  style={{ color: '#6ee7b7', background: 'rgba(0,0,0,0.35)' }}
+                >
+                  {current.detail}
+                </p>
+              </div>
+              <StepVisualization visual={current.visual} state={current.state} />
+              <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg font-semibold text-white text-xs transition disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg,#059669,#047857)' }}
+                  onClick={() => setIsPlaying(true)}
+                  disabled={isPlaying}
+                >
+                  ▶ Play
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg font-semibold text-white text-xs transition disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg,#1d4ed8,#1e40af)' }}
+                  onClick={() => {
+                    setActiveStep((s) => Math.max(1, s - 1));
+                    setIsPlaying(false);
+                  }}
+                  disabled={activeStep === 1}
+                >
+                  ◀ Prev
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg font-semibold text-white text-xs transition disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg,#1d4ed8,#1e40af)' }}
+                  onClick={() => {
+                    setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                    setIsPlaying(false);
+                  }}
+                  disabled={activeStep === stepsData.length}
+                >
+                  Next ▶
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg font-semibold text-xs transition"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    color: '#94a3b8',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                  }}
+                  onClick={() => {
+                    setActiveStep(1);
+                    setIsPlaying(false);
+                  }}
+                >
+                  ↺ Reset
+                </button>
+              </div>
+              {activeStep === stepsData.length && (
+                <div
+                  className="mt-3 p-3 rounded-xl text-xs text-center"
+                  style={{
+                    background: 'rgba(52,211,153,0.08)',
+                    border: '1px solid rgba(52,211,153,0.2)',
+                    color: '#6ee7b7',
+                  }}
+                >
+                  🎉 全ステップ完了！下の「コード」セクションで実際の実装を確認しましょう。
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+      ReactDOM.createRoot(document.getElementById('steps-root')).render(<StepsApp />);
+    </script>
+  </body>
+</html>

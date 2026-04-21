@@ -64,7 +64,7 @@ TypeScript 版との最大の違いは、**ノードの型が `Option<Rc<RefCell
 
 - **選択したアプローチ**: **B: 再帰 + HashMap + `&mut usize`**
 
-### 理由
+## 理由
 
 - **A を選ばなかった理由**: ループのたびに `preorder[1..]` や `inorder[..mid]` で `Vec` のコピーを生成すると、n 個のノードで合計 O(n²) のメモリアロケーションが発生します。Rust では不要なヒープアロケーションは避けるのが基本設計方針です
 - **C を選ばなかった理由**: `Rc<RefCell<TreeNode>>` の `.borrow_mut()` を手動スタックで管理するとコードが複雑になり、実行時パニック（`borrow_mut` の二重借用）のリスクも高まります
@@ -87,7 +87,7 @@ TypeScript 版との最大の違いは、**ノードの型が `Option<Rc<RefCell
 
 ## コードの骨格（先に全体像を把握する）
 
-```
+```text
 1. 入力検証: preorder と inorder の長さが一致しなければ None を返す
 2. 前処理: inorder の「値 → インデックス」を HashMap に O(n) で登録
 3. preorder カーソル preorder_idx を 0 で初期化し、&mut で再帰関数に渡す
@@ -230,7 +230,7 @@ impl Solution {
 
 ## 動作トレース（具体的な入力例）
 
-```
+```text
 入力: preorder = [3, 9, 20, 15, 7]
       inorder  = [9, 3, 15, 20, 7]
 
@@ -290,7 +290,7 @@ return Some(TreeNode(3, left=Some(9), right=Some(20)))
 
 ## `Rc<RefCell<>>` を使う理由を図で理解する
 
-```
+```text
 【他言語（TypeScript）では】
   node.left = buildLeft();   // 普通に代入できる
 

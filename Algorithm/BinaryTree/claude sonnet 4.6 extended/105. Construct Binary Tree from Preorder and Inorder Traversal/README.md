@@ -52,7 +52,7 @@
 - **時間計算量**：O(n)（各ノードをちょうど1回だけ処理）
 - **空間計算量**：O(n)（`dict` の n エントリ + 再帰スタックの高さ h 分）
 
-```
+```text
 【2つの配列が持つ情報の整理】
 
 preorder = [3, 9, 20, 15, 7]
@@ -152,7 +152,7 @@ graph LR
 
 入力 `preorder=[3,9,20,15,7]`・`inorder=[9,3,15,20,7]` を使って各ステップを追います。
 
-```
+```text
 【前処理】inorder_dict の構築（O(n)）:
   { 9:0, 3:1, 15:2, 20:3, 7:4 }
 
@@ -302,7 +302,7 @@ Output: [3,9,20,null,null,15,7]  ✅
 
 > 💡 コードを読む前に、実装の骨格を確認しましょう。
 
-```
+```text
 実装の骨格：
 1. sys.setrecursionlimit で再帰深度の上限を緩和する（最悪 3000 段の再帰に備えるため）
 2. 入力検証：型チェック・長さ不一致・空リストを早期検出する
@@ -348,22 +348,18 @@ if TYPE_CHECKING:
             right: Optional[TreeNode] = None,
         ) -> None: ...
 
-# LeetCode の実行環境では TreeNode は既に定義済みのため、
-# NameError が出ない場合はスキップ。定義がなければ軽量フォールバックを用意する。
-try:
-    TreeNode  # type: ignore[name-defined]
-except NameError:
-    class TreeNode:  # type: ignore[no-redef]
-        __slots__ = ("val", "left", "right")
-        def __init__(
-            self,
-            val: int = 0,
-            left: Optional[TreeNode] = None,
-            right: Optional[TreeNode] = None,
-        ) -> None:
-            self.val = val
-            self.left = left
-            self.right = right
+# Provide a lightweight TreeNode fallback for environments that do not supply it.
+class TreeNode:
+    __slots__ = ("val", "left", "right")
+    def __init__(
+        self,
+        val: int = 0,
+        left: Optional["TreeNode"] = None,
+        right: Optional["TreeNode"] = None,
+    ) -> None:
+        self.val = val
+        self.left = left
+        self.right = right
 
 
 class Solution:
@@ -501,7 +497,7 @@ class Solution:
 
 ### 動作トレース（業務版コードの主要ステップ確認）
 
-```
+```text
 入力: preorder=[3,9,20,15,7], inorder=[9,3,15,20,7]
 
 Step 1: isinstance チェック → 両方 list ✅
@@ -631,7 +627,7 @@ def build(lo, hi):
 | #   | ケース名             | 入力                               | 期待出力                                   | なぜ問題になりうるか                                                                                                                                                  |
 | --- | -------------------- | ---------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | 単一ノード           | `pre=[-1]`, `ino=[-1]`             | `TreeNode(-1)`                             | `build(0,0)` で `lo==hi` になり終了条件ギリギリ。`lo-1=-1` で `lo>hi` になるかチェック                                                                                |
-| 2   | 右に偏った木         | `pre=[1,2,3]`, `ino=[1,2,3]`       | 1→None→2→None→3                            | mid が常に lo と一致するため左再帰が `build(lo,lo-1)` = `build(x,x-1)` になる。`lo-1` のアンダーフローは Python では起きないが lo > hi の判定が正しく機能するかを確認 |
+| 2   | 右に偏った木         | `pre=[1,2,3]`, `ino=[1,2,3]`       | 1→None→2→None→3                            | mid が常に lo と一致するため左再帰が `build(lo,lo-1)` になる。`build(lo, hi)` の終了条件 `lo > hi` が正しく機能するかを確認 |
 | 3   | 左に偏った木         | `pre=[3,2,1]`, `ino=[1,2,3]`       | 3→2→1→None 右側全部 None                   | mid が常に hi と一致するため右再帰が `build(hi+1,hi)` = `build(x+1,x)` になる。終了条件が正しく機能するかを確認                                                       |
 | 4   | 負の値を含む         | `pre=[-3,9,-20]`, `ino=[9,-3,-20]` | `TreeNode(-3, TreeNode(9), TreeNode(-20))` | `dict` のキーに負の値が使えるか確認。Python の `dict` は任意の `int` をキーにできるため問題ない                                                                       |
 | 5   | 最大サイズ           | n=3000 の完全二分木                | 正常に木を返す                             | 再帰深度が約 log₂(3000) ≈ 12 段に収まる。`sys.setrecursionlimit` なしでも動くが念のため設定済み                                                                       |
@@ -723,7 +719,7 @@ except ValueError:
 
 **理由**：例えば preorder `[1,2,3]` に対して、以下の複数の木が存在します：
 
-```
+```text
 パターンA          パターンB          パターンC
     1                  1                  1
    /                    \                / \
@@ -757,3 +753,4 @@ inorder がそれぞれ `[2,3,1]`, `[1,3,2]`, `[2,1,3]` となり、一意に区
 
 _このドキュメントは LeetCode 105 - Construct Binary Tree from Preorder and Inorder Traversal の解説用に作成されました。_
 _対象言語：Python (CPython 3.11.10) / プラットフォーム：LeetCode_
+��：Python (CPython 3.11.10) / プラットフォーム：LeetCode_

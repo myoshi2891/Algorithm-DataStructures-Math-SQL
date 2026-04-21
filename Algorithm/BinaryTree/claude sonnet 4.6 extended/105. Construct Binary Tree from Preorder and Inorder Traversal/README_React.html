@@ -480,6 +480,18 @@ from typing import Optional
 # 再帰深度の上限を緩和（デフォルト1000 → 偏った木で3000段になりうる）
 sys.setrecursionlimit(10_000)
 
+# Provide a lightweight TreeNode fallback for environments that do not supply it.
+class TreeNode:
+    __slots__ = ("val", "left", "right")
+    def __init__(
+        self,
+        val: int = 0,
+        left: Optional["TreeNode"] = None,
+        right: Optional["TreeNode"] = None,
+    ) -> None:
+        self.val = val
+        self.left = left
+        self.right = right
 
 class Solution:
     def buildTree(
@@ -512,7 +524,7 @@ class Solution:
             nonlocal preorder_idx  # 外側のカーソルを書き換えることをPythonに宣言
 
             # ⑥ 再帰の終了条件：範囲が空 → 部分木なし → None
-            if lo > hi:
+            if lo &gt; hi:
                 return None
 
             # ⑦ preorder の現在位置がこの部分木のルート値
@@ -1911,16 +1923,19 @@ build(0,4): root=preorder[0]=3, idx→1, mid=1, node=TreeNode(3)
         useEffect(() => {
           if (isPlaying) {
             timerRef.current = setTimeout(() => {
-              if (activeStep === stepsData.length) {
-                setActiveStep(1);
-                setIsPlaying(false);
-              } else setActiveStep((p) => p + 1);
+              setActiveStep((p) => {
+                if (p === stepsData.length) {
+                  setIsPlaying(false);
+                  return 1;
+                }
+                return p + 1;
+              });
             }, 2400);
           }
           return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
           };
-        }, [isPlaying, activeStep]);
+        }, [isPlaying]);
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

@@ -93,8 +93,26 @@ Python の `list.index()` メソッドは内部が C 実装で高速に見えま
 チームで長期間メンテナンスするプロダクションコードに向きます。エラーの原因が分かりやすく、pylance による静的型チェックも通る構造になっています。再帰制限の緩和理由もコメントで明示し、後から読んだ人が意図を理解できるようにします。
 
 ```python
+from __future__ import annotations  # アノテーションを遅延評価にする（PEP 563）
+
 import sys
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+# LeetCode 環境外でも import/実行できるよう最小限の TreeNode を定義する。
+# LeetCode では実行時に TreeNode が注入されるため、NameError にならない場合はスキップ。
+try:
+    TreeNode  # type: ignore[name-defined]
+except NameError:
+    class TreeNode:  # type: ignore[no-redef]
+        def __init__(
+            self,
+            val: int = 0,
+            left: Optional[TreeNode] = None,
+            right: Optional[TreeNode] = None,
+        ) -> None:
+            self.val = val
+            self.left = left
+            self.right = right
 
 # 再帰深度の上限を緩和する。
 # Python デフォルトは 1000 だが、本問は最悪 3000 段（偏った木）になりうる。

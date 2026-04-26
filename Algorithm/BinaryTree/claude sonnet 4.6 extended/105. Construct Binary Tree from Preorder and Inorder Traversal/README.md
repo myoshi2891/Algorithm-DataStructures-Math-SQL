@@ -614,7 +614,7 @@ def build(lo, hi):
 > 📖 **この章で登場した用語**
 >
 > - **バイトコード**：Python のソースコードが CPython によって変換される中間表現。実際にはこの形式で実行される
-> - **dict.**getitem\*\*\*\*：`dict[key]` という操作の内部実装。ハッシュ計算で直接位置を求めるため O(1)
+> - `dict.__getitem__`：`dict[key]` という操作の内部実装。ハッシュ計算で直接位置を求めるため O(1)
 > - **インタープリタオーバーヘッド**：Python コードの各命令を解釈・実行するためにかかるコスト。C 実装の組み込み関数はこれを大幅に削減できる
 > - **不変型（immutable）**：`int`・`str`・`tuple` など、生成後に値を変更できない型。`+=` は新しいオブジェクトを作る再代入になる
 
@@ -753,4 +753,3 @@ inorder がそれぞれ `[2,3,1]`, `[1,3,2]`, `[2,1,3]` となり、一意に区
 
 _このドキュメントは LeetCode 105 - Construct Binary Tree from Preorder and Inorder Traversal の解説用に作成されました。_
 _対象言語：Python (CPython 3.11.10) / プラットフォーム：LeetCode_
-��：Python (CPython 3.11.10) / プラットフォーム：LeetCode_

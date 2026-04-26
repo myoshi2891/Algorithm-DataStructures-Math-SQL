@@ -174,10 +174,13 @@ impl Solution {
     ) -> Option<Rc<RefCell<TreeNode>>> {
 
         // ⑥ 再帰の終了条件：left > right なら部分木は空 → None を返す。
-        //    usize は負の数を表せないため、left=0 かつ right=0 のときに
-        //    right - 1 を計算するとアンダーフロー（＝0未満へのラップアラウンド）が起きる。
-        //    そのため比較は left > right ではなく、呼び出し側で
-        //    mid == 0 の場合は左再帰を省略するガードが必要になる（⑩で対応）。
+        //    この `if left > right` チェックは Self::build 内で行う（ここ）。
+        //    ただし usize は負の数を表せないため、left=0 かつ mid=0 のとき
+        //    呼び出し側で `mid - 1` を計算するとアンダーフロー
+        //    （＝0未満へのラップアラウンド）が起きる。
+        //    よって両方の対応が必要：
+        //      1) Self::build 内の `if left > right`（ここ）で空範囲を検出
+        //      2) 呼び出し側（⑩）の `mid > left` ガードで mid-1 の計算自体を回避
         if left > right {
             return None;
         }

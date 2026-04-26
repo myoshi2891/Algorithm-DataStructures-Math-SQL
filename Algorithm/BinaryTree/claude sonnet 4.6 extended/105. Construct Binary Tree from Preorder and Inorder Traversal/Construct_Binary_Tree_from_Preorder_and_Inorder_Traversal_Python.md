@@ -167,10 +167,7 @@ class Solution:
         inorder_index: dict[int, int] = {val: i for i, val in enumerate(inorder)}
 
         # ⑤ preorder を先頭から消費するカーソルを初期化する。
-        #    リストに入れるのは Python の nonlocal が int（不変型）の
-        #    再代入を外側スコープに反映するために使えるが、
-        #    リストでラップすれば .append/.pop なしで添字書き換えができる。
-        #    ここでは可読性のため nonlocal を使うシンプルな形にする。
+        #    この実装では、リストでラップする手法の代わりに nonlocal な整数カーソル (preorder_idx) を使用して preorder 要素を消費します。
         preorder_idx = 0
 
         def build(left: int, right: int) -> Optional[TreeNode]:

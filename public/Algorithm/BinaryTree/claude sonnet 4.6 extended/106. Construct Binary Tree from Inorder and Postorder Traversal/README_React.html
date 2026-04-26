@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LeetCode 106 · Construct Binary Tree from Inorder and Postorder Traversal</title>
+<script src="/vendor/react/react.development.js"></script>
+<script src="/vendor/react-dom/react-dom.development.js"></script>
+<script src="/vendor/babel/babel.min.js"></script>
+<script src="/vendor/tailwindcss/script.js"></script>
+<link rel="stylesheet" href="/vendor/prismjs/themes/prism-tomorrow.css"/>
+<link rel="stylesheet" href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"/>
+<link rel="stylesheet" href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"/>
+<script src="/vendor/prismjs/prism.js"></script>
+<script src="/vendor/prismjs/components/prism-python.min.js"></script>
+<script src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+<script src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"></script>
+<script src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Source+Serif+4:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  html{scroll-behavior:smooth}
+  body{font-family:'Source Serif 4',serif;background:linear-gradient(135deg,#f0fdf4 0%,#e0f2fe 100%);min-height:100vh}
+  .outfit{font-family:'Outfit',sans-serif}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .code-toolbar>.toolbar .toolbar-item a,
+  .code-toolbar>.toolbar .toolbar-item button,
+  .code-toolbar>.toolbar .toolbar-item span{
+    background:#10b981 !important;color:#fff !important;border-radius:6px !important;
+    padding:3px 10px !important;font-size:12px !important;border:none !important;cursor:pointer !important;
+  }
+  details summary::-webkit-details-marker{display:none}
+  details[open] summary span.arrow{transform:rotate(90deg)}
+  details summary span.arrow{display:inline-block;transition:transform .2s}
+</style>
+</head>
+<body class="py-6 px-3 md:px-8">
+<div class="max-w-5xl mx-auto">
+
+<!-- ===== HEADER ===== -->
+<header id="header" class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.14)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]">
+  <div class="flex flex-wrap items-center gap-3 mb-2">
+    <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full outfit">LeetCode 106</span>
+    <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit">Medium</span>
+    <span class="bg-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit">二分木 / 再帰 / HashMap</span>
+  </div>
+  <h1 class="outfit text-[2.2rem] font-extrabold text-teal-900 mb-1 leading-tight">
+    Construct Binary Tree from<br/>Inorder and Postorder Traversal
+  </h1>
+  <p class="text-base text-cyan-700 font-semibold mt-1 outfit">
+    HashMap 事前構築 + 再帰分割 による O(n) 実装
+  </p>
+  <div class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block">
+    💡 一言で言うと：「2種類の巡回記録から元の二分木を復元する問題」
+  </div>
+  <nav class="flex flex-wrap gap-3 mt-6">
+    <a href="#overview"   class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">概要</a>
+    <a href="#steps"      class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">ステップ解説</a>
+    <a href="#code"       class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">コード</a>
+    <a href="#diagram"    class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">フローチャート</a>
+    <a href="#complexity" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">計算量</a>
+    <a href="#glossary"   class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">📖 用語集</a>
+  </nav>
+</header>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">アルゴリズム概要</h2>
+
+  <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+    <p class="text-emerald-800 font-semibold text-base">
+      💡 この問題を一言で言うと：「2種類の木の巡回記録（Inorder・Postorder）を手がかりに、元の二分木の形を復元する問題」
+    </p>
+    <p class="text-slate-600 text-sm mt-2 leading-7">
+      二分木を「巡回する順番のルール」が複数あり、<strong>Postorderの末尾要素は必ずその部分木のルート（根）</strong>になります。この性質とHashMapを組み合わせることで、配列コピーなしにO(n)で木を再構築できます。
+    </p>
+  </div>
+
+  <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+    <p class="text-amber-800 font-semibold text-sm mb-2">⚠️ なぜ単純な方法では解けないのか</p>
+    <ul class="text-slate-600 text-sm space-y-2 list-disc list-inside leading-7">
+      <li><code class="bg-amber-100 px-1 rounded mono text-xs">list.index()</code> でルート位置を毎回探すと O(n) × n回 ＝ <strong>O(n²)</strong> になりTLEになる（n=3000で最大900万回の操作）</li>
+      <li>配列をスライスしてコピーしながら再帰すると O(n²) のメモリが必要になりMLEになる</li>
+      <li>Pythonのデフォルト再帰上限は1000。偏った木ではn=3000段の再帰が必要になるため <code class="bg-amber-100 px-1 rounded mono text-xs">sys.setrecursionlimit</code> が必須</li>
+    </ul>
+  </div>
+
+  <!-- 指標カード -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div style="background:#d1fae5;color:#065f46" class="rounded-xl p-3 text-center">
+      <div class="font-bold text-base font-mono break-all leading-tight">O(n)</div>
+      <div class="text-xs mt-1">時間計算量</div>
+    </div>
+    <div style="background:#bfdbfe;color:#1e40af" class="rounded-xl p-3 text-center">
+      <div class="font-bold text-base font-mono break-all leading-tight">O(n)</div>
+      <div class="text-xs mt-1">空間計算量</div>
+    </div>
+    <div style="background:#fef3c7;color:#92400e" class="rounded-xl p-3 text-center">
+      <div class="font-bold text-xs font-mono break-all leading-tight">HashMap+再帰</div>
+      <div class="text-xs mt-1">アルゴリズム</div>
+    </div>
+    <div style="background:#ede9fe;color:#5b21b6" class="rounded-xl p-3 text-center">
+      <div class="font-bold text-xs font-mono break-all leading-tight">≤ 3000</div>
+      <div class="text-xs mt-1">入力サイズ上限</div>
+    </div>
+  </div>
+
+  <!-- 入出力例 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="rounded-xl border border-slate-200 p-4 bg-slate-50">
+      <p class="text-slate-500 text-xs font-semibold mb-2 mono">入力</p>
+      <pre class="text-slate-800 text-sm mono">inorder   = [9, 3, 15, 20, 7]
+postorder = [9, 15, 7, 20, 3]</pre>
+    </div>
+    <div class="rounded-xl border border-emerald-200 p-4 bg-emerald-50">
+      <p class="text-emerald-600 text-xs font-semibold mb-2 mono">出力（木の形）</p>
+      <pre class="text-slate-800 text-sm mono">      3
+     / \
+    9   20
+       /  \
+      15    7</pre>
+    </div>
+  </div>
+  <p class="text-slate-600 text-sm leading-7">
+    <strong class="text-teal-700">なぜこれが正解か：</strong>
+    postorderの末尾<code class="bg-slate-100 px-1 rounded mono text-xs">3</code>がルート → inorderで<code class="bg-slate-100 px-1 rounded mono text-xs">3</code>の左が<code class="bg-slate-100 px-1 rounded mono text-xs">[9]</code>（左部分木）、右が<code class="bg-slate-100 px-1 rounded mono text-xs">[15,20,7]</code>（右部分木）と特定できる。この操作を再帰的に繰り返すことで木全体を復元できる。
+  </p>
+</section>
+
+<!-- ===== STEPS (React) ===== -->
+<section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">ステップバイステップ解説</h2>
+  <p class="text-slate-500 text-sm mb-6">▶ Play ボタンで自動再生、Prev/Next で手動操作できます。</p>
+  <div id="react-steps"></div>
+</section>
+
+<!-- ===== CODE ===== -->
+<section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">Python 実装</h2>
+
+  <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+    <p class="text-emerald-800 font-semibold text-sm mb-2">📋 このコードの構造（先に全体像を把握しよう）</p>
+    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside leading-7">
+      <li><strong>再帰上限引き上げ</strong>：完全偏り木でも安全に動作させるため <code class="bg-emerald-100 px-1 rounded mono text-xs">sys.setrecursionlimit(10_000)</code> を設定</li>
+      <li><strong>HashMap構築</strong>：<code class="bg-emerald-100 px-1 rounded mono text-xs">idx_map = {v: i for i, v in enumerate(inorder)}</code> で O(1) 検索を可能にする</li>
+      <li><strong>ポインタ初期化</strong>：<code class="bg-emerald-100 px-1 rounded mono text-xs">post_idx = [len(postorder) - 1]</code> で末尾からルートを消費するカーソルを設置</li>
+      <li><strong>再帰ヘルパー dfs</strong>：終了条件チェック → ルート取得 → 右部分木を先に再帰 → 左部分木を再帰 → ノード返却</li>
+    </ol>
+  </div>
+
+  <pre class="line-numbers"><code class="language-python">import sys
+from typing import Optional, List
+
+class Solution:
+    def buildTree(
+        self,
+        inorder: List[int],
+        postorder: List[int]
+    ) -> Optional[TreeNode]:
+        # Python のデフォルト再帰上限は 1000。
+        # 完全偏り木では n=3000 段の再帰が必要になるため上限を引き上げる。
+        sys.setrecursionlimit(10_000)
+
+        # dict 内包表記で「値 → inorder のインデックス」を O(n) で1回だけ構築。
+        # list.index() を毎回呼ぶと O(n²) になるため、事前構築で O(1) 検索を実現。
+        idx_map: dict[int, int] = {v: i for i, v in enumerate(inorder)}
+
+        # post_idx をリストで包む慣用句。
+        # 内側関数から外側の int を書き換えるには nonlocal が必要だが、
+        # リストに包むことで「リストの中身を変える」操作になり nonlocal 不要になる。
+        post_idx: List[int] = [len(postorder) - 1]
+
+        def dfs(left: int, right: int) -> Optional[TreeNode]:
+            # 終了条件：左端が右端を超えた = この範囲に要素がない = 部分木なし
+            if left > right:
+                return None
+
+            # postorder の末尾から現在の部分木のルートを取り出す。
+            # list のインデックスアクセスは O(1)。カーソルを1つ前に進める。
+            val: int = postorder[post_idx[0]]
+            post_idx[0] -= 1
+
+            # ルートノードを作成する。
+            node = TreeNode(val)
+
+            # dict から O(1) でルートの inorder 上の位置を取得する。
+            # この位置より「左側」が左部分木、「右側」が右部分木になる。
+            mid: int = idx_map[val]
+
+            # ★重要★ 右部分木を先に再帰する理由：
+            # postorder を末尾から逆順に消費すると「ルート→右→左」の順になる。
+            # つまり次の pop は「右部分木のルート」を指している。
+            # 左を先にすると消費順序がずれて誤った木になってしまう。
+            node.right = dfs(mid + 1, right)  # 右：mid+1 〜 right
+            node.left  = dfs(left, mid - 1)   # 左：left 〜 mid-1
+
+            return node
+
+        # inorder の全範囲（0 〜 n-1）を対象に木を構築して返す
+        return dfs(0, len(inorder) - 1)</code></pre>
+
+  <div class="mt-5 p-4 rounded-xl bg-sky-50 border border-sky-200">
+    <p class="text-sky-800 font-semibold text-sm mb-3">▶ 入力例 <code class="bg-sky-100 px-1 rounded mono text-xs">inorder=[9,3,15,20,7], postorder=[9,15,7,20,3]</code> での動作トレース</p>
+    <pre class="text-slate-700 text-xs mono leading-6 overflow-x-auto whitespace-pre">事前準備:
+  idx_map   = { 9:0, 3:1, 15:2, 20:3, 7:4 }
+  post_idx  = [4]  ← postorder の末尾インデックス
+
+dfs(0, 4)  ← inorder 全体の範囲
+  val = postorder[4] = 3    post_idx: [4]→[3]
+  mid = idx_map[3] = 1
+  node = TreeNode(3)
+  ├─ node.right = dfs(2, 4)
+  │    val = postorder[3] = 20   post_idx: [3]→[2]
+  │    mid = idx_map[20] = 3
+  │    node = TreeNode(20)
+  │    ├─ node.right = dfs(4, 4)
+  │    │    val = postorder[2] = 7    post_idx: [2]→[1]
+  │    │    node = TreeNode(7) ← 葉ノード（左右None）
+  │    │    return TreeNode(7) ✅
+  │    └─ node.left = dfs(2, 2)
+  │         val = postorder[1] = 15   post_idx: [1]→[0]
+  │         node = TreeNode(15) ← 葉ノード
+  │         return TreeNode(15) ✅
+  │    return TreeNode(20) ✅
+  └─ node.left = dfs(0, 0)
+       val = postorder[0] = 9    post_idx: [0]→[-1]
+       node = TreeNode(9) ← 葉ノード
+       return TreeNode(9) ✅
+
+最終結果:
+      3
+     / \
+    9   20
+       /  \
+      15    7   ✅</pre>
+  </div>
+</section>
+
+<!-- ===== DIAGRAM ===== -->
+<section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">処理フローチャート</h2>
+
+  <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+    <p class="text-amber-800 font-semibold text-sm mb-3">🗺️ フローチャートの読み方</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+      <div class="flex items-center gap-2">
+        <svg width="26" height="18"><ellipse cx="13" cy="9" rx="12" ry="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/></svg>
+        <span>楕円（緑）＝ 開始・終了</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg width="26" height="18"><rect x="1" y="2" width="24" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/></svg>
+        <span>四角（青）＝ 処理ステップ</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg width="26" height="18"><polygon points="13,1 25,9 13,17 1,9" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/></svg>
+        <span>ひし形（黄）＝ 条件分岐</span>
+      </div>
+      <div class="flex items-center gap-2 col-span-2 md:col-span-1">
+        <span class="inline-block w-4 h-0.5 bg-emerald-500 mr-1"></span><span class="text-xs">緑＝はい</span>
+        <span class="inline-block w-4 h-0.5 bg-red-500 mx-1"></span><span class="text-xs">赤＝いいえ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-5 overflow-x-auto">
+    <!--
+      SVG設計 (静的HTML → ケバブケース属性を使用)
+      viewBox: 0 0 560 1165
+      center x = 280, box: x=60 width=440
+      最終楕円: cy=1120, ry=28 → 下端=1148 + 余白17 = 1165
+    -->
+    <svg
+      viewBox="0 0 560 1165"
+      style="max-width:560px;width:100%;height:auto;display:block;margin:0 auto;"
+      role="img"
+      aria-label="LeetCode 106 flowchart"
+    >
+      <defs>
+        <marker id="fc-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" marker-units="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+        </marker>
+        <marker id="fc-arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" marker-units="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#059669"/>
+        </marker>
+        <marker id="fc-arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" marker-units="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/>
+        </marker>
+        <marker id="fc-arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" marker-units="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#a855f7"/>
+        </marker>
+      </defs>
+
+      <!-- ===== NODE 1: START ===== -->
+      <!-- 楕円: cx=280 cy=50 rx=160 ry=28 → bottom=78 -->
+      <ellipse cx="280" cy="50" rx="160" ry="28" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+      <text x="280" y="50" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="#065f46" font-family="sans-serif">buildTree 開始</text>
+
+      <!-- arrow 78→110 -->
+      <line x1="280" y1="78" x2="280" y2="108" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 2: EMPTY CHECK (diamond) ===== -->
+      <!-- diamond: center(280,140), half-w=150, half-h=40 → top=100, bottom=180, right=430, left=130 -->
+      <polygon points="280,100 430,140 280,180 130,140" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+      <text x="280" y="134" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#92400e" font-family="sans-serif">inorder が空？</text>
+      <text x="280" y="152" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#92400e" font-family="sans-serif">len(inorder) == 0</text>
+
+      <!-- Yes → right → None ellipse -->
+      <line x1="430" y1="140" x2="495" y2="140" stroke="#059669" stroke-width="2" marker-end="url(#fc-arrowGreen)"/>
+      <text x="454" y="131" text-anchor="middle" font-size="11" fill="#059669" font-family="sans-serif" font-weight="bold">はい</text>
+      <ellipse cx="520" cy="140" rx="38" ry="22" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+      <text x="520" y="140" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#065f46" font-family="sans-serif" font-weight="bold">None</text>
+
+      <!-- No → down arrow 180→210 -->
+      <line x1="280" y1="180" x2="280" y2="208" stroke="#dc2626" stroke-width="2" marker-end="url(#fc-arrowRed)"/>
+      <text x="258" y="196" text-anchor="middle" font-size="11" fill="#dc2626" font-family="sans-serif" font-weight="bold">いいえ</text>
+
+      <!-- ===== NODE 3: BUILD idx_map ===== -->
+      <!-- rect: y=210, h=65, bottom=275 -->
+      <rect x="60" y="210" width="440" height="65" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+      <text x="280" y="233" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#1e40af" font-family="sans-serif">① idx_map を構築</text>
+      <line x1="80" y1="248" x2="480" y2="248" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="280" y="263" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="monospace">{v: i for i, v in enumerate(inorder)}</text>
+
+      <!-- arrow 275→305 -->
+      <line x1="280" y1="275" x2="280" y2="303" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 4: SET post_idx ===== -->
+      <!-- rect: y=305, h=60, bottom=365 -->
+      <rect x="60" y="305" width="440" height="60" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+      <text x="280" y="326" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#1e40af" font-family="sans-serif">② post_idx を末尾インデックスに設定</text>
+      <line x1="80" y1="341" x2="480" y2="341" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="280" y="356" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="monospace">post_idx = [len(postorder) - 1]</text>
+
+      <!-- arrow 365→395 -->
+      <line x1="280" y1="365" x2="280" y2="393" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== dfs subgraph background ===== -->
+      <rect x="30" y="395" width="500" height="645" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="55" y="418" font-size="11" fill="#94a3b8" font-family="sans-serif" font-weight="bold">dfs ヘルパー関数</text>
+
+      <!-- ===== NODE 5: CALL dfs ===== -->
+      <!-- rect: y=425, h=55, bottom=480 -->
+      <rect x="60" y="425" width="440" height="55" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+      <text x="280" y="445" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#065f46" font-family="sans-serif">③ dfs(0, n-1) 呼び出し</text>
+      <line x1="80" y1="460" x2="480" y2="460" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="280" y="474" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#065f46" font-family="monospace">inorder の全範囲を対象に再帰開始</text>
+
+      <!-- arrow 480→510 -->
+      <line x1="280" y1="480" x2="280" y2="508" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 6: BASE CASE (diamond) ===== -->
+      <!-- diamond: center(280,545), half-w=145, half-h=40 → top=505, bottom=585, right=425, left=135 -->
+      <polygon points="280,505 425,545 280,585 135,545" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+      <text x="280" y="539" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#92400e" font-family="sans-serif">④ left &gt; right ?</text>
+      <text x="280" y="557" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#92400e" font-family="sans-serif">部分木が空の場合</text>
+
+      <!-- Yes → right → None -->
+      <line x1="425" y1="545" x2="495" y2="545" stroke="#059669" stroke-width="2" marker-end="url(#fc-arrowGreen)"/>
+      <text x="452" y="536" text-anchor="middle" font-size="11" fill="#059669" font-family="sans-serif" font-weight="bold">はい</text>
+      <ellipse cx="520" cy="545" rx="38" ry="22" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+      <text x="520" y="545" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#065f46" font-family="sans-serif" font-weight="bold">None</text>
+
+      <!-- No → down 585→615 -->
+      <line x1="280" y1="585" x2="280" y2="613" stroke="#dc2626" stroke-width="2" marker-end="url(#fc-arrowRed)"/>
+      <text x="258" y="601" text-anchor="middle" font-size="11" fill="#dc2626" font-family="sans-serif" font-weight="bold">いいえ</text>
+
+      <!-- ===== NODE 7: POP ROOT ===== -->
+      <!-- rect: y=615, h=65, bottom=680 -->
+      <rect x="60" y="615" width="440" height="65" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+      <text x="280" y="637" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#1e40af" font-family="sans-serif">⑤ postorder 末尾からルートを取得</text>
+      <line x1="80" y1="653" x2="480" y2="653" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="280" y="668" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="monospace">val = postorder[post_idx[0]]; post_idx[0] -= 1</text>
+
+      <!-- arrow 680→710 -->
+      <line x1="280" y1="680" x2="280" y2="708" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 8: CREATE NODE + LOOKUP mid ===== -->
+      <!-- rect: y=710, h=75, bottom=785 -->
+      <rect x="60" y="710" width="440" height="75" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+      <text x="280" y="732" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#1e40af" font-family="sans-serif">⑥ ノード作成 &amp; mid を O(1) で検索</text>
+      <line x1="80" y1="748" x2="480" y2="748" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="280" y="763" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="monospace">node = TreeNode(val)</text>
+      <text x="280" y="778" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="monospace">mid = idx_map[val]  # O(1)</text>
+
+      <!-- arrow 785→815 -->
+      <line x1="280" y1="785" x2="280" y2="813" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 9: RECURSE RIGHT ===== -->
+      <!-- rect: y=815, h=60, bottom=875 -->
+      <rect x="60" y="815" width="440" height="60" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="280" y="836" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#5b21b6" font-family="sans-serif">⑦ 右部分木を先に再帰 ★重要★</text>
+      <line x1="80" y1="851" x2="480" y2="851" stroke="#ddd6fe" stroke-width="1"/>
+      <text x="280" y="866" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#5b21b6" font-family="monospace">node.right = dfs(mid + 1, right)</text>
+
+      <!-- arrow 875→905 -->
+      <line x1="280" y1="875" x2="280" y2="903" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 10: RECURSE LEFT ===== -->
+      <!-- rect: y=905, h=60, bottom=965 -->
+      <rect x="60" y="905" width="440" height="60" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="280" y="926" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#5b21b6" font-family="sans-serif">⑧ 左部分木を再帰</text>
+      <line x1="80" y1="941" x2="480" y2="941" stroke="#ddd6fe" stroke-width="1"/>
+      <text x="280" y="956" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#5b21b6" font-family="monospace">node.left = dfs(left, mid - 1)</text>
+
+      <!-- arrow 965→995 -->
+      <line x1="280" y1="965" x2="280" y2="993" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 11: ATTACH & RETURN ===== -->
+      <!-- rect: y=995, h=55, bottom=1050 -->
+      <rect x="60" y="995" width="440" height="55" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+      <text x="280" y="1015" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="bold" fill="#065f46" font-family="sans-serif">⑨ 子ノードを設定して返す</text>
+      <line x1="80" y1="1030" x2="480" y2="1030" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="280" y="1044" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#065f46" font-family="monospace">return node</text>
+
+      <!-- arrow 1050→1082 -->
+      <line x1="280" y1="1050" x2="280" y2="1090" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)"/>
+
+      <!-- ===== NODE 12: END ===== -->
+      <!-- ellipse cy=1120 ry=28 → bottom=1148 -->
+      <ellipse cx="280" cy="1120" rx="155" ry="28" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+      <text x="280" y="1120" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="#065f46" font-family="sans-serif">buildTree 完了・木を返す</text>
+    </svg>
+  </div>
+
+  <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+    <p class="text-slate-700 font-semibold text-sm mb-2">🔎 入力例 <code class="bg-slate-200 px-1 rounded mono text-xs">inorder=[9,3,15,20,7], postorder=[9,15,7,20,3]</code> でのフロー追跡</p>
+    <ol class="text-slate-600 text-sm space-y-2 list-decimal list-inside leading-7">
+      <li>「buildTree 開始」→ inorder=[9,3,15,20,7] を受け取る（空でない → いいえ経路へ）</li>
+      <li>「idx_map を構築」→ <code class="bg-slate-100 px-1 rounded mono text-xs">{9:0, 3:1, 15:2, 20:3, 7:4}</code> を O(n)で生成</li>
+      <li>「post_idx を設定」→ <code class="bg-slate-100 px-1 rounded mono text-xs">post_idx=[4]</code>（末尾インデックス）</li>
+      <li>「dfs(0, 4) 呼び出し」→ left=0, right=4、終了条件チェック: 0 ≤ 4 → いいえ経路へ</li>
+      <li>「ルートを取得」→ <code class="bg-slate-100 px-1 rounded mono text-xs">val=postorder[4]=3</code>、post_idx=[3]</li>
+      <li>「ノード作成・mid検索」→ <code class="bg-slate-100 px-1 rounded mono text-xs">node=TreeNode(3)</code>、<code class="bg-slate-100 px-1 rounded mono text-xs">mid=idx_map[3]=1</code></li>
+      <li>「右部分木を先に再帰」→ <code class="bg-slate-100 px-1 rounded mono text-xs">dfs(2, 4)</code> でルート20の部分木を構築</li>
+      <li>「左部分木を再帰」→ <code class="bg-slate-100 px-1 rounded mono text-xs">dfs(0, 0)</code> でルート9の葉ノードを構築</li>
+      <li>「完了・木を返す」→ ルート TreeNode(3) を返す ✅</li>
+    </ol>
+  </div>
+
+  <div class="mt-5 p-4 rounded-xl bg-violet-50 border border-violet-200">
+    <p class="text-violet-800 font-semibold text-sm mb-1">⚡ なぜ「右を先に再帰する」のか？</p>
+    <p class="text-slate-700 text-sm leading-7">Postorderは「左→右→自分」の順なので、<strong>末尾から逆順に取り出すと「自分→右→左」の順になります</strong>。post_idxのカーソルを進めた直後に来る次の末尾要素は常に「右部分木のルート」です。左を先に再帰してしまうとカーソルがずれ、誤ったノードをルートにしてしまいます。</p>
+  </div>
+</section>
+
+<!-- ===== COMPLEXITY ===== -->
+<section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">計算量分析</h2>
+
+  <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+    <p class="text-slate-600 font-semibold text-sm mb-3">📖 Big-O 記法の読み方（入力サイズ n が大きくなるにつれて処理時間がどう増えるかの目安）</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+      <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+        <div class="font-bold mono text-base mb-1">O(1)</div>
+        <div class="leading-5">常に一定<br/><span class="text-emerald-600">例：dict の直接引き</span></div>
+      </div>
+      <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+        <div class="font-bold mono text-base mb-1">O(n)</div>
+        <div class="leading-5">入力に比例<br/><span class="text-sky-600">例：リストを1回走査</span></div>
+      </div>
+      <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+        <div class="font-bold mono text-base mb-1">O(n log n)</div>
+        <div class="leading-5">n より少し多い<br/><span class="text-amber-600">例：ソートアルゴリズム</span></div>
+      </div>
+      <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+        <div class="font-bold mono text-base mb-1">O(n²)</div>
+        <div class="leading-5">入力の2乗<br/><span class="text-red-600">例：二重ループ総当たり</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto mb-5">
+    <table class="w-full text-sm border-collapse">
+      <thead>
+        <tr class="bg-teal-50">
+          <th class="border border-slate-200 px-4 py-3 text-left text-teal-800 font-bold outfit">種別</th>
+          <th class="border border-slate-200 px-4 py-3 text-left text-teal-800 font-bold outfit">計算量</th>
+          <th class="border border-slate-200 px-4 py-3 text-left text-teal-800 font-bold outfit">内訳</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="bg-white hover:bg-emerald-50 transition">
+          <td class="border border-slate-200 px-4 py-3 font-semibold text-teal-700">時間計算量</td>
+          <td class="border border-slate-200 px-4 py-3"><span class="mono font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">O(n)</span></td>
+          <td class="border border-slate-200 px-4 py-3 text-slate-600">idx_map 構築 O(n) + 各ノードを1回だけ処理 O(n) = O(n)</td>
+        </tr>
+        <tr class="bg-slate-50 hover:bg-sky-50 transition">
+          <td class="border border-slate-200 px-4 py-3 font-semibold text-teal-700">空間計算量</td>
+          <td class="border border-slate-200 px-4 py-3"><span class="mono font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">O(n)</span></td>
+          <td class="border border-slate-200 px-4 py-3 text-slate-600">idx_map O(n) + 再帰スタック O(h)（h=木の高さ、最悪 O(n)）+ 出力ノード O(n)</td>
+        </tr>
+        <tr class="bg-white">
+          <td class="border border-slate-200 px-4 py-3 font-semibold text-red-600">⚠️ 比較：ナイーブ版</td>
+          <td class="border border-slate-200 px-4 py-3"><span class="mono font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded">O(n²)</span></td>
+          <td class="border border-slate-200 px-4 py-3 text-slate-600"><code class="bg-red-50 px-1 rounded mono text-xs">list.index()</code> を毎回呼ぶと O(n) × n回 = O(n²)。n=3000で最大900万操作。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+    <p class="text-emerald-800 font-semibold text-sm mb-2">🔍 なぜこの計算量になるのか</p>
+    <p class="text-slate-700 text-sm leading-7">
+      <strong>時間O(n)の理由</strong>：<code class="bg-emerald-100 px-1 rounded mono text-xs">idx_map</code>の構築はenumerate()で1回だけ走査するのでO(n)。dfs()はn個のノードそれぞれを1回だけ処理し、各処理内のdict検索とpop()はO(1)なので合計O(n)。全体でO(n)+O(n)=O(n)。
+    </p>
+    <p class="text-slate-700 text-sm leading-7 mt-2">
+      <strong>空間O(n)の理由</strong>：<code class="bg-emerald-100 px-1 rounded mono text-xs">idx_map</code>にn個のエントリを格納するのでO(n)。再帰スタックは木の高さh分だけ積まれるが、完全に偏った木では h=n になるので最悪O(n)。出力の木もn個のノードを作成するのでO(n)。
+    </p>
+  </div>
+</section>
+
+<!-- ===== GLOSSARY ===== -->
+<section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+  <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">📖 用語集</h2>
+  <p class="text-slate-500 text-sm mb-5">このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。</p>
+  <div class="space-y-2">
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> 後順走査（Postorder Traversal）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        「左の子 → 右の子 → 自分（ルート）」の順でノードを訪れる走査方法。
+        <strong>配列の末尾要素が必ずその部分木のルートになる</strong>という性質がこのアルゴリズムの核心。
+        例：ルート=3の木では postorder=[9, 15, 7, 20, <strong>3</strong>] のように末尾に3が来る。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> 中順走査（Inorder Traversal）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        「左の子 → 自分（ルート） → 右の子」の順でノードを訪れる走査方法。
+        ルートのインデックスが分かると、<strong>そのインデックスの左側が左部分木・右側が右部分木</strong>という分割ができる。
+        例：inorder=[9, <strong>3</strong>, 15, 20, 7]でルート=3なら、左部分木=[9]、右部分木=[15,20,7]。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> dict（ハッシュテーブル / 辞書）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        「キー → 値」の対応を <strong>O(1)（＝入力サイズに関わらず常に一定の時間）</strong>で検索できるデータ構造。
+        図書館の索引カードのようなもので、タイトル（キー）から棚番号（値）を瞬時に引ける。
+        このアルゴリズムでは <code class="bg-slate-100 px-1 rounded mono text-xs">idx_map = {v: i for i, v in enumerate(inorder)}</code> で
+        「値 → inorderでの位置番号」を記録し、ルートの位置を O(n)→<strong>O(1)</strong>に短縮している。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> 再帰（Recursion）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        関数が自分自身を呼び出すことで問題を分割して解く手法。
+        「大きな問題 = 小さな問題 × 2 + 少しの処理」の構造を持つ木の問題に適している。
+        必ず<strong>終了条件（再帰の底）</strong>が必要で、このコードでは <code class="bg-slate-100 px-1 rounded mono text-xs">if left &gt; right: return None</code> がそれにあたる。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> 再帰スタック（Call Stack）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        再帰呼び出しが積み重なるメモリ領域。お皿の積み重ねと同じで、最後に呼んだ関数が最初に終わる（LIFO）。
+        木の高さ h 段分だけ積まれるため、<strong>完全偏り木（全ノードが一方向に連なる）ではh=nになり、デフォルト上限1000を超える可能性</strong>がある。
+        <code class="bg-slate-100 px-1 rounded mono text-xs">sys.setrecursionlimit(10_000)</code> で上限を引き上げて対処する。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> dict 内包表記
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        <code class="bg-slate-100 px-1 rounded mono text-xs">{k: v for ...}</code> の形で dict を1行で作る Python の書き方。
+        通常の for ループより <strong>CPython（＝最も広く使われる Python の実装）内部で最適化された命令</strong>を使うため高速。
+        <code class="bg-slate-100 px-1 rounded mono text-xs">{v: i for i, v in enumerate(inorder)}</code> は
+        「inorder の値 → そのインデックス」を O(n) で一括構築する。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> TLE（Time Limit Exceeded）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        LeetCode などの競技プログラミングサイトで、処理時間が制限を超えたときに表示されるエラー。
+        <code class="bg-slate-100 px-1 rounded mono text-xs">list.index()</code> を毎回呼ぶナイーブな実装は O(n²) になり、
+        n=3000 で最大<strong>900万回</strong>の操作が必要になるため TLE になる可能性がある。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> ルート / 葉ノード（Root / Leaf Node）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        <strong>ルート（根）</strong>：木の最上位ノード。この問題では postorder の末尾がルートになる。
+        <strong>葉ノード</strong>：左右の子を持たない末端ノード。再帰の終了時に <code class="bg-slate-100 px-1 rounded mono text-xs">left == right</code> になると葉ノードが作られる。
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-200 overflow-hidden">
+      <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+        <span class="text-emerald-500 arrow">▶</span> 部分木（Subtree）
+      </summary>
+      <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+        ある木のノードを根（ルート）とした木の一部分のこと。
+        このアルゴリズムは「全体 = 左部分木 + ルート + 右部分木」という性質を利用して再帰的に問題を分割している。
+        dfs(left, right) の引数 left/right は「inorder 上でこの部分木が占める範囲のインデックス」を表す。
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-center text-slate-400 text-xs pb-6">
+  LeetCode 106 · Python (CPython 3.11+) · Time O(n) · Space O(n) · HashMap + 再帰分割
+</footer>
+
+</div><!-- /max-w-5xl -->
+
+<!-- ===== REACT STEPS COMPONENT ===== -->
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const INORDER   = [9, 3, 15, 20, 7];
+const POSTORDER = [9, 15, 7, 20, 3];
+const IDX_MAP   = { 9:0, 3:1, 15:2, 20:3, 7:4 };
+
+const stepsData = [
+  {
+    step: 1,
+    title: "HashMap を事前構築する",
+    desc: "「inorderの値 → そのインデックス」を辞書に記録します。\n" +
+          "なぜなら、ルートが inorder のどこにあるかを毎回 list.index() で探すと O(n) × n回 = O(n²) になってしまうからです。\n" +
+          "例）inorder=[9,3,15,20,7] から {9:0, 3:1, 15:2, 20:3, 7:4} を構築。これで任意の値の位置を O(1) で引けます。",
+    visual: "build_map"
+  },
+  {
+    step: 2,
+    title: "postorder ポインタを末尾に設定",
+    desc: "postorder を末尾から逆順に消費するためのカーソルを末尾インデックスに設定します。\n" +
+          "Postorderは「左→右→自分(ルート)」の順なので、末尾が必ず現在の部分木のルートです。\n" +
+          "例）postorder=[9,15,7,20,3] → post_idx=[4]。postorder[4]=3 が全体のルートになります。",
+    visual: "set_pointer"
+  },
+  {
+    step: 3,
+    title: "再帰の終了条件をチェック",
+    desc: "dfs(left, right) が呼ばれるたびに left > right かどうかを確認します。\n" +
+          "left > right は「この範囲に要素が0個」を意味し、部分木が存在しないことを表します。\n" +
+          "例）葉ノード(値7)の左子を求めるとき dfs(5, 4) が呼ばれ、5>4 なので None を返します。",
+    visual: "base_case"
+  },
+  {
+    step: 4,
+    title: "末尾からルートを取り出す",
+    desc: "postorder[post_idx[0]] でルートの値を取得し、post_idx[0] を1減らします。\n" +
+          "list の末尾アクセスは O(1)（先頭の list.pop(0) は O(n) なので使いません）。\n" +
+          "例）post_idx=[4] → val=postorder[4]=3、その後 post_idx=[3]（次回は20がルートになる）。",
+    visual: "pop_root"
+  },
+  {
+    step: 5,
+    title: "inorder でルートの位置（mid）を O(1) 取得",
+    desc: "idx_map[val] でルートが inorder のどこにあるかを O(1) で取得し、左右の範囲を決めます。\n" +
+          "mid より左が左部分木の inorder 範囲、mid より右が右部分木の inorder 範囲になります。\n" +
+          "例）val=3 → mid=idx_map[3]=1。左範囲=[0..0]=[9]、右範囲=[2..4]=[15,20,7]。",
+    visual: "lookup_mid"
+  },
+  {
+    step: 6,
+    title: "右部分木を先に再帰する（★重要★）",
+    desc: "dfs(mid+1, right) で右部分木を先に再帰します。左より先に右を処理することが必須です。\n" +
+          "postorder を末尾から逆順消費すると「ルート→右→左」の順になるため、右を先に処理しないとポインタがずれます。\n" +
+          "例）mid=1 → dfs(2, 4) を呼ぶ。次の post_idx[0]=3 → postorder[3]=20 が右部分木のルートになります。",
+    visual: "recurse_right"
+  },
+  {
+    step: 7,
+    title: "左部分木を再帰する",
+    desc: "dfs(left, mid-1) で左部分木を再帰します。右部分木の再帰がすべて完了した後に呼ばれます。\n" +
+          "右部分木の全ノードが先に消費されているため、このタイミングで post_idx が正しく左部分木のルートを指しています。\n" +
+          "例）右部分木(20,15,7)の処理後に post_idx[0]=0 → postorder[0]=9 が左部分木のルートになります。",
+    visual: "recurse_left"
+  },
+  {
+    step: 8,
+    title: "子ノードを設定してノードを返す",
+    desc: "左右の再帰から返ってきたノードを node.left / node.right に設定し、完成したノードを返します。\n" +
+          "再帰が底から順に返ってくることで、葉ノードから積み上がって最終的にルートが完成します。\n" +
+          "例）node(3).left=TreeNode(9), node(3).right=TreeNode(20) → 木全体が復元完了 ✅",
+    visual: "attach_return"
+  }
+];
+
+function StepVisualization({ visual, step }) {
+  // inorder 配列の表示用
+  const InorderBar = ({ highlightIdx }) => (
+    <div className="flex gap-1 flex-wrap justify-center">
+      {INORDER.map((v, i) => (
+        <div key={i} className={[
+          "flex flex-col items-center rounded-lg border-2 px-2 py-1 transition-all",
+          highlightIdx === i
+            ? "bg-emerald-400 border-emerald-600 text-white scale-110 shadow-lg"
+            : "bg-white border-slate-300 text-slate-700"
+        ].join(" ")}>
+          <span className="font-bold mono text-sm">{v}</span>
+          <span className="text-xs text-slate-400 mono">[{i}]</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const PostorderBar = ({ highlightIdx, consumedFrom }) => (
+    <div className="flex gap-1 flex-wrap justify-center">
+      {POSTORDER.map((v, i) => (
+        <div key={i} className={[
+          "flex flex-col items-center rounded-lg border-2 px-2 py-1 transition-all",
+          i === highlightIdx
+            ? "bg-sky-400 border-sky-600 text-white scale-110 shadow-lg"
+            : consumedFrom !== undefined && i > consumedFrom
+            ? "bg-slate-200 border-slate-300 text-slate-400 opacity-50"
+            : "bg-white border-slate-300 text-slate-700"
+        ].join(" ")}>
+          <span className="font-bold mono text-sm">{v}</span>
+          <span className="text-xs mono" style={{color: i === highlightIdx ? "#fff" : "#94a3b8"}}>[{i}]</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (visual === "build_map") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="text-slate-500 text-xs font-semibold mb-2">📥 入力: inorder</div>
+          <InorderBar highlightIdx={-1}/>
+        </div>
+        <div className="flex justify-center text-2xl text-emerald-500">↓</div>
+        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div className="text-emerald-700 text-xs font-semibold mb-2 mono">idx_map（O(1)検索が可能になる）</div>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {Object.entries(IDX_MAP).map(([k, v]) => (
+              <div key={k} className="bg-white border-2 border-emerald-400 rounded-lg px-3 py-2 text-center shadow-sm">
+                <span className="text-emerald-700 font-bold mono text-sm">{k}</span>
+                <span className="text-slate-400 mx-1 text-xs">→</span>
+                <span className="text-sky-700 font-bold mono text-sm">{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-emerald-700">idx_map = &#123;9:0, 3:1, 15:2, 20:3, 7:4&#125;</div>
+          <div className="text-slate-500">post_idx = まだ未設定</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "set_pointer") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="text-slate-500 text-xs font-semibold mb-2">📥 postorder（末尾がルート）</div>
+          <PostorderBar highlightIdx={4} consumedFrom={-1}/>
+          <div className="text-center mt-2 text-sky-600 text-xs font-semibold">↑ post_idx=[4] が指す位置（末尾）</div>
+        </div>
+        <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-emerald-700">idx_map = &#123;9:0, 3:1, 15:2, 20:3, 7:4&#125;</div>
+          <div className="text-sky-700">post_idx = [4]　← 末尾インデックス</div>
+          <div className="text-amber-700">postorder[4] = 3　← 全体のルート！</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "base_case") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-red-50 border-2 border-red-300 text-center">
+            <div className="text-red-600 font-bold text-sm mb-1">❌ left &gt; right</div>
+            <div className="mono text-xs text-slate-600">dfs(<span className="text-red-600 font-bold">5</span>, <span className="text-red-600 font-bold">4</span>)</div>
+            <div className="text-xs text-slate-500 mt-1">5 &gt; 4 → None を返す</div>
+            <div className="text-xs text-slate-500">（部分木なし）</div>
+          </div>
+          <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-300 text-center">
+            <div className="text-emerald-600 font-bold text-sm mb-1">✅ left ≤ right</div>
+            <div className="mono text-xs text-slate-600">dfs(<span className="text-emerald-600 font-bold">2</span>, <span className="text-emerald-600 font-bold">4</span>)</div>
+            <div className="text-xs text-slate-500 mt-1">2 ≤ 4 → 続行</div>
+            <div className="text-xs text-slate-500">（部分木あり）</div>
+          </div>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-slate-600">left &gt; right → <span className="text-red-600 font-bold">return None</span></div>
+          <div className="text-slate-600">left ≤ right → <span className="text-emerald-600 font-bold">処理続行</span></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "pop_root") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="text-slate-500 text-xs font-semibold mb-2">postorder（末尾からルートを取得）</div>
+          <PostorderBar highlightIdx={4} consumedFrom={-1}/>
+          <div className="text-center mt-2">
+            <span className="bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full">取得：val = 3（インデックス4）</span>
+          </div>
+        </div>
+        <div className="flex justify-center text-slate-400 text-sm">post_idx: [4] → [3]</div>
+        <div className="p-3 rounded-xl bg-sky-50 border border-sky-200">
+          <div className="text-slate-500 text-xs font-semibold mb-2">次回の post_idx=[3] は？</div>
+          <PostorderBar highlightIdx={3} consumedFrom={3}/>
+          <div className="text-center mt-2 text-xs text-slate-500">次回は postorder[3]=20 が右部分木のルートになる</div>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-sky-700">val = 3（全体のルート）</div>
+          <div className="text-slate-600">post_idx = [3]（次回は20）</div>
+          <div className="text-emerald-700">node = TreeNode(3) 作成済み</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "lookup_mid") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="text-slate-500 text-xs font-semibold mb-2">inorder でルートの位置を検索</div>
+          <InorderBar highlightIdx={1}/>
+          <div className="text-center mt-2">
+            <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">mid = idx_map[3] = 1</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          <div className="bg-sky-100 border border-sky-300 rounded-lg p-2">
+            <div className="text-sky-700 font-bold">[0..0]</div>
+            <div className="text-slate-600">左部分木</div>
+            <div className="mono text-sky-800">[9]</div>
+          </div>
+          <div className="bg-emerald-200 border-2 border-emerald-500 rounded-lg p-2">
+            <div className="text-emerald-700 font-bold">mid=1</div>
+            <div className="text-slate-600">ルート</div>
+            <div className="mono text-emerald-800 font-bold">3</div>
+          </div>
+          <div className="bg-violet-100 border border-violet-300 rounded-lg p-2">
+            <div className="text-violet-700 font-bold">[2..4]</div>
+            <div className="text-slate-600">右部分木</div>
+            <div className="mono text-violet-800">[15,20,7]</div>
+          </div>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-emerald-700">val = 3, mid = 1</div>
+          <div className="text-sky-700">左範囲: dfs(0, 0) → inorder[0]=[9]</div>
+          <div className="text-violet-700">右範囲: dfs(2, 4) → inorder[2..4]=[15,20,7]</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "recurse_right") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-violet-50 border-2 border-violet-300">
+          <div className="text-violet-700 font-bold text-sm mb-2">dfs(2, 4) — 右部分木を構築中</div>
+          <div className="text-xs text-slate-600 leading-6 mb-2">
+            post_idx=[3] → postorder[3]=<strong>20</strong> が右部分木のルート<br/>
+            mid=idx_map[20]=3 → さらに右=[7], 左=[15] に分割
+          </div>
+          <svg viewBox="0 0 280 130" className="w-full max-w-xs mx-auto">
+            <ellipse cx="140" cy="30" rx="30" ry="20" fill="#ede9fe" stroke="#7c3aed" strokeWidth="2"/>
+            <text x="140" y="30" textAnchor="middle" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill="#5b21b6" fontFamily="monospace">20</text>
+            <line x1="115" y1="47" x2="75" y2="80" stroke="#7c3aed" strokeWidth="1.5"/>
+            <line x1="165" y1="47" x2="205" y2="80" stroke="#7c3aed" strokeWidth="1.5"/>
+            <ellipse cx="70" cy="95" rx="28" ry="20" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.5"/>
+            <text x="70" y="95" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#5b21b6" fontFamily="monospace">15</text>
+            <ellipse cx="210" cy="95" rx="28" ry="20" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.5"/>
+            <text x="210" y="95" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#5b21b6" fontFamily="monospace">7</text>
+          </svg>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-violet-700">node(3).right = dfs(2, 4) 実行中...</div>
+          <div className="text-slate-500">post_idx の消費順: 3→20, 2→7, 1→15</div>
+          <div className="text-slate-500">（右を先に再帰するのでこの順になる）</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "recurse_left") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-sky-50 border-2 border-sky-300">
+          <div className="text-sky-700 font-bold text-sm mb-2">dfs(0, 0) — 左部分木を構築中</div>
+          <div className="text-xs text-slate-600 leading-6 mb-2">
+            右部分木(20,7,15)の処理完了後、post_idx=[0]<br/>
+            postorder[0]=<strong>9</strong> が左部分木のルート（葉ノード）
+          </div>
+          <svg viewBox="0 0 120 80" className="w-full max-w-[120px] mx-auto">
+            <ellipse cx="60" cy="40" rx="30" ry="22" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2"/>
+            <text x="60" y="40" textAnchor="middle" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill="#1e40af" fontFamily="monospace">9</text>
+          </svg>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 現在の変数の状態</div>
+          <div className="text-sky-700">node(3).left = dfs(0, 0) → TreeNode(9)</div>
+          <div className="text-slate-500">post_idx=[0] → postorder[0]=9</div>
+          <div className="text-emerald-600">葉ノード：左右ともNone</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual === "attach_return") {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-400">
+          <div className="text-emerald-700 font-bold text-sm mb-2">✅ 完成した木</div>
+          <svg viewBox="0 0 280 180" className="w-full max-w-sm mx-auto">
+            {/* 3 (root) */}
+            <ellipse cx="140" cy="30" rx="30" ry="22" fill="#d1fae5" stroke="#059669" strokeWidth="2.5"/>
+            <text x="140" y="30" textAnchor="middle" dominantBaseline="middle" fontSize="15" fontWeight="bold" fill="#065f46" fontFamily="monospace">3</text>
+            {/* edges */}
+            <line x1="113" y1="43" x2="73" y2="80" stroke="#10b981" strokeWidth="2"/>
+            <line x1="167" y1="43" x2="207" y2="80" stroke="#10b981" strokeWidth="2"/>
+            {/* 9 (left) */}
+            <ellipse cx="68" cy="95" rx="28" ry="20" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2"/>
+            <text x="68" y="95" textAnchor="middle" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill="#1e40af" fontFamily="monospace">9</text>
+            {/* 20 (right) */}
+            <ellipse cx="212" cy="95" rx="28" ry="20" fill="#ede9fe" stroke="#7c3aed" strokeWidth="2"/>
+            <text x="212" y="95" textAnchor="middle" dominantBaseline="middle" fontSize="14" fontWeight="bold" fill="#5b21b6" fontFamily="monospace">20</text>
+            {/* edges 20→15, 20→7 */}
+            <line x1="188" y1="110" x2="163" y2="148" stroke="#7c3aed" strokeWidth="1.5"/>
+            <line x1="236" y1="110" x2="249" y2="148" stroke="#7c3aed" strokeWidth="1.5"/>
+            {/* 15 */}
+            <ellipse cx="157" cy="160" rx="26" ry="18" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.5"/>
+            <text x="157" y="160" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#5b21b6" fontFamily="monospace">15</text>
+            {/* 7 */}
+            <ellipse cx="252" cy="160" rx="26" ry="18" fill="#ddd6fe" stroke="#7c3aed" strokeWidth="1.5"/>
+            <text x="252" y="160" textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="#5b21b6" fontFamily="monospace">7</text>
+          </svg>
+        </div>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 mono text-xs">
+          <div className="text-slate-500 mb-1 font-sans font-semibold">🔍 最終的な変数の状態</div>
+          <div className="text-emerald-700 font-bold">return TreeNode(3) ✅</div>
+          <div className="text-slate-500">node(3).left  = TreeNode(9)</div>
+          <div className="text-slate-500">node(3).right = TreeNode(20)</div>
+          <div className="text-slate-500">　node(20).left  = TreeNode(15)</div>
+          <div className="text-slate-500">　node(20).right = TreeNode(7)</div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function StepsApp() {
+  const [activeStep, setActiveStep] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const timerRef = useRef(null);
+
+  const currentStepData = stepsData[activeStep - 1];
+
+  useEffect(() => {
+    if (isPlaying) {
+      timerRef.current = setTimeout(() => {
+        if (activeStep === stepsData.length) {
+          setActiveStep(1);
+          setIsPlaying(false);
+        } else {
+          setActiveStep(prev => prev + 1);
+        }
+      }, 2000);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [isPlaying, activeStep]);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 mt-2">
+      {/* Step list */}
+      <div>
+        <h3 className="mt-0 mb-3 text-teal-800 text-base font-bold outfit">ステップ一覧</h3>
+        <div className="space-y-2">
+          {stepsData.map(s => {
+            const isActive = activeStep === s.step;
+            return (
+              <button
+                key={s.step}
+                type="button"
+                className={[
+                  "w-full text-left rounded-xl border-2 transition cursor-pointer px-3 py-3",
+                  isActive
+                    ? "bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]"
+                    : "bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-1"
+                ].join(" ")}
+                onClick={() => { setActiveStep(s.step); setIsPlaying(false); }}
+              >
+                <div className={["font-bold text-sm", isActive ? "text-emerald-900" : "text-teal-800"].join(" ")}>
+                  Step {s.step}: {s.title}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Detail panel */}
+      <div>
+        {activeStep > 1 && (
+          <div className="mb-3 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+            ← Step {activeStep - 1} では「{stepsData[activeStep - 2].title}」を行いました
+          </div>
+        )}
+
+        <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+          <div className="text-teal-500 text-xs font-bold mb-1 outfit">Step {currentStepData.step} / {stepsData.length}</div>
+          <h3 className="mt-0 text-teal-800 text-base font-bold mb-2">{currentStepData.title}</h3>
+          <p className="text-slate-600 leading-7 text-sm whitespace-pre-line">{currentStepData.desc}</p>
+        </div>
+
+        <StepVisualization visual={currentStepData.visual} step={activeStep}/>
+
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+          <button type="button"
+            className="px-4 py-2 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+            onClick={() => setIsPlaying(true)} disabled={isPlaying}>▶ Play</button>
+          <button type="button"
+            className="px-4 py-2 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => { setActiveStep(s => Math.max(1, s-1)); setIsPlaying(false); }}
+            disabled={activeStep === 1}>◀ Prev</button>
+          <button type="button"
+            className="px-4 py-2 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => { setActiveStep(s => Math.min(stepsData.length, s+1)); setIsPlaying(false); }}
+            disabled={activeStep === stepsData.length}>Next ▶</button>
+          <button type="button"
+            className="px-4 py-2 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+            onClick={() => { setActiveStep(1); setIsPlaying(false); }}>↺ Reset</button>
+        </div>
+
+        {activeStep === stepsData.length && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+            🎉 全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("react-steps"));
+root.render(React.createElement(StepsApp));
+
+// Re-highlight code after React renders
+setTimeout(() => { if (window.Prism) Prism.highlightAll(); }, 300);
+</script>
+</body>
+</html>

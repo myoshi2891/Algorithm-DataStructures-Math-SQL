@@ -118,14 +118,16 @@ class Solution:
                 f"inorder({len(inorder)}) と postorder({len(postorder)}) の長さが一致しません"
             )
 
-        # 空入力はそのまま None を返す（エラーではなく正常なエッジケース）
+        # 空入力はエラーとする
         if not inorder:
-            return None
+            raise ValueError("入力が空です")
 
         # 要素の型チェック：any() は最初に True が見つかった時点で停止するC実装の関数
         # （all() の逆。「1つでも非intがあれば True」）
         if any(not isinstance(x, int) for x in inorder):
             raise TypeError("inorder の全要素は int である必要があります")
+        if any(not isinstance(x, int) for x in postorder):
+            raise TypeError("postorder の全要素は int である必要があります")
 
         # ── 再帰深度の設定 ─────────────────────────────────────────────────
         # Python のデフォルト再帰上限は1000。

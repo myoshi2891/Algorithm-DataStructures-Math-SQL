@@ -346,16 +346,20 @@ return TreeNode(3) ✅
 # リストで包む（ミュータブルオブジェクトに変換する）ことで回避できる
 
 # 方法1: nonlocal を使う（明示的だが宣言が必要）
-count = 0
-def inner():
-    nonlocal count   # ← これがないと count += 1 で UnboundLocalError になる
-    count += 1
+def outer1():
+    count = 0
+    def inner():
+        nonlocal count   # ← これがないと count += 1 で UnboundLocalError になる
+        count += 1
+    return inner
 
 # 方法2: リストで包む（nonlocal 不要・慣用句として広く使われる）
-count = [0]          # int ではなく list[int] にする
-def inner():
-    count[0] += 1    # リストの中身を書き換えるのは「外側変数の再代入」ではない
-                     # → nonlocal 不要
+def outer2():
+    count = [0]          # int ではなく list[int] にする
+    def inner():
+        count[0] += 1    # リストの中身を書き換えるのは「外側変数の再代入」ではない
+                         # → nonlocal 不要
+    return inner
 ```
 
 ### dict内包表記 vs `enumerate()` + ループ

@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeetCode 105 – Construct Binary Tree from Preorder and Inorder Traversal</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Prism.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+  <!-- React 18 + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Noto Sans JP', sans-serif; }
+    .outfit { font-family: 'Outfit', sans-serif; }
+    .mono  { font-family: 'JetBrains Mono', monospace; }
+
+    /* Prism toolbar */
+    .code-toolbar > .toolbar .toolbar-item a,
+    .code-toolbar > .toolbar .toolbar-item button,
+    .code-toolbar > .toolbar .toolbar-item span {
+      background: #10b981 !important;
+      color: white !important;
+      border-radius: 6px !important;
+      padding: 3px 10px !important;
+      font-size: 12px !important;
+      border: none !important;
+      cursor: pointer !important;
+      box-shadow: none !important;
+    }
+
+    /* details open arrow */
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] > summary .arrow { transform: rotate(90deg); }
+    .arrow { transition: transform 0.2s; display: inline-block; }
+
+    /* Tree node animation */
+    @keyframes popIn {
+      0%   { transform: scale(0.4); opacity: 0; }
+      70%  { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .node-pop { animation: popIn 0.35s ease forwards; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-slide { animation: fadeSlide 0.4s ease forwards; }
+
+    /* Step button active glow */
+    .step-active { box-shadow: 0 4px 16px rgba(16,185,129,0.30); }
+  </style>
+</head>
+<body class="bg-[linear-gradient(135deg,#f0fdf4_0%,#e0f2fe_100%)] min-h-screen py-8 px-4">
+<div class="max-w-5xl mx-auto">
+
+  <!-- ============================================================ HEADER -->
+  <header id="header" class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.14)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]">
+    <div class="flex flex-wrap items-center gap-3 mb-2">
+      <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full outfit">LeetCode 105</span>
+      <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit">Medium</span>
+      <span class="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit">再帰 / 分割統治</span>
+    </div>
+    <h1 class="outfit text-[2.1rem] md:text-[2.6rem] font-extrabold text-teal-900 mb-1 leading-tight">
+      Construct Binary Tree<br class="hidden sm:block"/>from Preorder &amp; Inorder Traversal
+    </h1>
+    <p class="text-lg text-cyan-700 font-semibold mt-1 outfit">
+      dict前処理 + 再帰分割 による O(n) 実装
+    </p>
+    <div class="mt-3 text-base text-teal-800 bg-white/70 rounded-xl px-4 py-2 inline-block">
+      💡 一言で言うと：「2種類の探索順リストを手がかりに、元の二分木を Python インスタンスとして<strong>復元する</strong>問題」
+    </div>
+
+    <!-- nav（純粋HTML） -->
+    <nav class="flex flex-wrap gap-2 mt-6">
+      <a href="#overview"   class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">概要</a>
+      <a href="#steps"      class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">ステップ解説</a>
+      <a href="#code"       class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">コード</a>
+      <a href="#diagram"    class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">フローチャート</a>
+      <a href="#complexity" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">計算量</a>
+      <a href="#glossary"   class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">📖 用語集</a>
+    </nav>
+  </header>
+
+  <!-- ============================================================ OVERVIEW -->
+  <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">アルゴリズム概要</h2>
+
+    <!-- 一言要約 -->
+    <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+      <p class="text-emerald-800 font-semibold text-base">💡 この問題を一言で言うと：</p>
+      <p class="text-slate-700 mt-1 leading-7">「<strong>前順探索（preorder）</strong>と<strong>中順探索（inorder）</strong>という2種類の配列をもとに、それを生成した元の二分木を Python のノードオブジェクトとして再構築する問題」です。<br/>
+      preorder の先頭は必ずルートになり、inorder でのルート位置が左右の分割点を教えてくれます。この2つの性質を組み合わせることで木を一意に復元できます。</p>
+    </div>
+
+    <!-- なぜ難しいか -->
+    <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+      <p class="text-amber-800 font-semibold text-sm mb-2">⚠️ なぜ単純な方法では解けないのか</p>
+      <ul class="text-slate-600 text-sm space-y-2 list-disc list-inside leading-7">
+        <li><strong>片方の配列だけでは木が一意に決まらない</strong>：例えば preorder <code class="bg-slate-100 px-1 rounded font-mono text-xs">[1,2,3]</code> に対して複数の異なる二分木が存在します。左右どちらの子かが不明なためです。</li>
+        <li><strong>毎回 list.index() を使うと O(n²)</strong>：n 個のノードそれぞれで線形探索すると合計 O(n²) になり n=3000 では約450万回の比較が発生します。dict の前処理（O(n)）が不可欠です。</li>
+        <li><strong>カーソル変数の共有が難しい</strong>：preorder の消費位置を再帰呼び出し間で正確に共有するために <code class="bg-slate-100 px-1 rounded font-mono text-xs">nonlocal</code> の理解が必要です。</li>
+      </ul>
+    </div>
+
+    <!-- 指標カード（純粋HTML） -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div style="background:#d1fae5;color:#065f46" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-base font-mono break-all leading-tight">O(n)</div>
+        <div class="text-xs mt-1">時間計算量</div>
+      </div>
+      <div style="background:#bfdbfe;color:#1e40af" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-base font-mono break-all leading-tight">O(n)</div>
+        <div class="text-xs mt-1">空間計算量</div>
+      </div>
+      <div style="background:#fef3c7;color:#92400e" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">再帰 + dict</div>
+        <div class="text-xs mt-1">アルゴリズム</div>
+      </div>
+      <div style="background:#ede9fe;color:#5b21b6" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">n ≤ 3000</div>
+        <div class="text-xs mt-1">制約</div>
+      </div>
+    </div>
+
+    <!-- 入出力例 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <p class="font-semibold text-teal-800 text-sm mb-2">📥 入力例 1</p>
+        <pre class="text-xs font-mono text-slate-700 leading-6">preorder = [3, 9, 20, 15, 7]
+inorder  = [9, 3, 15, 20,  7]</pre>
+        <p class="text-xs text-slate-500 mt-2">→ <span class="font-mono text-emerald-700">[3,9,20,null,null,15,7]</span><br/>
+        <span class="text-slate-500">preorder先頭の3がルート。inorderでルート3の左は[9]、右は[15,20,7]と分かる。</span></p>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <p class="font-semibold text-teal-800 text-sm mb-2">📥 入力例 2</p>
+        <pre class="text-xs font-mono text-slate-700 leading-6">preorder = [-1]
+inorder  = [-1]</pre>
+        <p class="text-xs text-slate-500 mt-2">→ <span class="font-mono text-emerald-700">TreeNode(-1)</span><br/>
+        <span class="text-slate-500">ノードが1つだけ。左右の子ともNone。</span></p>
+      </div>
+    </div>
+
+    <!-- 2配列が持つ情報 -->
+    <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+      <p class="text-sky-800 font-semibold text-sm mb-3">🔑 2つの配列が持つ情報</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+        <div class="p-3 rounded-lg bg-white border border-emerald-200">
+          <div class="text-emerald-700 font-bold mb-1">preorder = [3, 9, 20, 15, 7]</div>
+          <div class="text-slate-500">↑先頭 = 必ずルート！<br/>「ルート→左→右」の順に並ぶ</div>
+        </div>
+        <div class="p-3 rounded-lg bg-white border border-sky-200">
+          <div class="text-sky-700 font-bold mb-1">inorder  = [9, 3, 15, 20, 7]</div>
+          <div class="text-slate-500">ルート「3」の位置が境界線！<br/>左[9] → ルート3 → 右[15,20,7]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ STEPS (React) -->
+  <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">ステップバイステップ解説</h2>
+    <div id="steps-root"></div>
+  </section>
+
+  <!-- ============================================================ CODE -->
+  <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">Python 実装</h2>
+
+    <!-- コードの骨格 -->
+    <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+      <p class="text-emerald-800 font-semibold text-sm mb-2">📋 このコードの構造（先に全体像を把握しよう）</p>
+      <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside leading-7">
+        <li><strong>sys.setrecursionlimit</strong>：最悪3000段の再帰に備えて上限を緩和する</li>
+        <li><strong>入力検証</strong>：型チェック・長さ不一致・空リストを早期検出する</li>
+        <li><strong>前処理</strong>：inorder の「値→インデックス」を dict 内包表記で O(n) 構築する</li>
+        <li><strong>再帰関数 build(lo, hi)</strong>：preorder カーソルを進めながら左→右の順で部分木を再帰構築して返す</li>
+      </ol>
+    </div>
+
+    <pre class="line-numbers"><code class="language-python">import sys
+from typing import Optional
+
+sys.setrecursionlimit(10_000)  # 偏った木(n=3000)の深い再帰に備えて上限を緩和
+
+
+class TreeNode:
+    __slots__ = ("val", "left", "right")
+    def __init__(self, val=0, left=None, right=None):
+        self.val   = val
+        self.left  = left
+        self.right = right
+
+
+class Solution:
+    def buildTree(
+        self,
+        preorder: list[int],
+        inorder:  list[int],
+    ) -&gt; Optional[TreeNode]:
+        """
+        preorder（前順）と inorder（中順）から二分木を復元する。
+        Time:  O(n) - 各ノードをちょうど1回処理
+        Space: O(n) - dict(n エントリ) + 再帰スタック(高さ h)
+        """
+        # ① 型チェック: list 以外が渡された場合に分かりやすいエラーを出す
+        if not isinstance(preorder, list) or not isinstance(inorder, list):
+            raise TypeError("Both preorder and inorder must be lists")
+
+        # ② 長さ不一致チェック: 同じ木でなければ復元不可
+        if len(preorder) != len(inorder):
+            raise ValueError(
+                f"Length mismatch: preorder={len(preorder)}, inorder={len(inorder)}"
+            )
+
+        # ③ 空リストチェック: ノード0個 → Noneを返す
+        if not preorder:
+            return None
+
+        n = len(inorder)
+
+        # ④ 前処理: inorder の「値→インデックス」を dict 内包表記で O(n) 構築
+        #    ★毎回 list.index() を使うと全体 O(n²) → dict なら O(1) ルックアップ
+        inorder_index: dict[int, int] = {val: i for i, val in enumerate(inorder)}
+
+        # ⑤ preorder を先頭から消費するカーソル
+        #    int はイミュータブル(変更不可)なので nonlocal で外側変数を共有する
+        preorder_idx: int = 0
+
+        def build(lo: int, hi: int) -&gt; Optional[TreeNode]:
+            """inorder の [lo, hi] 範囲に対応する部分木を再帰構築する"""
+            nonlocal preorder_idx
+
+            # ⑥ 再帰の終了条件: 範囲が空(lo &gt; hi) → 部分木なし
+            if lo &gt; hi:
+                return None
+
+            # ⑦ preorder の現在位置 = この部分木のルート値
+            #    preorder は「ルート→左→右」順なので呼ばれた時点の先頭が必ずルート
+            root_val: int = preorder[preorder_idx]
+            preorder_idx += 1  # 次の再帰のためにカーソルを進める
+
+            # ⑧ dict でルートの inorder 上の位置を O(1) で取得
+            #    この位置(mid)が左部分木と右部分木の境界線になる
+            mid: int = inorder_index[root_val]
+
+            # ⑨ ノードを生成し左→右の順で再帰構築して接続する
+            #    ★左を先にする理由: preorder が「ルート→左→右」順のため
+            #    左の再帰が終わると次のカーソル位置が右部分木のルートになる
+            node = TreeNode(root_val)
+            node.left  = build(lo,      mid - 1)  # 左部分木(mid の左側)
+            node.right = build(mid + 1, hi)        # 右部分木(mid の右側)
+            return node
+
+        # ⑩ inorder 全体(0〜n-1)を対象に木全体を構築して返す
+        return build(0, n - 1)
+</code></pre>
+
+    <!-- 動作トレース -->
+    <div class="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+      <p class="text-sky-800 font-semibold text-sm mb-2">▶ 入力例 preorder=[3,9,20,15,7] / inorder=[9,3,15,20,7] での動作トレース</p>
+      <pre class="text-slate-700 text-xs font-mono leading-6 overflow-x-auto whitespace-pre">前処理: inorder_index = {9:0, 3:1, 15:2, 20:3, 7:4}
+preorder_idx = 0
+
+build(0, 4):
+  root_val=3 (preorder[0]), preorder_idx→1, mid=inorder_index[3]=1
+  node = TreeNode(3)
+  node.left  = build(0, 0)
+    root_val=9, preorder_idx→2, mid=0
+    node.left  = build(0,-1) → lo&gt;hi → None
+    node.right = build(1, 0) → lo&gt;hi → None
+    ✅ return TreeNode(9)
+  node.right = build(2, 4)
+    root_val=20, preorder_idx→3, mid=3
+    node.left  = build(2, 2)
+      root_val=15, preorder_idx→4, mid=2
+      → TreeNode(15, None, None)  ✅
+    node.right = build(4, 4)
+      root_val=7, preorder_idx→5, mid=4
+      → TreeNode(7, None, None)   ✅
+    ✅ return TreeNode(20, left=15, right=7)
+✅ return TreeNode(3, left=9, right=20)
+
+最終ツリー:
+        3
+       / \
+      9  20
+         / \
+        15   7
+Output: [3,9,20,null,null,15,7]  ✅</pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ DIAGRAM -->
+  <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">処理フローチャート</h2>
+
+    <!-- フローチャートの読み方 -->
+    <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+      <p class="text-amber-800 font-semibold text-sm mb-3">🗺️ フローチャートの読み方</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+        <div class="flex items-center gap-2">
+          <svg width="28" height="18"><ellipse cx="14" cy="9" rx="12" ry="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/></svg>
+          <span>楕円（緑）＝ 開始・終了</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg width="28" height="18"><rect x="1" y="2" width="26" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/></svg>
+          <span>四角（青）＝ 処理ステップ</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg width="28" height="18"><polygon points="14,1 27,9 14,17 1,9" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/></svg>
+          <span>ひし形（黄）＝ 条件分岐</span>
+        </div>
+        <div class="flex items-center gap-2 col-span-2 md:col-span-1">
+          <span class="inline-block w-5 h-0.5 bg-emerald-500 mr-1"></span>緑＝Yes
+          <span class="inline-block w-5 h-0.5 bg-red-500 mx-1"></span>赤＝No
+        </div>
+      </div>
+    </div>
+
+    <!-- SVG フローチャート -->
+    <div class="overflow-x-auto">
+      <svg viewBox="0 0 560 1360"
+           style="max-width:560px;width:100%;height:auto;display:block;margin:0 auto;"
+           role="img" aria-label="LeetCode 105 buildTree flowchart">
+        <defs>
+          <marker id="fc-arrow"       markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+          <marker id="fc-arrowGreen"  markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#059669"/></marker>
+          <marker id="fc-arrowRed"    markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker>
+          <marker id="fc-arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#a855f7"/></marker>
+        </defs>
+
+        <!-- ノード定義: x=60, width=440, center=280, 縦積み -->
+
+        <!-- N0: 開始 -->
+        <ellipse cx="280" cy="38" rx="110" ry="28" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+        <text x="280" y="38" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="#065f46" font-family="'Noto Sans JP',sans-serif">buildTree 開始</text>
+
+        <!-- N0→N1 -->
+        <line x1="280" y1="66" x2="280" y2="92" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N1: 型チェック -->
+        <rect x="60" y="92" width="440" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="112" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">① 型チェック</text>
+        <text x="280" y="132" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">isinstance(preorder, list) and isinstance(inorder, list)</text>
+
+        <!-- N1→C1 -->
+        <line x1="280" y1="144" x2="280" y2="172" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- C1: 型OK? -->
+        <polygon points="280,172 420,222 280,272 140,222" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+        <text x="280" y="217" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="bold" fill="#78350f" font-family="'Noto Sans JP',sans-serif">型は正しい？</text>
+
+        <!-- C1 No → TypeError -->
+        <line x1="420" y1="222" x2="500" y2="222" stroke="#dc2626" stroke-width="1.8" marker-end="url(#fc-arrowRed)"/>
+        <text x="462" y="214" text-anchor="middle" font-size="10" fill="#dc2626" font-family="'Noto Sans JP',sans-serif">No</text>
+        <ellipse cx="530" cy="222" rx="28" ry="18" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="530" y="222" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#991b1b" font-family="'Noto Sans JP',sans-serif">TypeError</text>
+
+        <!-- C1 Yes → N2 -->
+        <line x1="280" y1="272" x2="280" y2="298" stroke="#059669" stroke-width="1.8" marker-end="url(#fc-arrowGreen)"/>
+        <text x="290" y="288" font-size="10" fill="#059669" font-family="'Noto Sans JP',sans-serif">Yes</text>
+
+        <!-- N2: 長さチェック -->
+        <rect x="60" y="298" width="440" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="313" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">② 長さチェック</text>
+        <text x="280" y="331" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">len(preorder) == len(inorder)</text>
+
+        <!-- N2→C2 -->
+        <line x1="280" y1="342" x2="280" y2="368" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- C2: 同じ長さ？ -->
+        <polygon points="280,368 420,418 280,468 140,418" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+        <text x="280" y="413" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="bold" fill="#78350f" font-family="'Noto Sans JP',sans-serif">同じ長さ？</text>
+
+        <!-- C2 No → ValueError -->
+        <line x1="420" y1="418" x2="500" y2="418" stroke="#dc2626" stroke-width="1.8" marker-end="url(#fc-arrowRed)"/>
+        <text x="462" y="410" text-anchor="middle" font-size="10" fill="#dc2626" font-family="'Noto Sans JP',sans-serif">No</text>
+        <ellipse cx="530" cy="418" rx="28" ry="18" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="530" y="418" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#991b1b" font-family="'Noto Sans JP',sans-serif">ValueError</text>
+
+        <!-- C2 Yes → C3 -->
+        <line x1="280" y1="468" x2="280" y2="494" stroke="#059669" stroke-width="1.8" marker-end="url(#fc-arrowGreen)"/>
+        <text x="290" y="484" font-size="10" fill="#059669" font-family="'Noto Sans JP',sans-serif">Yes</text>
+
+        <!-- C3: 空リスト？ -->
+        <polygon points="280,494 420,544 280,594 140,544" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+        <text x="280" y="539" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="bold" fill="#78350f" font-family="'Noto Sans JP',sans-serif">preorder が空？</text>
+
+        <!-- C3 Yes → return None early -->
+        <line x1="420" y1="544" x2="500" y2="544" stroke="#dc2626" stroke-width="1.8" marker-end="url(#fc-arrowRed)"/>
+        <text x="462" y="536" text-anchor="middle" font-size="10" fill="#dc2626" font-family="'Noto Sans JP',sans-serif">Yes</text>
+        <ellipse cx="530" cy="544" rx="28" ry="18" fill="#f0fdf4" stroke="#10b981" stroke-width="1.5"/>
+        <text x="530" y="544" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#065f46" font-family="'Noto Sans JP',sans-serif">None</text>
+
+        <!-- C3 No → N3 -->
+        <line x1="280" y1="594" x2="280" y2="620" stroke="#059669" stroke-width="1.8" marker-end="url(#fc-arrowGreen)"/>
+        <text x="290" y="610" font-size="10" fill="#059669" font-family="'Noto Sans JP',sans-serif">No</text>
+
+        <!-- N3: dict前処理 -->
+        <rect x="60" y="620" width="440" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="640" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">③ 前処理: inorder_dict 構築 [O(n)]</text>
+        <text x="280" y="660" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">{val: i for i, val in enumerate(inorder)}</text>
+
+        <!-- N3→N4 -->
+        <line x1="280" y1="672" x2="280" y2="698" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N4: カーソル初期化 -->
+        <rect x="60" y="698" width="440" height="44" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="715" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">④ preorder_idx = 0 （カーソル初期化）</text>
+        <text x="280" y="733" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">build(0, n-1) 呼び出し</text>
+
+        <!-- N4→C4 -->
+        <line x1="280" y1="742" x2="280" y2="770" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- ──── 再帰 build(lo, hi) ──── -->
+        <rect x="60" y="765" width="440" height="22" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="280" y="776" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#94a3b8" font-family="'Noto Sans JP',sans-serif">─── 再帰 build(lo, hi) ───</text>
+
+        <line x1="280" y1="787" x2="280" y2="808" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- C4: lo > hi? -->
+        <polygon points="280,808 420,858 280,908 140,858" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+        <text x="280" y="853" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="bold" fill="#78350f" font-family="'Noto Sans JP',sans-serif">lo &gt; hi ?</text>
+        <text x="280" y="873" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#b45309" font-family="'Noto Sans JP',sans-serif">（空の部分木）</text>
+
+        <!-- C4 Yes → None -->
+        <line x1="420" y1="858" x2="500" y2="858" stroke="#dc2626" stroke-width="1.8" marker-end="url(#fc-arrowRed)"/>
+        <text x="462" y="850" text-anchor="middle" font-size="10" fill="#dc2626" font-family="'Noto Sans JP',sans-serif">Yes</text>
+        <ellipse cx="530" cy="858" rx="28" ry="18" fill="#f0fdf4" stroke="#10b981" stroke-width="1.5"/>
+        <text x="530" y="858" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#065f46" font-family="'Noto Sans JP',sans-serif">None</text>
+
+        <!-- C4 No → N5 -->
+        <line x1="280" y1="908" x2="280" y2="934" stroke="#059669" stroke-width="1.8" marker-end="url(#fc-arrowGreen)"/>
+        <text x="290" y="924" font-size="10" fill="#059669" font-family="'Noto Sans JP',sans-serif">No</text>
+
+        <!-- N5: root_val取得 -->
+        <rect x="60" y="934" width="440" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="954" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">⑤ ルート値を取得しカーソルを進める</text>
+        <text x="280" y="974" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">root_val = preorder[idx];  idx += 1</text>
+
+        <!-- N5→N6 -->
+        <line x1="280" y1="986" x2="280" y2="1012" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N6: mid取得 -->
+        <rect x="60" y="1012" width="440" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="280" y="1032" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#1e3a5f" font-family="'Noto Sans JP',sans-serif">⑥ inorder_dict でルート位置を O(1) 取得</text>
+        <text x="280" y="1052" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#1e40af" font-family="'JetBrains Mono',monospace">mid = inorder_dict[root_val]</text>
+
+        <!-- N6→N7 -->
+        <line x1="280" y1="1064" x2="280" y2="1090" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N7: ノード生成 -->
+        <rect x="60" y="1090" width="440" height="44" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.8"/>
+        <text x="280" y="1107" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#065f46" font-family="'Noto Sans JP',sans-serif">⑦ node = TreeNode(root_val) 生成</text>
+        <text x="280" y="1125" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#059669" font-family="'JetBrains Mono',monospace">node.left = build(lo, mid-1)</text>
+
+        <!-- N7→N8 -->
+        <line x1="280" y1="1134" x2="280" y2="1160" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N8: 右再帰 -->
+        <rect x="60" y="1160" width="440" height="44" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="1.8"/>
+        <text x="280" y="1177" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#065f46" font-family="'Noto Sans JP',sans-serif">⑧ 右部分木を再帰構築して接続</text>
+        <text x="280" y="1195" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#059669" font-family="'JetBrains Mono',monospace">node.right = build(mid+1, hi)</text>
+
+        <!-- N8→N9 -->
+        <line x1="280" y1="1204" x2="280" y2="1230" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- N9: return node -->
+        <rect x="60" y="1230" width="440" height="44" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="280" y="1247" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#4c1d95" font-family="'Noto Sans JP',sans-serif">⑨ return node</text>
+        <text x="280" y="1265" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#5b21b6" font-family="'Noto Sans JP',sans-serif">（再帰が終わると最終的にルートが返る）</text>
+
+        <!-- N9→End -->
+        <line x1="280" y1="1274" x2="280" y2="1300" stroke="#64748b" stroke-width="1.8" marker-end="url(#fc-arrow)"/>
+
+        <!-- End -->
+        <ellipse cx="280" cy="1326" rx="130" ry="28" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+        <text x="280" y="1326" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="#065f46" font-family="'Noto Sans JP',sans-serif">完成した木のルートを返す ✅</text>
+
+      </svg>
+    </div>
+
+    <!-- 代表例でのフロー追跡 -->
+    <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+      <p class="text-slate-700 font-semibold text-sm mb-2">🔎 入力例 preorder=[3,9,20,15,7] / inorder=[9,3,15,20,7] でのフロー追跡</p>
+      <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+        <li>「buildTree 開始」→ 両方 list ✅ 長さ5=5 ✅ 空でない ✅</li>
+        <li>「前処理」→ <code class="bg-white px-1 rounded font-mono text-xs">{9:0,3:1,15:2,20:3,7:4}</code> を O(n) で構築</li>
+        <li>「build(0,4)」→ root_val=3, mid=1, TreeNode(3) 生成</li>
+        <li>「build(0,0)」→ root_val=9, mid=0, TreeNode(9) → 左右None → ✅</li>
+        <li>「build(2,4)」→ root_val=20, mid=3, TreeNode(20)</li>
+        <li>「build(2,2)」→ TreeNode(15)、「build(4,4)」→ TreeNode(7) → ✅</li>
+        <li>全再帰が完了 → ルート TreeNode(3) を返す ✅</li>
+      </ol>
+    </div>
+
+    <p class="mt-5 text-slate-600 leading-8 text-sm">
+      <strong class="text-lg text-teal-800">フローの説明：</strong><br/>
+      入口の検証（①②③）でエラーを早期発見し、dict 前処理（③）で O(n²) を O(n) に改善します。再帰 build(lo,hi) では終了条件 <code class="bg-slate-100 px-1 rounded font-mono text-xs">lo&gt;hi</code> を確認した後、preorder カーソルからルートを取得（⑤）し、dict でルートの inorder 位置を特定（⑥）して左→右の順に再帰呼び出しを行います（⑦⑧）。各再帰は必ず処理対象範囲が縮小するため有限回で終了します。
+    </p>
+  </section>
+
+  <!-- ============================================================ COMPLEXITY -->
+  <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">計算量分析</h2>
+
+    <!-- Big-O 早見表 -->
+    <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+      <p class="text-slate-600 font-semibold text-sm mb-3">📖 Big-O 記法の読み方</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+          <div class="font-bold font-mono text-base mb-1">O(1)</div>
+          <div class="leading-5">常に一定<br/><span class="text-emerald-600">例: dict のルックアップ</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+          <div class="font-bold font-mono text-base mb-1">O(n)</div>
+          <div class="leading-5">入力に比例<br/><span class="text-sky-600">例: リストを1回走査</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+          <div class="font-bold font-mono text-base mb-1">O(n log n)</div>
+          <div class="leading-5">n よりやや多い<br/><span class="text-amber-600">例: ソートアルゴリズム</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+          <div class="font-bold font-mono text-base mb-1">O(n²)</div>
+          <div class="leading-5">入力の2乗<br/><span class="text-red-600">例: 二重ループ総当たり</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 時間計算量テーブル -->
+    <h3 class="font-bold text-teal-800 mb-2">⏱ 時間計算量</h3>
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-emerald-50">
+            <th class="text-left p-3 border border-slate-200 text-teal-800">処理</th>
+            <th class="text-center p-3 border border-slate-200 text-teal-800">計算量</th>
+            <th class="text-left p-3 border border-slate-200 text-teal-800">理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">inorder_dict 構築</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">全要素を1回ずつ登録</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">build 再帰呼び出し合計</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">各ノードをちょうど1回だけ処理</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">inorder_dict[val] 1回あたり</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-emerald-700">O(1)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">dict の平均ルックアップコスト</td>
+          </tr>
+          <tr class="bg-emerald-50 font-bold">
+            <td class="p-3 border border-slate-200">合計</td>
+            <td class="p-3 border border-slate-200 text-center text-emerald-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">–</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 空間計算量テーブル -->
+    <h3 class="font-bold text-teal-800 mb-2 mt-5">💾 空間計算量</h3>
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-sky-50">
+            <th class="text-left p-3 border border-slate-200 text-sky-800">使用メモリ</th>
+            <th class="text-center p-3 border border-slate-200 text-sky-800">計算量</th>
+            <th class="text-left p-3 border border-slate-200 text-sky-800">理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">inorder_dict</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">n 個のキー・値ペアを保持</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">再帰スタック</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(h)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">h=木の高さ。バランス木 O(log n)、偏り木 O(n)</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200 font-mono text-xs">生成ノード（出力）</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">復元した木全体のノード数</td>
+          </tr>
+          <tr class="bg-sky-50 font-bold">
+            <td class="p-3 border border-slate-200">合計</td>
+            <td class="p-3 border border-slate-200 text-center text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">–</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- アプローチ比較 -->
+    <h3 class="font-bold text-teal-800 mb-2 mt-5">⚖ アプローチ比較</h3>
+    <div class="overflow-x-auto mb-5">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-purple-50">
+            <th class="text-left p-3 border border-slate-200 text-purple-800">アプローチ</th>
+            <th class="text-center p-3 border border-slate-200 text-purple-800">時間</th>
+            <th class="text-center p-3 border border-slate-200 text-purple-800">空間</th>
+            <th class="text-left p-3 border border-slate-200 text-purple-800">備考</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bg-emerald-50">
+            <td class="p-3 border border-slate-200 font-semibold text-emerald-800">★ dict前処理 + 再帰（今回採用）</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-emerald-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-emerald-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-600">最速・コード明瞭</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200">list.index() + 再帰</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-red-600">O(n²)</td>
+            <td class="p-3 border border-slate-200 text-center">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-500">n=3000 で約450万回比較、TLE リスク</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 border border-slate-200">反復（スタック）+ dict</td>
+            <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">O(n)</td>
+            <td class="p-3 border border-slate-200 text-center">O(n)</td>
+            <td class="p-3 border border-slate-200 text-slate-500">同速だが実装が複雑</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- なぜこの計算量になるか -->
+    <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+      <p class="text-emerald-800 font-semibold text-sm mb-2">🔍 なぜ O(n) になるのか</p>
+      <p class="text-slate-700 text-sm leading-7">
+        <strong>ポイント1</strong>：dict の前処理は全要素を1回走査するだけなので O(n)。<br/>
+        <strong>ポイント2</strong>：再帰関数 build は各ノードに対して「1回だけ」呼ばれます。preorder カーソルは単調増加（0→n-1）で、各値を重複なく消費するからです。<br/>
+        <strong>ポイント3</strong>：build の中で行う <code class="bg-white px-1 rounded font-mono text-xs">inorder_dict[val]</code> は平均 O(1) なので、合計 n × O(1) = O(n)。<br/>
+        まとめると O(n) + O(n) = <strong>O(n)</strong> となります。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ GLOSSARY -->
+  <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">📖 用語集</h2>
+    <p class="text-slate-500 text-sm mb-5">このページで登場した専門用語をまとめました。分からない言葉が出てきたとき参照してください。</p>
+    <div class="space-y-2">
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> inorder（中順探索）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          二分木を「<strong>左部分木 → ルート → 右部分木</strong>」の順に訪れる探索方法。配列中のルートの位置が左右の境界線になるため、preorder と組み合わせると木を一意に復元できます。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> O(n²)（オーダーn二乗）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          入力サイズが2倍になると処理時間が約4倍になることを示す計算量記法。二重ループや毎回の線形探索に多く見られます。本問で <code class="bg-slate-100 px-1 rounded font-mono text-xs">list.index()</code> を使い続けると この計算量になります。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> dict（ハッシュマップ）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          キーから値を平均 <strong>O(1)</strong> で取り出せる Python の組み込みデータ構造。内部はハッシュテーブル（キーのハッシュ値から格納場所を直接計算する仕組み）です。図書館の索引カード（タイトル→棚番号）に例えられます。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> nonlocal（ノンローカル宣言）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          内側の関数から外側スコープにある変数を<strong>書き換える</strong>ための Python キーワード。<code class="bg-slate-100 px-1 rounded font-mono text-xs">global</code>（モジュール変数）とは異なり、直近の外側スコープのみが対象。これがないと <code class="bg-slate-100 px-1 rounded font-mono text-xs">+=</code> が新しいローカル変数への代入として扱われ、外側が更新されないバグが起きます。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> preorder（前順探索）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          二分木を「<strong>ルート → 左部分木 → 右部分木</strong>」の順に訪れる探索方法。配列の先頭要素が必ずルートになるという性質があります。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> RecursionError（再帰深度エラー）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          Python の再帰深度制限（デフォルト1000回）を超えたときに発生するエラー。完全に偏った木（n=3000）では深さ3000の再帰が起きるため、<code class="bg-slate-100 px-1 rounded font-mono text-xs">sys.setrecursionlimit(10_000)</code> で上限を緩和する必要があります。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> 再帰（Recursion）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          関数が自分自身を呼び出して問題を小さな部分問題に分解して解く手法。ロシア人形（マトリョーシカ）の入れ子構造に似ており、必ず「これ以上小さくできない＝終了条件」が必要です。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> 不変条件（Invariant）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          アルゴリズムが正しく動作するために、処理中ずっと成り立ち続けるべき条件のこと。本問では「<code class="bg-slate-100 px-1 rounded font-mono text-xs">preorder[preorder_idx]</code> は現在処理中の部分木のルート値である」という条件が不変条件です。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2">
+          <span class="arrow text-emerald-500">▶</span> 偏った木（Skewed Tree）
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          すべてのノードが左だけ・または右だけにつながった、一直線の木。再帰深度が n（ノード数）と等しくなるため最悪ケースとなります。
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- footer -->
+  <footer class="text-center text-slate-400 text-xs pb-8">
+    LeetCode 105 – Construct Binary Tree from Preorder and Inorder Traversal | Python (CPython 3.11) 解説ページ
+  </footer>
+
+</div><!-- /max-w-5xl -->
+
+<!-- ============================================================ React Steps Component -->
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const PREORDER = [3, 9, 20, 15, 7];
+const INORDER  = [9, 3, 15, 20, 7];
+
+/* ── ツリービジュアライザ ─────────────────────────── */
+// 各ステップで表示するノード情報
+const STEP_NODES = [
+  // step 1: 何も無し
+  [],
+  // step 2: ルート3登場
+  [{ val:3, x:280, y:44, color:"#059669", textColor:"#fff", label:"ルート" }],
+  // step 3: ルート3 + 左子9
+  [
+    { val:3, x:280, y:44, color:"#059669", textColor:"#fff", label:"" },
+    { val:9, x:170, y:124, color:"#0284c7", textColor:"#fff", label:"左" },
+    // edge 3→9
+  ],
+  // step 4: ルート3 + 左9 + 右20
+  [
+    { val:3, x:280, y:44, color:"#059669", textColor:"#fff", label:"" },
+    { val:9, x:170, y:124, color:"#0284c7", textColor:"#fff", label:"左" },
+    { val:20, x:390, y:124, color:"#7c3aed", textColor:"#fff", label:"右" },
+  ],
+  // step 5: 全ノード
+  [
+    { val:3,  x:280, y:44,  color:"#059669", textColor:"#fff", label:"" },
+    { val:9,  x:170, y:124, color:"#0284c7", textColor:"#fff", label:"" },
+    { val:20, x:390, y:124, color:"#7c3aed", textColor:"#fff", label:"" },
+    { val:15, x:320, y:204, color:"#d97706", textColor:"#fff", label:"左" },
+    { val:7,  x:460, y:204, color:"#d97706", textColor:"#fff", label:"右" },
+  ],
+  // step 6: 完成
+  [
+    { val:3,  x:280, y:44,  color:"#059669", textColor:"#fff", label:"✅" },
+    { val:9,  x:170, y:124, color:"#0284c7", textColor:"#fff", label:"" },
+    { val:20, x:390, y:124, color:"#7c3aed", textColor:"#fff", label:"" },
+    { val:15, x:320, y:204, color:"#d97706", textColor:"#fff", label:"" },
+    { val:7,  x:460, y:204, color:"#d97706", textColor:"#fff", label:"" },
+  ],
+];
+
+const EDGES = [
+  { x1:280, y1:64, x2:186, y2:104 },   // 3→9
+  { x1:280, y1:64, x2:374, y2:104 },   // 3→20
+  { x1:390, y1:144, x2:336, y2:184 },  // 20→15
+  { x1:390, y1:144, x2:444, y2:184 },  // 20→7
+];
+
+function TreeViz({ step }) {
+  const nodes = STEP_NODES[step - 1] || [];
+  const visibleEdges = step >= 3 ? (step >= 4 ? (step >= 5 ? EDGES : EDGES.slice(0,2)) : EDGES.slice(0,1)) : [];
+
+  return (
+    <svg viewBox="0 0 560 244" style={{ width:"100%", maxWidth:480, height:"auto", display:"block", margin:"0 auto" }}>
+      {/* edges */}
+      {visibleEdges.map((e, i) => (
+        <line key={i} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke="#94a3b8" strokeWidth="2.5" />
+      ))}
+      {/* nodes */}
+      {nodes.map((n, i) => (
+        <g key={n.val} className="node-pop" style={{ animationDelay: `${i*0.08}s` }}>
+          <circle cx={n.x} cy={n.y} r="22" fill={n.color} stroke="white" strokeWidth="3"
+                  filter="url(#shadow)" />
+          <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="middle"
+                fontSize="14" fontWeight="bold" fill={n.textColor}
+                fontFamily="'JetBrains Mono',monospace">{n.val}</text>
+          {n.label && (
+            <text x={n.x} y={n.y + 34} textAnchor="middle" fontSize="10"
+                  fill="#475569" fontFamily="'Noto Sans JP',sans-serif">{n.label}</text>
+          )}
+        </g>
+      ))}
+      <defs>
+        <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.18"/></filter>
+      </defs>
+    </svg>
+  );
+}
+
+/* ── 変数状態パネル ─────────────────────────────── */
+function VarPanel({ step }) {
+  const states = [
+    { pre_i: "–", lo: "–",  hi: "–",  mid: "–",  root: "–",    note: "初期状態" },
+    { pre_i:  0,  lo:  0,   hi:  4,   mid:  1,   root:  3,     note: "preorder[0]=3 がルート。inorder 中の 3 は位置 1 → mid=1" },
+    { pre_i:  1,  lo:  0,   hi:  0,   mid:  0,   root:  9,     note: "左部分木。preorder[1]=9。inorder の 9 は位置 0 → mid=0" },
+    { pre_i:  2,  lo:  2,   hi:  4,   mid:  3,   root: 20,     note: "右部分木。preorder[2]=20。inorder の 20 は位置 3 → mid=3" },
+    { pre_i:  3,  lo:  2,   hi:  2,   mid:  2,   root: 15,     note: "20 の左子。preorder[3]=15。inorder の 15 は位置 2" },
+    { pre_i:  5,  lo:  "完", hi: "了", mid: "–",  root: "完成！", note: "すべてのノードを処理。ルート TreeNode(3) を返す ✅" },
+  ];
+  const s = states[step - 1] || states[0];
+  return (
+    <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+      <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">🔍 現在の変数の状態</div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        <div><span className="text-slate-400">preorder_idx</span> <span className="text-emerald-700 font-bold">= {String(s.pre_i)}</span></div>
+        <div><span className="text-slate-400">root_val</span> <span className="text-purple-700 font-bold">= {String(s.root)}</span></div>
+        <div><span className="text-slate-400">lo</span> <span className="text-sky-700 font-bold">= {String(s.lo)}</span></div>
+        <div><span className="text-slate-400">hi</span> <span className="text-sky-700 font-bold">= {String(s.hi)}</span></div>
+        <div className="col-span-2"><span className="text-slate-400">mid</span> <span className="text-amber-700 font-bold">= {String(s.mid)}</span></div>
+      </div>
+      <div className="mt-2 text-slate-500 font-sans text-xs leading-5 border-t border-slate-200 pt-2">{s.note}</div>
+    </div>
+  );
+}
+
+/* ── ステップデータ ───────────────────────────────── */
+const stepsData = [
+  {
+    step: 1,
+    title: "入力検証と前処理（dict 構築）",
+    desc:
+      "【何をするか】型チェック・長さ確認・空リスト確認を行ったあと、inorder の「値→インデックス」を dict に登録します。\n" +
+      "【なぜか】後の再帰でルートの位置を毎回 O(1) で取り出すためです。list.index() を使うと1回 O(n) の探索が n 回で O(n²) になりますが、dict なら全体で O(n) で済みます。\n" +
+      "【具体例】inorder=[9,3,15,20,7] → {9:0, 3:1, 15:2, 20:3, 7:4}",
+    visual: "dict",
+  },
+  {
+    step: 2,
+    title: "ルートノードを確定（preorder[0]=3）",
+    desc:
+      "【何をするか】preorder の先頭（インデックス 0）の値を取り出して、ルートノードを生成します。\n" +
+      "【なぜか】preorder は「ルート→左→右」の順に並んでいるため、先頭が必ずこの部分木のルートになります。\n" +
+      "【具体例】preorder[0]=3 → TreeNode(3) を生成。カーソルを 0→1 に進める。",
+    visual: "root",
+  },
+  {
+    step: 3,
+    title: "inorder でルート位置を特定し左右を分割",
+    desc:
+      "【何をするか】dict で root_val=3 の inorder 上の位置（mid）を O(1) で取得します。\n" +
+      "【なぜか】mid を境に「inorder[lo..mid-1]＝左部分木」「inorder[mid+1..hi]＝右部分木」と分割できるからです。\n" +
+      "【具体例】inorder_dict[3]=1 → mid=1。左は inorder[0..0]=[9]、右は inorder[2..4]=[15,20,7]。",
+    visual: "split",
+  },
+  {
+    step: 4,
+    title: "左部分木を再帰構築（build(0, mid-1)）",
+    desc:
+      "【何をするか】左の範囲 [lo, mid-1]=[0,0] で build を再帰呼び出しし、node.left に接続します。\n" +
+      "【なぜか】左を先に処理する理由は preorder が「ルート→左→右」順なので、左の再帰が終わると次のカーソル位置に右のルートが来るからです。\n" +
+      "【具体例】build(0,0)：preorder[1]=9、mid=0 → TreeNode(9)。左右とも lo>hi で None。",
+    visual: "left",
+  },
+  {
+    step: 5,
+    title: "右部分木を再帰構築（build(mid+1, hi)）",
+    desc:
+      "【何をするか】右の範囲 [mid+1, hi]=[2,4] で build を再帰呼び出しし、node.right に接続します。\n" +
+      "【なぜか】左の再帰完了後、preorder カーソルは自動的に右部分木のルート位置を指しています。\n" +
+      "【具体例】build(2,4)：preorder[2]=20、mid=3 → TreeNode(20)。さらに build(2,2)→15、build(4,4)→7 を生成。",
+    visual: "right",
+  },
+  {
+    step: 6,
+    title: "完成したノードを返す（return node）",
+    desc:
+      "【何をするか】左右の子が設定されたノードを呼び出し元に返します。\n" +
+      "【なぜか】再帰的に返されたノードが積み重なることで、最終的にルートが得られます。\n" +
+      "【具体例】TreeNode(3, left=TreeNode(9), right=TreeNode(20, left=TreeNode(15), right=TreeNode(7))) が完成し Output=[3,9,20,null,null,15,7] ✅",
+    visual: "done",
+  },
+];
+
+/* ── Steps コンポーネント ────────────────────────── */
+function StepsApp() {
+  const [activeStep, setActiveStep] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      timerRef.current = setTimeout(() => {
+        if (activeStep === stepsData.length) {
+          setActiveStep(1);
+          setIsPlaying(false);
+        } else {
+          setActiveStep(prev => prev + 1);
+        }
+      }, 2200);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [isPlaying, activeStep]);
+
+  const cur = stepsData[activeStep - 1];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+      {/* 左: ステップ一覧 */}
+      <div>
+        <h3 className="mt-0 mb-4 text-teal-800 text-lg font-semibold outfit">ステップ一覧</h3>
+        <div className="space-y-2">
+          {stepsData.map(s => {
+            const isActive = activeStep === s.step;
+            return (
+              <button
+                key={s.step}
+                type="button"
+                className={[
+                  "w-full text-left text-sm rounded-xl border-2 transition cursor-pointer px-4 py-3",
+                  isActive
+                    ? "bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 step-active"
+                    : "bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-1"
+                ].join(" ")}
+                onClick={() => { setActiveStep(s.step); setIsPlaying(false); }}
+              >
+                <div className={["font-bold mb-0.5 text-sm", isActive ? "text-emerald-900" : "text-teal-800"].join(" ")}>
+                  Step {s.step}: {s.title}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 右: ビジュアル + 説明 */}
+      <div>
+        {activeStep > 1 && (
+          <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+            ← 前のステップ（Step {activeStep - 1}）では「{stepsData[activeStep - 2]?.title}」を行いました
+          </div>
+        )}
+
+        <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)] fade-slide" key={activeStep}>
+          <h3 className="mt-0 text-teal-800 text-lg font-bold outfit">
+            Step {cur.step}: {cur.title}
+          </h3>
+          <div className="mt-2 space-y-1">
+            {cur.desc.split("\n").map((line, i) => (
+              <p key={i} className="text-slate-600 text-sm leading-7">{line}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* ツリービジュアライザ */}
+        <div className="mt-4 p-3 rounded-xl bg-white border border-slate-200">
+          <p className="text-xs text-slate-400 mb-1 font-sans">🌳 ツリーの構築状態</p>
+          <TreeViz step={activeStep} />
+        </div>
+
+        {/* 変数状態パネル */}
+        <VarPanel step={activeStep} />
+
+        {/* inorder_dict 表示 */}
+        {activeStep >= 1 && (
+          <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <p className="text-xs font-sans text-emerald-700 font-semibold mb-1">📚 inorder_dict（前処理の辞書）</p>
+            <div className="flex flex-wrap gap-2 font-mono text-xs">
+              {INORDER.map((v, i) => (
+                <span key={v}
+                  className={[
+                    "px-2 py-1 rounded-lg border",
+                    activeStep >= 2 && PREORDER.slice(0, activeStep === 6 ? 5 : Math.max(0, activeStep - 2)).includes(v)
+                      ? "bg-emerald-200 border-emerald-500 text-emerald-900"
+                      : "bg-white border-slate-200 text-slate-600"
+                  ].join(" ")}
+                >
+                  {v}:{i}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">ハイライト（緑）＝処理済みのルート</p>
+          </div>
+        )}
+
+        {/* 操作ボタン */}
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+          <button type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+            onClick={() => setIsPlaying(true)} disabled={isPlaying}>▶ Play</button>
+          <button type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => { setActiveStep(s => Math.max(1, s - 1)); setIsPlaying(false); }}
+            disabled={activeStep === 1}>◀ Prev</button>
+          <button type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => { setActiveStep(s => Math.min(stepsData.length, s + 1)); setIsPlaying(false); }}
+            disabled={activeStep === stepsData.length}>Next ▶</button>
+          <button type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+            onClick={() => { setActiveStep(1); setIsPlaying(false); }}>↺ Reset</button>
+        </div>
+
+        {activeStep === stepsData.length && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+            🎉 全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("steps-root")).render(<StepsApp />);
+</script>
+
+<script>
+  // Prism ハイライト再実行
+  window.addEventListener("load", () => {
+    if (window.Prism) Prism.highlightAll();
+  });
+  // details の arrow アニメーション
+  document.querySelectorAll("details").forEach(d => {
+    d.addEventListener("toggle", () => {
+      const arrow = d.querySelector(".arrow");
+      if (arrow) arrow.style.transform = d.open ? "rotate(90deg)" : "rotate(0deg)";
+    });
+  });
+</script>
+</body>
+</html>

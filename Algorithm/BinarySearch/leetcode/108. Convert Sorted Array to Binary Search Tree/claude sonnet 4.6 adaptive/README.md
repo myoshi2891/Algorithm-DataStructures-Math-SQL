@@ -359,7 +359,7 @@ class Solution:
             nums: 昇順ソートされた整数リスト（重複なし）
 
         Returns:
-            BST のルートノード。nums が空の場合は None。
+            BST のルートノード。
 
         Raises:
             TypeError:  nums がリスト型でない場合

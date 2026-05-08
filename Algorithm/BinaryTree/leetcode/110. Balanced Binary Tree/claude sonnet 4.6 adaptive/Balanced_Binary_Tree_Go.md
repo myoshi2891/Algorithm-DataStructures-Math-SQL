@@ -212,6 +212,8 @@ func isBalanced(root *TreeNode) bool {
 チームで長期間メンテナンスするプロダクションコードに向きます。Goの慣用句に従い、`error` 戻り値を使ってエラーを明示的に表現します。
 
 ```go
+import "fmt"
+
 // ErrInvalidTree は木の構造が不正な場合のセンチネルエラー（＝パッケージレベルで定義する特定のエラー値）。
 // errors.Is(err, ErrInvalidTree) で呼び出し元がエラー種別を確認できる。
 var ErrInvalidTree = fmt.Errorf("invalid tree structure")

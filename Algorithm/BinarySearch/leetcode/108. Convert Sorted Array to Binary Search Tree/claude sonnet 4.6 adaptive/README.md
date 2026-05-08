@@ -337,7 +337,7 @@ from typing import TYPE_CHECKING, Optional
 # 実行時には無視されるため、LeetCode の実行環境に TreeNode が定義済みでも
 # 定義されていなくても、どちらでも安全に動く設計になっている。
 if TYPE_CHECKING:
-    from __future__ import annotations
+    pass
 
 
 class Solution:

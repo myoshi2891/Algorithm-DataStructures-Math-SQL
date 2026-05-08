@@ -123,7 +123,7 @@ class Solution:
                   制約: 1 <= len(nums) <= 10^4、-10^4 <= nums[i] <= 10^4
 
         Returns:
-            BSTのルートノード。nums が空の場合は None。
+            BSTのルートノード。
 
         Raises:
             TypeError: nums がリスト型でない場合

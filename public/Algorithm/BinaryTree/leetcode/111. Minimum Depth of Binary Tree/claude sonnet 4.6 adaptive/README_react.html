@@ -1,0 +1,1776 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 111 - Minimum Depth of Binary Tree | BFS解説</title>
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism-tomorrow.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+                min-height: 100vh;
+            }
+            code,
+            pre {
+                font-family: 'JetBrains Mono', monospace;
+            }
+            pre[class*='language-'] {
+                border-radius: 0.75rem;
+                font-size: 0.82rem;
+            }
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+                box-shadow: none !important;
+            }
+            details > summary {
+                list-style: none;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- ═══════════════════════════════════════════ HEADER ═══════════════════════════════════════════ -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >LeetCode 111</span
+                    >
+                    <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >Easy</span
+                    >
+                    <span class="bg-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >BFS</span
+                    >
+                </div>
+                <h1 class="text-[2.2rem] font-extrabold text-teal-900 mb-1 leading-tight">
+                    Minimum Depth of Binary Tree
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    BFS（幅優先探索）による O(n) 実装
+                </p>
+                <p
+                    class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block"
+                >
+                    💡
+                    一言で言うと：「根ノードから最も近い葉ノードまでの最短経路のノード数を求める問題」
+                </p>
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >計算量</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ═══════════════════════════════════════════ OVERVIEW ═══════════════════════════════════════════ -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「根ノードから最も近い葉ノードまでの最短経路のノード数を返す問題」
+                    </p>
+                    <p class="text-slate-600 text-sm mt-2">
+                        「最小深さ」とは、木の根（一番上）から出発して、最初に到達できる葉（子を持たないノード）までのノード数のことです。深さは根を1として数えます。葉ノードとは、左の子も右の子もどちらも存在しないノードのことです。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-sm mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-sm space-y-2 list-disc list-inside">
+                        <li>
+                            <strong>「片側だけに子があるノード」が罠になる：</strong
+                            >左の子がない＝葉、ではありません。たとえば右の子だけを持つノードは葉ではなく、右へ続く経路がある「中間ノード」です。例2（[2,null,3,null,4,null,5,null,6]）がその典型で、最小深さはなんと
+                            5 になります。
+                        </li>
+                        <li>
+                            <strong>DFS（深さ優先）では最短を保証できない：</strong>DFS
+                            は「葉に到達するまで一方向に潜り続ける」性質があるため、偶然最初に見つかった葉が最短とは限りません。BFS
+                            なら浅いノードから順番に調べるので、最初に見つかった葉が必ず最短です。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-sm font-mono">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-sm font-mono">O(w)</div>
+                        <div class="text-xs mt-1">空間計算量 (w=最大幅)</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-sm font-mono">BFS</div>
+                        <div class="text-xs mt-1">アルゴリズム</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">deque</div>
+                        <div class="text-xs mt-1">使用データ構造</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-semibold text-teal-800 text-sm mb-3">例1: 通常の二分木</p>
+                        <pre class="text-xs font-mono text-slate-700 leading-6 mb-0">
+入力: root = [3,9,20,null,null,15,7]
+
+      3
+     / \
+    9  20
+       / \
+      15   7
+
+出力: 2</pre
+                        >
+                        <p class="text-slate-500 text-xs mt-2 pt-2 border-t border-slate-200">
+                            根(3)→左の子(9)
+                            の経路が長さ2で最短。ノード9は左も右も子がない「葉」のため、深さ2が答えになります。
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-semibold text-teal-800 text-sm mb-3">
+                            例2: 一方向にだけ伸びる木
+                        </p>
+                        <pre class="text-xs font-mono text-slate-700 leading-6 mb-0">
+入力: root = [2,null,3,null,4,null,5,null,6]
+
+2
+ \
+  3
+   \
+    4
+     \
+      5
+       \
+        6   ← 唯一の葉
+
+出力: 5</pre
+                        >
+                        <p class="text-slate-500 text-xs mt-2 pt-2 border-t border-slate-200">
+                            右方向にのみ子があり、唯一の葉はノード6。葉までの距離が5なのでその深さが答えです。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ STEPS (React root) ═══════════════════════════════════════════ -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ CODE ═══════════════════════════════════════════ -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python 実装
+                </h2>
+
+                <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside">
+                        <li>エッジケース処理：root が None（空の木）なら即座に 0 を返す</li>
+                        <li>BFS キューを初期化：deque に (根ノード, 深さ=1) のペアを入れる</li>
+                        <li>キューが空になるまで繰り返す：浅い順にノードを一つずつ処理する</li>
+                        <li>
+                            葉ノードに到達したら深さを返す（BFS の特性で、最初の葉が必ず最短経路）
+                        </li>
+                    </ol>
+                </div>
+
+                <pre class="line-numbers"><code class="language-python">from typing import Optional
+from collections import deque
+
+
+class Solution:
+    def minDepth(self, root: Optional[TreeNode]) -> int:
+        # ─────────────────────────────────────
+        # エッジケース: 空の木 → 深さ 0 を返す
+        # 根がなければ「葉までの道」自体が存在しない
+        # ─────────────────────────────────────
+        if root is None:
+            return 0
+
+        # ─────────────────────────────────────
+        # BFS キューを初期化する
+        # deque の popleft() は O(1) ← list より効率的
+        # タプル (ノード, 現在の深さ) でペアを管理する
+        # ─────────────────────────────────────
+        queue: deque = deque()
+        queue.append((root, 1))   # 根ノードは深さ 1 からスタート
+
+        while queue:
+            # popleft() = FIFO（先入れ先出し）→ 浅い順に処理
+            node, depth = queue.popleft()
+
+            # ─────────────────────────────────
+            # 葉ノード判定: 左も右も子がない = 葉
+            # BFS は浅い順なので、最初の葉 = 最小深さ
+            # ─────────────────────────────────
+            if node.left is None and node.right is None:
+                return depth      # 最小深さ確定！
+
+            # 子ノードは存在する場合のみキューに追加
+            if node.left is not None:
+                queue.append((node.left,  depth + 1))
+            if node.right is not None:
+                queue.append((node.right, depth + 1))
+
+        return 0  # 有効な木なら通常ここに到達しない</code></pre>
+
+                <div class="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-sm mb-2">
+                        ▶ 入力例 [3,9,20,null,null,15,7] での動作トレース
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs font-mono leading-7 overflow-x-auto whitespace-pre"
+                    >
+初期状態: queue = [(node=3, depth=1)]
+
+反復 1: pop → (node=3, depth=1)
+   左の子: 9 あり, 右の子: 20 あり → 葉ではない
+   → queue に (node=9, depth=2) と (node=20, depth=2) を追加
+   → queue = [(node=9, depth=2), (node=20, depth=2)]
+
+反復 2: pop → (node=9, depth=2)
+   左の子: None, 右の子: None → 🌿 葉ノード発見！
+   → return 2   ✅ 答え: 2（探索終了）
+
+※ node=20 はキューに残ったままですが、葉を見つけた時点で即 return
+   するためこれ以上処理は行われません。</pre
+                    >
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ DIAGRAM ═══════════════════════════════════════════ -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        🗺️ フローチャートの読み方
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <svg width="34" height="22">
+                                <ellipse
+                                    cx="17"
+                                    cy="11"
+                                    rx="16"
+                                    ry="10"
+                                    fill="#d1fae5"
+                                    stroke="#059669"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>楕円（緑）＝ 開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="34" height="22">
+                                <rect
+                                    x="1"
+                                    y="3"
+                                    width="32"
+                                    height="16"
+                                    rx="3"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>四角（青）＝ 処理ステップ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="34" height="22">
+                                <polygon
+                                    points="17,2 33,11 17,20 1,11"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>ひし形（黄）＝ 条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap gap-y-1">
+                            <span class="inline-block w-5 h-0.5 bg-emerald-500"></span
+                            ><span class="mr-2">緑＝はい</span>
+                            <span class="inline-block w-5 h-0.5 bg-red-400"></span
+                            ><span>赤＝いいえ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 overflow-x-auto">
+                    <!--
+        viewBox設計:
+          幅: 560px, 中央 x=280
+          主フロー rect: x=70, w=380 (右端 x=450)
+          ひし形 half-w=120: 左端x=160, 右端x=400
+          サイドボックス: x=405, w=110 (右端x=515)
+          サイドライン x=460 (サイドボックス中心)
+          ループ矢印: 左端 x=38
+          終了楕円: cy=895
+          viewBox高さ: 920
+      -->
+                    <svg
+                        viewBox="0 0 560 940"
+                        style="
+                            max-width: 560px;
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                        "
+                        role="img"
+                        aria-label="Minimum Depth of Binary Tree BFS flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="fc-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="fc-arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="fc-arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#ef4444" />
+                            </marker>
+                            <marker
+                                id="fc-arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- ── Node 1: 開始 ── cy=50, ry=26, bottom=76 -->
+                        <ellipse
+                            cx="280"
+                            cy="50"
+                            rx="72"
+                            ry="26"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="54"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+
+                        <!-- arrow 76→103 -->
+                        <line
+                            x1="280"
+                            y1="76"
+                            x2="280"
+                            y2="103"
+                            stroke="#64748b"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ── Node 2: root is None? Diamond ── center(280,148), ±120 wide, ±48 tall -->
+                        <!-- points: top(280,100), right(400,148), bottom(280,196), left(160,148) -->
+                        <polygon
+                            points="280,100 400,148 280,196 160,148"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="143"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            root is None ?
+                        </text>
+                        <text
+                            x="280"
+                            y="160"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            fill="#92400e"
+                        >
+                            （木が空かどうか）
+                        </text>
+
+                        <!-- "はい" right → side box A -->
+                        <text x="405" y="137" font-size="11" fill="#059669" font-weight="500">
+                            はい
+                        </text>
+                        <line
+                            x1="400"
+                            y1="148"
+                            x2="405"
+                            y2="148"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+
+                        <!-- Side Box A: "return 0" rect x=405, y=128, w=110, h=40 -->
+                        <rect
+                            x="405"
+                            y="128"
+                            width="110"
+                            height="40"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="460"
+                            y="144"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            0 を返す
+                        </text>
+                        <text
+                            x="460"
+                            y="159"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="10"
+                            fill="#065f46"
+                        >
+                            return 0
+                        </text>
+
+                        <!-- [FIX] Box A → 右スパイン接続: 右端(515,148)→スパイン(545,148) -->
+                        <line
+                            x1="515"
+                            y1="148"
+                            x2="545"
+                            y2="148"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+
+                        <!-- "いいえ" down → Node 3 -->
+                        <text x="294" y="215" font-size="11" fill="#ef4444" font-weight="500">
+                            いいえ
+                        </text>
+                        <line
+                            x1="280"
+                            y1="196"
+                            x2="280"
+                            y2="235"
+                            stroke="#ef4444"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+
+                        <!-- ── Node 3: BFSキュー初期化 ── rect y=235, h=56, bottom=291 -->
+                        <rect
+                            x="70"
+                            y="235"
+                            width="380"
+                            height="56"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="258"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="600"
+                            fill="#1e3a5f"
+                        >
+                            BFS キューを初期化
+                        </text>
+                        <text
+                            x="280"
+                            y="276"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            fill="#1e40af"
+                            font-family="JetBrains Mono, monospace"
+                        >
+                            queue = deque([(root, 1)])
+                        </text>
+
+                        <!-- arrow 291→318 -->
+                        <line
+                            x1="280"
+                            y1="291"
+                            x2="280"
+                            y2="318"
+                            stroke="#64748b"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ── Node 4: ノード取出し ── rect y=318, h=56, center-y=346, bottom=374 -->
+                        <rect
+                            x="70"
+                            y="318"
+                            width="380"
+                            height="56"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="341"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="600"
+                            fill="#1e3a5f"
+                        >
+                            キューからノードを取り出す
+                        </text>
+                        <text
+                            x="280"
+                            y="359"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            fill="#1e40af"
+                            font-family="JetBrains Mono, monospace"
+                        >
+                            node, depth = queue.popleft()
+                        </text>
+
+                        <!-- arrow 374→402 -->
+                        <line
+                            x1="280"
+                            y1="374"
+                            x2="280"
+                            y2="402"
+                            stroke="#64748b"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- ── Node 5: 葉ノード? Diamond ── center(280,452), ±120 wide, ±50 tall -->
+                        <polygon
+                            points="280,402 400,452 280,502 160,452"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="446"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="600"
+                            fill="#78350f"
+                        >
+                            葉ノード?
+                        </text>
+                        <text
+                            x="280"
+                            y="464"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            fill="#92400e"
+                        >
+                            left==None and right==None
+                        </text>
+
+                        <!-- "はい" right → Side Box B -->
+                        <text x="405" y="442" font-size="11" fill="#059669" font-weight="500">
+                            はい
+                        </text>
+                        <line
+                            x1="400"
+                            y1="452"
+                            x2="405"
+                            y2="452"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+
+                        <!-- Side Box B: "return depth" x=405, y=432, w=110, h=40 -->
+                        <rect
+                            x="405"
+                            y="432"
+                            width="110"
+                            height="40"
+                            rx="6"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+                        <text
+                            x="460"
+                            y="448"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            depth を返す
+                        </text>
+                        <text
+                            x="460"
+                            y="463"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="10"
+                            fill="#065f46"
+                        >
+                            return depth
+                        </text>
+
+                        <!-- [FIX] Box B → 右スパイン接続: 右端(515,452)→スパイン(545,452) -->
+                        <line
+                            x1="515"
+                            y1="452"
+                            x2="545"
+                            y2="452"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+
+                        <!-- [FIX] 右スパイン: x=545 の単一縦線 — Box A出口(545,148)から終了レベル(545,895)まで -->
+                        <!-- Box A exit と Box B exit の両方がここに合流し、終了ノードへ向かう。衝突なし。 -->
+                        <line
+                            x1="545"
+                            y1="148"
+                            x2="545"
+                            y2="895"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                        />
+
+                        <!-- [FIX] スパイン → 終了 右端へ水平矢印: (545,895)→(353,895) -->
+                        <!-- 終了楕円 cx=280 rx=72 → 右端 x=352。矢印は左向きに収束する。 -->
+                        <line
+                            x1="545"
+                            y1="895"
+                            x2="353"
+                            y2="895"
+                            stroke="#059669"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+
+                        <!-- "いいえ" down → Node 6 -->
+                        <text x="294" y="521" font-size="11" fill="#ef4444" font-weight="500">
+                            いいえ
+                        </text>
+                        <line
+                            x1="280"
+                            y1="502"
+                            x2="280"
+                            y2="540"
+                            stroke="#ef4444"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+
+                        <!-- ── Node 6: 子をキューに追加 ── rect y=540, h=56, bottom=596 -->
+                        <rect
+                            x="70"
+                            y="540"
+                            width="380"
+                            height="56"
+                            rx="8"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="563"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="13"
+                            font-weight="600"
+                            fill="#1e3a5f"
+                        >
+                            子ノードをキューに追加
+                        </text>
+                        <text
+                            x="280"
+                            y="581"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="11"
+                            fill="#1e40af"
+                            font-family="JetBrains Mono, monospace"
+                        >
+                            queue.append((child, depth + 1))
+                        </text>
+
+                        <!-- ── ループ矢印: Node 6下端 → 左 → 上 → Node 4左端 ── -->
+                        <line
+                            x1="280"
+                            y1="596"
+                            x2="280"
+                            y2="626"
+                            stroke="#a855f7"
+                            stroke-width="1.5"
+                        />
+                        <line
+                            x1="280"
+                            y1="626"
+                            x2="38"
+                            y2="626"
+                            stroke="#a855f7"
+                            stroke-width="1.5"
+                        />
+                        <line
+                            x1="38"
+                            y1="626"
+                            x2="38"
+                            y2="346"
+                            stroke="#a855f7"
+                            stroke-width="1.5"
+                        />
+                        <line
+                            x1="38"
+                            y1="346"
+                            x2="70"
+                            y2="346"
+                            stroke="#a855f7"
+                            stroke-width="1.5"
+                            marker-end="url(#fc-arrowPurple)"
+                        />
+                        <text
+                            x="22"
+                            y="490"
+                            font-size="11"
+                            fill="#a855f7"
+                            text-anchor="middle"
+                            font-weight="500"
+                        >
+                            ル
+                        </text>
+                        <text
+                            x="22"
+                            y="504"
+                            font-size="11"
+                            fill="#a855f7"
+                            text-anchor="middle"
+                            font-weight="500"
+                        >
+                            ー
+                        </text>
+                        <text
+                            x="22"
+                            y="518"
+                            font-size="11"
+                            fill="#a855f7"
+                            text-anchor="middle"
+                            font-weight="500"
+                        >
+                            プ
+                        </text>
+
+                        <!-- ── Node 7: 終了 ── cy=895, ry=26, bottom=921 → viewBox高さ940で収容 -->
+                        <ellipse
+                            cx="280"
+                            cy="895"
+                            rx="72"
+                            ry="26"
+                            fill="#d1fae5"
+                            stroke="#059669"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="899"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="15"
+                            font-weight="600"
+                            fill="#065f46"
+                        >
+                            終了
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-sm mb-2">
+                        🔎 入力例 [3,9,20,null,null,15,7] でのフロー追跡
+                    </p>
+                    <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>
+                            「開始」→ root = TreeNode(3) なので None ではない → 「いいえ」の経路へ
+                        </li>
+                        <li>「BFS キュー初期化」→ queue = [(node=3, depth=1)] にセット</li>
+                        <li>「キューから取出し」→ node=3, depth=1 を popleft で取り出す</li>
+                        <li>
+                            「葉ノード?」→ node=3 の left=9, right=20 があるので「いいえ」→
+                            子をキューに追加
+                        </li>
+                        <li>
+                            「子をキューに追加」→ queue = [(node=9, depth=2), (node=20, depth=2)]
+                            になりループ
+                        </li>
+                        <li>「キューから取出し」→ node=9, depth=2 を取り出す</li>
+                        <li>
+                            「葉ノード?」→ node=9 の left=None, right=None → 「はい」→ depth=2
+                            を返す
+                        </li>
+                        <li>「終了」→ 答え 2 を返して処理完了</li>
+                    </ol>
+                </div>
+
+                <p class="mt-5 text-slate-700 leading-8 text-sm">
+                    <strong class="text-base text-teal-800">フローの要点：</strong><br />
+                    BFS
+                    はキューを使って「浅いノードから順番に」処理します。ループ（紫の矢印）は次のノードを処理するためにキューへ戻ることを表しています。右側の緑の線（サイドライン）は「条件を満たしたので早期リターン」する経路です。<code
+                        class="bg-slate-100 px-1 rounded text-xs font-mono"
+                        >root is None</code
+                    >
+                    のときは 0 を、葉ノードを見つけたときはそのときの
+                    <code class="bg-slate-100 px-1 rounded text-xs font-mono">depth</code>
+                    を即座に返します。
+                </p>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ COMPLEXITY ═══════════════════════════════════════════ -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-600 font-semibold text-sm mb-3">
+                        📖 Big-O 記法の読み方（入力サイズ n が大きくなると処理時間がどう変わるか）
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono text-base mb-1">O(1)</div>
+                            <div class="leading-5">
+                                常に一定<br /><span class="text-emerald-600"
+                                    >例：辞書の直接引き</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n)</div>
+                            <div class="leading-5">
+                                入力に比例<br /><span class="text-sky-600"
+                                    >例：リストを1回走査</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n log n)</div>
+                            <div class="leading-5">
+                                n より少し多い<br /><span class="text-amber-600"
+                                    >例：マージソート</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n²)</div>
+                            <div class="leading-5">
+                                入力の2乗<br /><span class="text-red-600"
+                                    >例：二重ループ総当たり</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-teal-50">
+                                <th
+                                    class="text-left p-3 border border-slate-200 text-teal-800 font-semibold"
+                                >
+                                    種別
+                                </th>
+                                <th
+                                    class="text-center p-3 border border-slate-200 text-teal-800 font-semibold"
+                                >
+                                    記法
+                                </th>
+                                <th
+                                    class="text-left p-3 border border-slate-200 text-teal-800 font-semibold"
+                                >
+                                    変数の意味
+                                </th>
+                                <th
+                                    class="text-left p-3 border border-slate-200 text-teal-800 font-semibold"
+                                >
+                                    ケース
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center">
+                                    <code
+                                        class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono text-sm"
+                                        >O(n)</code
+                                    >
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    n = 木のノード総数
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    最悪ケース（全ノード訪問）
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-slate-25">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </td>
+                                <td class="p-3 border border-slate-200 text-center">
+                                    <code
+                                        class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-mono text-sm"
+                                        >O(w)</code
+                                    >
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    w = 木の最大幅（1段のノード最大数）
+                                </td>
+                                <td class="p-3 border border-slate-200 text-slate-600">
+                                    完全二分木では O(n/2) ≈ O(n)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-sm leading-7">
+                        <strong>時間 O(n)：</strong
+                        >最悪のケースでは、葉が最後の1個で木の最深部にある状況です（例2のような一方向に伸びる木）。この場合、全
+                        n ノードをキューから1回ずつ取り出して処理するため、処理回数は n
+                        に比例します。ただし最良のケースは根ノード自体が葉（n=1）のときで、即座に
+                        O(1) で返ります。<br /><br /><strong>空間 O(w)：</strong
+                        >キューには「同じ深さのノード」が同時に蓄積されます。最もノードが密集する段（=
+                        木の最大幅 w）のとき、キューのサイズが最大になります。完全二分木の最下段では
+                        w ≈ n/2 となり、事実上 O(n) と等価です。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ GLOSSARY ═══════════════════════════════════════════ -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたら参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> BFS（幅優先探索）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Breadth-First Search
+                            の略。木やグラフを「根に近い順」「浅い階層から順番に」探索するアルゴリズムです。「うずまきのように外側から内側に向かって広がる」イメージに例えられます。キュー（待ち行列）を使って実装し、最短経路の発見に特に適しています。対義語は
+                            DFS（深さ優先探索）。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> deque（デク）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            double-ended queue（両端キュー）の略。Python の
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >collections.deque</code
+                            >
+                            が提供します。先頭と末尾の両端から O(1)
+                            の定数時間で要素の追加・取り出しができます。通常の
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs">list</code> の
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs">pop(0)</code>
+                            は O(n) のコストがかかるため、BFS には deque の使用が必須です。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span>
+                            葉ノード（リーフノード）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            左の子も右の子も持たないノードのことです。木の末端に位置します。「葉」という名前は、木の葉っぱが枝の末端にあることに由来します。判定条件は
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >node.left is None and node.right is None</code
+                            >
+                            です。注意点：左右どちらか一方の子しか持たないノードは葉ではありません。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> キュー（待ち行列）/
+                            FIFO
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            FIFO（First In, First Out =
+                            先入れ先出し）の原則に従うデータ構造です。コンビニのレジ待ちの列と同じで、先に並んだ人が先に処理されます。BFS
+                            では「浅いノードを先に処理する」ために必須です。<code
+                                class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >append()</code
+                            >
+                            で末尾に追加し、<code
+                                class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >popleft()</code
+                            >
+                            で先頭から取り出します。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span>
+                            根ノード（ルートノード）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            木の最上位に位置する唯一のノードです。親ノードを持ちません。木の探索はここから開始します。深さの数え方では、根ノードの深さを
+                            1 として数えます（問題によっては 0 から数えることもあります）。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> 時間計算量 / 空間計算量
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            <strong>時間計算量</strong>：入力サイズ n
+                            が増えたときに、処理ステップ数がどのくらい増えるかの指標です。O(n) は「n
+                            が2倍になると処理も約2倍」を意味します。<br />
+                            <strong>空間計算量</strong
+                            >：アルゴリズムが使用するメモリ（RAM）の量の指標です。O(w)
+                            はキューに同時に蓄積されるノード数（= 木の最大幅
+                            w）に比例することを示しています。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span>
+                            二分木（バイナリーツリー）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            各ノードが最大2つの子（左の子・右の子）を持つ木構造のデータ構造です。「二分」とは「2つに分かれる」という意味で、各ノードで枝が最大2本に分岐します。LeetCode
+                            では
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >TreeNode</code
+                            >
+                            クラスが使われ、<code
+                                class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >val</code
+                            >（値）・<code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >left</code
+                            >（左の子）・<code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >right</code
+                            >（右の子）の3つの属性を持ちます。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-slate-400 text-xs py-6">
+                LeetCode 111 — Minimum Depth of Binary Tree | BFS 解説ページ
+            </footer>
+        </div>
+
+        <!-- Prism JS -->
+        <script src="/vendor/prismjs/prism.js"></script>
+        <script src="/vendor/prismjs/components/prism-python.min.js"></script>
+        <script src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"></script>
+        <script src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"></script>
+
+        <!-- ═══════════════════════════════════════════ REACT COMPONENT ═══════════════════════════════════════════ -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            /* ── ツリー可視化 SVG ─────────────────────────────────────────────────── */
+            function TreeSVG({ highlightNodes = [], highlightEdges = [], dimNodes = [] }) {
+                const nodes = {
+                    3: { cx: 135, cy: 36 },
+                    9: { cx: 68, cy: 96 },
+                    20: { cx: 200, cy: 96 },
+                    15: { cx: 165, cy: 156 },
+                    7: { cx: 235, cy: 156 },
+                };
+                const edges = [
+                    { from: 3, to: 9 },
+                    { from: 3, to: 20 },
+                    { from: 20, to: 15 },
+                    { from: 20, to: 7 },
+                ];
+
+                const nodeColor = (val) => {
+                    if (highlightNodes.includes(val))
+                        return { fill: '#d1fae5', stroke: '#059669', textFill: '#065f46' };
+                    if (dimNodes.includes(val))
+                        return { fill: '#f1f5f9', stroke: '#cbd5e1', textFill: '#94a3b8' };
+                    return { fill: '#e0f2fe', stroke: '#0284c7', textFill: '#1e3a5f' };
+                };
+
+                const edgeColor = (from, to) =>
+                    highlightEdges.some((e) => e[0] === from && e[1] === to)
+                        ? '#059669'
+                        : '#94a3b8';
+
+                return (
+                    <svg viewBox="0 0 280 185" style={{ width: '100%', maxWidth: 280 }}>
+                        {edges.map((e) => (
+                            <line
+                                key={`${e.from}-${e.to}`}
+                                x1={nodes[e.from].cx}
+                                y1={nodes[e.from].cy}
+                                x2={nodes[e.to].cx}
+                                y2={nodes[e.to].cy}
+                                stroke={edgeColor(e.from, e.to)}
+                                strokeWidth={
+                                    highlightEdges.some((ed) => ed[0] === e.from && ed[1] === e.to)
+                                        ? 2.5
+                                        : 1.5
+                                }
+                            />
+                        ))}
+                        {Object.entries(nodes).map(([val, pos]) => {
+                            const c = nodeColor(Number(val));
+                            return (
+                                <g key={val}>
+                                    <circle
+                                        cx={pos.cx}
+                                        cy={pos.cy}
+                                        r={22}
+                                        fill={c.fill}
+                                        stroke={c.stroke}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={pos.cx}
+                                        y={pos.cy}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize="14"
+                                        fontWeight="600"
+                                        fill={c.textFill}
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                    </svg>
+                );
+            }
+
+            /* ── キュー可視化 ────────────────────────────────────────────────────── */
+            function QueueViz({ items, poppingIndex = -1 }) {
+                if (items.length === 0) {
+                    return (
+                        <div className="mt-2 flex items-center gap-2">
+                            <span className="text-slate-400 text-xs font-mono">queue = []</span>
+                            <span className="text-slate-400 text-xs">（空）</span>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="mt-2">
+                        <div className="text-slate-500 text-xs mb-1">queue（先頭 → 末尾）</div>
+                        <div className="flex flex-wrap gap-2">
+                            {items.map((item, i) => (
+                                <div
+                                    key={i}
+                                    className={[
+                                        'px-3 py-1.5 rounded-lg border-2 text-xs font-mono transition',
+                                        i === poppingIndex
+                                            ? 'bg-amber-100 border-amber-400 text-amber-800'
+                                            : 'bg-sky-50 border-sky-300 text-sky-800',
+                                    ].join(' ')}
+                                >
+                                    (node={item[0]}, depth={item[1]})
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            /* ── 変数ステータスパネル ─────────────────────────────────────────────── */
+            function VarPanel({ vars }) {
+                return (
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                        <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+                            🔍 現在の変数の状態
+                        </div>
+                        {vars.map(([name, value, color]) => (
+                            <div key={name} className={`${color} leading-6`}>
+                                <span className="text-slate-500">{name}</span> ={' '}
+                                <span className="font-semibold">{value}</span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+
+            /* ── ステップごとのビジュアル ─────────────────────────────────────────── */
+            function StepVisualization({ visual }) {
+                const panels = {
+                    edge_case: (
+                        <div>
+                            <div className="grid grid-cols-2 gap-3 mt-3">
+                                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-center">
+                                    <div className="text-xs text-red-600 font-semibold mb-1">
+                                        root = None の場合
+                                    </div>
+                                    <div className="font-mono text-sm text-red-700">
+                                        root = null
+                                    </div>
+                                    <div className="mt-2 text-xs text-red-500">→ return 0</div>
+                                </div>
+                                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                                    <div className="text-xs text-emerald-600 font-semibold mb-1">
+                                        root が存在する場合
+                                    </div>
+                                    <TreeSVG highlightNodes={[3]} dimNodes={[9, 20, 15, 7]} />
+                                    <div className="mt-1 text-xs text-emerald-600">
+                                        → BFS へ進む
+                                    </div>
+                                </div>
+                            </div>
+                            <VarPanel
+                                vars={[
+                                    [
+                                        'root',
+                                        'TreeNode(3)  ← None でないため処理続行',
+                                        'text-emerald-700',
+                                    ],
+                                ]}
+                            />
+                        </div>
+                    ),
+                    queue_init: (
+                        <div>
+                            <TreeSVG highlightNodes={[3]} highlightEdges={[]} />
+                            <QueueViz items={[[3, 1]]} />
+                            <VarPanel
+                                vars={[
+                                    ['queue', 'deque([(node=3, depth=1)])', 'text-sky-700'],
+                                    [
+                                        '',
+                                        '根ノードに深さ 1 を紐付けてキューに入れた',
+                                        'text-slate-500',
+                                    ],
+                                ]}
+                            />
+                        </div>
+                    ),
+                    dequeue: (
+                        <div>
+                            <TreeSVG
+                                highlightNodes={[3]}
+                                highlightEdges={[
+                                    [3, 9],
+                                    [3, 20],
+                                ]}
+                            />
+                            <QueueViz items={[[3, 1]]} poppingIndex={0} />
+                            <div className="mt-2 text-xs text-amber-700 font-semibold">
+                                ↓ popleft() で (node=3, depth=1) を取り出す
+                            </div>
+                            <QueueViz
+                                items={[
+                                    [9, 2],
+                                    [20, 2],
+                                ]}
+                            />
+                            <VarPanel
+                                vars={[
+                                    ['node', 'TreeNode(3)', 'text-amber-700'],
+                                    ['depth', '1', 'text-amber-700'],
+                                    ['', 'node=3 の子 9, 20 をキューへ追加', 'text-slate-500'],
+                                ]}
+                            />
+                        </div>
+                    ),
+                    leaf_check: (
+                        <div>
+                            <TreeSVG
+                                highlightNodes={[9]}
+                                highlightEdges={[[3, 9]]}
+                                dimNodes={[20, 15, 7]}
+                            />
+                            <QueueViz
+                                items={[
+                                    [9, 2],
+                                    [20, 2],
+                                ]}
+                                poppingIndex={0}
+                            />
+                            <div className="mt-2 p-2 rounded-lg bg-emerald-50 border border-emerald-300 text-xs text-emerald-800 font-semibold">
+                                ✅ node=9: left=None, right=None → 葉ノード発見！
+                            </div>
+                            <VarPanel
+                                vars={[
+                                    ['node', 'TreeNode(9)', 'text-emerald-700'],
+                                    ['depth', '2', 'text-emerald-700'],
+                                    ['node.left', 'None', 'text-slate-500'],
+                                    ['node.right', 'None', 'text-slate-500'],
+                                    ['判定', '葉ノード → return depth', 'text-emerald-700'],
+                                ]}
+                            />
+                        </div>
+                    ),
+                    enqueue_children: (
+                        <div>
+                            <TreeSVG
+                                highlightNodes={[3, 9, 20]}
+                                highlightEdges={[
+                                    [3, 9],
+                                    [3, 20],
+                                ]}
+                            />
+                            <div className="mt-2 text-xs text-slate-600 leading-5">
+                                node=3 は葉でない（left=9, right=20
+                                が存在）ため、子ノードをキューに追加します。
+                            </div>
+                            <QueueViz
+                                items={[
+                                    [9, 2],
+                                    [20, 2],
+                                ]}
+                            />
+                            <VarPanel
+                                vars={[
+                                    ['node', 'TreeNode(3)', 'text-slate-600'],
+                                    ['depth', '1', 'text-slate-600'],
+                                    [
+                                        '追加',
+                                        '(node=9, depth=2), (node=20, depth=2)',
+                                        'text-sky-700',
+                                    ],
+                                ]}
+                            />
+                        </div>
+                    ),
+                    result: (
+                        <div>
+                            <TreeSVG
+                                highlightNodes={[3, 9]}
+                                highlightEdges={[[3, 9]]}
+                                dimNodes={[20, 15, 7]}
+                            />
+                            <div className="mt-3 p-3 rounded-xl bg-emerald-100 border-2 border-emerald-400 text-center">
+                                <div className="text-emerald-800 font-bold text-lg">答え: 2</div>
+                                <div className="text-emerald-600 text-xs mt-1">
+                                    根(3) → 葉(9) の経路が最短。ノード数 = 2。
+                                </div>
+                            </div>
+                            <VarPanel
+                                vars={[
+                                    ['node', 'TreeNode(9)', 'text-emerald-700'],
+                                    ['depth', '2', 'text-emerald-700'],
+                                    ['return', '2  ← 最小深さ確定！', 'text-emerald-700'],
+                                ]}
+                            />
+                        </div>
+                    ),
+                };
+                return <div>{panels[visual] || null}</div>;
+            }
+
+            /* ── ステップデータ ───────────────────────────────────────────────────── */
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '空の木をチェックする',
+                    desc:
+                        'まず最初に、入力として渡された root が None（空の木）かどうかを確認します。' +
+                        'なぜこれが必要かというと、「葉ノードまでの経路」という概念は木が存在することを前提としており、空の木では深さは定義できないからです。' +
+                        '例：root = None → キューに何も入れられないため、0 を返して即座に終了します。',
+                    visual: 'edge_case',
+                },
+                {
+                    step: 2,
+                    title: 'BFS キューを初期化する',
+                    desc:
+                        'BFS（幅優先探索）を始めるために、deque（両端キュー）に根ノードと深さ1のペアを入れます。' +
+                        '深さを各ノードと一緒にタプルで管理することで、後からノードが何段目にあるかを外部変数なしで追跡できます。' +
+                        '例：root = TreeNode(3) → queue = deque([(TreeNode(3), 1)]) となります。',
+                    visual: 'queue_init',
+                },
+                {
+                    step: 3,
+                    title: 'キューからノードを取り出す',
+                    desc:
+                        'キューの先頭から (node, depth) のペアを popleft() で取り出します。' +
+                        'popleft() は O(1) の定数時間で動作し、常に「最も浅い階層のノード」が取り出される点がポイントです。これが BFS の特徴です。' +
+                        '例：queue=[(3,1),(9,2),(20,2)] → popleft() → node=3, depth=1。残りは [(9,2),(20,2)]。',
+                    visual: 'dequeue',
+                },
+                {
+                    step: 4,
+                    title: '葉ノードかどうかを判定する',
+                    desc:
+                        '取り出したノードが葉（左の子も右の子も持たないノード）かどうかを確認します。' +
+                        'BFS は浅い順に処理するため、最初に葉と判定されたノードが必ず最も浅い葉、つまり最小深さを持ちます。ここで即座に return できます。' +
+                        '例：node=9 → node.left=None, node.right=None → 葉ノード！ → return depth=2。',
+                    visual: 'leaf_check',
+                },
+                {
+                    step: 5,
+                    title: '子ノードをキューに追加する',
+                    desc:
+                        '葉でなかった場合は、存在する子ノードをキューに追加して探索を続けます。' +
+                        'None の子をキューに追加すると後でエラーの原因になるため、追加前に必ず存在チェックをします。' +
+                        '例：node=3 → left=9 あり → (9, 2) を追加; right=20 あり → (20, 2) を追加。',
+                    visual: 'enqueue_children',
+                },
+                {
+                    step: 6,
+                    title: '最小深さを確定して返す',
+                    desc:
+                        'BFS の性質により、キューを処理した順番は必ず「浅い→深い」の順番です。そのため、最初に葉ノードを発見した時点の depth が最小深さになります。' +
+                        'この「最初に葉を見つけたら即 return する早期終了」がこのアルゴリズムの最大の効率化のポイントです。' +
+                        '例：node=9, depth=2 で葉判定 → return 2。答えは 2。',
+                    visual: 'result',
+                },
+            ];
+
+            /* ── メイン React コンポーネント ──────────────────────────────────────── */
+            function StepsApp() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+                const currentStepData = stepsData[activeStep - 1];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        {/* ── ステップ一覧 ── */}
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((s) => {
+                                    const isActive = activeStep === s.step;
+                                    return (
+                                        <button
+                                            key={s.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.9rem] rounded-xl border-2 transition cursor-pointer px-4 py-3',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : 'bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-1',
+                                            ].join(' ')}
+                                            onClick={() => {
+                                                setActiveStep(s.step);
+                                                setIsPlaying(false);
+                                            }}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-0.5',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {s.step}: {s.title}
+                                            </div>
+                                            <div className="text-slate-500 text-xs mt-0.5 line-clamp-2 leading-5">
+                                                {s.desc.substring(0, 55)}…
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* ── アクティブステップ詳細 ── */}
+                        <div>
+                            {activeStep > 1 && (
+                                <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                    ← 前のステップ（Step {activeStep - 1}）では{' '}
+                                    <strong>{stepsData[activeStep - 2].title}</strong> を行いました
+                                </div>
+                            )}
+
+                            <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-base font-bold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7 text-sm mt-2 whitespace-pre-wrap">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-white">
+                                <div className="text-teal-800 text-xs font-semibold mb-2">
+                                    入力例 [3,9,20,null,null,15,7] での様子
+                                </div>
+                                <StepVisualization visual={currentStepData.visual} />
+                            </div>
+
+                            {/* コントロール */}
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+                                    onClick={() => setIsPlaying(true)}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            {activeStep === stepsData.length && (
+                                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                    🎉
+                                    全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById('steps-root')).render(<StepsApp />);
+        </script>
+    </body>
+</html>

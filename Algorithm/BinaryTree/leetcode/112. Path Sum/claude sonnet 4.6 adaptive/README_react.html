@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 112 – Path Sum | 再帰DFS解説</title>
+
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <!-- Mermaid CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+        <script>
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    fontSize: '14px',
+                    fontFamily: "'Noto Sans JP', sans-serif",
+                    background: '#ffffff',
+                    primaryColor: '#dbeafe',
+                    primaryTextColor: '#1e3a8a',
+                    primaryBorderColor: '#2563eb',
+                    lineColor: '#64748b',
+                    secondaryColor: '#fef3c7',
+                    tertiaryColor: '#ede9fe',
+                },
+                flowchart: { curve: 'basis', padding: 20 },
+            });
+        </script>
+
+        <!-- React 18 -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Noto Sans JP', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            code,
+            pre,
+            .font-mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+                box-shadow: none !important;
+            }
+            details > summary {
+                list-style: none;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+
+            /* Mermaid ノード色の上書き（classDef で設定したものを補強） */
+            .mermaid {
+                max-width: 640px;
+                margin: 0 auto;
+            }
+            /* False 出口ノードを赤系に */
+            .mermaid .falseNode > rect,
+            .mermaid .falseNode > ellipse,
+            .mermaid .falseNode > polygon {
+                fill: #fee2e2 !important;
+                stroke: #dc2626 !important;
+            }
+            /* True 出口ノードを緑系に */
+            .mermaid .trueNode > rect,
+            .mermaid .trueNode > ellipse {
+                fill: #dcfce7 !important;
+                stroke: #16a34a !important;
+            }
+            /* 再帰ノードを紫系に */
+            .mermaid .rec > rect {
+                fill: #ede9fe !important;
+                stroke: #7c3aed !important;
+            }
+        </style>
+    </head>
+
+    <body
+        class="bg-[linear-gradient(150deg,#f0fdf4_0%,#e0f2fe_50%,#faf5ff_100%)] min-h-screen text-slate-800"
+    >
+        <div class="max-w-5xl mx-auto px-4 py-10">
+            <!-- ═══ HEADER ═══ -->
+            <header
+                id="header"
+                class="mb-10 rounded-3xl p-8 shadow-[0_12px_40px_rgba(16,185,129,0.14)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex flex-wrap items-center gap-3 mb-3">
+                    <span
+                        class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >LeetCode 112</span
+                    >
+                    <span
+                        class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >Easy</span
+                    >
+                    <span
+                        class="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full outfit"
+                        >DFS / 木</span
+                    >
+                </div>
+                <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1 leading-tight">
+                    Path Sum
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    再帰DFS（深さ優先探索）による O(n) 実装
+                </p>
+                <p
+                    class="mt-4 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-3 inline-block leading-7"
+                >
+                    💡
+                    <strong>一言で言うと：</strong
+                    >「木の根から葉まで下りるパスの合計が目標値と一致するか判定する問題」です。
+                </p>
+                <nav class="flex flex-wrap gap-2 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >計算量</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ═══ OVERVIEW ═══ -->
+            <section id="overview" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+                <div class="mb-5 p-4 rounded-2xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡 この問題を一言で言うと：「根から葉まで下りるルートの数値の合計が
+                        targetSum と一致するパスが1本でも存在するか？」を判定する問題です。
+                    </p>
+                    <p class="text-slate-600 text-sm mt-2 leading-7">
+                        木（ツリー）は配列と違い、インデックスで直接アクセスできません。根から分岐を辿りながら合計を積み上げ、葉（末端）に到達した瞬間に目標値と比較する必要があります。
+                    </p>
+                </div>
+                <div class="mb-5 p-4 rounded-2xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-sm mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-sm space-y-2 list-disc list-inside leading-7">
+                        <li>
+                            木には「インデックス」がないため、すべてのパスを順番に辿って確認するしかありません。
+                        </li>
+                        <li>
+                            「葉の定義」（左右両方の子が
+                            <code class="bg-slate-100 px-1 rounded text-xs">None</code
+                            >）を正確に判定しないと、木の途中のノードで誤って答えを確定してしまいます。
+                        </li>
+                        <li>
+                            値が負の場合もあるため、「合計が targetSum
+                            を超えたら打ち切り」などの最適化が使えません。
+                        </li>
+                    </ul>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(h)</div>
+                        <div class="text-xs mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            再帰DFS
+                        </div>
+                        <div class="text-xs mt-1">アルゴリズム</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">
+                            0〜5000
+                        </div>
+                        <div class="text-xs mt-1">ノード数制約</div>
+                    </div>
+                </div>
+                <h3 class="text-teal-800 font-bold text-base mb-3">入出力例</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <div class="text-xs font-bold text-slate-500 mb-1">Example 1</div>
+                        <div class="font-mono text-xs text-slate-700">
+                            root = [5,4,8,11,null,13,4,7,2,null,null,null,1]
+                        </div>
+                        <div class="font-mono text-xs text-slate-700">targetSum = 22</div>
+                        <div class="mt-2 font-bold text-emerald-700 text-sm">✅ true</div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            5→4→11→2 の合計が 22 になるから
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <div class="text-xs font-bold text-slate-500 mb-1">Example 2</div>
+                        <div class="font-mono text-xs text-slate-700">
+                            root = [1,2,3]<br />targetSum = 5
+                        </div>
+                        <div class="mt-2 font-bold text-red-600 text-sm">❌ false</div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            1→2=3、1→3=4 どちらも5にならないから
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <div class="text-xs font-bold text-slate-500 mb-1">Example 3</div>
+                        <div class="font-mono text-xs text-slate-700">
+                            root = []<br />targetSum = 0
+                        </div>
+                        <div class="mt-2 font-bold text-red-600 text-sm">❌ false</div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            木が空なのでパス自体が存在しないから
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ STEPS (React) ═══ -->
+            <section id="steps" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-2 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    例：root = [5,4,8,11,null,13,4,7,2,...], targetSum = 22 を使って解説します。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ═══ CODE ═══ -->
+            <section id="code" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python 実装
+                </h2>
+                <div class="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>root が None かを確認する（空の木 or 葉を超えた場合）→ False を返す</li>
+                        <li>targetSum から現在のノードの値を引いて「残り目標値」を計算する</li>
+                        <li>
+                            葉（左右の子が両方 None）に到達したら、残り目標値が 0
+                            かどうかで答えを確定する
+                        </li>
+                        <li>
+                            葉でなければ左・右の子に対して同じ処理を再帰的に呼び出し、どちらかが
+                            True なら True を返す
+                        </li>
+                    </ol>
+                </div>
+                <h3 class="text-teal-800 font-bold text-base mb-3">
+                    競技プログラミング版（再帰DFS）
+                </h3>
+                <pre
+                    class="line-numbers"
+                ><code class="language-python"># LeetCode 112 – Path Sum（競技版：再帰DFS）
+# Time: O(n)  Space: O(h)   n=ノード数, h=木の高さ
+
+class Solution(object):
+    def hasPathSum(self, root, targetSum):
+        """
+        :type root: Optional[TreeNode]
+        :type targetSum: int
+        :rtype: bool
+        """
+        # ベースケース①: root が None = 空の木 or 葉を超えた
+        # パスが存在しないので即 False を返す
+        if root is None:
+            return False
+
+        # 現在ノードの値を targetSum から引く
+        # 「残りあとどれだけ合計が必要か」を次の階層に引き継ぐ
+        # 例) targetSum=22, root.val=5 → 次は 17 を目標にする
+        targetSum -= root.val
+
+        # ベースケース②: 葉（左右両方の子が None）に到達した
+        # パスの終点なので、残り目標値がちょうど 0 か確認する
+        if root.left is None and root.right is None:
+            return targetSum == 0
+
+        # 再帰ステップ: 左または右の子ツリーで条件を満たすパスがあれば True
+        # 「or」は短絡評価: 左が True なら右を評価せずに即 True を返す
+        return (self.hasPathSum(root.left, targetSum) or
+                self.hasPathSum(root.right, targetSum))
+</code></pre>
+                <div class="mt-5 p-4 rounded-2xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-sm mb-2">
+                        ▶ 入力例 root=[5,4,8,11,null,13,4,7,2,...], targetSum=22 での動作トレース
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs font-mono leading-6 overflow-x-auto whitespace-pre"
+                    >
+hasPathSum(Node(5),  22) → targetSum = 22-5  = 17  → 葉でない → 左へ
+  hasPathSum(Node(4),  17) → targetSum = 17-4  = 13  → 葉でない → 左へ
+    hasPathSum(Node(11), 13) → targetSum = 13-11 =  2  → 葉でない → 左へ
+      hasPathSum(Node(7),   2) → targetSum =  2-7  = -5  → 葉！→ -5==0? → False ❌
+      hasPathSum(Node(2),   2) → targetSum =  2-2  =  0  → 葉！→  0==0? → True  ✅
+    ← True が伝播
+  ← True が伝播
+← True が伝播
+
+最終出力: True（パス 5→4→11→2, 合計=22）</pre
+                    >
+                </div>
+                <h3 class="text-teal-800 font-bold text-base mb-3 mt-8">
+                    業務開発版（反復DFS + deque）
+                </h3>
+                <div
+                    class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800"
+                >
+                    ⚠️ Python のデフォルト再帰制限は約 1000
+                    です。5000ノードの一直線の木では超過する可能性があります。業務版は
+                    <code class="bg-white px-1 rounded text-xs">deque</code>
+                    を使って再帰なしで安全に実装します。
+                </div>
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from collections import deque
+
+class Solution:
+    def hasPathSum(self, root, targetSum):
+        if root is None:
+            return False
+
+        stack = deque([(root, targetSum)])
+
+        while stack:
+            node, remaining = stack.pop()
+            remaining -= node.val
+
+            if node.left is None and node.right is None:
+                if remaining == 0:
+                    return True
+                continue
+
+            if node.right is not None:
+                stack.append((node.right, remaining))
+            if node.left is not None:
+                stack.append((node.left, remaining))
+
+        return False
+</code></pre>
+            </section>
+
+            <!-- ═══ FLOWCHART (Mermaid) ═══ -->
+            <section id="diagram" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+
+                <!-- 読み方パネル（Mermaid 形状に合わせて更新） -->
+                <div class="mb-5 p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        🗺️ フローチャートの読み方
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <svg width="52" height="22">
+                                <ellipse
+                                    cx="26"
+                                    cy="11"
+                                    rx="24"
+                                    ry="10"
+                                    fill="#d1fae5"
+                                    stroke="#059669"
+                                    stroke-width="1.5"
+                                />
+                                <text
+                                    x="26"
+                                    y="11"
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-size="9"
+                                    fill="#065f46"
+                                >
+                                    楕円
+                                </text>
+                            </svg>
+                            <span>楕円（緑/赤）＝ 開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="52" height="22">
+                                <rect
+                                    x="1"
+                                    y="2"
+                                    width="50"
+                                    height="18"
+                                    rx="3"
+                                    fill="#dbeafe"
+                                    stroke="#2563eb"
+                                    stroke-width="1.5"
+                                />
+                                <text
+                                    x="26"
+                                    y="11"
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-size="9"
+                                    fill="#1e3a8a"
+                                >
+                                    四角
+                                </text>
+                            </svg>
+                            <span>四角（青）＝ 処理ステップ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="52" height="22">
+                                <polygon
+                                    points="26,1 51,11 26,21 1,11"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                                <text
+                                    x="26"
+                                    y="11"
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-size="9"
+                                    fill="#78350f"
+                                >
+                                    ひし形
+                                </text>
+                            </svg>
+                            <span>ひし形（黄）＝ 条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="52" height="22">
+                                <rect
+                                    x="1"
+                                    y="2"
+                                    width="50"
+                                    height="18"
+                                    rx="3"
+                                    fill="#ede9fe"
+                                    stroke="#7c3aed"
+                                    stroke-width="1.5"
+                                />
+                                <line
+                                    x1="9"
+                                    y1="2"
+                                    x2="9"
+                                    y2="20"
+                                    stroke="#7c3aed"
+                                    stroke-width="1.5"
+                                />
+                                <line
+                                    x1="43"
+                                    y1="2"
+                                    x2="43"
+                                    y2="20"
+                                    stroke="#7c3aed"
+                                    stroke-width="1.5"
+                                />
+                                <text
+                                    x="26"
+                                    y="11"
+                                    text-anchor="middle"
+                                    dominant-baseline="middle"
+                                    font-size="9"
+                                    fill="#3b0764"
+                                >
+                                    再帰
+                                </text>
+                            </svg>
+                            <span>二重縦線（紫）＝ 再帰呼び出し</span>
+                        </div>
+                        <div class="flex items-center gap-2 col-span-2">
+                            <span class="inline-block w-8 h-0.5 bg-emerald-600 mr-1"></span
+                            >緑矢印＝はい / 成功
+                            <span class="inline-block w-8 h-0.5 bg-red-500 mx-3"></span
+                            >赤矢印＝いいえ / False
+                            <span class="inline-block w-8 h-0.5 bg-purple-600 mx-3"></span
+                            >紫矢印＝再帰
+                        </div>
+                    </div>
+                    <!-- 改善点の注記 -->
+                    <div
+                        class="mt-3 pt-3 border-t border-amber-200 text-xs text-amber-700 space-y-1"
+                    >
+                        <p>
+                            ✅ <strong>return False の出口は1か所</strong>に統合しています（② and ⑤
+                            の両方が合流）
+                        </p>
+                        <p>
+                            ✅
+                            <strong>「はい」「いいえ」ラベルは分岐点の直隣</strong
+                            >に配置し、視線移動を最小化しています
+                        </p>
+                        <p>
+                            ✅
+                            <strong>再帰呼び出し⑥⑦ は二重縦線ボックス</strong
+                            >で通常の処理と区別しています
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mermaid フローチャート本体 -->
+                <div
+                    class="mt-4 overflow-x-auto bg-slate-50 rounded-2xl border border-slate-200 p-4"
+                >
+                    <pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '13.5px', 'lineColor': '#64748b', 'primaryBorderColor': '#2563eb', 'tertiaryColor': '#ede9fe'}}}%%
+flowchart TD
+    A(["① 開始\nhasPathSum( root, targetSum )"]):::start
+    A --> B{"② root is None?\n空の木・存在しない子"}:::cond
+    B -- "はい" --> F(["return False ❌\n【共通の False 出口】\n② と ⑤ の両方がここへ合流"]):::falseNode
+    B -- "いいえ" --> C["③ remaining = targetSum − root.val\n例: 22 − 5 = 17"]:::proc
+    C --> D{"④ 葉ノードか?\nleft is None  かつ  right is None"}:::cond
+    D -- "はい（葉に到達）" --> E{"⑤ remaining == 0?\n合計がぴったり一致したか"}:::cond
+    E -- "はい" --> T(["return True ✅\nパスが見つかった！"]):::trueNode
+    E -- "いいえ" --> F
+    D -- "いいえ（葉でない）" --> G[["⑥ hasPathSum( root.left,  remaining )\n左の子ツリーへ再帰\nTrue なら即 True（短絡評価 or）"]]:::rec
+    G --> H[["⑦ hasPathSum( root.right, remaining )\n右の子ツリーへ再帰\nleft or right の結果を返す"]]:::rec
+    H --> R(["⑧ 結果を上の階層へ返す\nleft_result  or  right_result"]):::result
+
+    classDef start    fill:#d1fae5,stroke:#059669,stroke-width:2.5px,color:#065f46,font-weight:bold
+    classDef cond     fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#78350f
+    classDef proc     fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef falseNode fill:#fee2e2,stroke:#dc2626,stroke-width:2.5px,color:#7f1d1d,font-weight:bold
+    classDef trueNode  fill:#dcfce7,stroke:#16a34a,stroke-width:2.5px,color:#14532d,font-weight:bold
+    classDef rec      fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#3b0764
+    classDef result   fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#1e293b
+
+    linkStyle 1 stroke:#dc2626,stroke-width:2.5px,color:#dc2626
+    linkStyle 2 stroke:#16a34a,stroke-width:2px
+    linkStyle 4 stroke:#16a34a,stroke-width:2px
+    linkStyle 5 stroke:#16a34a,stroke-width:2.5px
+    linkStyle 6 stroke:#dc2626,stroke-width:2.5px
+    linkStyle 7 stroke:#7c3aed,stroke-width:2px
+    linkStyle 8 stroke:#7c3aed,stroke-width:2px
+    linkStyle 9 stroke:#64748b,stroke-width:2px
+    </pre
+                    >
+                </div>
+
+                <!-- フロー追跡 -->
+                <div class="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-sm mb-2">
+                        🔎 入力例 root=[5,4,8,11,null,13,4,7,2,...], targetSum=22 でのフロー追跡
+                    </p>
+                    <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>「① 開始」→ root=Node(5), targetSum=22 を受け取る</li>
+                        <li>
+                            「② root is None?」→ Node(5) ≠ None →
+                            <strong>いいえ</strong>（緑矢印で③へ）
+                        </li>
+                        <li>「③ remaining 計算」→ remaining = 22 − 5 = 17</li>
+                        <li>
+                            「④ 葉?」→ left=Node(4), right=Node(8) →
+                            <strong>いいえ</strong>（葉でない）→ 紫矢印で⑥へ
+                        </li>
+                        <li>
+                            「⑥ 左再帰」→ hasPathSum(Node(4), 17) → … → hasPathSum(Node(2), 2)
+                            へ深潜り
+                        </li>
+                        <li>
+                            「④ 葉?」→ Node(2) は葉 → <strong>はい</strong> → 「⑤ remaining==0?」→
+                            2−2=0 → <strong>はい</strong> → ✅ return True
+                        </li>
+                        <li>True が ⑥ or ⑦ を通じて上の階層へ次々と伝播 → 最終的に True を返す</li>
+                    </ol>
+                </div>
+
+                <!-- False 合流ポイントの補足 -->
+                <div class="mt-4 p-4 rounded-2xl bg-red-50 border border-red-200">
+                    <p class="text-red-800 font-semibold text-sm mb-1">
+                        🔴 return False の2つの経路について
+                    </p>
+                    <p class="text-slate-600 text-sm leading-7">
+                        <strong>② → False：</strong>root が
+                        None（空の木・存在しない子ノードを辿った）場合。パス自体が存在しない。<br />
+                        <strong>⑤ → False：</strong>葉に到達したが残り目標値が 0
+                        でない場合。このパスの合計は targetSum と一致しない。<br />
+                        両経路とも「このパスに答えはない」という同じ意味を持つため、図では1つの出口ノードに合流させています。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ═══ COMPLEXITY ═══ -->
+            <section id="complexity" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+                <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-600 font-semibold text-sm mb-3">📖 Big-O 記法の読み方</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="text-center p-3 rounded-xl bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono text-base mb-1">O(1)</div>
+                            <div class="leading-5">
+                                常に一定<br /><span class="text-emerald-600"
+                                    >例：辞書の直接引き</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n)</div>
+                            <div class="leading-5">
+                                入力に比例<br /><span class="text-sky-600"
+                                    >例：リストを1回走査</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono text-base mb-1">O(log n)</div>
+                            <div class="leading-5">
+                                対数的に増加<br /><span class="text-amber-600"
+                                    >例：均衡木の高さ</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-red-100 text-red-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n²)</div>
+                            <div class="leading-5">
+                                入力の2乗<br /><span class="text-red-600">例：二重ループ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto mb-5">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-left text-slate-700"
+                                >
+                                    項目
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-center text-slate-700"
+                                >
+                                    競技版（再帰）
+                                </th>
+                                <th
+                                    class="border border-slate-300 px-4 py-3 text-center text-slate-700"
+                                >
+                                    業務版（反復deque）
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    時間計算量
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono font-bold text-emerald-700"
+                                >
+                                    O(n)
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono font-bold text-emerald-700"
+                                >
+                                    O(n)
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-slate-50/50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    空間計算量
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono font-bold text-sky-700"
+                                >
+                                    O(h)
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono font-bold text-sky-700"
+                                >
+                                    O(h)
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    均衡木の空間
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono text-sky-600"
+                                >
+                                    O(log n)
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono text-sky-600"
+                                >
+                                    O(log n)
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-slate-50/50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    最悪（一直線）
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono text-amber-600"
+                                >
+                                    O(n) ⚠️再帰制限
+                                </td>
+                                <td
+                                    class="border border-slate-300 px-4 py-3 text-center font-mono text-emerald-600"
+                                >
+                                    O(n) ✅安全
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td
+                                    class="border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                                >
+                                    可読性
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-center">
+                                    ★★★ 高い
+                                </td>
+                                <td class="border border-slate-300 px-4 py-3 text-center">
+                                    ★★☆ 中程度
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-sm leading-7">
+                        <strong>時間計算量 O(n)：</strong
+                        >すべてのノードをちょうど1回ずつ訪問するためです。最良ケース（根が葉）でも最悪ケース（全ノードを見る）でも、訪問回数は必ずノード数
+                        n 以下に収まります。<br />
+                        <strong>空間計算量 O(h)：</strong
+                        >再帰呼び出しのたびに関数の情報がコールスタックに積まれます。その最大の深さが木の高さ
+                        h です。均衡した木では h ≈ log₂(n)（5000ノードで約12段）、一直線の木では h =
+                        n（最悪5000段）になります。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ═══ GLOSSARY ═══ -->
+            <section id="glossary" class="bg-white rounded-3xl p-8 mb-8 shadow-md">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    このページで登場した専門用語を五十音順でまとめました。分からない言葉が出てきたときに参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> O(h)（スペース計算量）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            h
+                            は木の高さ（Height）を表します。再帰呼び出しでは関数の呼び出し情報がスタックに積まれ、その深さが木の高さに比例します。均衡した木では
+                            O(log n)、一直線の木では O(n) になります。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> DFS（深さ優先探索）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Depth-First Search
+                            の略。木やグラフをできるだけ深く潜ってから引き返す探索方法です。迷路を一本道ずつ試すイメージです。根から葉への「パス」を追うのに向いています。BFS（幅優先探索）が横に広がるのに対して、DFS
+                            は縦に深く進みます。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span>
+                            collections.deque（デック）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Python
+                            の標準ライブラリが提供するデータ構造で「両端開きの箱」のイメージです。前後どちらからでも
+                            O(1) で追加・取り出しができます。<code
+                                class="bg-slate-100 px-1 rounded text-xs"
+                                >list</code
+                            >
+                            は先頭への追加・削除が O(n) かかりますが、<code
+                                class="bg-slate-100 px-1 rounded text-xs"
+                                >deque</code
+                            >
+                            は O(1) です。スタックやキューとして使うのに最適です。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> コールスタック（Call
+                            Stack）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数が呼び出されるたびにその情報（引数・ローカル変数・戻り先）を積み重ねる領域です。再帰関数は呼び出すたびにここに積まれ、返るたびに取り出されます。積みすぎると「スタックオーバーフロー」（Python
+                            では
+                            <code class="bg-slate-100 px-1 rounded text-xs">RecursionError</code
+                            >）が発生します。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> 再帰（Recursion）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数が自分自身を呼び出す仕組みです。木構造のように「同じ形が入れ子になった」データに対して自然に適用できます。ロシアのマトリョーシカ人形を開くように、同じ操作を繰り返して最終的に「これ以上開けない」（基底条件）に到達します。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> 再帰深度制限（Recursion
+                            Limit）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            Python はデフォルトで再帰の深さを約 1000 に制限しています。<code
+                                class="bg-slate-100 px-1 rounded text-xs"
+                                >sys.getrecursionlimit()</code
+                            >
+                            で確認できます。5000
+                            ノードの一直線の木では超過する可能性があるため、業務版では
+                            <code class="bg-slate-100 px-1 rounded text-xs">deque</code>
+                            を使った反復 DFS で回避します。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> 短絡評価（Short-circuit
+                            Evaluation）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            <code class="bg-slate-100 px-1 rounded text-xs">A or B</code>
+                            という式で、A が
+                            <code class="bg-slate-100 px-1 rounded text-xs">True</code> なら B
+                            を評価せずに即
+                            <code class="bg-slate-100 px-1 rounded text-xs">True</code>
+                            を返す仕組みです。今回の実装では左のサブツリーで答えが見つかった場合に右のサブツリー全体の探索をスキップできるため、最良ケースで処理を大幅に短縮できます。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> 葉（Leaf Node）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            木において、左の子も右の子も存在しない末端のノードのことです。根から葉まで下りる一本道が「パス」であり、問題の条件は葉に到達したときにのみ確認します。葉でないノードで条件を確認してしまうと、途中で誤って答えを確定してしまうバグが起きます。
+                        </div>
+                    </details>
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500 text-xs">▶</span> ベースケース（Base
+                            Case）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            再帰関数において「これ以上再帰呼び出しをしない」と判断して直接値を返す条件のことです。今回は「root
+                            is None」（空の木 or
+                            存在しない子）と「葉ノードに到達した」の2つがベースケースです。ベースケースがないと関数が無限に呼ばれ続けてクラッシュします。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <footer class="text-center text-slate-400 text-xs py-6">
+                LeetCode 112 – Path Sum 解説ページ ｜ React 18 + Tailwind CSS + Prism.js + Mermaid
+                v10
+            </footer>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '関数の入り口：root を受け取る',
+                    desc:
+                        'このステップでは hasPathSum 関数が呼び出され、現在のノード（root）と残り目標値（targetSum）を受け取ります。' +
+                        'なぜなら、再帰DFSは「今いるノード」と「そこまでの残り合計」の2つの情報だけで動作するからです。' +
+                        '例）最初の呼び出し：root=Node(5), targetSum=22',
+                    remaining: 22,
+                    nodeVal: 5,
+                    phase: '入口',
+                },
+                {
+                    step: 2,
+                    title: 'ベースケース①：root is None を確認',
+                    desc:
+                        'root が None かどうかを最初に確認します。' +
+                        'なぜなら、空の木や「存在しない子ノード」への再帰呼び出しではパスが存在しないため即座に False を返す必要があるからです。' +
+                        '例）root=None → return False。root=Node(5) → チェック通過、次へ進む。',
+                    remaining: 22,
+                    nodeVal: 5,
+                    phase: 'null確認',
+                },
+                {
+                    step: 3,
+                    title: 'targetSum からノードの値を引く',
+                    desc:
+                        '現在のノードの値を targetSum から引いて「残り目標値」を計算します。' +
+                        'なぜなら、根から葉まで辿りながら「まだあとどれだけの合計が必要か」を追跡するためです。' +
+                        '例）targetSum=22, root.val=5 → remaining = 22 - 5 = 17。次の階層では 17 を目標にして探索します。',
+                    remaining: 17,
+                    nodeVal: 5,
+                    phase: '減算',
+                },
+                {
+                    step: 4,
+                    title: 'ベースケース②：葉かどうかを確認',
+                    desc:
+                        '左の子も右の子も None なら「葉」です。葉に到達したことはパスの終点に来たことを意味します。' +
+                        'なぜなら、葉でないノードで合計を確認すると、途中で誤って答えを確定してしまうバグが起きるからです。' +
+                        '例）Node(7): 葉！remaining=-5 → false。Node(2): 葉！remaining=0 → true ✅',
+                    remaining: 0,
+                    nodeVal: 2,
+                    phase: '葉の確認',
+                },
+                {
+                    step: 5,
+                    title: '再帰ステップ：左右の子へ潜る',
+                    desc:
+                        '葉でなければ左の子・右の子に対して同じ関数を再帰的に呼び出します。' +
+                        'なぜなら、木は「根＋左の小さな木＋右の小さな木」という同じ形の繰り返しでできているからです。' +
+                        '例）Node(11)から: hasPathSum(Node(7), 2) → false, hasPathSum(Node(2), 2) → true ✅',
+                    remaining: 2,
+                    nodeVal: 11,
+                    phase: '再帰',
+                },
+                {
+                    step: 6,
+                    title: '結果の伝播：True が上へ返る',
+                    desc:
+                        '葉で True が確定したら、その True は or を通じて上の階層に次々と伝播していきます。' +
+                        'なぜなら、Python の or は短絡評価（左が True なら右を評価しない）を行うため、1つでも True が見つかれば即座に全体が True になるからです。' +
+                        '例）Node(2)→true → Node(11)→true → Node(4)→true → Node(5)→true → 最終出力 true ✅',
+                    remaining: 0,
+                    nodeVal: null,
+                    phase: '伝播',
+                },
+            ];
+
+            function TreeViz({ phase, remaining, nodeVal }) {
+                const getColor = (label) => {
+                    if (phase === 'null確認' && label === '5')
+                        return { fill: '#fef3c7', stroke: '#f59e0b', text: '#92400e' };
+                    if (phase === '減算' && label === '5')
+                        return { fill: '#bfdbfe', stroke: '#0284c7', text: '#1e40af' };
+                    if (phase === '葉の確認' && (label === '7' || label === '2'))
+                        return { fill: '#d1fae5', stroke: '#059669', text: '#065f46' };
+                    if (phase === '再帰' && label === '11')
+                        return { fill: '#ede9fe', stroke: '#7c3aed', text: '#5b21b6' };
+                    if (phase === '伝播' && ['2', '11', '4', '5'].includes(label))
+                        return { fill: '#d1fae5', stroke: '#059669', text: '#065f46' };
+                    return { fill: '#f8fafc', stroke: '#94a3b8', text: '#475569' };
+                };
+
+                const node = (x, y, label, isLeaf = false) => {
+                    const c = getColor(label);
+                    return (
+                        <g key={label + x}>
+                            <circle
+                                cx={x}
+                                cy={y}
+                                r={22}
+                                fill={c.fill}
+                                stroke={c.stroke}
+                                strokeWidth="2"
+                            />
+                            <text
+                                x={x}
+                                y={y}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize="13"
+                                fontWeight="bold"
+                                fill={c.text}
+                            >
+                                {label}
+                            </text>
+                            {isLeaf && (
+                                <text
+                                    x={x}
+                                    y={y + 34}
+                                    textAnchor="middle"
+                                    fontSize="10"
+                                    fill="#059669"
+                                    fontWeight="bold"
+                                >
+                                    葉
+                                </text>
+                            )}
+                        </g>
+                    );
+                };
+
+                const edge = (x1, y1, x2, y2) => (
+                    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#cbd5e1" strokeWidth="1.5" />
+                );
+
+                return (
+                    <svg
+                        viewBox="0 0 340 270"
+                        style={{
+                            width: '100%',
+                            maxWidth: 340,
+                            height: 'auto',
+                            display: 'block',
+                            margin: '0 auto',
+                        }}
+                    >
+                        {edge(170, 38, 98, 98)}
+                        {edge(170, 38, 248, 98)}
+                        {edge(98, 98, 62, 162)}
+                        {edge(98, 98, 134, 162)}
+                        {edge(248, 98, 210, 162)}
+                        {edge(248, 98, 280, 162)}
+                        {edge(62, 162, 38, 168 + 57)}
+                        {edge(62, 162, 90, 168 + 57)}
+                        {phase === '伝播' && (
+                            <text
+                                x="170"
+                                y="16"
+                                textAnchor="middle"
+                                fontSize="10"
+                                fill="#059669"
+                                fontWeight="bold"
+                            >
+                                5→4→11→2 の合計 = 22 ✅
+                            </text>
+                        )}
+                        {node(170, 38, '5')}
+                        {node(98, 98, '4')}
+                        {node(248, 98, '8')}
+                        {node(62, 162, '11')}
+                        <text
+                            x="134"
+                            y="162"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            fontSize="11"
+                            fill="#cbd5e1"
+                        >
+                            null
+                        </text>
+                        {node(210, 162, '13', true)}
+                        {node(280, 162, '4b', true)}
+                        {node(38, 225, '7', true)}
+                        {node(90, 225, '2', true)}
+                    </svg>
+                );
+            }
+
+            function VarPanel({ step, remaining, nodeVal }) {
+                return (
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                        <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+                            🔍 現在の変数の状態
+                        </div>
+                        <div className="text-emerald-700">step = {step}</div>
+                        {nodeVal !== null && (
+                            <div className="text-sky-700">root.val = {nodeVal}</div>
+                        )}
+                        <div className="text-purple-700">remaining（残り目標値） = {remaining}</div>
+                        <div className="text-amber-700 mt-1">
+                            {remaining === 0
+                                ? '✅ remaining が 0 → パス発見！'
+                                : remaining < 0
+                                  ? '❌ remaining が負 → このパスは不一致'
+                                  : '🔍 まだ探索中…'}
+                        </div>
+                    </div>
+                );
+            }
+
+            function StepVisualization({ step }) {
+                const s = stepsData[step - 1];
+                return (
+                    <div className="mt-4">
+                        <TreeViz phase={s.phase} remaining={s.remaining} nodeVal={s.nodeVal} />
+                        <VarPanel step={step} remaining={s.remaining} nodeVal={s.nodeVal} />
+                    </div>
+                );
+            }
+
+            function StepsApp() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else setActiveStep((prev) => prev + 1);
+                        }, 2000);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const cur = stepsData[activeStep - 1];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-3 text-teal-800 text-base font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((s) => {
+                                    const on = activeStep === s.step;
+                                    return (
+                                        <button
+                                            key={s.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-sm rounded-xl border-2 transition cursor-pointer px-4 py-3',
+                                                'bg-white border-slate-200 hover:border-emerald-400 hover:translate-x-1',
+                                                on
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => {
+                                                setActiveStep(s.step);
+                                                setIsPlaying(false);
+                                            }}
+                                            aria-current={on ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold text-xs mb-0.5',
+                                                    on ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {s.step}: {s.title}
+                                            </div>
+                                            <div className="text-slate-400 text-xs">
+                                                {s.desc.substring(0, 45)}...
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div>
+                            {activeStep > 1 && (
+                                <div className="mb-3 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                    ← 前のステップ（Step {activeStep - 1}）では「
+                                    {stepsData[activeStep - 2].title}」を行いました
+                                </div>
+                            )}
+                            <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-base font-bold">
+                                    Step {cur.step}: {cur.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7 text-sm mt-2">{cur.desc}</p>
+                            </div>
+                            <StepVisualization step={activeStep} />
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 rounded-xl font-semibold text-white text-sm transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={() => setIsPlaying(true)}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 rounded-xl font-semibold text-white text-sm transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 rounded-xl font-semibold text-white text-sm transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 rounded-xl font-semibold text-slate-700 text-sm transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+                            {activeStep === stepsData.length && (
+                                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                    🎉
+                                    全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById('steps-root')).render(<StepsApp />);
+        </script>
+    </body>
+</html>

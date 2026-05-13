@@ -97,7 +97,7 @@ flowchart TD
   Start[Start generate numRows]
   Start --> Validate{Valid input?}
   Validate -- No --> Err[Raise TypeError or ValueError]
-  Validate -- Yes --> Init[Init triangle with row0 = 1]
+  Validate -- Yes --> Init[Init empty triangle]
   Init --> Loop{row_index &lt; numRows?}
   Loop -- No --> Return[Return triangle]
   Loop -- Yes --> BuildRow[Build current row]
@@ -116,8 +116,8 @@ flowchart TD
 
 - `Start`：`generate(numRows)` の呼び出し入口
 - `Validate`（ひし形）：型チェックと範囲チェック。不正な入力をここで弾く
-- `Init`：結果リストを `[[1]]`（1 行目）で初期化する
-- `Loop`（ひし形）：`row_index` が `numRows` に達するまで繰り返す終了条件の判定
+- `Init`：結果リストを `[]`（空リスト）で初期化する
+- `Loop`（ひし形）：`row_index`（0 から開始）が `numRows` に達するまで繰り返す終了条件の判定
 - `BuildRow`：`_build_row()` ヘルパーを呼び出す
 - `IsSmall`（ひし形）：0 行目・1 行目は特殊処理（内側の要素がない）
 - `Inner`：リスト内包表記で `prev[col-1] + prev[col]` を計算
@@ -172,7 +172,7 @@ graph LR
 
 **主要な流れの説明：**
 
-- `Input → Row0`：最初の行 `[1]` は固定値なので計算不要
+- `Input → Row0`：最初の行 `[1]` は空の `triangle` に対して `row_index=0` で生成される
 - `Rowi → prev`：前の行がそのまま次の行の計算材料（`prev`）になる
 - `prev → inner`：隣り合う要素の和を内包表記で一括計算
 - `inner → rowi`：`[1] + inner + [1]` で両端を追加して行を完成させる

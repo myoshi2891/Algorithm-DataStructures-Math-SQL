@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode #1 Two Sum — ハッシュマップ O(n) 解説</title>
+        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+        <script
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+            crossorigin
+        ></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+            rel="stylesheet"
+        />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Noto Sans JP', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            .mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            /* Prism toolbar */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+            details > summary {
+                list-style: none;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+            details[open] > summary .arrow {
+                transform: rotate(90deg);
+            }
+            .arrow {
+                display: inline-block;
+                transition: transform 0.2s;
+            }
+
+            /* step-card hover */
+            .step-card {
+                transition:
+                    border-color 0.15s,
+                    transform 0.15s,
+                    box-shadow 0.15s;
+            }
+            .step-card:hover {
+                border-color: #10b981;
+                transform: translateX(3px);
+            }
+            .step-card.active {
+                background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                border-color: #059669;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            }
+        </style>
+    </head>
+    <body class="bg-gradient-to-br from-emerald-50 via-white to-sky-50 min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 py-8">
+            <!-- ========== HEADER ========== -->
+            <header
+                id="header"
+                class="mb-8 rounded-3xl p-8 shadow-[0_10px_40px_rgba(16,185,129,0.15)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >LeetCode #1</span
+                    >
+                    <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >Easy</span
+                    >
+                    <span class="bg-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >Hash Table</span
+                    >
+                </div>
+                <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1 leading-tight">
+                    Two Sum
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    ハッシュマップ 1 パス探索で O(n) を実現
+                </p>
+                <p
+                    class="mt-3 text-base text-teal-800 bg-white/70 rounded-2xl px-5 py-3 inline-block leading-7"
+                >
+                    💡 一言で言うと：「リストの中から
+                    <strong>足すと target になる 2 つの数のインデックス</strong> を探す問題」
+                </p>
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >計算量</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-xl border-2 border-slate-200 bg-white text-sm transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ========== OVERVIEW ========== -->
+            <section id="overview" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-5 rounded-2xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡 この問題を一言で言うと
+                    </p>
+                    <p class="text-slate-700 mt-2 leading-7 text-sm">
+                        「整数リスト
+                        <code class="bg-emerald-100 px-1 rounded mono text-xs">nums</code>
+                        の中から、合計が
+                        <code class="bg-emerald-100 px-1 rounded mono text-xs">target</code> になる
+                        2
+                        つの要素を見つけ、その<strong>インデックス（位置番号）を返す</strong>問題」です。答えは必ず
+                        1 組だけ存在することが保証されています。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-5 rounded-2xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        ⚠️ なぜ単純な「全探索」では不十分なのか
+                    </p>
+                    <ul class="text-slate-700 text-sm space-y-2 list-disc list-inside leading-7">
+                        <li>
+                            全ての組み合わせを試す二重ループは
+                            <strong>O(n²)</strong> になる。n=10,000 のとき最悪
+                            <strong>1 億回</strong>の比較が発生し、制限時間に引っかかる可能性がある
+                        </li>
+                        <li>
+                            Follow-up では「<strong>O(n²) より速い解法</strong
+                            >」が明示的に求められている
+                        </li>
+                        <li>
+                            解決策：<strong>辞書（ハッシュテーブル）</strong>を使えば「補数がすでに出現したか」を
+                            O(1) で確認でき、全体を O(n) に削減できる
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 指標カード -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-base mono">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-base mono">O(n)</div>
+                        <div class="text-xs mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs mono break-all leading-tight">dict</div>
+                        <div class="text-xs mt-1">データ構造</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-2xl p-4 text-center"
+                    >
+                        <div class="font-bold text-xs mono break-all leading-tight">1-pass</div>
+                        <div class="text-xs mt-1">走査回数</div>
+                    </div>
+                </div>
+
+                <!-- 入出力例 -->
+                <h3 class="text-teal-800 font-bold text-lg mb-3">入出力例</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Example 1</p>
+                        <p class="mono text-xs text-slate-700">
+                            nums = [2,7,11,15]<br />target = 9
+                        </p>
+                        <p class="mono text-xs text-emerald-700 mt-2">→ [0, 1]</p>
+                        <p class="text-xs text-slate-500 mt-2">nums[0]+nums[1] = 2+7 = 9 ✅</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Example 2</p>
+                        <p class="mono text-xs text-slate-700">nums = [3,2,4]<br />target = 6</p>
+                        <p class="mono text-xs text-emerald-700 mt-2">→ [1, 2]</p>
+                        <p class="text-xs text-slate-500 mt-2">nums[1]+nums[2] = 2+4 = 6 ✅</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 p-4 bg-slate-50">
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Example 3（重複値）</p>
+                        <p class="mono text-xs text-slate-700">nums = [3,3]<br />target = 6</p>
+                        <p class="mono text-xs text-emerald-700 mt-2">→ [0, 1]</p>
+                        <p class="text-xs text-slate-500 mt-2">同じ値でも異なるインデックス ✅</p>
+                    </div>
+                </div>
+
+                <!-- 制約 -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-sm">
+                    <p class="font-semibold text-slate-700 mb-2">📌 制約</p>
+                    <ul
+                        class="text-slate-600 space-y-1 list-disc list-inside mono text-xs leading-6"
+                    >
+                        <li>2 &lt;= nums.length &lt;= 10⁴</li>
+                        <li>-10⁹ &lt;= nums[i] &lt;= 10⁹</li>
+                        <li>-10⁹ &lt;= target &lt;= 10⁹</li>
+                        <li>答えは必ず 1 組だけ存在する</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ========== STEPS (React) ========== -->
+            <section id="steps" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-2 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    各ステップをクリックするか ▶ Play で自動再生できます。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ========== CODE ========== -->
+            <section id="code" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python 実装
+                </h2>
+
+                <div class="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>
+                            <code class="bg-white px-1 rounded mono text-xs">seen = {}</code>
+                            という空の辞書（メモ帳）を用意する
+                        </li>
+                        <li>
+                            <code class="bg-white px-1 rounded mono text-xs">enumerate()</code>
+                            でインデックスと値を同時に取り出しながらループする
+                        </li>
+                        <li>
+                            補数（<code class="bg-white px-1 rounded mono text-xs"
+                                >target - num</code
+                            >）が
+                            <code class="bg-white px-1 rounded mono text-xs">seen</code>
+                            にあれば答えを返す
+                        </li>
+                        <li>
+                            なければ今の数を
+                            <code class="bg-white px-1 rounded mono text-xs">seen</code>
+                            に記録して次へ
+                        </li>
+                    </ol>
+                </div>
+
+                <pre
+                    class="line-numbers rounded-2xl !m-0"
+                ><code class="language-python">from __future__ import annotations
+from typing import List
+
+
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        # {数値: そのインデックス} を記録する「メモ帳」を用意する。
+        # dict は CPython 内部でハッシュテーブルを使っており
+        # キー検索が O(1)（一定時間）で完了する。
+        # リストの `in` 演算（O(n)）より大幅に速い。
+        seen: dict[int, int] = {}
+
+        # enumerate() でインデックス i と値 num を同時に取得する。
+        # C 実装なので手書きの for+range より高速で可読性も高い。
+        for i, num in enumerate(nums):
+
+            # 「target から今の数を引いた値」= 補数（complement）。
+            # もし補数が seen にあれば、そのペアが答えになる。
+            complement: int = target - num
+
+            if complement in seen:
+                # seen[complement] → 補数のインデックス（過去に記録）
+                # i               → 現在のインデックス
+                return [seen[complement], i]
+
+            # ペアが見つからなければ今の数を記録して次へ。
+            # 後のループで「この数が誰かの補数」として参照される。
+            seen[num] = i
+
+        # 問題の制約上ここには到達しないが pylance 警告抑制のため。
+        raise ValueError("No valid pair found.")</code></pre>
+
+                <div class="mt-5 p-5 rounded-2xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-sm mb-3">
+                        ▶ 入力例 nums=[2,7,11,15], target=9 での動作トレース
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs mono leading-7 overflow-x-auto whitespace-pre"
+                    >
+初期状態: seen = {}
+
+i=0, num=2
+  complement = 9 - 2 = 7
+  7 in {} → No
+  seen = {2: 0}
+
+i=1, num=7
+  complement = 9 - 7 = 2
+  2 in {2: 0} → Yes ✅
+  return [seen[2], 1] = [0, 1]
+
+出力: [0, 1]
+  → nums[0]=2 と nums[1]=7 の和が 9 になる</pre
+                    >
+                </div>
+            </section>
+
+            <!-- ========== DIAGRAM (static SVG) ========== -->
+            <section id="diagram" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+
+                <!-- 読み方ガイド -->
+                <div class="mb-5 p-4 rounded-2xl bg-amber-50 border border-amber-200">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        🗺️ フローチャートの読み方
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <ellipse
+                                    cx="14"
+                                    cy="9"
+                                    rx="13"
+                                    ry="8"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>楕円（緑）＝ 開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <rect
+                                    x="1"
+                                    y="3"
+                                    width="26"
+                                    height="12"
+                                    rx="3"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>四角（青）＝ 処理ステップ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="28" height="18">
+                                <polygon
+                                    points="14,1 27,9 14,17 1,9"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>ひし形（黄）＝ 条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-block w-5 h-0.5 bg-emerald-500"></span
+                            ><span>緑＝はい</span>
+                            <span class="inline-block w-5 h-0.5 bg-red-500 ml-1"></span
+                            ><span>赤＝いいえ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mermaidフローチャート -->
+                <div class="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 overflow-x-auto">
+                    <div class="mermaid" style="font-family: 'Noto Sans JP', sans-serif;">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#e0f2fe",
+    "primaryTextColor": "#0c4a6e",
+    "primaryBorderColor": "#0284c7",
+    "lineColor": "#64748b",
+    "secondaryColor": "#fef3c7",
+    "tertiaryColor": "#ede9fe",
+    "edgeLabelBackground": "#f8fafc",
+    "fontFamily": "Noto Sans JP, sans-serif",
+    "fontSize": "15px"
+  }
+}}%%
+flowchart TD
+    S(["① 開始 twoSum"])
+    Init["② seen = {} を初期化"]
+    Loop{"③ 次の要素あり？
+i, x を取得"}
+    Calc["④ need = target − x を計算"]
+    Check{"⑤ need が
+seen にあるか？"}
+    Return["⑥ seen[need], i を返却 ✅"]
+    Record["⑦ seen[x] = i を登録"]
+    Done["配列終了
+※制約上は到達しない
+[-1,-1] を返却"]
+    End(["⑧ 終了"])
+
+    S --> Init
+    Init --> Loop
+    Loop -->|"はい（要素あり）"| Calc
+    Loop -->|"いいえ（配列終了）"| Done
+    Calc --> Check
+    Check -->|"はい — 辞書検索 O(1)"| Return
+    Check -->|"いいえ"| Record
+    Record -->|"次の要素へ（ループバック）"| Loop
+    Return --> End
+    Done --> End
+
+    style S fill:#d1fae5,stroke:#10b981,color:#065f46,font-weight:bold
+    style End fill:#d1fae5,stroke:#10b981,color:#065f46,font-weight:bold
+    style Init fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    style Calc fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    style Loop fill:#fef3c7,stroke:#f59e0b,color:#713f12
+    style Check fill:#fef3c7,stroke:#f59e0b,color:#713f12
+    style Return fill:#d1fae5,stroke:#059669,color:#064e3b,font-weight:bold
+    style Record fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    style Done fill:#fee2e2,stroke:#dc2626,color:#991b1b
+                    </div>
+                </div>
+
+                <!-- フロー追跡 -->
+                <div class="mt-5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-sm mb-3">
+                        🔎 入力例 nums=[2,7,11,15], target=9 でのフロー追跡
+                    </p>
+                    <ol class="text-slate-600 text-sm space-y-2 list-decimal list-inside leading-7">
+                        <li>「開始 twoSum」ノード → nums=[2,7,11,15], target=9 を受け取る</li>
+                        <li>「seen={} 初期化」→ 空の辞書を用意する</li>
+                        <li>「配列を走査」→ i=0, x=2 を取得（要素あり）</li>
+                        <li>「need = 9-2 = 7 を計算」</li>
+                        <li>
+                            「need(7) が seen にあるか？」→ seen={} なので <strong>いいえ</strong>
+                        </li>
+                        <li>
+                            「x(2) が seen にあるか？」→ <strong>いいえ</strong> → seen[2]=0 を登録
+                            → ループバック
+                        </li>
+                        <li>「配列を走査」→ i=1, x=7 を取得（要素あり）</li>
+                        <li>「need = 9-7 = 2 を計算」</li>
+                        <li>
+                            「need(2) が seen にあるか？」→ seen={2:0} に 2 がある →
+                            <strong>はい</strong> ✅
+                        </li>
+                        <li>「[seen[2], 1] = [0, 1] を返却」→「終了」ノードへ</li>
+                    </ol>
+                </div>
+
+                <div
+                    class="mt-5 p-5 rounded-2xl bg-slate-100 border border-slate-200 text-sm text-slate-700 leading-8"
+                >
+                    <strong class="text-lg text-teal-800">フローの説明：</strong><br />
+                    1. 空の辞書
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">seen</code>
+                    を初期化<br />
+                    2. 配列を左から順に走査（各要素を
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">x</code>、添字を
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">i</code> とする）<br />
+                    3. 補数
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">need = target - x</code>
+                    を計算<br />
+                    4.
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">need</code>
+                    が辞書に存在するか確認 → 存在すれば即座に
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">[seen[need], i]</code>
+                    を返却<br />
+                    5. 存在しなければ、<code class="px-2 py-0.5 bg-white rounded mono text-xs"
+                        >x</code
+                    >
+                    が辞書に未登録なら
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">seen[x] = i</code>
+                    を登録（重複はスキップ）<br />
+                    6. 次の要素へ進む（ループバック）<br />
+                    7. 全要素を処理しても解が見つからなければ
+                    <code class="px-2 py-0.5 bg-white rounded mono text-xs">[-1, -1]</code>
+                    を返却（問題前提では到達しない）
+                </div>
+            </section>
+
+            <!-- ========== COMPLEXITY ========== -->
+            <section id="complexity" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-5 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-600 font-semibold text-sm mb-3">
+                        📖 Big-O 記法の読み方（入力 n が増えると処理時間がどう変わるかの目安）
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="text-center p-3 rounded-xl bg-emerald-100 text-emerald-800">
+                            <div class="font-bold mono text-base mb-1">O(1)</div>
+                            <div class="leading-5">
+                                常に一定<br /><span class="text-emerald-600"
+                                    >例：辞書の直接引き</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-sky-100 text-sky-800">
+                            <div class="font-bold mono text-base mb-1">O(n)</div>
+                            <div class="leading-5">
+                                入力に比例<br /><span class="text-sky-600"
+                                    >例：リストを1回走査</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-amber-100 text-amber-800">
+                            <div class="font-bold mono text-base mb-1">O(n log n)</div>
+                            <div class="leading-5">
+                                nより少し多い<br /><span class="text-amber-600"
+                                    >例：ソート処理</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-xl bg-red-100 text-red-800">
+                            <div class="font-bold mono text-base mb-1">O(n²)</div>
+                            <div class="leading-5">
+                                入力の2乗<br /><span class="text-red-600">例：二重ループ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 比較テーブル -->
+                <div class="overflow-x-auto mb-5">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-teal-700 text-white">
+                                <th class="px-4 py-3 text-left rounded-tl-xl">アプローチ</th>
+                                <th class="px-4 py-3 text-center">時間計算量</th>
+                                <th class="px-4 py-3 text-center">空間計算量</th>
+                                <th class="px-4 py-3 text-center">可読性</th>
+                                <th class="px-4 py-3 text-left rounded-tr-xl">備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-100 bg-amber-50">
+                                <td class="px-4 py-3 font-semibold text-slate-700">
+                                    二重ループ（全探索）
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        class="bg-red-100 text-red-700 px-2 py-0.5 rounded mono text-xs font-bold"
+                                        >O(n²)</span
+                                    >
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded mono text-xs font-bold"
+                                        >O(1)</span
+                                    >
+                                </td>
+                                <td class="px-4 py-3 text-center text-amber-600 font-bold">★★★</td>
+                                <td class="px-4 py-3 text-slate-500 text-xs">
+                                    Follow-up の制約を満たさない
+                                </td>
+                            </tr>
+                            <tr class="bg-emerald-50 border-b-2 border-emerald-300">
+                                <td class="px-4 py-3 font-bold text-emerald-800">
+                                    ✅ ハッシュマップ 1 パス
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        class="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded mono text-xs font-bold"
+                                        >O(n)</span
+                                    >
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <span
+                                        class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded mono text-xs font-bold"
+                                        >O(n)</span
+                                    >
+                                </td>
+                                <td class="px-4 py-3 text-center text-emerald-600 font-bold">
+                                    ★★★
+                                </td>
+                                <td class="px-4 py-3 text-emerald-700 text-xs font-semibold">
+                                    推奨 — 最速かつシンプル
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        🔍 なぜ O(n) になるのか
+                    </p>
+                    <p class="text-slate-700 text-sm leading-7">
+                        <code class="bg-white px-1 rounded mono text-xs">nums</code> を
+                        <strong>1 度だけ</strong>先頭から末尾まで走査します（= O(n)）。
+                        各イテレーションで行う「辞書の検索」と「辞書への記録」はどちらも
+                        <strong>O(1)</strong> です。 したがって全体の時間計算量は O(n) × O(1) =
+                        <strong>O(n)</strong> になります。 空間計算量は最悪ケース（答えが末尾 2
+                        要素のとき）に n-1 個の数値を辞書に記録するため <strong>O(n)</strong> です。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ========== GLOSSARY ========== -->
+            <section id="glossary" class="bg-white rounded-3xl p-8 mb-8 shadow-sm">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    このページで登場した専門用語を五十音順でまとめました。分からない言葉が出てきたときに参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> インデックス
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            リストや配列の何番目にあるかを示す番号。Pythonでは先頭の要素が
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">0</code>
+                            から始まります。例：<code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >nums[0]</code
+                            >
+                            は先頭の要素。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> O(1)・O(n)・O(n²)
+                            — Big-O記法
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            処理にかかる時間・メモリが入力の大きさ n
+                            に対してどう増えるかを表す記法。<br />
+                            <strong>O(1)</strong>：入力サイズに関わらず一定（最速）<br />
+                            <strong>O(n)</strong>：入力が2倍になると処理も約2倍<br />
+                            <strong>O(n²)</strong>：入力が2倍になると処理は約4倍（二重ループに多い）
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> enumerate()
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            リストを回しながら「何番目か（インデックス）」と「値」を同時に取り出す
+                            Python の組み込み関数。C 実装のため高速です。<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >for i, val in enumerate(nums):</code
+                            >
+                            のように使います。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> 型ヒント（Type
+                            Hints）
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数の引数・戻り値に型を注釈する仕組み。<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >def f(x: int) -&gt; str:</code
+                            >
+                            のように書きます。pylance（VSCode
+                            の型チェッカー）が実行前に型の不一致を検出できるようになります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span>
+                            補数（complement）
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            今の数
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">num</code>
+                            とペアになるべき数値。<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >complement = target - num</code
+                            >
+                            で計算します。例：target=9, num=2 のとき補数=7。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span>
+                            ハッシュテーブル（Hash Table）
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            キーを特殊な数値（ハッシュ値）に変換し、値の格納場所を一瞬（O(1)）で特定できるデータ構造。図書館の索引カードに例えると、タイトル（キー）から棚番号（値）を即座に引けるイメージです。Pythonでは
+                            <code class="bg-slate-100 px-1 rounded mono text-xs">dict</code>
+                            がこれにあたります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> CPython
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            最も広く使われるPythonの実装。C言語で書かれており、<code
+                                class="bg-slate-100 px-1 rounded mono text-xs"
+                                >dict</code
+                            >・<code class="bg-slate-100 px-1 rounded mono text-xs"
+                                >enumerate()</code
+                            >
+                            などの組み込み関数の多くがC実装のため高速です。本解説が対象とする環境です。
+                        </div>
+                    </details>
+
+                    <details class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition flex items-center gap-2"
+                        >
+                            <span class="arrow text-emerald-500 text-xs">▶</span> 走査（scan）
+                        </summary>
+                        <div
+                            class="px-5 py-4 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            リストや配列を先頭から末尾まで順番に見ていくこと。「1パス走査」とは、リストを1度だけ端から端まで見ることを意味します。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- ========== FOOTER ========== -->
+            <footer class="text-center text-slate-400 text-xs pb-8">
+                LeetCode #1 Two Sum — Python (CPython 3.11+) 解説 | 初学者向け完全ガイド
+            </footer>
+        </div>
+        <!-- /max-w-5xl -->
+
+        <!-- ========== REACT STEPS COMPONENT ========== -->
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            const NUMS = [2, 7, 11, 15];
+            const TARGET = 9;
+
+            const stepsData = [
+                {
+                    step: 1,
+                    title: 'seen 辞書を初期化する',
+                    desc: '空の辞書 seen = {} を用意します。\nこの辞書は「前に見た数値とそのインデックスを記録するメモ帳」です。なぜ辞書を使うかというと、後で「ある数値が出現済みかどうか」を O(1)（一定時間）で確認できるからです。リストで同じことをすると O(n) かかってしまいます。\n例）nums=[2,7,11,15], target=9 → seen={} で開始',
+                    hashMap: {},
+                    currentI: -1,
+                    complement: null,
+                    found: false,
+                    visual: 'init',
+                },
+                {
+                    step: 2,
+                    title: 'i=0, num=2 を取得・補数を計算',
+                    desc: 'enumerate() でインデックス i=0、値 num=2 を取り出します。\n補数（complement）= target - num = 9 - 2 = 7 を計算します。「今の数 2 とペアになる数は 7 だ」という意味です。\n次に「7 が seen にあるか」を確認します → seen={} なので No。',
+                    hashMap: {},
+                    currentI: 0,
+                    complement: 7,
+                    found: false,
+                    visual: 'lookup',
+                },
+                {
+                    step: 3,
+                    title: 'seen に {2: 0} を記録',
+                    desc: '補数 7 は seen に見つからなかったので、今の数 2 とそのインデックス 0 を seen に記録します。\nなぜ記録するかというと、後のイテレーションで「2 が誰かの補数」として参照される可能性があるためです。\n例）もし次に 7 が出てきたら、補数 = 9-7 = 2 → seen に 2 がある！となります。',
+                    hashMap: { 2: 0 },
+                    currentI: 0,
+                    complement: 7,
+                    found: false,
+                    visual: 'record',
+                },
+                {
+                    step: 4,
+                    title: 'i=1, num=7 を取得・補数を計算',
+                    desc: '次の要素：i=1、num=7 を取り出します。\n補数 = 9 - 7 = 2 を計算します。「7 とペアになる数は 2 だ」という意味です。\n「2 が seen にあるか」を確認 → seen={2:0} に 2 がある！→ 答えが見つかりました ✅',
+                    hashMap: { 2: 0 },
+                    currentI: 1,
+                    complement: 2,
+                    found: true,
+                    visual: 'found',
+                },
+                {
+                    step: 5,
+                    title: '答えを返す [seen[2], 1] = [0, 1]',
+                    desc: 'seen[complement] = seen[2] = 0（補数 2 が出現したインデックス）と、現在のインデックス i=1 を組み合わせて [0, 1] を返します。\nnums[0]=2 と nums[1]=7 の和が 9 になることを確認できます。\nリストを 2 回目まで（全 4 要素中）で答えが見つかりました。',
+                    hashMap: { 2: 0 },
+                    currentI: 1,
+                    complement: 2,
+                    found: true,
+                    visual: 'return',
+                },
+            ];
+
+            function ArrayDisplay({ nums, currentI, found, complement, hashMap }) {
+                return (
+                    <div className="mt-4">
+                        <div className="text-xs text-slate-500 font-semibold mb-2 font-sans">
+                            📊 配列の状態
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                            {nums.map((n, idx) => {
+                                const isActive = idx === currentI;
+                                const inSeen = hashMap[n] !== undefined && idx !== currentI;
+                                const isFound =
+                                    found && (hashMap[complement] === idx || idx === currentI);
+                                let bg = 'bg-slate-100 border-slate-200 text-slate-600';
+                                if (isFound)
+                                    bg =
+                                        'bg-emerald-200 border-emerald-500 text-emerald-900 shadow-md';
+                                else if (isActive)
+                                    bg = 'bg-sky-200 border-sky-500 text-sky-900 shadow-md';
+                                else if (inSeen)
+                                    bg = 'bg-violet-100 border-violet-300 text-violet-700';
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={[
+                                            'border-2 rounded-xl p-2 text-center min-w-[52px] transition-all',
+                                            bg,
+                                        ].join(' ')}
+                                    >
+                                        <div className="font-bold mono text-base">{n}</div>
+                                        <div className="text-xs mt-0.5 font-sans">i={idx}</div>
+                                        {inSeen && !isFound && (
+                                            <div className="text-xs text-violet-600 font-bold mt-0.5">
+                                                seen
+                                            </div>
+                                        )}
+                                        {isFound && (
+                                            <div className="text-xs text-emerald-700 font-bold mt-0.5">
+                                                ✅ 答え
+                                            </div>
+                                        )}
+                                        {isActive && !isFound && (
+                                            <div className="text-xs text-sky-700 font-bold mt-0.5">
+                                                ← 今ここ
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            }
+
+            function SeenDisplay({ hashMap }) {
+                const entries = Object.entries(hashMap);
+                return (
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                        <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+                            🔍 現在の変数の状態
+                        </div>
+                        <div className="text-violet-700 font-bold">
+                            seen = {'{'}
+                            {entries.length === 0 && <span className="text-slate-400"> </span>}
+                            {entries.map(([k, v], i) => (
+                                <span key={k}>
+                                    <span className="text-sky-600">{k}</span>
+                                    <span className="text-slate-500">: </span>
+                                    <span className="text-amber-600">{v}</span>
+                                    {i < entries.length - 1 && (
+                                        <span className="text-slate-400">, </span>
+                                    )}
+                                </span>
+                            ))}
+                            {'}'}
+                        </div>
+                        <div className="text-slate-600 mt-1">
+                            target = <span className="text-emerald-600 font-bold">{TARGET}</span>
+                        </div>
+                    </div>
+                );
+            }
+
+            function StepVisualization({ visual, step }) {
+                const s = stepsData[step - 1];
+                return (
+                    <div>
+                        <ArrayDisplay
+                            nums={NUMS}
+                            currentI={s.currentI}
+                            found={s.found}
+                            complement={s.complement}
+                            hashMap={s.hashMap}
+                        />
+                        {s.complement !== null && (
+                            <div
+                                className={[
+                                    'mt-3 px-4 py-2 rounded-xl text-xs font-mono font-bold border',
+                                    s.found
+                                        ? 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                                        : 'bg-amber-50 border-amber-300 text-amber-800',
+                                ].join(' ')}
+                            >
+                                {s.found
+                                    ? `✅ complement = ${s.complement}  →  seen に ${s.complement} がある！→ [seen[${s.complement}], ${s.currentI}] = [${s.hashMap[s.complement]}, ${s.currentI}]`
+                                    : `complement = target - num = ${TARGET} - ${NUMS[s.currentI]} = ${s.complement}  →  seen に ${s.complement} はない`}
+                            </div>
+                        )}
+                        <SeenDisplay hashMap={s.hashMap} />
+                    </div>
+                );
+            }
+
+            function StepsApp() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const current = stepsData[activeStep - 1];
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6 mt-2">
+                        {/* ステップ一覧 */}
+                        <div>
+                            <h3 className="mt-0 mb-3 text-teal-800 text-base font-bold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2">
+                                {stepsData.map((s) => {
+                                    const isActive = activeStep === s.step;
+                                    return (
+                                        <button
+                                            key={s.step}
+                                            type="button"
+                                            className={[
+                                                'step-card w-full text-left rounded-2xl border-2 px-4 py-3',
+                                                isActive ? 'active' : 'bg-white border-slate-200',
+                                            ].join(' ')}
+                                            onClick={() => {
+                                                setActiveStep(s.step);
+                                                setIsPlaying(false);
+                                            }}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold text-sm mb-0.5',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {s.step}：{s.title}
+                                            </div>
+                                            <div className="text-slate-500 text-xs leading-5">
+                                                {s.desc.split('\n')[0].substring(0, 50)}
+                                                {s.desc.length > 50 ? '…' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 詳細パネル */}
+                        <div>
+                            {activeStep > 1 && (
+                                <div className="mb-3 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                    ← 前のステップ（Step {activeStep - 1}）では「
+                                    {stepsData[activeStep - 2].title}」を行いました
+                                </div>
+                            )}
+
+                            <div className="rounded-2xl p-5 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-base font-bold mb-2">
+                                    Step {current.step}：{current.title}
+                                </h3>
+                                {current.desc.split('\n').map((line, i) => (
+                                    <p key={i} className="text-slate-600 leading-7 text-sm mb-1">
+                                        {line}
+                                    </p>
+                                ))}
+                            </div>
+
+                            <StepVisualization visual={current.visual} step={activeStep} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)]"
+                                    onClick={() => setIsPlaying(true)}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition disabled:opacity-40 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)]"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 text-sm transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            {activeStep === stepsData.length && (
+                                <div className="mt-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                    🎉
+                                    全ステップ完了！下の「コード」セクションで実際の実装を確認しましょう。
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.createRoot(document.getElementById('steps-root')).render(<StepsApp />);
+
+            // Prism highlight after render
+            setTimeout(() => {
+                if (window.Prism) Prism.highlightAll();
+            }, 300);
+        </script>
+        <script>
+            mermaid.initialize({
+                startOnLoad: true,
+                securityLevel: 'loose',
+                flowchart: { curve: 'linear', nodeSpacing: 60, rankSpacing: 60 }
+            });
+        </script>
+    </body>
+</html>

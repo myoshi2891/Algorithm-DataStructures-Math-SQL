@@ -1,0 +1,1408 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 136. Single Number - XORで学ぶ1パス走査</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
+                            mono: ['JetBrains Mono', 'monospace'],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+            .outfit {
+                font-family: 'Inter', sans-serif;
+                letter-spacing: -0.01em;
+            }
+
+            /* Prism toolbar のコピー・ボタンが背景に埋もれないよう !important で上書きする */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+            pre[class*='language-'] {
+                border-radius: 12px !important;
+                font-size: 13px !important;
+                line-height: 1.7 !important;
+            }
+        </style>
+    </head>
+    <body class="bg-[#f0fdf4] min-h-screen">
+        <div class="max-w-6xl mx-auto p-4 md:p-8">
+            <!-- ============ 1. ヘッダー ============ -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >LeetCode 136</span
+                    >
+                    <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full"
+                        >Easy</span
+                    >
+                </div>
+                <h1 class="text-[2.4rem] font-extrabold text-teal-900 mb-1">Single Number</h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    XOR（排他的論理和）を使った1パス走査で O(n)時間・O(1)空間 を実現
+                </p>
+
+                <p
+                    class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block"
+                >
+                    💡
+                    一言で言うと：「配列の中でペアを組んでいない、1回だけ登場する数字を見つける問題」
+                </p>
+
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >コード</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >計算量</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ============ 2. アルゴリズム概要 ============ -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「配列の中でペアを組んでいない、1回だけ登場する数字を見つける問題」
+                    </p>
+                    <p class="text-slate-600 text-sm mt-2">
+                        配列
+                        <code class="bg-white px-1 rounded font-mono text-xs">nums</code>
+                        の要素はほとんどが2回ずつ登場し、1つだけ1回しか登場しない要素が混ざっています。それを効率よく見つけ出すのがゴールです。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-sm mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-sm space-y-1 list-disc list-inside">
+                        <li>
+                            ハッシュテーブル（＝キーと値をセットで記録できる辞書のような構造）で出現回数を数えると、配列の要素数に比例した追加メモリ（O(n)）を使ってしまい、「定数空間（O(1)）」という制約に違反します。
+                        </li>
+                        <li>
+                            配列をソートしてから隣同士を比較する方法は、ソート自体にO(n log
+                            n)の時間がかかり、「線形時間（O(n)）」という制約に違反します。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(n)</div>
+                        <div class="text-xs mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">O(1)</div>
+                        <div class="text-xs mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">Easy</div>
+                        <div class="text-xs mt-1">難易度</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-xs font-mono break-all leading-tight">XOR</div>
+                        <div class="text-xs mt-1">キーとなる演算</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-mono text-sm text-slate-700">nums = [2, 2, 1]</p>
+                        <p class="font-mono text-sm text-emerald-700 mt-1">出力: 1</p>
+                        <p class="text-slate-500 text-xs mt-2">
+                            2は2回登場して打ち消し合うため、1回しか登場しない1が答えになります。
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-mono text-sm text-slate-700">nums = [4, 1, 2, 1, 2]</p>
+                        <p class="font-mono text-sm text-emerald-700 mt-1">出力: 4</p>
+                        <p class="text-slate-500 text-xs mt-2">
+                            1と2はそれぞれ2回登場して打ち消し合うため、1回しか登場しない4が答えになります。このページのステップ解説では、この例を使って動作を追跡します。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 3. ステップバイステップ解説（React） ============ -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-500 text-sm mb-4">
+                    入力例
+                    <code class="bg-slate-100 px-1 rounded font-mono text-xs"
+                        >nums = [4, 1, 2, 1, 2]</code
+                    >
+                    を使って、result 変数がどう変化していくかを1ステップずつ確認しましょう。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ============ 4. コード例 ============ -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+
+                <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside">
+                        <li>nums が list かどうか、要素がすべて int かどうかを検証する</li>
+                        <li>
+                            配列が空でないことを確認する（制約上は保証されているが、防御的に確認する）
+                        </li>
+                        <li>result を 0 で初期化し、1回のループで各要素を result にXORで重ねる</li>
+                        <li>走査が終わったら result を返す</li>
+                    </ol>
+                </div>
+
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from __future__ import annotations
+
+from typing import List
+
+
+class Solution:
+    """
+    136. Single Number 解決クラス
+
+    配列内で1回だけ登場する数値を、XOR（排他的論理和）を使って
+    O(n)時間・O(1)空間で見つける。
+    """
+
+    def singleNumber(self, nums: List[int]) -> int:
+        """
+        配列内で1回だけ登場する数値を返す。
+
+        Args:
+            nums: 1回だけ登場する要素が1つ含まれる整数配列。
+                  それ以外の要素はすべてちょうど2回登場する。
+
+        Returns:
+            1回だけ登場する整数。
+
+        Raises:
+            TypeError: nums がリストでない、または要素に int 以外が含まれる場合。
+            ValueError: nums が空の場合。
+        """
+        # isinstance() で型チェックする。
+        # Python は動的型付け（＝実行するまで型が確定しない仕組み）のため、
+        # 呼び出し元が誤った型を渡しても実行時まで気づけない。
+        if not isinstance(nums, list):
+            raise TypeError("Input must be a list")
+
+        # all() + ジェネレータ式で全要素が int かどうかを1行でチェックする。
+        if not all(isinstance(x, int) for x in nums):
+            raise TypeError("All elements must be integers")
+
+        # 制約上は長さ1以上が保証されているが、防御的プログラミングとして
+        # 空リストを明示的に弾いておく。
+        if len(nums) == 0:
+            raise ValueError("Input list must not be empty")
+
+        # result を「これまでXORを重ねた累積値」として使う。
+        # 初期値を 0 にするのは、0 ^ a = a という性質があるため。
+        result: int = 0
+
+        # 配列を1回だけ走査し、各要素を result に XOR で重ねていく。
+        # 同じ数字が2回現れると a ^ a = 0 で打ち消し合い、
+        # 最終的にペアのない「はぐれ者」の数字だけが result に残る。
+        for num in nums:
+            result ^= num
+
+        return result
+</code></pre>
+
+                <div class="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-sm mb-2">
+                        ▶ 入力例 nums = [4, 1, 2, 1, 2] での動作トレース
+                    </p>
+                    <pre
+                        class="text-slate-700 text-xs font-mono leading-6 overflow-x-auto whitespace-pre"
+                    >
+初期状態: result = 0
+
+num = 4 → result = 0 ^ 4 = 4
+num = 1 → result = 4 ^ 1 = 5
+num = 2 → result = 5 ^ 2 = 7
+num = 1 → result = 7 ^ 1 = 6   (1が2回目 → 打ち消し合いの途中経過)
+num = 2 → result = 6 ^ 2 = 4   (2が2回目 → 打ち消し合い完了)
+
+走査終了 → result = 4 を返す</pre
+                    >
+                </div>
+            </section>
+
+            <!-- ============ 5. フローチャート ============ -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <p class="text-amber-800 font-semibold text-sm mb-3">
+                        🗺️ フローチャートの読み方
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <svg width="24" height="16">
+                                <ellipse
+                                    cx="12"
+                                    cy="8"
+                                    rx="11"
+                                    ry="7"
+                                    fill="#d1fae5"
+                                    stroke="#10b981"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>楕円（緑）＝ 開始・終了</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="24" height="16">
+                                <rect
+                                    x="1"
+                                    y="2"
+                                    width="22"
+                                    height="12"
+                                    rx="2"
+                                    fill="#e0f2fe"
+                                    stroke="#0284c7"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>四角（青）＝ 処理ステップ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg width="24" height="16">
+                                <polygon
+                                    points="12,1 23,8 12,15 1,8"
+                                    fill="#fef3c7"
+                                    stroke="#f59e0b"
+                                    stroke-width="1.5"
+                                />
+                            </svg>
+                            <span>ひし形（黄）＝ 条件分岐</span>
+                        </div>
+                        <div class="flex items-center gap-2 col-span-2 md:col-span-1">
+                            <span class="inline-block w-4 h-0.5 bg-emerald-500 mr-1"></span
+                            >緑＝はい／成功
+                            <span class="inline-block w-4 h-0.5 bg-red-500 mx-1"></span>赤＝いいえ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 overflow-x-auto">
+                    <svg
+                        viewBox="0 0 560 660"
+                        style="
+                            max-width: 560px;
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                        "
+                        role="img"
+                        aria-label="Single Number flowchart"
+                    >
+                        <defs>
+                            <marker
+                                id="fc-arrow"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+                            </marker>
+                            <marker
+                                id="fc-arrowGreen"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+                            </marker>
+                            <marker
+                                id="fc-arrowRed"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                            </marker>
+                            <marker
+                                id="fc-arrowPurple"
+                                markerWidth="10"
+                                markerHeight="10"
+                                refX="9"
+                                refY="3"
+                                orient="auto"
+                                markerUnits="strokeWidth"
+                            >
+                                <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+                            </marker>
+                        </defs>
+
+                        <!-- Start -->
+                        <ellipse
+                            cx="280"
+                            cy="40"
+                            rx="120"
+                            ry="32"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="36"
+                            text-anchor="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            開始
+                        </text>
+                        <text x="280" y="54" text-anchor="middle" font-size="11" fill="#065f46">
+                            nums を受け取る
+                        </text>
+
+                        <!-- Start -> Validate -->
+                        <line
+                            x1="280"
+                            y1="72"
+                            x2="280"
+                            y2="93"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- Validate diamond -->
+                        <polygon
+                            points="280,95 430,150 280,205 130,150"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="146"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#92400e"
+                        >
+                            入力を検証
+                        </text>
+                        <text x="280" y="163" text-anchor="middle" font-size="11" fill="#92400e">
+                            型・空をチェック
+                        </text>
+
+                        <!-- Validate -> Error (no) -->
+                        <line
+                            x1="430"
+                            y1="150"
+                            x2="440"
+                            y2="150"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowRed)"
+                        />
+                        <text
+                            x="435"
+                            y="140"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#dc2626"
+                        >
+                            いいえ
+                        </text>
+
+                        <!-- Error rect -->
+                        <rect
+                            x="440"
+                            y="120"
+                            width="110"
+                            height="60"
+                            rx="8"
+                            fill="#fee2e2"
+                            stroke="#dc2626"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="495"
+                            y="147"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#991b1b"
+                        >
+                            検証エラー
+                        </text>
+                        <text x="495" y="163" text-anchor="middle" font-size="10" fill="#991b1b">
+                            例外を送出
+                        </text>
+
+                        <!-- Validate -> Init (yes) -->
+                        <line
+                            x1="280"
+                            y1="205"
+                            x2="280"
+                            y2="243"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <text
+                            x="300"
+                            y="228"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- Init rect -->
+                        <rect
+                            x="60"
+                            y="245"
+                            width="440"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="273"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#075985"
+                        >
+                            初期化
+                        </text>
+                        <text
+                            x="280"
+                            y="295"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-family="monospace"
+                            fill="#075985"
+                        >
+                            result = 0
+                        </text>
+
+                        <!-- Init -> LoopCheck -->
+                        <line
+                            x1="280"
+                            y1="315"
+                            x2="280"
+                            y2="348"
+                            stroke="#64748b"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrow)"
+                        />
+
+                        <!-- LoopCheck diamond -->
+                        <polygon
+                            points="280,350 430,410 280,470 130,410"
+                            fill="#fef3c7"
+                            stroke="#f59e0b"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="406"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-weight="600"
+                            fill="#92400e"
+                        >
+                            走査ループ
+                        </text>
+                        <text x="280" y="423" text-anchor="middle" font-size="11" fill="#92400e">
+                            要素は残っているか
+                        </text>
+
+                        <!-- LoopCheck -> XorStep (yes) -->
+                        <line
+                            x1="430"
+                            y1="410"
+                            x2="440"
+                            y2="413"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <text
+                            x="460"
+                            y="397"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            はい
+                        </text>
+
+                        <!-- XorStep rect -->
+                        <rect
+                            x="440"
+                            y="380"
+                            width="110"
+                            height="70"
+                            rx="10"
+                            fill="#e0f2fe"
+                            stroke="#0284c7"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="495"
+                            y="408"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#075985"
+                        >
+                            XOR適用
+                        </text>
+                        <text
+                            x="495"
+                            y="425"
+                            text-anchor="middle"
+                            font-size="10"
+                            font-family="monospace"
+                            fill="#075985"
+                        >
+                            result^=num
+                        </text>
+
+                        <!-- XorStep -> LoopCheck (loop back) -->
+                        <path
+                            d="M495,450 L495,480 L100,480 L100,410 L128,410"
+                            fill="none"
+                            stroke="#a855f7"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowPurple)"
+                        />
+                        <text
+                            x="300"
+                            y="495"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#a855f7"
+                        >
+                            次の要素へ（ループ）
+                        </text>
+
+                        <!-- LoopCheck -> Return (no) -->
+                        <line
+                            x1="280"
+                            y1="470"
+                            x2="280"
+                            y2="556"
+                            stroke="#059669"
+                            stroke-width="2"
+                            marker-end="url(#fc-arrowGreen)"
+                        />
+                        <text
+                            x="310"
+                            y="515"
+                            text-anchor="middle"
+                            font-size="11"
+                            font-weight="600"
+                            fill="#059669"
+                        >
+                            いいえ（走査完了）
+                        </text>
+
+                        <!-- Return ellipse -->
+                        <ellipse
+                            cx="280"
+                            cy="590"
+                            rx="120"
+                            ry="32"
+                            fill="#d1fae5"
+                            stroke="#10b981"
+                            stroke-width="2"
+                        />
+                        <text
+                            x="280"
+                            y="586"
+                            text-anchor="middle"
+                            font-size="13"
+                            font-weight="700"
+                            fill="#065f46"
+                        >
+                            終了
+                        </text>
+                        <text x="280" y="604" text-anchor="middle" font-size="11" fill="#065f46">
+                            result を返す
+                        </text>
+                    </svg>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-sm mb-2">
+                        🔎 入力例 nums = [4, 1, 2, 1, 2] でのフロー追跡
+                    </p>
+                    <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+                        <li>「開始」ノード → nums = [4, 1, 2, 1, 2] を受け取る</li>
+                        <li>
+                            「入力を検証」ひし形 → list型・全要素int・空でないため「はい」の経路へ
+                        </li>
+                        <li>「初期化」ノード → result = 0 にセット</li>
+                        <li>
+                            「走査ループ」ひし形 →
+                            要素が残っているので「はい」の経路へ、XOR適用を5回繰り返す（result は 4
+                            → 5 → 7 → 6 → 4 と変化）
+                        </li>
+                        <li>
+                            「走査ループ」ひし形 →
+                            すべての要素を処理し終えたので「いいえ（走査完了）」の経路へ
+                        </li>
+                        <li>「終了」ノード → result = 4 を返す</li>
+                    </ol>
+                </div>
+
+                <p class="mt-5 text-slate-700 leading-8 text-sm">
+                    <strong class="text-lg text-teal-800">フローの説明：</strong><br />
+                    このアルゴリズムは「検証 → 初期化 →
+                    ループ」というシンプルな3段構成です。ループ部分だけが配列の要素数に応じて繰り返され、それ以外は1回きりの処理です。ループが要素数分だけ回ることが、時間計算量がO(n)になる直接の理由です。
+                </p>
+            </section>
+
+            <!-- ============ 6. 計算量 ============ -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-600 font-semibold text-sm mb-3">
+                        📖 Big-O 記法の読み方（入力サイズ n
+                        が大きくなるにつれて処理時間がどう増えるかの目安）
+                    </p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                        <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono text-base mb-1">O(1)</div>
+                            <div class="leading-5">
+                                常に一定<br /><span class="text-emerald-600"
+                                    >例：辞書の直接引き</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n)</div>
+                            <div class="leading-5">
+                                入力に比例<br /><span class="text-sky-600"
+                                    >例：リストを1回走査</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n log n)</div>
+                            <div class="leading-5">
+                                nより少し多い<br /><span class="text-amber-600"
+                                    >例：ソートアルゴリズム</span
+                                >
+                            </div>
+                        </div>
+                        <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono text-base mb-1">O(n&sup2;)</div>
+                            <div class="leading-5">
+                                入力の2乗<br /><span class="text-red-600"
+                                    >例：二重ループ総当たり</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3 text-left rounded-l-lg">アプローチ</th>
+                                <th class="p-3 text-left">時間</th>
+                                <th class="p-3 text-left">空間</th>
+                                <th class="p-3 text-left rounded-r-lg">備考</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-600">
+                            <tr class="border-b border-slate-100">
+                                <td class="p-3">Counterで出現回数を数える</td>
+                                <td class="p-3 font-mono">O(n)</td>
+                                <td class="p-3 font-mono">O(n)</td>
+                                <td class="p-3">追加メモリが制約に違反</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="p-3">sortedで隣同士を比較</td>
+                                <td class="p-3 font-mono">O(n log n)</td>
+                                <td class="p-3 font-mono">O(n)</td>
+                                <td class="p-3">ソート自体が線形時間の制約に違反</td>
+                            </tr>
+                            <tr class="border-b border-slate-100 bg-emerald-50">
+                                <td class="p-3 font-semibold text-emerald-800">
+                                    XOR + forループ（採用）
+                                </td>
+                                <td class="p-3 font-mono font-semibold text-emerald-800">O(n)</td>
+                                <td class="p-3 font-mono font-semibold text-emerald-800">O(1)</td>
+                                <td class="p-3 text-emerald-800">制約に完全一致・可読性も高い</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3">XOR + functools.reduce</td>
+                                <td class="p-3 font-mono">O(n)</td>
+                                <td class="p-3 font-mono">O(1)</td>
+                                <td class="p-3">競技プログラミング向けの簡潔版</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-sm mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-sm leading-7">
+                        配列を1回だけ走査するため、時間計算量はO(n)になります。XORの結果を保持する
+                        result
+                        という変数1つしか使わないため、空間計算量は入力サイズに関係なく常にO(1)です。ハッシュテーブルを使う方法はO(n)の追加メモリを必要とし、ソートを使う方法はO(n
+                        log
+                        n)の時間がかかるため、この問題の制約（線形時間・定数空間）を同時に満たせるのはXOR方式だけです。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ 7. 用語集 ============ -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-sm mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> インデックス
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            配列の中で各要素の位置を表す番号のこと。多くのプログラミング言語では0から数え始める。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> XOR（排他的論理和）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            2つのビットを比較し、違っていれば1、同じなら0を返す演算。同じ値同士をXORすると必ず0になる性質があり、この問題ではこの性質を使ってペアの数字を打ち消し合わせている。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 型ヒント
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            関数の引数や戻り値に型を注釈として書く仕組み。<code
+                                class="bg-slate-100 px-1 rounded font-mono text-xs"
+                                >def f(x: int) -&gt; str:</code
+                            >
+                            のように書く。pylanceのような静的解析ツールがバグを実行前に検出できるようになる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 交換法則・結合法則
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            計算の順番を入れ替えたり、まとめる位置を変えても結果が変わらない性質。XORはこの2つの法則が成り立つため、配列の要素をどの順番でXORしても最終結果は同じになる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 定数空間
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            入力サイズに関係なく一定量のメモリしか使わないこと。O(1)の空間計算量とも呼ばれる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 動的型付け
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            実行するまで変数の型が確定しない仕組み。Pythonが採用している方式で、誤った型を渡しても実行時まで気づけないという特徴がある。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> ハッシュテーブル
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            キーと値をセットで記録できる辞書のようなデータ構造。図書館の索引カードのように、キーからすぐに値を探せる。Pythonでは
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs">dict</code> や
+                            <code class="bg-slate-100 px-1 rounded font-mono text-xs">Counter</code>
+                            がこれに相当する。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> ビット
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            0か1で表される情報の最小単位。コンピュータ内部のすべての数値はビットの並びとして表現される。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> pylance
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            VSCodeで使えるPythonの静的型チェックツール。型ヒントをもとに、実行前にコードの誤りを検出してくれる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 防御的プログラミング
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200"
+                        >
+                            想定外の入力にも備えて、プログラムが壊れないようにあらかじめ対処を書いておく考え方。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <footer class="text-center text-slate-400 text-xs pb-8">
+                LeetCode 136. Single Number — algo-beginner学習用インタラクティブ解説
+            </footer>
+        </div>
+
+        <script src="/vendor/prismjs/components/prism-core.min.js"></script>
+        <script src="/vendor/prismjs/components/prism-python.min.js"></script>
+        <script src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"></script>
+        <script src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"></script>
+
+        <script type="text/babel">
+            const { useState, useRef, useEffect } = React;
+
+            // 入力例 nums = [4, 1, 2, 1, 2] に沿ったステップデータ。
+            // phase: 'validate' | 'init' | 'xor' | 'done'
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力を検証する',
+                    desc: '何をするか：nums が正しい list で、全要素が int かどうかを確認します。なぜこの操作が必要か：Pythonは動的型付け（＝実行するまで型が確定しない仕組み）のため、呼び出し側が誤った型を渡しても実行時まで気づけないからです。具体例：nums = [4, 1, 2, 1, 2] は list 型で、全要素が int なので検証を通過します。',
+                    phase: 'validate',
+                    index: null,
+                    currentNum: null,
+                    prevResult: null,
+                    newResult: null,
+                },
+                {
+                    step: 2,
+                    title: 'result を初期化する',
+                    desc: '何をするか：累積用の変数 result を 0 で初期化します。なぜこの操作が必要か：0 ^ a = a という性質があるため、最初の要素をそのままresultに取り込めるようにするためです。具体例：result = 0 からスタートします。',
+                    phase: 'init',
+                    index: null,
+                    currentNum: null,
+                    prevResult: null,
+                    newResult: 0,
+                },
+                {
+                    step: 3,
+                    title: '1番目の要素をXORする (num=4)',
+                    desc: '何をするか：配列の0番目の要素 4 を result にXORで重ねます。なぜこの操作が必要か：XORは同じ値同士を打ち消し合わせる性質があるため、ペアかどうかを判定するのに使えます。具体例：result = 0 ^ 4 = 4。',
+                    phase: 'xor',
+                    index: 0,
+                    currentNum: 4,
+                    prevResult: 0,
+                    newResult: 4,
+                },
+                {
+                    step: 4,
+                    title: '2番目の要素をXORする (num=1)',
+                    desc: '何をするか：配列の1番目の要素 1 を result にXORで重ねます。なぜこの操作が必要か：まだ1回も登場していない値なので、いったんresultに取り込んでおきます。具体例：result = 4 ^ 1 = 5。',
+                    phase: 'xor',
+                    index: 1,
+                    currentNum: 1,
+                    prevResult: 4,
+                    newResult: 5,
+                },
+                {
+                    step: 5,
+                    title: '3番目の要素をXORする (num=2)',
+                    desc: '何をするか：配列の2番目の要素 2 を result にXORで重ねます。なぜこの操作が必要か：2もまだ1回目の登場なので、いったんresultに取り込んでおきます。具体例：result = 5 ^ 2 = 7。',
+                    phase: 'xor',
+                    index: 2,
+                    currentNum: 2,
+                    prevResult: 5,
+                    newResult: 7,
+                },
+                {
+                    step: 6,
+                    title: '4番目の要素をXORする (num=1) ※2回目の1',
+                    desc: '何をするか：配列の3番目の要素 1 を result にXORで重ねます。なぜこの操作が必要か：これは1が2回目に登場したケースで、a ^ a = 0 という性質により打ち消し合いが始まります。具体例：result = 7 ^ 1 = 6。',
+                    phase: 'xor',
+                    index: 3,
+                    currentNum: 1,
+                    prevResult: 7,
+                    newResult: 6,
+                },
+                {
+                    step: 7,
+                    title: '5番目の要素をXORする (num=2) ※2回目の2',
+                    desc: '何をするか：配列の4番目の要素 2 を result にXORで重ねます。なぜこの操作が必要か：2が2回目に登場したケースで、打ち消し合いが完了し、はぐれ者の数字だけが残ります。具体例：result = 6 ^ 2 = 4。',
+                    phase: 'xor',
+                    index: 4,
+                    currentNum: 2,
+                    prevResult: 6,
+                    newResult: 4,
+                },
+                {
+                    step: 8,
+                    title: '走査終了、結果を返す',
+                    desc: '何をするか：すべての要素を処理し終えたので、result の値を返します。なぜこの操作が必要か：ペアの要素はすべて打ち消し合い、はぐれ者の数字だけが result に残っているからです。具体例：result = 4 が最終的な答えとして返されます。',
+                    phase: 'done',
+                    index: null,
+                    currentNum: null,
+                    prevResult: null,
+                    newResult: 4,
+                },
+            ];
+
+            const NUMS = [4, 1, 2, 1, 2];
+
+            function toBinary(n) {
+                return n.toString(2).padStart(3, '0');
+            }
+
+            function ArrayView({ activeIndex, doneIndices }) {
+                return (
+                    <div className="flex gap-2 justify-center flex-wrap">
+                        {NUMS.map((n, i) => {
+                            const isActive = i === activeIndex;
+                            const isDone = doneIndices.includes(i) && !isActive;
+                            return (
+                                <div
+                                    key={i}
+                                    className={[
+                                        'w-14 h-14 rounded-xl flex flex-col items-center justify-center border-2 font-mono transition',
+                                        isActive
+                                            ? 'bg-emerald-500 border-emerald-600 text-white shadow-[0_4px_12px_rgba(16,185,129,0.35)] scale-110'
+                                            : isDone
+                                              ? 'bg-slate-100 border-slate-300 text-slate-400'
+                                              : 'bg-white border-slate-200 text-slate-700',
+                                    ].join(' ')}
+                                >
+                                    <div className="text-lg font-bold">{n}</div>
+                                    <div className="text-[10px]">idx {i}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            }
+
+            function StepVisualization({ stepData }) {
+                const { phase, index, currentNum, prevResult, newResult } = stepData;
+                const doneIndices = [];
+                if (phase === 'xor' && index !== null) {
+                    for (let i = 0; i < index; i++) doneIndices.push(i);
+                } else if (phase === 'done') {
+                    for (let i = 0; i < NUMS.length; i++) doneIndices.push(i);
+                }
+
+                const displayResult =
+                    phase === 'xor'
+                        ? newResult
+                        : phase === 'done'
+                          ? newResult
+                          : phase === 'init'
+                            ? 0
+                            : null;
+
+                return (
+                    <div className="mt-4">
+                        <ArrayView
+                            activeIndex={phase === 'xor' ? index : null}
+                            doneIndices={doneIndices}
+                        />
+
+                        {phase === 'validate' && (
+                            <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm space-y-1">
+                                <div className="text-emerald-700">
+                                    ✅ isinstance(nums, list) → True
+                                </div>
+                                <div className="text-emerald-700">
+                                    ✅ all(isinstance(x, int) for x in nums) → True
+                                </div>
+                                <div className="text-emerald-700">
+                                    ✅ len(nums) == 0 → False（空ではない）
+                                </div>
+                            </div>
+                        )}
+
+                        {phase === 'xor' && (
+                            <div className="mt-4 p-3 rounded-xl bg-sky-50 border border-sky-200 font-mono text-xs text-center">
+                                <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+                                    2進数で見るXOR計算
+                                </div>
+                                <div className="flex justify-center items-center gap-3 text-sm">
+                                    <span className="text-slate-600">{toBinary(prevResult)}</span>
+                                    <span className="text-emerald-600 font-bold">XOR</span>
+                                    <span className="text-amber-600">{toBinary(currentNum)}</span>
+                                    <span className="text-slate-400">=</span>
+                                    <span className="text-sky-700 font-bold">
+                                        {toBinary(newResult)}
+                                    </span>
+                                </div>
+                                <div className="text-slate-400 mt-1">
+                                    ({prevResult} ^ {currentNum} = {newResult})
+                                </div>
+                            </div>
+                        )}
+
+                        {phase === 'done' && (
+                            <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center font-semibold">
+                                🎉 result = {newResult}{' '}
+                                を返します。すべてのペアが打ち消し合い、はぐれ者の数字だけが残りました。
+                            </div>
+                        )}
+
+                        <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+                            <div className="text-slate-500 mb-1 font-sans text-xs font-semibold">
+                                🔍 現在の変数の状態
+                            </div>
+                            <div className="text-emerald-700">
+                                i = {index !== null ? index : '-'}
+                            </div>
+                            <div className="text-sky-700">
+                                result = {displayResult !== null ? displayResult : '-'}
+                                {displayResult !== null
+                                    ? ` (2進数: ${toBinary(displayResult)})`
+                                    : ''}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const currentStepData = stepsData[activeStep - 1];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+
+                const handlePlay = () => {
+                    if (activeStep === stepsData.length) setActiveStep(1);
+                    setIsPlaying(true);
+                };
+
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                        <div>
+                            <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                ステップ一覧
+                            </h3>
+                            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                                {stepsData.map((step) => {
+                                    const isActive = activeStep === step.step;
+                                    return (
+                                        <button
+                                            key={step.step}
+                                            type="button"
+                                            className={[
+                                                'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                isActive
+                                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                    : '',
+                                            ].join(' ')}
+                                            onClick={() => handleStepClick(step.step)}
+                                            aria-label={`ステップ${step.step}: ${step.title}`}
+                                            aria-current={isActive ? 'step' : undefined}
+                                        >
+                                            <div
+                                                className={[
+                                                    'font-bold mb-1',
+                                                    isActive ? 'text-emerald-900' : 'text-teal-800',
+                                                ].join(' ')}
+                                            >
+                                                Step {step.step}: {step.title}
+                                            </div>
+                                            <div className="text-slate-500 text-sm mt-1">
+                                                {step.desc.substring(0, 40)}
+                                                {step.desc.length > 40 ? '...' : ''}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="my-auto">
+                            {activeStep > 1 && (
+                                <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                    ← 前のステップ（Step {activeStep - 1}）では{' '}
+                                    {stepsData[activeStep - 2]?.title} を行いました
+                                </div>
+                            )}
+
+                            <div className="rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+                                <h3 className="mt-0 text-teal-800 text-lg font-bold">
+                                    Step {currentStepData.step}: {currentStepData.title}
+                                </h3>
+                                <p className="text-slate-600 leading-7 text-sm mt-2">
+                                    {currentStepData.desc}
+                                </p>
+                            </div>
+
+                            <StepVisualization stepData={currentStepData} />
+
+                            <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+                                    onClick={handlePlay}
+                                    disabled={isPlaying}
+                                >
+                                    ▶ Play
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === 1}
+                                >
+                                    ◀ Prev
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                    onClick={() => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    }}
+                                    disabled={activeStep === stepsData.length}
+                                >
+                                    Next ▶
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+                                    onClick={() => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    }}
+                                >
+                                    ↺ Reset
+                                </button>
+                            </div>
+
+                            {activeStep === stepsData.length && (
+                                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                    🎉
+                                    全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('steps-root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>

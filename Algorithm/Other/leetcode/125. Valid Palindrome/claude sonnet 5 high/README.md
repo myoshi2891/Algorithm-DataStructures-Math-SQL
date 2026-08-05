@@ -148,21 +148,21 @@ MovePointers --> LoopCheck
 > 💡 **代表例でのトレース**：`s = "A man, a plan, a canal: Panama"` を入力として、上記フローチャートの各ノードをどのように通過するかをステップごとに示します。
 
 ```
-Step 1: Start → 入力 s = "A man, a plan, a canal: Panama"（長さ31）
-Step 2: Init → left=0, right=30
-Step 3: LoopCheck → 0 < 30 → Yes
+Step 1: Start → 入力 s = "A man, a plan, a canal: Panama"（長さ30）
+Step 2: Init → left=0, right=29
+Step 3: LoopCheck → 0 < 29 → Yes
 Step 4: CheckLeftAlnum → s[0]='A' は alnum → Yes
-Step 5: CheckRightAlnum → s[30]='a' は alnum → Yes
+Step 5: CheckRightAlnum → s[29]='a' は alnum → Yes
 Step 6: CompareChars → 'a' == 'a' → Yes（一致）
-Step 7: MovePointers → left=1, right=29
-Step 8: LoopCheck → 1 < 29 → Yes
+Step 7: MovePointers → left=1, right=28
+Step 8: LoopCheck → 1 < 28 → Yes
 Step 9: CheckLeftAlnum → s[1]=' ' は alnum ではない → No
 Step 10: LeftInc → left=2
-Step 11: LoopCheck → 2 < 29 → Yes
+Step 11: LoopCheck → 2 < 28 → Yes
 Step 12: CheckLeftAlnum → s[2]='m' は alnum → Yes
-Step 13: CheckRightAlnum → s[29]='m' は alnum → Yes
+Step 13: CheckRightAlnum → s[28]='m' は alnum → Yes
 Step 14: CompareChars → 'm' == 'm' → Yes（一致）
-Step 15: MovePointers → left=3, right=28
+Step 15: MovePointers → left=3, right=27
 ...（中略：以降も同じパターンで "an" と "am" 、"a" と "a" の比較が続く）...
 Step N: LoopCheck → left と right がすれ違う → No
 Step N+1: ReturnTrue → 一度も不一致がなかったため True を返す
@@ -413,9 +413,9 @@ while left < right:
 
 > 💡 エッジケースとは「入力が空・最小値・最大値・重複あり」など、通常とは異なる境界的な入力のことです。エッジケースを見落とすと、普通のテストは通るのに特定の入力でだけバグが発生します。
 
-- **1文字だけの文字列（例：`"a"`）**: `left == right` から始まるため、ループに一度も入らず即座に `True` を返します。なぜ問題になりうるかというと、ループの初期条件を誤って `left <= right` などと書いてしまうと、存在しない範囲を比較しようとしてインデックスエラー（＝リストや文字列の範囲外の要素にアクセスしようとしたときのエラー）を起こす可能性があるためです。
-- **記号やスペースだけの文字列（例：`" "` や `",,,,"`）**: すべての文字が非英数字であるため、`left` と `right` がひたすら読み飛ばしを繰り返し、最終的に交差してループを抜けます。なぜ問題になりうるかというと、読み飛ばしの条件に `left < right` のガード（＝範囲外アクセスを防ぐための追加条件）を付け忘れると、`left` や `right` が範囲外まで進んでしまいインデックスエラーになる可能性があるためです。
-- **大文字小文字が混在する数字と文字（例：`"0P"`）**: `'0'.lower()` は `'0'` のまま変化しませんが、`'P'.lower()` は `'p'` になります。なぜ問題になりうるかというと、数字に対して `.lower()` を呼んでもエラーにならず元の文字がそのまま返る、という仕様を知らないと「数字には `.lower()` を呼んではいけないのでは」と誤解してしまう可能性があるためです。
+- **1文字だけの文字列（例：`"a"`）**: `left == right` (`0 == 0`) からスタートするため、`while left < right` の条件を満たさず即座に `True` を返します。単一の `while left < right` と `if/continue` 分岐を使う本実装では範囲外アクセスは発生しません。
+- **記号やスペースだけの文字列（例：`" "` や `",,,,"`）**: 内側の `while` ループで非英数字を連続スキップする別実装の場合、`left < right` ガードを付け忘れると範囲外アクセス（インデックスエラー）を起こす危険がありますが、本実装のように単一 `while` 内で 1 ステップずつポインタを移動・再チェックする構造では安全に交差して `True` を返します。
+- **大文字小文字が混在する数字と文字（例：`"0P"`）**: `'0'.lower()` は `'0'` のまま変化しませんが、`'P'.lower()` は `'p'` になります。なぜ問題になりうるかというと、数字に対して `.lower()` を呼んでもエラーにならず元の文字がそのまま返る、という仕様を知らないと「数字には `.lower()` を呼んではいけないと誤解してしまう」可能性があるためです。
 - **制約の上限に近い長さの文字列（長さ2×10^5）**: 時間計算量が `O(n)` であることを確認するためのケースです。なぜ重要かというと、もし実装の途中でうっかりスライスや文字列連結を使ってしまうと、この規模の入力で急激に遅くなる可能性があるためです。
 
 <h3>📖 この章で登場した用語</h3>

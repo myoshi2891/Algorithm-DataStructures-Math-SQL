@@ -78,8 +78,8 @@ flowchart TD
 主要なノードの意味：
 
 - `Start[Start singleNumber]`：関数の入り口。引数`nums`を受け取る
-- `Validate{Is nums a valid list}`：`isinstance(nums, list)`で型を確認するひし形（条件分岐）
-- `RaiseType[Raise TypeError]`：型が不正な場合にエラーを投げる処理
+- `Validate{Is nums a valid list & elements are ints}`：`isinstance(nums, list)`でリストであることを確認し、各要素が `int` （`bool` 除外）であるかを検証する条件分岐
+- `RaiseType[Raise TypeError]`：`nums`がリストでない場合、またはリスト内に非整数要素が含まれる場合に `TypeError` をスローする処理
 - `CheckEmpty{Is nums empty}`：配列が空かどうかを確認する条件分岐
 - `RaiseValue[Raise ValueError]`：空配列の場合にエラーを投げる処理
 - `Init[Set result to 0]`：累積変数`result`を0で初期化するステップ

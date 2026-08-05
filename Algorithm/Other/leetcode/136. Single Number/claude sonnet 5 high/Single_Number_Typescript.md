@@ -121,40 +121,31 @@
  *
  * @param nums - 検証対象の整数配列（1回だけ登場する要素が1つ含まれる）
  * @returns 1回だけ登場する数値
- * @throws {TypeError} numsが配列でない場合
+ * @throws {TypeError} numsが配列でない場合、または要素が32ビット符号付き整数でない場合
  * @throws {RangeError} numsが空配列の場合
  * @complexity Time: O(n), Space: O(1)
  */
 function singleNumber(nums: number[]): number {
-    // 入力が配列かどうかを確認する（配列でない値が来てもクラッシュしないようにするため）
-    // Array.isArrayは実行時の型ガードであり、コンパイル時の型注釈だけでは防げない
-    // 「実際に配列以外の値が渡された」ケースを防御する役割を持つ
+    // 入力が配列かどうかを確認する
     if (!Array.isArray(nums)) {
         throw new TypeError('Input must be an array');
     }
 
-    // 本問題の制約では長さ1以上が保証されているが、
-    // 防御的プログラミング（＝想定外の入力にも備えて壊れないようにする書き方）として
-    // 空配列を明示的に弾いておく
+    // 空配列を明示的に弾く
     if (nums.length === 0) {
         throw new RangeError('Input array must not be empty');
     }
 
-    // result を「これまでXORを重ねた累積値」として使う
-    // 初期値を0にするのは、0 XOR a = a という性質があり、
-    // 最初の要素をそのまま取り込めるようにするため
     let result = 0;
 
-    // 配列を1回だけ走査する（for...ofはインデックス管理が不要で読みやすいため採用）
-    // 各要素を result にXORで重ねていく
-    // 同じ数字が2回現れると a XOR a = 0 で打ち消し合い、
-    // 最終的にペアのない「はぐれ者」の数字だけが result に残る
+    // 各要素が 32 ビット符号付き整数であるかを検証しながら走査する
     for (const num of nums) {
+        if (!Number.isInteger(num) || num < -2147483648 || num > 2147483647) {
+            throw new TypeError('Each element must be a signed 32-bit integer');
+        }
         result ^= num;
     }
 
-    // すべての走査が終わった時点で、result には
-    // ペアを持たない唯一の数値が残っている
     return result;
 }
 ```
@@ -164,8 +155,8 @@ function singleNumber(nums: number[]): number {
 ### 競技版（簡潔さ・速度優先）
 
 ```typescript
-// LeetCodeの制限時間内に通すことを目的に、検証処理を省き1行のreduceで完結させる
-// reduceは配列全体を1つの値にまとめる関数で、ここではXORの累積計算に使う
+// LeetCodeの入力制約（要素が有効な32ビット符号付き整数であること）に依存し、
+// 追加の要素検証を行わずに1行のreduceで累積計算する
 function singleNumber(nums: number[]): number {
     return nums.reduce((acc, num) => acc ^ num, 0);
 }

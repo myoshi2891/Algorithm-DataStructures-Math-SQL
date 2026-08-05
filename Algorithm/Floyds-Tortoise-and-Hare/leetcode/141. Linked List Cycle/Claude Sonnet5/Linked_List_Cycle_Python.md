@@ -1,8 +1,4 @@
-# LeetCode: Linked List Cycle（連結リストの循環検出）
-
----
-
-### 1. 問題分析結果
+# LeetCode: Linked List Cycle（連結リスト�## 1. 問題分析結果
 
 > 💡 **初学者向け補足**：この問題は、一言で言うと「連結リスト（ノードが矢印でつながったデータ構造）を先頭からたどっていったとき、同じ場所をぐるぐる回り続けてしまう輪っか（サイクル）が存在するかどうかを判定する問題」です。
 >
@@ -37,7 +33,7 @@
 
 ---
 
-### 2. 採用アルゴリズムと根拠
+## 2. 採用アルゴリズムと根拠
 
 > 💡 **初学者向け補足**：同じ問題でも解き方は複数あります。それぞれの「速さ（時間計算量）」と「メモリの使いやすさ（空間計算量）」を比べて最適なものを選びます。今回はPython特有の観点として「`set`というC実装の便利な道具を使うか、それとも道具を使わずポインタだけで解くか」がポイントになります。
 
@@ -59,6 +55,144 @@
 > 📖 **このセクションで登場した用語**
 >
 > - **短絡評価**：`and`や`or`で、左側の条件だけで結果が確定する場合、右側を評価しない仕組み。例：`fast and fast.next`は、`fast`が`None`なら`fast.next`にアクセスせずに済む。
+> - **`__eq__`**：Pythonのオブジェクトが`==`で比較されたときに呼ばれる特殊メソッド。今回の`ListNode`では定義されていないため、`==`はデフォルトで`is`と同じ挙動になるが、意図を明確にするため`is`を使う。
+
+---
+
+## 3. 実装パターン
+
+> 💡 **初学者向け補足**：コード全体の大まかな構造（骨格）は以下の通りです。
+>
+> 1. `head`が`None`、または`head.next`が`None`（ノードが1つしかない）場合、輪っかは作りようがないので`False`を返す
+> 2. 「遅いポインタ（slow）」と「速いポインタ（fast）」という2つの変数を用意し、両方とも`head`からスタートする
+> 3. ループの中で、`slow`は1つずつ、`fast`は2つずつノードを進める
+> 4. `slow`と`fast`が同じノードを指す瞬間が来たら、サイクルが検出されたので`True`を返す
+> 5. `fast`がリストの終端（`None`）に到達したら、サイクルは存在しないので`False`を返す
+
+【業務開発版を使う場面】
+チームで長期間メンテナンスするプロダクションコードに向きます。docstringや型ヒントが充実しており、後から読んだ人がすぐに意図を理解できます。
+
+【競技プログラミング版を使う場面】
+LeetCodeで制限時間内に正解を出すことが目的のコードに向きます。コメントを最小限にし、可読性よりも短さ・書きやすさを優先しています。
+
+```python
+from typing import Optional
+
+
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, x: int) -> None:
+        self.val = x
+        self.next: Optional["ListNode"] = None
+
+
+class Solution:
+    """
+    連結リストにサイクル（循環）が存在するかどうかを判定するクラス
+
+    業務開発向けと競技プログラミング向けの2パターンを提供する
+    """
+
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        """
+        業務開発向け実装（Floyd's Tortoise and Hareアルゴリズムを使用）
+
+        なぜこの方法が有効なのか：
+        サイクルが存在する場合、速いポインタ（兎）は遅いポインタ（亀）よりも
+        2倍速く進むため、輪っかの中で必ずいつか追いつく（＝同じノードを指す）瞬間が来る。
+        これは円形のトラックを走る速さの違う2人のランナーが、
+        速度差がある限り必ずどこかで追いつく（すれ違う）のと同じ原理。
+
+        Args:
+            head: 連結リストの先頭ノード（存在しない場合はNone）
+
+        Returns:
+            サイクルが存在すればTrue、存在しなければFalse
+
+        Time Complexity: O(n)
+        Space Complexity: O(1)
+        """
+        # 型ガード：headがNone、またはノードが1つしかない場合、
+        # 「次に進む」動作自体ができないためサイクルは作りようがない
+        # （pylance対応：Optional[ListNode]をここで絞り込むことで、以降の型チェックが安全になる）
+        if head is None or head.next is None:
+            return False
+
+        # 「遅いポインタ（亀）」：1歩ずつ進む
+        # 「速いポインタ（兎）」：2歩ずつ進む
+        # 型ヒント上はどちらも Optional[ListNode]（Noneになる可能性がある）
+        slow: Optional[ListNode] = head
+        fast: Optional[ListNode] = head
+
+        # fast と fast.next の両方が None でない間だけループを続ける。
+        # 短絡評価により、fast が None の時点で fast.next へのアクセスは行われない
+        # （これによりAttributeErrorを未然に防いでいる）
+        while fast is not None and fast.next is not None:
+            # 遅いポインタを1歩進める
+            slow = slow.next  # type: ignore[union-attr]
+
+            # 速いポインタを2歩進める
+            fast = fast.next.next
+
+            # is演算子でオブジェクトの同一性を判定する。
+            # 値(==)ではなく「同じノードを指しているか」を調べたいのでisを使う
+            if slow is fast:
+                return True
+
+        # ループを抜けた（＝fastがリストの終端Noneに到達した）ということは、
+        # 輪っかがなく、リストがどこかで途切れていたということ
+        return False
+
+    def hasCycle_competitive(self, head: Optional[ListNode]) -> bool:
+        """
+        競技プログラミング向け最適化実装
+        コメント・型ガードを最小限にし、簡潔さを優先
+
+        Time Complexity: O(n)
+        Space Complexity: O(1)
+        """
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next  # type: ignore[union-attr]
+            fast = fast.next.next
+            if slow is fast:
+                return True
+        return False
+```
+
+> 💡 **コードの動作トレース**（初学者向け）
+>
+> ```
+> 例）ノードの並び: idx0: 3 → idx1: 2 → idx2: 0 → idx3: -4 → (idx1 の「2」に戻る)
+>
+> 初期状態: slow = idx0 (3), fast = idx0 (3)
+>
+> Step 1: slow = slow.next → slow は idx1 (2)
+>          fast = fast.next.next → fast は idx2 (0)
+>          slow(idx1: 2) is fast(idx2: 0)？ → いいえ、続行
+>
+> Step 2: slow = slow.next → slow は idx2 (0)
+>          fast = fast.next.next → idx2(0) から idx3(-4) を経て idx1(2) へ進む → fast は idx1 (2)
+>          slow(idx2: 0) is fast(idx1: 2)？ → いいえ、続行
+>
+> Step 3: slow = slow.next → slow は idx3 (-4)
+>          fast = fast.next.next → idx1(2) から idx2(0) を経て idx3(-4) へ進む → fast は idx3 (-4)
+>          slow(idx3: -4) is fast(idx3: -4)？ → はい！両者が同一の ListNode オブジェクトを指す
+>
+> → True を返す（サイクルが検出された）
+> ```
+>
+> ※ 実際の判定は「同じ`ListNode`オブジェクトを指しているか（`is`演算子）」で行われます。
+
+> 📖 **このセクションで登場した用語**
+
+- **Floyd's Tortoise and Hare（亀と兎のアルゴリズム）**：2つのポインタを異なる速度で進めることでサイクルを検出する古典的な手法。
+- **`# type: ignore[union-attr]`**：pylanceに対して「この行の型警告は意図的なものなので無視してください」と伝えるコメント。`slow`が理論上`None`の可能性を型的に持つが、ループの前提条件（`fast.next is not None`）から実行時には安全であることが保証されているケースで使用する。
+- **`AttributeError`**：存在しない属性（例：`None`に対して`.next`）にアクセスしようとしたときにPythonが発生させる実行時エラー。
+
+---
+
+## 4. 検証or`で、左側の条件だけで結果が確定する場合、右側を評価しない仕組み。例：`fast and fast.next`は、`fast`が`None`なら`fast.next`にアクセスせずに済む。
 > - **`__eq__`**：Pythonのオブジェクトが`==`で比較されたときに呼ばれる特殊メソッド。今回の`ListNode`では定義されていないため、`==`はデフォルトで`is`と同じ挙動になるが、意図を明確にするため`is`を使う。
 
 ---

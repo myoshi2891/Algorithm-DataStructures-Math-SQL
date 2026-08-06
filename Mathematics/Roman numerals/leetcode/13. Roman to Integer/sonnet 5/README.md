@@ -63,8 +63,10 @@ flowchart TD
   Start[Start romanToInt]
   Start --> Validate[Validate input type and length]
   Validate --> CheckEmpty{Is string empty}
-  CheckEmpty -- Yes --> ReturnZero[Return 0]
-  CheckEmpty -- No --> InitTotal[Initialize total to 0]
+  CheckEmpty -- Yes --> ErrEmpty[ValueError: Input cannot be empty]
+  CheckEmpty -- No --> CheckInvalid{Contains invalid character}
+  CheckInvalid -- Yes --> ErrInvalid[ValueError: Invalid Roman numeral character]
+  CheckInvalid -- No --> InitTotal[Initialize total to 0]
   InitTotal --> LoopCheck{More characters remain}
   LoopCheck -- No --> ReturnTotal[Return total]
   LoopCheck -- Yes --> GetCurrent[Look up current char value]
@@ -81,6 +83,9 @@ flowchart TD
 
 - `Start[Start romanToInt]`：関数の入り口。ローマ数字の文字列を受け取る
 - `CheckEmpty{Is string empty}`：入力が空文字列かどうかを判定するひし形（条件分岐）
+- `ErrEmpty[ValueError: Input cannot be empty]`：空文字列が渡された場合に発生する例外ノード
+- `CheckInvalid{Contains invalid character}`：無効なローマ数字が含まれていないかをチェックする分岐
+- `ErrInvalid[ValueError: Invalid Roman numeral character]`：無効な文字が含まれる場合に発生する例外ノード
 - `LoopCheck{More characters remain}`：まだ処理していない文字が残っているかを判定する、ループの継続条件
 - `Compare{Current less than next}`：「今見ている文字の値」が「次の文字の値」より小さいかを判定する、このアルゴリズムの核心部分
 - `Subtract[Subtract current from total]` / `Add[Add current to total]`：判定結果に応じて合計値を引くか足すかを行うステップ

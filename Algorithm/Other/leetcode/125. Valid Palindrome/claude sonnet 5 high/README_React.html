@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LeetCode 125: Valid Palindrome | 二方向ポインタで学ぶ回文判定</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Prism.js theme + core + plugins -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet" />
+
+<!-- React 18 + ReactDOM 18 + Babel Standalone -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  .outfit { font-family: 'Inter', sans-serif; letter-spacing: -0.01em; }
+  code, pre, .font-mono { font-family: 'JetBrains Mono', 'Source Code Pro', monospace; }
+
+  /* Prism toolbar override (必ず !important を付ける) */
+  .code-toolbar > .toolbar .toolbar-item a,
+  .code-toolbar > .toolbar .toolbar-item button,
+  .code-toolbar > .toolbar .toolbar-item span {
+    background: #10b981 !important;
+    color: white !important;
+    border-radius: 6px !important;
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+    border: none !important;
+    cursor: pointer !important;
+  }
+
+  /* 用語集の開閉アイコン回転（Tailwindでは details[open] を直接扱えないための例外） */
+  details > summary > span.gloss-arrow { display: inline-block; transition: transform 0.2s ease; }
+  details[open] > summary > span.gloss-arrow { transform: rotate(90deg); }
+</style>
+</head>
+<body class="bg-[linear-gradient(180deg,#f0fdf4,#e0f2fe)] min-h-screen">
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- ============ 1. ヘッダー ============ -->
+  <header id="header" class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full">LeetCode 125</span>
+      <span class="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full">Easy</span>
+    </div>
+    <h1 class="text-[2.4rem] font-extrabold text-teal-900 mb-1">Valid Palindrome</h1>
+    <p class="text-lg text-cyan-700 font-semibold mt-1">二方向ポインタ走査による O(n) 実装</p>
+
+    <p class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block">
+      💡 一言で言うと：「文字列から記号やスペースを除き、大文字を小文字に揃えたとき、前から読んでも後ろから読んでも同じかどうかを判定する問題」
+    </p>
+
+    <nav class="flex flex-wrap gap-3 mt-6">
+      <a href="#overview" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">概要</a>
+      <a href="#steps" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">ステップ解説</a>
+      <a href="#code" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">コード</a>
+      <a href="#diagram" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">フローチャート</a>
+      <a href="#complexity" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">計算量</a>
+      <a href="#glossary" class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm">📖 用語集</a>
+    </nav>
+  </header>
+
+  <!-- ============ 2. アルゴリズム概要 ============ -->
+  <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">アルゴリズム概要</h2>
+
+    <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+      <p class="text-emerald-800 font-semibold text-base">
+        💡 この問題を一言で言うと：「文字列から記号やスペースを除き、大文字を小文字に揃えたとき、前から読んでも後ろから読んでも同じかどうかを判定する問題」です。
+      </p>
+      <p class="text-slate-600 text-sm mt-2">
+        英語の文章では、大文字・小文字の違いやカンマ・コロン・スペースといった記号が自由に混ざります。この問題では、それらの「見た目のノイズ」を無視して、純粋に英数字（アルファベットと数字）の並びだけに注目したときに回文（前から読んでも後ろから読んでも同じ並び）になっているかを判定します。
+      </p>
+    </div>
+
+    <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+      <p class="text-amber-800 font-semibold text-sm mb-2">⚠️ なぜ単純な方法では解けないのか</p>
+      <ul class="text-slate-600 text-sm space-y-1 list-disc list-inside">
+        <li>記号やスペースが文字列のどこに何個出現するか分からないため、<code class="bg-slate-100 px-1 rounded font-mono text-xs">s == s[::-1]</code> のような一括比較では正しく判定できません。</li>
+        <li>「記号を除いて小文字化した新しい文字列を作ってから比較する」という素直な方法は正解にはなりますが、文字列の長さが最大 2×10^5 になりうるため、新しい文字列を作るたびに余分なメモリを消費してしまいます。</li>
+      </ul>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div style="background:#d1fae5;color:#065f46" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">O(n)</div>
+        <div class="text-xs mt-1">時間計算量</div>
+      </div>
+      <div style="background:#bfdbfe;color:#1e40af" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">O(1)</div>
+        <div class="text-xs mt-1">空間計算量</div>
+      </div>
+      <div style="background:#fef3c7;color:#92400e" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">isalnum</div>
+        <div class="text-xs mt-1">使用メソッド</div>
+      </div>
+      <div style="background:#ede9fe;color:#5b21b6" class="rounded-xl p-3 text-center">
+        <div class="font-bold text-xs font-mono break-all leading-tight">Easy</div>
+        <div class="text-xs mt-1">難易度</div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+      <div class="p-4">
+        <p class="font-mono text-sm text-slate-700">s = "A man, a plan, a canal: Panama"</p>
+        <p class="text-sm text-emerald-700 font-semibold mt-1">→ True</p>
+        <p class="text-slate-500 text-xs mt-1">記号とスペースを除いて小文字化すると "amanaplanacanalpanama" となり、前から読んでも後ろから読んでも同じになるため True です。</p>
+      </div>
+      <div class="p-4">
+        <p class="font-mono text-sm text-slate-700">s = "race a car"</p>
+        <p class="text-sm text-red-600 font-semibold mt-1">→ False</p>
+        <p class="text-slate-500 text-xs mt-1">クリーニングすると "raceacar" となり、逆から読むと "racaecar" で一致しないため False です。</p>
+      </div>
+      <div class="p-4">
+        <p class="font-mono text-sm text-slate-700">s = " "（半角スペース1文字）</p>
+        <p class="text-sm text-emerald-700 font-semibold mt-1">→ True</p>
+        <p class="text-slate-500 text-xs mt-1">英数字が1つも無いため、クリーニング後は空文字列になります。空文字列は前からも後ろからも「何もない」ので、回文として扱われ True になります。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. ステップバイステップ解説（React） ============ -->
+  <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">ステップバイステップ解説</h2>
+    <p class="text-slate-500 text-sm mb-4">
+      入力例 <code class="bg-slate-100 px-1 rounded font-mono text-xs">s = "A man, a plan, a canal: Panama"</code> を使って、二方向ポインタが実際にどう動くかを1ステップずつ確認しましょう。文字の下の数字はインデックス（何番目の文字かを示す位置番号）です。
+    </p>
+    <div id="steps-app-root"></div>
+  </section>
+
+  <!-- ============ 4. コード例 ============ -->
+  <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">Python実装</h2>
+
+    <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+      <p class="text-emerald-800 font-semibold text-sm mb-2">📋 このコードの構造（先に全体像を把握しよう）</p>
+      <ol class="text-slate-700 text-sm space-y-1 list-decimal list-inside">
+        <li>入力が str 型かどうかを検証する（エッジケース処理を含む）</li>
+        <li>左ポインタ left を先頭、右ポインタ right を末尾に初期化する</li>
+        <li>left &lt; right の間、非英数字の読み飛ばし・小文字化しての比較・ポインタの移動を繰り返す</li>
+        <li>不一致が見つかれば即座に False を、ループを抜けたら True を返す</li>
+      </ol>
+    </div>
+
+    <pre class="line-numbers"><code class="language-python">from __future__ import annotations
+from typing import Final
+
+
+class Solution:
+    """125. Valid Palindrome を解くクラス"""
+
+    _MAX_LENGTH: Final[int] = 2 * 10 ** 5
+
+    def isPalindrome(self, s: str) -> bool:
+        """
+        文字列 s が英数字だけ・小文字統一で回文かどうかを判定する
+
+        Args:
+            s: 判定対象の文字列
+
+        Returns:
+            回文であれば True、そうでなければ False
+        """
+        if not isinstance(s, str):
+            raise TypeError("Input must be a string")
+        if len(s) > self._MAX_LENGTH:
+            raise ValueError("Input length exceeds the constraint")
+
+        left: int = 0
+        right: int = len(s) - 1
+
+        while left &lt; right:
+            if not s[left].isalnum():
+                left += 1
+                continue
+            if not s[right].isalnum():
+                right -= 1
+                continue
+            if s[left].lower() != s[right].lower():
+                return False
+            left += 1
+            right -= 1
+
+        return True
+</code></pre>
+
+    <div class="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+      <p class="text-sky-800 font-semibold text-sm mb-2">▶ 入力例 s = "A man, a plan, a canal: Panama" での動作トレース</p>
+      <pre class="text-slate-700 text-xs font-mono leading-6 overflow-x-auto whitespace-pre">入力: s = "A man, a plan, a canal: Panama"（長さ30）
+left=0, right=29
+ 0,29: 'A' と 'a' → 小文字化して比較 → 'a' == 'a' → 一致 → left=1, right=28
+ 1,28: s[1]=' ' は非英数字 → left=2
+ 2,28: 'm' と 'm' → 一致 → left=3, right=27
+ 3,27: 'a' と 'a' → 一致 → left=4, right=26
+ 4,26: 'n' と 'n' → 一致 → left=5, right=25
+ 5,25: s[5]=',' は非英数字 → left=6
+ 6,25: s[6]=' ' は非英数字 → left=7
+ 7,25: 'a' と 'a' → 一致 → left=8, right=24
+ 8,24: s[8]=' ' は非英数字 → left=9
+ 9,24: 'p' と 'P' → 小文字化 'p' == 'p' → 一致 → left=10, right=23
+10,23: s[23]=' ' は非英数字 → right=22
+10,22: s[22]=':' は非英数字 → right=21
+10,21: 'l' と 'l' → 一致 → left=11, right=20
+11,20: 'a' と 'a' → 一致 → left=12, right=19
+12,19: 'n' と 'n' → 一致 → left=13, right=18
+13,18: s[13]=',' は非英数字 → left=14
+14,18: s[14]=' ' は非英数字 → left=15
+15,18: 'a' と 'a' → 一致 → left=16, right=17
+16,17: s[16]=' ' は非英数字 → left=17
+left(17) &lt; right(17) は成立しない → ループ終了
+出力: True ✅</pre>
+    </div>
+  </section>
+
+  <!-- ============ 5. 視覚的図解・フローチャート ============ -->
+  <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">処理フローチャート</h2>
+
+    <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+      <p class="text-amber-800 font-semibold text-sm mb-3">🗺️ フローチャートの読み方</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+        <div class="flex items-center gap-2">
+          <svg width="24" height="16"><ellipse cx="12" cy="8" rx="11" ry="7" fill="#d1fae5" stroke="#10b981" stroke-width="1.5" /></svg>
+          <span>楕円（緑）＝ 開始・終了</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg width="24" height="16"><rect x="1" y="2" width="22" height="12" rx="2" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" /></svg>
+          <span>四角（青）＝ 処理ステップ</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg width="24" height="16"><polygon points="12,1 23,8 12,15 1,8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" /></svg>
+          <span>ひし形（黄）＝ 条件分岐</span>
+        </div>
+        <div class="flex items-center gap-2 col-span-2 md:col-span-1">
+          <span class="inline-block w-4 h-0.5 bg-emerald-500 mr-1"></span>はい
+          <span class="inline-block w-4 h-0.5 bg-red-500 mx-1"></span>いいえ
+          <span class="inline-block w-4 h-0.5 bg-purple-500 mx-1"></span>ループ
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 overflow-x-auto">
+      <svg viewBox="0 0 560 840" style="max-width: 560px; width: 100%; height: auto; display: block; margin: 0 auto;" role="img" aria-label="Valid Palindrome flowchart">
+        <defs>
+          <marker id="fc-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
+          </marker>
+          <marker id="fc-arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#059669" />
+          </marker>
+          <marker id="fc-arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+          </marker>
+          <marker id="fc-arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#a855f7" />
+          </marker>
+        </defs>
+
+        <!-- 1. Start -->
+        <ellipse cx="280" cy="40" rx="110" ry="30" fill="#d1fae5" stroke="#10b981" stroke-width="2" />
+        <text x="280" y="40" text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="700" fill="#065f46">開始</text>
+
+        <line x1="280" y1="70" x2="280" y2="102" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)" />
+
+        <!-- 2. Init -->
+        <rect x="60" y="106" width="440" height="64" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+        <text x="280" y="131" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#1e40af">初期化</text>
+        <text x="280" y="153" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#334155">left = 0, right = length - 1</text>
+
+        <line x1="280" y1="170" x2="280" y2="202" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)" />
+
+        <!-- 3. LoopCheck (diamond) -->
+        <polygon points="280,206 470,251 280,296 90,251" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" />
+        <text x="280" y="251" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#92400e">left &lt; right ?</text>
+
+        <text x="300" y="316" text-anchor="start" font-size="11" font-weight="700" fill="#059669">はい</text>
+        <line x1="280" y1="296" x2="280" y2="328" stroke="#059669" stroke-width="2" marker-end="url(#fc-arrowGreen)" />
+
+        <!-- 4. SkipNonAlnum (Left & Right Branches) -->
+        <rect x="60" y="332" width="205" height="64" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+        <text x="162" y="355" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="700" fill="#1e40af">left が非英数字</text>
+        <text x="162" y="377" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#334155">left += 1 (left &lt; right へ戻る)</text>
+
+        <rect x="295" y="332" width="205" height="64" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+        <text x="397" y="355" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="700" fill="#1e40af">right が非英数字</text>
+        <text x="397" y="377" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#334155">right -= 1 (left &lt; right へ戻る)</text>
+
+        <line x1="280" y1="396" x2="280" y2="428" stroke="#64748b" stroke-width="2" marker-end="url(#fc-arrow)" />
+
+        <!-- 5. CompareChars (diamond) -->
+        <polygon points="280,432 480,487 280,542 80,487" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" />
+        <text x="280" y="480" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#92400e">小文字化して比較</text>
+        <text x="280" y="498" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#92400e">s[left] == s[right] ?</text>
+
+        <text x="300" y="562" text-anchor="start" font-size="11" font-weight="700" fill="#059669">はい</text>
+        <line x1="280" y1="542" x2="280" y2="574" stroke="#059669" stroke-width="2" marker-end="url(#fc-arrowGreen)" />
+
+        <!-- 6. MovePointers -->
+        <rect x="60" y="578" width="440" height="44" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+        <text x="280" y="600" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#1e40af">left += 1, right -= 1</text>
+
+        <!-- loop back (purple) -->
+        <text x="45" y="612" text-anchor="start" font-size="10" font-weight="700" fill="#a855f7">戻る</text>
+        <path d="M60,600 L25,600 L25,251 L88,251" fill="none" stroke="#a855f7" stroke-width="2" marker-end="url(#fc-arrowPurple)" />
+
+        <!-- LoopCheck no -> EndTrue (red curve) -->
+        <text x="490" y="244" text-anchor="end" font-size="11" font-weight="700" fill="#dc2626">いいえ</text>
+        <path d="M470,251 L530,251 L530,778 L392,778" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#fc-arrowRed)" />
+
+        <!-- CompareChars no -> EndFalse (red curve) -->
+        <text x="495" y="480" text-anchor="end" font-size="11" font-weight="700" fill="#dc2626">いいえ</text>
+        <path d="M480,487 L525,487 L525,686 L392,686" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#fc-arrowRed)" />
+
+        <!-- 7. EndFalse -->
+        <ellipse cx="280" cy="686" rx="110" ry="28" fill="#fee2e2" stroke="#dc2626" stroke-width="2" />
+        <text x="280" y="686" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#991b1b">False を返す</text>
+
+        <!-- 8. EndTrue -->
+        <ellipse cx="280" cy="778" rx="110" ry="28" fill="#d1fae5" stroke="#10b981" stroke-width="2" />
+        <text x="280" y="778" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#065f46">True を返す</text>
+      </svg>
+    </div>
+
+    <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+      <p class="text-slate-700 font-semibold text-sm mb-2">🔎 入力例 s = "A man, a plan, a canal: Panama" でのフロー追跡</p>
+      <ol class="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+        <li>「開始」ノード → 入力 s（長さ30）を受け取る</li>
+        <li>「初期化」ノード → left=0, right=29 に設定</li>
+        <li>「left &lt; right ?」ノード → 0 &lt; 29 なので「はい」の経路へ</li>
+        <li>「非英数字ならポインタを移動」ノード → s[0]='A' も s[29]='a' も英数字なのでそのまま次へ</li>
+        <li>「小文字化して比較」ノード → 'a' と 'a' が一致するので「はい」の経路へ</li>
+        <li>「left += 1, right -= 1」ノード → left=1, right=28 に更新し、再び「left &lt; right ?」へ戻る（紫の矢印）</li>
+        <li>（中略）この後、left 側では ',' や ' ' が、right 側では ' ' や ':' がそれぞれスキップされながら、ポインタが中央へ収束していきます</li>
+        <li>最終的に left=17, right=17 となり「left &lt; right ?」が「いいえ」になるため、「True を返す」ノードに到達し、結果 True が返されます</li>
+      </ol>
+    </div>
+
+    <p class="mt-5 text-slate-700 leading-8 text-sm">
+      <strong class="text-lg text-teal-800">フローの説明：</strong><br />
+      このフローチャートは、二方向ポインタが「ループ条件のチェック」→「非英数字の読み飛ばし」→「小文字化しての比較」→「ポインタの移動」という4つの処理を繰り返しながら中央へ収束していく様子を表しています。途中で不一致が見つかれば紫のループを抜けて赤い経路で「False を返す」に到達し、一度も不一致がなければ緑の経路で「True を返す」に到達します。
+    </p>
+  </section>
+
+  <!-- ============ 6. 計算量説明 ============ -->
+  <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">計算量分析</h2>
+
+    <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+      <p class="text-slate-600 font-semibold text-sm mb-3">📖 Big-O 記法の読み方（入力サイズ n が大きくなるにつれて処理時間がどう増えるかの目安）</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+        <div class="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+          <div class="font-bold font-mono text-base mb-1">O(1)</div>
+          <div class="leading-5">常に一定<br /><span class="text-emerald-600">例：辞書の直接引き</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+          <div class="font-bold font-mono text-base mb-1">O(n)</div>
+          <div class="leading-5">入力に比例<br /><span class="text-sky-600">例：リストを1回走査</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+          <div class="font-bold font-mono text-base mb-1">O(n log n)</div>
+          <div class="leading-5">n より少し多い<br /><span class="text-amber-600">例：ソートアルゴリズム</span></div>
+        </div>
+        <div class="text-center p-3 rounded-lg bg-red-100 text-red-800">
+          <div class="font-bold font-mono text-base mb-1">O(n²)</div>
+          <div class="leading-5">入力の2乗<br /><span class="text-red-600">例：二重ループ総当たり</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-slate-100 text-slate-600">
+            <th class="text-left p-3 rounded-l-lg">アプローチ</th>
+            <th class="text-left p-3">時間計算量</th>
+            <th class="text-left p-3">空間計算量</th>
+            <th class="text-left p-3 rounded-r-lg">備考</th>
+          </tr>
+        </thead>
+        <tbody class="text-slate-700">
+          <tr class="border-b border-slate-100">
+            <td class="p-3 font-semibold text-emerald-700">二方向ポインタ（採用）</td>
+            <td class="p-3 font-mono">O(n)</td>
+            <td class="p-3 font-mono">O(1)</td>
+            <td class="p-3 text-slate-500">新しい文字列を作らないため最省メモリ</td>
+          </tr>
+          <tr>
+            <td class="p-3">フィルタ＋反転比較</td>
+            <td class="p-3 font-mono">O(n)</td>
+            <td class="p-3 font-mono">O(n)</td>
+            <td class="p-3 text-slate-500">実装は直感的だが新しい文字列を2つ生成する</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+      <p class="text-emerald-800 font-semibold text-sm mb-2">🔍 なぜこの計算量になるのか</p>
+      <p class="text-slate-700 text-sm leading-7">
+        時間計算量が O(n) になるのは、left と right という2つのポインタがそれぞれ最大でも文字列の長さ分しか動かず、各文字を高々1回ずつしか読まないためです。空間計算量が O(1) になるのは、追加で使うメモリが left と right という2つの整数変数だけであり、入力文字列の長さが変わってもこの追加メモリの量は変化しないためです。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 7. 用語集 ============ -->
+  <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+    <h2 class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">📖 用語集</h2>
+    <p class="text-slate-500 text-sm mb-5">このページで登場した専門用語を五十音順にまとめました。分からない言葉が出てきたときに参照してください。</p>
+    <div class="space-y-2">
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> インデックス
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          文字列や配列の中で「何番目の要素か」を示す位置番号のことです。多くのプログラミング言語（Pythonを含む）では 0 から数え始めるため、先頭の文字はインデックス 0、2番目の文字はインデックス 1 になります。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> エッジケース
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          空の入力・要素が1つだけ・制約の上限に近い巨大な入力など、通常とは異なる境界的な条件のことです。普通の入力ではうまく動くのに、エッジケースだけでバグが発生することがあるため、必ず確認すべき対象です。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 回文
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          前から読んでも後ろから読んでも同じ並びになる文字列や文のことです。例えば "level" や "racecar" が回文です。この問題では、記号やスペースを除き大文字小文字を無視した上で回文かどうかを判定します。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 空間計算量
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          アルゴリズムの処理中に使うメモリ量が、入力サイズに対してどのくらい増えるかの目安です。O(1) であれば、入力がどれだけ大きくなっても追加で使うメモリは一定のままであることを意味します。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 時間計算量
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          入力サイズが大きくなるにつれて、処理にかかる時間がどのくらい増えるかの目安です。O(n) であれば、入力が2倍になると処理時間もおよそ2倍になることを意味します。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 早期リターン
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          条件を満たした時点ですぐに関数を終了させることです。この問題では、不一致が見つかった瞬間に残りの処理を続けず即座に False を返しており、これが早期リターンにあたります。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 二方向ポインタ
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          配列や文字列の両端から中央に向かって、2つの指し位置（インデックス）を同時に動かしていく手法です。新しいデータ構造を作らずに1回の走査だけで処理を終えられるため、メモリ効率と実行速度の両方に優れています。
+        </div>
+      </details>
+
+      <details class="rounded-xl border border-slate-200 overflow-hidden">
+        <summary class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+          <span class="text-emerald-500 gloss-arrow">▶</span> 不変条件
+        </summary>
+        <div class="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+          アルゴリズムが正しく動くために、処理中ずっと成り立ち続けるべき条件のことです。この問題では「left より前の英数字の並びと、right より後ろの英数字の並びを逆にしたものが常に一致している」という条件が不変条件にあたります。
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <footer class="text-center text-slate-400 text-xs py-6">
+    LeetCode 125: Valid Palindrome ｜ 二方向ポインタ走査による学習用解説ページ
+  </footer>
+</div>
+
+<!-- ============ Prism.js core + languages + plugins ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+<!-- ============ React ステップビューア（#steps セクション専用） ============ -->
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const EXAMPLE = "A man, a plan, a canal: Panama";
+
+function isAlnumChar(ch) {
+  return /[a-zA-Z0-9]/.test(ch);
+}
+
+const stepsData = [
+  {
+    step: 1,
+    title: "ポインタの初期化",
+    desc: "何をするか: 文字列の先頭に left ポインタを、末尾に right ポインタを置きます。" +
+          "なぜ必要か: 新しい文字列を作らずに前後から同時に比較を進めるための土台となる操作だからです。left と right という2つの整数変数だけを使うことで、追加のメモリを消費しません。" +
+          "具体例: s = \"A man, a plan, a canal: Panama\"（長さ30）の場合、left=0（先頭の 'A'）、right=29（末尾の 'a'）から比較を始めます。",
+    visual: "init",
+    leftIdx: 0,
+    rightIdx: 29,
+  },
+  {
+    step: 2,
+    title: "ループ条件のチェック",
+    desc: "何をするか: left が right より小さいかどうかを確認します。" +
+          "なぜ必要か: 2つのポインタがすれ違ったら、それ以上比較すべきペアが残っていないことを意味するため、ここでループを終了させる判定が必要です。" +
+          "具体例: left=0, right=29 の時点では 0 < 29 が成り立つため、比較処理へ進みます。",
+    visual: "loopcheck",
+    leftIdx: 0,
+    rightIdx: 29,
+  },
+  {
+    step: 3,
+    title: "英数字同士を小文字化して比較",
+    desc: "何をするか: s[left] と s[right] がどちらも英数字であることを確認したうえで、両方を小文字化して比較します。" +
+          "なぜ必要か: 問題文が「大文字・小文字を無視して」比較することを求めているためです。str.lower() を1文字だけに対して呼ぶことで、新しい長い文字列を作るコストを避けています。" +
+          "具体例: s[0]='A' を小文字化すると 'a'、s[29]='a' はそのまま 'a'。'a' == 'a' なので一致し、次のペア（left=1, right=28）に進みます。",
+    visual: "compare",
+    leftIdx: 0,
+    rightIdx: 29,
+  },
+  {
+    step: 4,
+    title: "非英数字を読み飛ばす（左側）",
+    desc: "何をするか: left が指す文字が英数字でない場合、比較を行わずに left を1つ右へ進めます。" +
+          "なぜ必要か: 記号やスペースは判定の対象外であり、これらを飛ばさずに比較してしまうと正しい結果が得られないためです。" +
+          "具体例: left=1 の位置には半角スペースがあり、これは英数字ではないため比較をスキップし、left=2（文字 'm'）に進みます。",
+    visual: "skip",
+    leftIdx: 1,
+    rightIdx: 28,
+    skipSide: "left",
+  },
+  {
+    step: 5,
+    title: "非英数字を読み飛ばす（右側）",
+    desc: "何をするか: right が指す文字が英数字でない場合も同様に、比較を行わずに right を1つ左へ進めます。" +
+          "なぜ必要か: 記号やスペースは文字列の右側にも出現するため、左側と同じ読み飛ばしのロジックを右側にも適用する必要があるからです。" +
+          "具体例: left=10 の時点で right=23 はスペース、続いて right=22 はコロン ':' であり、どちらも非英数字なのでスキップされ、最終的に right=21（文字 'l'）にたどり着いて比較が行われます。",
+    visual: "skip",
+    leftIdx: 10,
+    rightIdx: 23,
+    skipSide: "right",
+  },
+  {
+    step: 6,
+    title: "ループ終了と結果の返却",
+    desc: "何をするか: left と right がすれ違った（left >= right になった）時点でループを終了し、True を返します。" +
+          "なぜ必要か: ここまで一度も不一致が見つからなかったということは、文字列全体が回文であることが確認できたことを意味するからです。" +
+          "具体例: 最終的に left=17, right=17 となり 17 < 17 は成り立たないためループを終了し、True が返されます。",
+    visual: "done",
+    leftIdx: 17,
+    rightIdx: 17,
+  },
+];
+
+function PointerStringView({ leftIdx, rightIdx, skipSide }) {
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="flex gap-0.5 w-max mx-auto">
+        {EXAMPLE.split("").map((ch, i) => {
+          const isLeft = i === leftIdx;
+          const isRight = i === rightIdx;
+          const alnum = isAlnumChar(ch);
+          const display = ch === " " ? "␣" : ch;
+
+          let boxClass = alnum
+            ? "border-slate-200 bg-white text-slate-500"
+            : "border-slate-200 bg-slate-100 text-slate-300";
+
+          if (isLeft) {
+            boxClass = skipSide === "left"
+              ? "border-red-400 bg-red-50 text-red-500"
+              : "border-emerald-500 bg-emerald-100 text-emerald-800";
+          }
+          if (isRight) {
+            boxClass = skipSide === "right"
+              ? "border-red-400 bg-red-50 text-red-500"
+              : "border-sky-500 bg-sky-100 text-sky-800";
+          }
+
+          return (
+            <div key={i} className="flex flex-col items-center shrink-0">
+              <div className="h-4 text-[10px] leading-4 font-bold">
+                {isLeft ? "L" : isRight ? "R" : "\u00A0"}
+              </div>
+              <div className={"w-6 h-7 flex items-center justify-center rounded border-2 font-bold font-mono text-xs " + boxClass}>
+                {display}
+              </div>
+              <div className="h-3 text-[9px] text-slate-300 leading-3 font-mono">{i}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StepVisualization({ stepData }) {
+  const { leftIdx, rightIdx, skipSide, visual } = stepData;
+  const leftChar = EXAMPLE[leftIdx];
+  const rightChar = EXAMPLE[rightIdx];
+  const leftDisplay = leftChar === " " ? "␣" : leftChar;
+  const rightDisplay = rightChar === " " ? "␣" : rightChar;
+  const showCompare = visual === "compare";
+  const match = showCompare ? leftChar.toLowerCase() === rightChar.toLowerCase() : null;
+
+  return (
+    <div className="mt-4">
+      <PointerStringView leftIdx={leftIdx} rightIdx={rightIdx} skipSide={skipSide} />
+
+      <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs">
+        <div className="text-slate-500 mb-2 font-sans text-xs font-semibold">
+          🔍 現在の変数の状態
+        </div>
+        <div className="text-emerald-700">left = {leftIdx}  (s[left] = '{leftDisplay}')</div>
+        <div className="text-sky-700">right = {rightIdx}  (s[right] = '{rightDisplay}')</div>
+
+        {showCompare && (
+          <div className={"mt-1 font-sans " + (match ? "text-emerald-700" : "text-red-600")}>
+            比較結果: {match ? "一致 ✅" : "不一致 ❌"}
+          </div>
+        )}
+        {skipSide && (
+          <div className="mt-1 font-sans text-amber-700">
+            {skipSide === "left" ? "left 側は非英数字のためスキップ" : "right 側は非英数字のためスキップ"}
+          </div>
+        )}
+        {visual === "done" && (
+          <div className="mt-1 font-sans text-emerald-700">
+            left と right がすれ違ったためループを終了しました
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StepsApp() {
+  const [activeStep, setActiveStep] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const timerRef = useRef(null);
+
+  const currentStepData = stepsData[activeStep - 1];
+
+  const handleStepClick = (step) => {
+    setActiveStep(step);
+    setIsPlaying(false);
+  };
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      if (activeStep > stepsData.length) {
+        setIsPlaying(false);
+        setActiveStep(1);
+        return;
+      }
+      timerRef.current = setTimeout(() => {
+        if (activeStep === stepsData.length) {
+          setActiveStep(1);
+          setIsPlaying(false);
+        } else {
+          setActiveStep((prev) => prev + 1);
+        }
+      }, 1800);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isPlaying, activeStep]);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+      <div>
+        <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">ステップ一覧</h3>
+        <div className="space-y-2">
+          {stepsData.map((step) => {
+            const isActive = activeStep === step.step;
+            return (
+              <button
+                key={step.step}
+                type="button"
+                className={[
+                  "w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4",
+                  "bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1",
+                  isActive
+                    ? "bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]"
+                    : "",
+                ].join(" ")}
+                onClick={() => handleStepClick(step.step)}
+                aria-label={"ステップ" + step.step + ": " + step.title}
+                aria-current={isActive ? "step" : undefined}
+              >
+                <div className={"font-bold mb-1 " + (isActive ? "text-emerald-900" : "text-teal-800")}>
+                  Step {step.step}: {step.title}
+                </div>
+                <div className="text-slate-500 text-sm mt-1">
+                  {step.desc.substring(0, 50)}
+                  {step.desc.length > 50 ? "..." : ""}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="my-auto">
+        {activeStep > 1 && (
+          <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+            ← 前のステップ（Step {activeStep - 1}）では {stepsData[activeStep - 2]?.title} を行いました
+          </div>
+        )}
+
+        <div className="rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]">
+          <h3 className="mt-0 text-teal-800 text-lg font-bold">
+            Step {currentStepData.step}: {currentStepData.title}
+          </h3>
+          <p className="text-slate-600 leading-7 text-sm mt-2">{currentStepData.desc}</p>
+        </div>
+
+        <StepVisualization stepData={currentStepData} />
+
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+          <button
+            type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+            onClick={handlePlay}
+            disabled={isPlaying}
+          >
+            ▶ Play
+          </button>
+          <button
+            type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => {
+              setActiveStep((s) => Math.max(1, s - 1));
+              setIsPlaying(false);
+            }}
+            disabled={activeStep === 1}
+          >
+            ◀ Prev
+          </button>
+          <button
+            type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+            onClick={() => {
+              setActiveStep((s) => Math.min(stepsData.length, s + 1));
+              setIsPlaying(false);
+            }}
+            disabled={activeStep === stepsData.length}
+          >
+            Next ▶
+          </button>
+          <button
+            type="button"
+            className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+            onClick={() => {
+              setActiveStep(1);
+              setIsPlaying(false);
+            }}
+          >
+            ↺ Reset
+          </button>
+        </div>
+
+        {activeStep === stepsData.length && (
+          <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+            🎉 全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const stepsRoot = ReactDOM.createRoot(document.getElementById("steps-app-root"));
+stepsRoot.render(<StepsApp />);
+</script>
+
+<!-- Prism を明示的に再ハイライト（React描画後にも安全のため実行） -->
+<script>
+  window.addEventListener("load", function () {
+    if (window.Prism) { Prism.highlightAll(); }
+  });
+</script>
+
+</body>
+</html>

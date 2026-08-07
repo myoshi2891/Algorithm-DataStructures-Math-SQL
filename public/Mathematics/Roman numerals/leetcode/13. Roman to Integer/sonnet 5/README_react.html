@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Roman to Integer（LeetCode 13）解説 - ハッシュテーブル1パス走査</title>
+
+        <!-- Google Fonts: 見出し用のOutfit、本文用のInter、コード用のJetBrains Mono -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS (CDN) -->
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <!-- Prism.js（コードハイライト用） -->
+        <link
+            href="/vendor/prismjs/themes/prism-tomorrow.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+            rel="stylesheet"
+        />
+        <link
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+            rel="stylesheet"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            code,
+            pre,
+            .font-mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+            /* Mermaidの描画結果を確実に中央寄せし、幅を親要素に収める */
+            .mermaid-container svg {
+                max-width: 100%;
+                height: auto;
+                margin: 0 auto;
+                display: block;
+            }
+            /* Prismツールバー（コピー用ボタン等）の見た目を上書きする */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: #ffffff !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 1rem !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+        </style>
+    </head>
+
+    <body class="bg-[linear-gradient(180deg,#f0fdf4,#e0f2fe)] text-slate-700 min-h-screen">
+        <main class="max-w-5xl mx-auto px-4 py-10">
+            <!-- 1. ヘッダー -->
+            <header
+                id="header"
+                class="relative overflow-hidden mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div
+                    aria-hidden="true"
+                    class="pointer-events-none select-none absolute -right-6 -top-8 text-[8rem] font-bold text-teal-900/10 tracking-widest outfit"
+                >
+                    MCMXCIV
+                </div>
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-2 flex-wrap">
+                        <span
+                            class="bg-emerald-600 text-white text-base font-bold px-3 py-1 rounded-full"
+                            >LeetCode 13</span
+                        >
+                        <span
+                            class="bg-sky-500 text-white text-base font-bold px-3 py-1 rounded-full"
+                            >Easy</span
+                        >
+                    </div>
+                    <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1">
+                        Roman to Integer
+                    </h1>
+                    <p class="text-lg text-cyan-700 font-semibold mt-1">
+                        ハッシュテーブル1パス走査による O(n) 実装
+                    </p>
+
+                    <p
+                        class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block"
+                    >
+                        💡
+                        一言で言うと：「ローマ数字の文字列を読み取り、対応する整数に変換する問題」
+                    </p>
+
+                    <nav class="flex flex-wrap gap-3 mt-6">
+                        <a
+                            href="#overview"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >概要</a
+                        >
+                        <a
+                            href="#steps"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >ステップ解説</a
+                        >
+                        <a
+                            href="#code"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >コード</a
+                        >
+                        <a
+                            href="#diagram"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >フローチャート</a
+                        >
+                        <a
+                            href="#complexity"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >計算量</a
+                        >
+                        <a
+                            href="#glossary"
+                            class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                            >📖 用語集</a
+                        >
+                    </nav>
+                </div>
+            </header>
+
+            <!-- 2. アルゴリズム概要 -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「ローマ数字の文字列を読み取り、対応する整数に変換する問題」です。
+                    </p>
+                    <p class="text-slate-600 text-base mt-2">
+                        ローマ数字は基本的に大きい記号から小さい記号へ左から右に並べますが、<code
+                            class="bg-slate-100 px-1 rounded"
+                            >IV</code
+                        >（4）や
+                        <code class="bg-slate-100 px-1 rounded">IX</code
+                        >（9）のように、小さい記号を大きい記号の前に置いて引き算を表す例外パターンが6つあります。
+                        この問題では、その例外パターンを見落とさずに正しく数値へ変換することがポイントになります。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-base mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-base space-y-1 list-disc list-inside">
+                        <li>
+                            すべての文字の値をそのまま足し算するだけでは、<code
+                                class="bg-slate-100 px-1 rounded"
+                                >IV</code
+                            >
+                            が「1+5=6」になってしまい、正しい答え「4」にならない。
+                        </li>
+                        <li>
+                            「今見ている文字」だけでは、足すべきか引くべきかを判断できず、「次に来る文字」との大小比較が必要になる。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(n)
+                        </div>
+                        <div class="text-base mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(1)
+                        </div>
+                        <div class="text-base mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            1 &lt;= n &lt;= 15
+                        </div>
+                        <div class="text-base mt-1">入力文字列長</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            dict
+                        </div>
+                        <div class="text-base mt-1">主に使うデータ構造</div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-mono text-base">
+                            <span class="text-teal-700 font-bold">入力:</span> s = "III"　
+                            <span class="text-teal-700 font-bold">出力:</span> 3
+                        </p>
+                        <p class="text-slate-600 text-base mt-1">
+                            同じ記号Iが3つ並んでいるだけなので、単純にI+I+I=3となる。
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-mono text-base">
+                            <span class="text-teal-700 font-bold">入力:</span> s = "LVIII"　
+                            <span class="text-teal-700 font-bold">出力:</span> 58
+                        </p>
+                        <p class="text-slate-600 text-base mt-1">
+                            L=50, V=5,
+                            III=3で、いずれも減算パターンを含まないため単純な足し算で58になる。
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p class="font-mono text-base">
+                            <span class="text-teal-700 font-bold">入力:</span> s = "MCMXCIV"　
+                            <span class="text-teal-700 font-bold">出力:</span> 1994
+                        </p>
+                        <p class="text-slate-600 text-base mt-1">
+                            M=1000, CM=900, XC=90,
+                            IV=4で、CM・XC・IVの3つの減算パターンをすべて含む代表的な例。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. ステップバイステップ解説（Reactでマウント） -->
+            <div id="steps-root"></div>
+
+            <!-- 4. コード例 -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    Python実装
+                </h2>
+
+                <div class="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-base mb-2">
+                        📋 このコードの構造（先に全体像を把握しよう）
+                    </p>
+                    <ol class="text-slate-700 text-base space-y-1 list-decimal list-inside">
+                        <li>
+                            入力が文字列であり、空でなく、有効な文字のみで構成されているかを検証する
+                        </li>
+                        <li>
+                            ループの外で対応表への参照をローカル変数に束縛し、合計値totalを0で初期化する
+                        </li>
+                        <li>
+                            文字列を先頭から1文字ずつ走査し、次の文字と比較しながらtotalを更新する
+                        </li>
+                        <li>走査が終わったらtotalをそのまま返す</li>
+                    </ol>
+                </div>
+
+                <pre
+                    class="line-numbers"
+                ><code class="language-python">from __future__ import annotations
+
+from typing import Dict, Final, Optional
+
+
+class Solution:
+    """
+    Roman to Integer (LeetCode 13) を解決するクラス。
+
+    ローマ数字を表す文字列を受け取り、対応する整数値を返す。
+    """
+
+    # クラス変数として文字→数値の対応表を保持する。
+    # インスタンスごとに作り直す必要がないデータなので、
+    # __init__の中ではなくクラス変数として持たせることでメモリを節約できる。
+    _ROMAN_VALUES: Final[Dict[str, int]] = {
+        "I": 1,
+        "V": 5,
+        "X": 10,
+        "L": 50,
+        "C": 100,
+        "D": 500,
+        "M": 1000,
+    }
+
+    def romanToInt(self, s: str) -> int:
+        """
+        ローマ数字の文字列を整数に変換する。
+
+        Args:
+            s: 変換対象のローマ数字文字列（例: "MCMXCIV"）。
+
+        Returns:
+            変換後の整数値（例: 1994）。
+
+        Raises:
+            TypeError: 入力が文字列でない場合。
+            ValueError: 入力が空、または未知の文字を含む場合。
+        """
+        # 入力検証（防御的プログラミング：制約上は保証されているが、
+        # 誤った呼び出しをされても安全に動作するようにする）
+        self._validate(s)
+
+        # ループの外で対応表への参照をローカル変数に束縛しておく。
+        # self._ROMAN_VALUES というアクセスはPythonの内部で属性検索を
+        # 伴うため、ループの外で1回だけ済ませておくと検索コストを省ける。
+        values = self._ROMAN_VALUES
+        total = 0
+        length = len(s)
+
+        # 左から右へ1文字ずつ走査する
+        for i in range(length):
+            current = values[s[i]]
+
+            # 次の文字が存在する場合のみその値を取得し、
+            # 存在しない場合はNoneとして扱う。
+            next_value: Optional[int] = values[s[i + 1]] if i + 1 &lt; length else None
+
+            # 現在値が次の値より小さい場合は「引き算ルール」
+            # （IV, IX, XL, XC, CD, CM の6パターン）に該当する。
+            if next_value is not None and current &lt; next_value:
+                total -= current
+            else:
+                total += current
+
+        return total
+
+    def _validate(self, data: object) -> None:
+        """型安全な入力検証を行う"""
+        if not isinstance(data, str):
+            raise TypeError("Input must be a string")
+
+        if len(data) == 0:
+            raise ValueError("Input cannot be empty")
+
+        # all() + ジェネレータ式で全文字の妥当性チェックを1行で行う。
+        if not all(char in self._ROMAN_VALUES for char in data):
+            raise ValueError("Input contains invalid roman numeral characters")</code></pre>
+
+                <div class="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <p class="text-sky-800 font-semibold text-base mb-2">
+                        ▶ 入力例 "MCMXCIV" での動作トレース
+                    </p>
+                    <pre
+                        class="text-slate-700 text-base font-mono leading-6 overflow-x-auto whitespace-pre"
+                    >
+i=0: current='M'(1000), next='C'(100)  → 1000 &lt; 100 は偽 → 加算 → total=1000
+i=1: current='C'(100),  next='M'(1000) → 100 &lt; 1000 は真  → 減算 → total=900
+i=2: current='M'(1000), next='X'(10)   → 1000 &lt; 10 は偽   → 加算 → total=1900
+i=3: current='X'(10),   next='C'(100)  → 10 &lt; 100 は真    → 減算 → total=1890
+i=4: current='C'(100),  next='I'(1)    → 100 &lt; 1 は偽     → 加算 → total=1990
+i=5: current='I'(1),    next='V'(5)    → 1 &lt; 5 は真       → 減算 → total=1989
+i=6: current='V'(5),    next=なし      → 無条件で加算       → total=1994
+出力: 1994 ✅</pre
+                    >
+                </div>
+            </section>
+
+            <!-- 5. 視覚的図解・フローチャート（Reactでマウント） -->
+            <div id="diagram-root"></div>
+
+            <!-- 6. 計算量説明 -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-base mb-2">📖 Big-O 記法の読み方</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-base">
+                        <div class="text-center p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono">O(1)</div>
+                            <div class="mt-1">入力サイズに関わらず<br />常に一定の速さ</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono">O(n)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理も約2倍</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono">O(n log n)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理は約2倍強</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono">O(n²)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理は約4倍</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-base border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="p-3 border border-slate-200">アプローチ</th>
+                                <th class="p-3 border border-slate-200">時間計算量</th>
+                                <th class="p-3 border border-slate-200">空間計算量</th>
+                                <th class="p-3 border border-slate-200">備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-emerald-50">
+                                <td
+                                    class="p-3 border border-slate-200 font-semibold text-emerald-800"
+                                >
+                                    ハッシュテーブル1パス走査（採用）
+                                </td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(1)</td>
+                                <td class="p-3 border border-slate-200">
+                                    文字列を1回だけ走査。対応表は固定サイズ（7種類）でメモリは入力サイズに依存しない
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border border-slate-200">2文字パターンの事前置換</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200">
+                                    CM・XC・IV等を先に置換してから加算。新しい文字列を都度生成するため余分なメモリを消費する
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-base mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-base leading-7">
+                        時間計算量が O(n)
+                        になるのは、文字列の各文字をちょうど1回ずつしか見ないためです。次の文字を先読みする処理も、
+                        ループの中でインデックスを1つずらして参照するだけなので、追加のループを必要としません。
+                        空間計算量が O(1)
+                        になるのは、文字→数値の対応表が常に7種類固定であり、入力文字列がどれだけ長くなっても
+                        （制約上は最大15文字ですが）対応表のサイズや追加変数の数は変わらないためです。
+                    </p>
+                </div>
+            </section>
+
+            <!-- 7. 用語集 -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-base mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください（五十音順）。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> インデックス
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            配列や文字列の中で、要素が何番目にあるかを表す番号のこと。多くのプログラミング言語では0から数え始めるため、先頭の文字はインデックス0、2番目の文字はインデックス1となる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 型ヒント
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            関数の引数や戻り値に、想定している型を注釈として書く仕組み。<code
+                                class="bg-slate-100 px-1 rounded"
+                                >def f(x: int) -&gt; str:</code
+                            >のように書く。pylanceのような型チェッカーが、実行前に型の誤りを検出できるようになる。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 計算量
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            入力の大きさに対して、処理にかかる手間（時間計算量）やメモリ量（空間計算量）がどう増えるかを表す目安。Big-O記法（O(n)など）で表現されることが多い。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 走査
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            配列や文字列などのデータを、順番に1つずつ調べていくこと。今回の実装では、文字列を左から右へ1回だけ走査することで答えを求めている。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> ハッシュテーブル
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            キーから値をO(1)（一定時間）で取り出せるデータ構造。図書館の索引カードに例えると、タイトル（キー）から棚番号（値）を即座に引けるイメージ。Pythonでは<code
+                                class="bg-slate-100 px-1 rounded"
+                                >dict</code
+                            >がこれに相当する。
+                        </div>
+                    </details>
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 不変条件
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            アルゴリズムが正しく動くために、処理中ずっと成り立ち続けるべき条件のこと。今回の実装では「ループの各時点でtotalには、それまでに処理した文字列の先頭部分を正しく変換した値が入っている」という不変条件が成り立っている。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <footer class="text-center text-slate-400 text-base py-6">
+                LeetCode 13 · Roman to Integer · ハッシュテーブル1パス走査による解説ページ
+            </footer>
+        </main>
+
+        <!-- React 18 (development) -->
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+
+        <!-- Mermaid.js（フローチャート描画用。バージョン固定） -->
+        <script src="/vendor/mermaid/mermaid.min.js"></script>
+
+        <!-- Prism.js（コードハイライト用） -->
+        <script src="/vendor/prismjs/components/prism-core.min.js"></script>
+        <script src="/vendor/prismjs/components/prism-python.min.js"></script>
+        <script src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"></script>
+        <script src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"></script>
+
+        <!--
+  事前コンパイル済みのプレーンなJavaScript（React.createElement呼び出し）。
+  JSXは使用していないため type="text/babel" は不要で、@babel/standaloneも読み込まない。
+  単一HTMLファイルとして完結させるため、ここに直接埋め込んでいる。
+-->
+        <script>
+            /*
+             * このファイルは事前コンパイル済みのプレーンなJavaScriptです。
+             * JSX記法は使用せず、React.createElement を直接呼び出す形で記述しています。
+             * そのため <script type="text/babel"> や @babel/standalone は一切不要です。
+             */
+
+            // 文字（ローマ数字の記号）と数値の対応表。
+            // この対応表を1つ用意しておくことで、if-elseの連鎖を書かずに
+            // 文字から数値へすぐに変換できる。
+            var ROMAN_VALUES = {
+                I: 1,
+                V: 5,
+                X: 10,
+                L: 50,
+                C: 100,
+                D: 500,
+                M: 1000,
+            };
+
+            // ステップ解説・フローチャート追跡で共通して使う代表例。
+            // 6種類の減算パターンのうち CM, XC, IV の3つを含んでおり、
+            // 加算・減算の両方の動きを一度に確認できる。
+            var EXAMPLE_STRING = 'MCMXCIV';
+            var EXAMPLE_CHARS = EXAMPLE_STRING.split('');
+
+            // ステップ解説で表示する9つのステップ（初期化 → 7文字の処理 → 結果を返す）。
+            var stepsData = [
+                {
+                    step: 1,
+                    title: '対応表の準備と初期化',
+                    desc:
+                        'まずローマ数字の文字と数値を対応させる表を用意し、合計値を表す変数totalを0で初期化します。' +
+                        'なぜなら、文字を見るたびに毎回同じ変換ロジックを書くのは非効率で、対応表を1つ用意しておけば辞書引きだけで済むからです。' +
+                        '例）MCMXCIVという入力に対して、まだ1文字も処理していない状態からスタートします。',
+                    index: null,
+                    nextIndex: null,
+                    action: 'init',
+                    totalAfter: 0,
+                },
+                {
+                    step: 2,
+                    title: '1文字目 M を処理する',
+                    desc:
+                        'インデックスi=0の文字Mを見ます。次の文字Cの値と比較します。' +
+                        'なぜなら、Mの後にCが続く場合はこれは減算パターンには該当しないため、単純にMの値を足せばよいからです。' +
+                        '例）M(1000)は次のC(100)より小さくないので加算し、total=1000になります。',
+                    index: 0,
+                    nextIndex: 1,
+                    action: 'add',
+                    totalAfter: 1000,
+                },
+                {
+                    step: 3,
+                    title: '2文字目 C を処理する',
+                    desc:
+                        'インデックスi=1の文字Cを見ます。次の文字Mの値と比較します。' +
+                        'なぜなら、Cの後によりCより大きいMが続く場合、これはCM（900）を表す減算パターンに該当するため、Cの値を引く必要があるからです。' +
+                        '例）C(100)は次のM(1000)より小さいので減算し、total=1000-100=900になります。',
+                    index: 1,
+                    nextIndex: 2,
+                    action: 'subtract',
+                    totalAfter: 900,
+                },
+                {
+                    step: 4,
+                    title: '3文字目 M を処理する',
+                    desc:
+                        'インデックスi=2の文字Mを見ます。次の文字Xの値と比較します。' +
+                        'なぜなら、Mは全記号の中で最大の値なので、次にどんな文字が来ても減算パターンにはならないからです。' +
+                        '例）M(1000)は次のX(10)より小さくないので加算し、total=900+1000=1900になります。',
+                    index: 2,
+                    nextIndex: 3,
+                    action: 'add',
+                    totalAfter: 1900,
+                },
+                {
+                    step: 5,
+                    title: '4文字目 X を処理する',
+                    desc:
+                        'インデックスi=3の文字Xを見ます。次の文字Cの値と比較します。' +
+                        'なぜなら、Xの後によりXより大きいCが続く場合、これはXC（90）を表す減算パターンに該当するため、Xの値を引く必要があるからです。' +
+                        '例）X(10)は次のC(100)より小さいので減算し、total=1900-10=1890になります。',
+                    index: 3,
+                    nextIndex: 4,
+                    action: 'subtract',
+                    totalAfter: 1890,
+                },
+                {
+                    step: 6,
+                    title: '5文字目 C を処理する',
+                    desc:
+                        'インデックスi=4の文字Cを見ます。次の文字Iの値と比較します。' +
+                        'なぜなら、Cの後により小さいIが続く場合は減算パターンに該当しないため、単純に加算すればよいからです。' +
+                        '例）C(100)は次のI(1)より小さくないので加算し、total=1890+100=1990になります。',
+                    index: 4,
+                    nextIndex: 5,
+                    action: 'add',
+                    totalAfter: 1990,
+                },
+                {
+                    step: 7,
+                    title: '6文字目 I を処理する',
+                    desc:
+                        'インデックスi=5の文字Iを見ます。次の文字Vの値と比較します。' +
+                        'なぜなら、Iの後によりIより大きいVが続く場合、これはIV（4）を表す減算パターンに該当するため、Iの値を引く必要があるからです。' +
+                        '例）I(1)は次のV(5)より小さいので減算し、total=1990-1=1989になります。',
+                    index: 5,
+                    nextIndex: 6,
+                    action: 'subtract',
+                    totalAfter: 1989,
+                },
+                {
+                    step: 8,
+                    title: '7文字目 V を処理する（最後の文字）',
+                    desc:
+                        'インデックスi=6の文字Vを見ます。これが最後の文字なので次の文字は存在しません。' +
+                        'なぜなら、次の文字が存在しない場合は比較のしようがないため、無条件で加算するというルールに従うからです。' +
+                        '例）Vの次には何もないので加算し、total=1989+5=1994になります。',
+                    index: 6,
+                    nextIndex: null,
+                    action: 'add',
+                    totalAfter: 1994,
+                },
+                {
+                    step: 9,
+                    title: '全文字を処理し終えて結果を返す',
+                    desc:
+                        'すべての文字を処理し終えたので、ループを抜けてtotalの値を返します。' +
+                        'なぜなら、これ以上処理すべき文字が残っていない時点で、合計値がそのまま最終的な整数への変換結果になっているからです。' +
+                        '例）MCMXCIVという入力に対して、最終的な結果は1994になります。',
+                    index: null,
+                    nextIndex: null,
+                    action: 'done',
+                    totalAfter: 1994,
+                },
+            ];
+
+            // ステップごとの「今どの文字を見ているか」を視覚化するコンポーネント。
+            // SVGでローマ数字の文字を四角いタイルとして並べ、現在処理中の文字を緑、
+            // 比較対象の次の文字を青でハイライトする。
+            function StepVisualization(props) {
+                var step = props.step;
+                var tileWidth = 70;
+                var tileGap = 10;
+                var tileCount = EXAMPLE_CHARS.length;
+                var totalWidth = tileCount * tileWidth + (tileCount - 1) * tileGap;
+                var startX = (580 - totalWidth) / 2;
+                var tileY = 46;
+                var tileHeight = 54;
+
+                var tiles = EXAMPLE_CHARS.map(function (char, i) {
+                    var x = startX + i * (tileWidth + tileGap);
+                    var isCurrent = step.index === i;
+                    var isNext = step.nextIndex === i;
+                    var isProcessed = step.index !== null && i < step.index;
+                    var isDone = step.action === 'done';
+
+                    var fill = '#ffffff';
+                    var stroke = '#cbd5e1';
+                    var strokeWidth = 1.5;
+                    var textColor = '#334155';
+
+                    if (isDone || isProcessed) {
+                        fill = '#ecfdf5';
+                        stroke = '#a7f3d0';
+                        textColor = '#047857';
+                    }
+                    if (isCurrent) {
+                        fill = '#d1fae5';
+                        stroke = '#10b981';
+                        strokeWidth = 3;
+                        textColor = '#065f46';
+                    }
+                    if (isNext) {
+                        fill = '#e0f2fe';
+                        stroke = '#0284c7';
+                        strokeWidth = 3;
+                        textColor = '#0c4a6e';
+                    }
+
+                    var pointerNode = null;
+                    if (isCurrent || isNext) {
+                        var pointerColor = isCurrent ? '#10b981' : '#0284c7';
+                        var midX = x + tileWidth / 2;
+                        pointerNode = React.createElement('polygon', {
+                            points:
+                                midX -
+                                8 +
+                                ',' +
+                                (tileY - 14) +
+                                ' ' +
+                                (midX + 8) +
+                                ',' +
+                                (tileY - 14) +
+                                ' ' +
+                                midX +
+                                ',' +
+                                (tileY - 2),
+                            fill: pointerColor,
+                        });
+                    }
+
+                    return React.createElement(
+                        'g',
+                        { key: 'tile-' + i },
+                        React.createElement('rect', {
+                            x: x,
+                            y: tileY,
+                            width: tileWidth,
+                            height: tileHeight,
+                            rx: 10,
+                            fill: fill,
+                            stroke: stroke,
+                            strokeWidth: strokeWidth,
+                        }),
+                        React.createElement(
+                            'text',
+                            {
+                                x: x + tileWidth / 2,
+                                y: tileY + tileHeight / 2 + 8,
+                                textAnchor: 'middle',
+                                fontSize: 24,
+                                fontFamily: 'JetBrains Mono, monospace',
+                                fontWeight: 700,
+                                fill: textColor,
+                            },
+                            char,
+                        ),
+                        React.createElement(
+                            'text',
+                            {
+                                x: x + tileWidth / 2,
+                                y: tileY + tileHeight + 20,
+                                textAnchor: 'middle',
+                                fontSize: 13,
+                                fontFamily: 'JetBrains Mono, monospace',
+                                fill: '#64748b',
+                            },
+                            String(ROMAN_VALUES[char]),
+                        ),
+                        pointerNode,
+                    );
+                });
+
+                var currentChar = step.index !== null ? EXAMPLE_CHARS[step.index] : null;
+                var nextChar = step.nextIndex !== null ? EXAMPLE_CHARS[step.nextIndex] : null;
+                var currentValue = currentChar !== null ? ROMAN_VALUES[currentChar] : null;
+                var nextValue = nextChar !== null ? ROMAN_VALUES[nextChar] : null;
+
+                var actionLabel = '';
+                var actionColorClass = 'text-slate-500';
+                if (step.action === 'add') {
+                    actionLabel = '加算する（現在値は次の値より小さくない）';
+                    actionColorClass = 'text-sky-700';
+                } else if (step.action === 'subtract') {
+                    actionLabel = '減算する（現在値は次の値より小さい）';
+                    actionColorClass = 'text-amber-700';
+                } else if (step.action === 'init') {
+                    actionLabel = '初期化のみ。まだ比較は行っていない';
+                } else if (step.action === 'done') {
+                    actionLabel = '全文字の処理が完了しました';
+                    actionColorClass = 'text-emerald-700';
+                }
+
+                return React.createElement(
+                    'div',
+                    { className: 'mt-4' },
+                    React.createElement(
+                        'svg',
+                        {
+                            viewBox: '0 0 580 150',
+                            className: 'w-full h-auto',
+                            role: 'img',
+                            'aria-label': EXAMPLE_STRING + ' の文字を処理する様子',
+                        },
+                        tiles,
+                    ),
+                    React.createElement(
+                        'div',
+                        {
+                            className:
+                                'mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-base',
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 mb-2 font-sans text-base font-semibold' },
+                            '🔍 現在の変数の状態',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-emerald-700' },
+                            'i = ' + (step.index !== null ? step.index : 'なし'),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-emerald-700' },
+                            '現在の文字 = ' +
+                                (currentChar !== null
+                                    ? currentChar + '（値 ' + currentValue + '）'
+                                    : 'なし'),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-sky-700' },
+                            '次の文字 = ' +
+                                (nextChar !== null
+                                    ? nextChar + '（値 ' + nextValue + '）'
+                                    : 'なし'),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: actionColorClass + ' font-sans' },
+                            '判定：' + actionLabel,
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-800 font-bold mt-1' },
+                            'total = ' + step.totalAfter,
+                        ),
+                    ),
+                );
+            }
+
+            // ステップバイステップ解説セクション全体（#steps）を描画するコンポーネント。
+            function StepsApp() {
+                var stateActiveStep = React.useState(1);
+                var activeStep = stateActiveStep[0];
+                var setActiveStep = stateActiveStep[1];
+
+                var statePlaying = React.useState(false);
+                var isPlaying = statePlaying[0];
+                var setIsPlaying = statePlaying[1];
+
+                var timerRef = React.useRef(null);
+                var currentStepData = stepsData[activeStep - 1];
+
+                function handleStepClick(stepNumber) {
+                    setActiveStep(stepNumber);
+                    setIsPlaying(false);
+                }
+
+                function handlePlay() {
+                    setIsPlaying(true);
+                }
+
+                React.useEffect(
+                    function () {
+                        if (isPlaying) {
+                            if (activeStep >= stepsData.length) {
+                                timerRef.current = setTimeout(function () {
+                                    setActiveStep(1);
+                                    setIsPlaying(false);
+                                }, 1800);
+                            } else {
+                                timerRef.current = setTimeout(function () {
+                                    setActiveStep(function (prev) {
+                                        return prev + 1;
+                                    });
+                                }, 1800);
+                            }
+                        }
+                        return function () {
+                            if (timerRef.current) {
+                                clearTimeout(timerRef.current);
+                            }
+                        };
+                    },
+                    [isPlaying, activeStep],
+                );
+
+                var stepButtons = stepsData.map(function (step) {
+                    var isActive = activeStep === step.step;
+                    var shortDesc = step.desc.substring(0, 46) + (step.desc.length > 46 ? '…' : '');
+                    return React.createElement(
+                        'button',
+                        {
+                            key: 'step-btn-' + step.step,
+                            type: 'button',
+                            className: [
+                                'w-full text-left text-base rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                isActive
+                                    ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                    : '',
+                            ].join(' '),
+                            onClick: function () {
+                                handleStepClick(step.step);
+                            },
+                            'aria-label': 'ステップ' + step.step + '：' + step.title,
+                            'aria-current': isActive ? 'step' : undefined,
+                        },
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'font-bold mb-1 ' +
+                                    (isActive ? 'text-emerald-900' : 'text-teal-800'),
+                            },
+                            'Step ' + step.step + ': ' + step.title,
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 text-base mt-1' },
+                            shortDesc,
+                        ),
+                    );
+                });
+
+                var prevNotice =
+                    activeStep > 1
+                        ? React.createElement(
+                              'div',
+                              {
+                                  className:
+                                      'mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-base text-slate-500',
+                              },
+                              '← 前のステップ（Step ' +
+                                  (activeStep - 1) +
+                                  '）では ' +
+                                  stepsData[activeStep - 2].title +
+                                  ' を行いました',
+                          )
+                        : null;
+
+                var completionNotice =
+                    activeStep === stepsData.length
+                        ? React.createElement(
+                              'div',
+                              {
+                                  className:
+                                      'mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-base text-center',
+                              },
+                              '🎉 全ステップ完了！下の「Python実装」セクションで実際のコードを確認してみましょう。',
+                          )
+                        : null;
+
+                return React.createElement(
+                    'section',
+                    { id: 'steps', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                    React.createElement(
+                        'h2',
+                        {
+                            className:
+                                'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                        },
+                        'ステップバイステップ解説',
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'h3',
+                                { className: 'mt-0 mb-4 text-teal-800 text-xl font-semibold' },
+                                'ステップ一覧',
+                            ),
+                            React.createElement('div', { className: 'space-y-2' }, stepButtons),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'my-auto' },
+                            prevNotice,
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]',
+                                },
+                                React.createElement(
+                                    'h3',
+                                    { className: 'mt-0 text-teal-800 text-lg font-bold' },
+                                    'Step ' + currentStepData.step + ': ' + currentStepData.title,
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-slate-600 leading-7 text-base mt-2' },
+                                    currentStepData.desc,
+                                ),
+                            ),
+                            React.createElement(StepVisualization, { step: currentStepData }),
+                            React.createElement(
+                                'div',
+                                { className: 'flex flex-wrap justify-center gap-2 mt-4' },
+                                React.createElement(
+                                    'button',
+                                    {
+                                        type: 'button',
+                                        className:
+                                            'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-base',
+                                        onClick: handlePlay,
+                                        disabled: isPlaying,
+                                    },
+                                    '▶ Play',
+                                ),
+                                React.createElement(
+                                    'button',
+                                    {
+                                        type: 'button',
+                                        className:
+                                            'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                        onClick: function () {
+                                            setActiveStep(function (s) {
+                                                return Math.max(1, s - 1);
+                                            });
+                                            setIsPlaying(false);
+                                        },
+                                        disabled: activeStep === 1,
+                                    },
+                                    '◀ Prev',
+                                ),
+                                React.createElement(
+                                    'button',
+                                    {
+                                        type: 'button',
+                                        className:
+                                            'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                        onClick: function () {
+                                            setActiveStep(function (s) {
+                                                return Math.min(stepsData.length, s + 1);
+                                            });
+                                            setIsPlaying(false);
+                                        },
+                                        disabled: activeStep === stepsData.length,
+                                    },
+                                    'Next ▶',
+                                ),
+                                React.createElement(
+                                    'button',
+                                    {
+                                        type: 'button',
+                                        className:
+                                            'px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-base',
+                                        onClick: function () {
+                                            setActiveStep(1);
+                                            setIsPlaying(false);
+                                        },
+                                    },
+                                    '↺ Reset',
+                                ),
+                            ),
+                            completionNotice,
+                        ),
+                    ),
+                );
+            }
+
+            // Mermaidフローチャートを描画するセクション全体（#diagram）を担当するコンポーネント。
+            function DiagramApp() {
+                var containerRef = React.useRef(null);
+                var stateError = React.useState(null);
+                var renderError = stateError[0];
+                var setRenderError = stateError[1];
+
+                // Mermaid定義。配列 + join("\n") で書くことで「1行1宣言」ルールを守りやすくしている。
+                var mermaidDefinition = [
+                    'flowchart TD',
+                    '  Start[処理開始 romanToInt呼び出し]',
+                    '  Start --> Validate[入力の型と長さを検証]',
+                    '  Validate --> CheckEmpty{文字列は空か}',
+                    '  CheckEmpty -- Yes --> ErrEmpty[ValueError: Input cannot be empty]',
+                    '  CheckEmpty -- No --> InitTotal[totalを0で初期化]',
+                    '  InitTotal --> LoopCheck{未処理の文字が残っているか}',
+                    '  LoopCheck -- No --> RetTotal[totalを返す]',
+                    '  LoopCheck -- Yes --> GetCurrent[現在の文字の値を取得]',
+                    '  GetCurrent --> GetNext[次の文字の値を取得 なければ無し]',
+                    '  GetNext --> Compare{現在値は次の値より小さいか}',
+                    '  Compare -- Yes --> Subtract[totalから現在値を引く]',
+                    '  Compare -- No --> Add[totalに現在値を足す]',
+                    '  Subtract --> Advance[インデックスiを1つ進める]',
+                    '  Add --> Advance',
+                    '  Advance --> LoopCheck',
+                    '  classDef startEnd fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46;',
+                    '  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e;',
+                    '  classDef process fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;',
+                    '  classDef errNode fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;',
+                    '  class Start,RetTotal startEnd',
+                    '  class ErrEmpty errNode',
+                    '  class CheckEmpty,LoopCheck,Compare decision',
+                    '  class Validate,InitTotal,GetCurrent,GetNext,Subtract,Add,Advance process',
+                    '  linkStyle 2 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 3 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 5 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 6 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 9 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 10 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 13 stroke:#a855f7,stroke-width:2px',
+                ].join('\n');
+
+                React.useEffect(function () {
+                    var cancelled = false;
+
+                    function renderDiagram() {
+                        var mermaidLib = window.mermaid;
+                        if (!mermaidLib) {
+                            if (!cancelled) {
+                                setRenderError('Mermaidライブラリの読み込みに失敗しました。');
+                            }
+                            return;
+                        }
+                        try {
+                            mermaidLib.initialize({
+                                startOnLoad: false,
+                                securityLevel: 'loose',
+                                fontFamily: 'Inter, sans-serif',
+                            });
+                            var renderPromise = mermaidLib.render(
+                                'mermaid-13-flowchart',
+                                mermaidDefinition,
+                            );
+                            renderPromise
+                                .then(function (result) {
+                                    if (!cancelled && containerRef.current) {
+                                        containerRef.current.innerHTML = result.svg;
+                                    }
+                                })
+                                .catch(function () {
+                                    if (!cancelled) {
+                                        setRenderError(
+                                            'フローチャートの描画中にエラーが発生しました。',
+                                        );
+                                    }
+                                });
+                        } catch (err) {
+                            if (!cancelled) {
+                                setRenderError('フローチャートの描画中にエラーが発生しました。');
+                            }
+                        }
+                    }
+
+                    renderDiagram();
+
+                    return function () {
+                        cancelled = true;
+                    };
+                }, []);
+
+                var errorNode = renderError
+                    ? React.createElement(
+                          'p',
+                          {
+                              className:
+                                  'text-red-600 text-base bg-red-50 border border-red-200 rounded-lg px-4 py-2',
+                          },
+                          renderError,
+                      )
+                    : null;
+
+                return React.createElement(
+                    'section',
+                    { id: 'diagram', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                    React.createElement(
+                        'h2',
+                        {
+                            className:
+                                'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                        },
+                        '処理フローチャート',
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-amber-800 font-semibold text-base mb-2' },
+                            '🗺️ フローチャートの読み方',
+                        ),
+                        React.createElement(
+                            'ul',
+                            {
+                                className:
+                                    'text-slate-700 text-base space-y-1 list-disc list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                { key: 'legend-1' },
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 rounded-full bg-emerald-200 border border-emerald-500 mr-1',
+                                }),
+                                '四角（緑）＝ 開始と終了。プログラムの入り口と出口',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'legend-2' },
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-2 rounded bg-sky-100 border border-sky-400 mr-1',
+                                }),
+                                '四角（青）＝ 処理ステップ。値の計算や取得を行う場所',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'legend-3' },
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 bg-amber-100 border border-amber-400 mr-1',
+                                    style: {
+                                        clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                                    },
+                                }),
+                                'ひし形（黄）＝ 条件分岐。「はい」と「いいえ」で経路が分かれる',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'legend-4' },
+                                '矢印の色：緑は「はい」の分岐、赤は「いいえ」の分岐、紫はループして前の判定に戻る経路',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 flex flex-col items-center gap-3' },
+                        errorNode,
+                        React.createElement('div', {
+                            ref: containerRef,
+                            className:
+                                'mermaid-container w-full overflow-x-auto flex justify-center',
+                            role: 'img',
+                            'aria-label': 'Roman to Integer flowchart',
+                        }),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 font-semibold text-base mb-2' },
+                            '🔎 入力例「MCMXCIV」でのフロー追跡',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-600 text-base space-y-1 list-decimal list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                { key: 'trace-1' },
+                                '「処理開始」ノード → 入力文字列 MCMXCIV を受け取る',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'trace-2' },
+                                '「文字列は空か」ノード → 空ではないので「いいえ」の経路へ',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'trace-3' },
+                                '「未処理の文字が残っているか」ノード → 7文字とも順番に「はい」の経路をたどる',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'trace-4' },
+                                '「現在値は次の値より小さいか」ノード → CM・XC・IVの3か所で「はい」となり減算、それ以外は「いいえ」となり加算',
+                            ),
+                            React.createElement(
+                                'li',
+                                { key: 'trace-5' },
+                                '「totalを返す」ノード → 最終結果 1994 を返す',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'p',
+                        { className: 'mt-5 text-slate-700 leading-8 text-base' },
+                        'このフローチャートは、文字列を1文字ずつ処理しながら現在の文字と次の文字を比較し、合計値を更新していくループ構造を表しています。ループの出口は「未処理の文字が残っていない」と判定された瞬間です。',
+                    ),
+                );
+            }
+
+            // StepsApp と DiagramApp を、それぞれの専用マウント先に描画する。
+            // 2つの独立したReactルートを作ることで、ページの他の部分（静的HTML）とは
+            // 影響し合わずに、この2つのインタラクティブな領域だけをReactで管理できる。
+            (function mountApps() {
+                var stepsRootEl = document.getElementById('steps-root');
+                if (stepsRootEl) {
+                    var stepsRoot = ReactDOM.createRoot(stepsRootEl);
+                    stepsRoot.render(React.createElement(StepsApp));
+                }
+
+                var diagramRootEl = document.getElementById('diagram-root');
+                if (diagramRootEl) {
+                    var diagramRoot = ReactDOM.createRoot(diagramRootEl);
+                    diagramRoot.render(React.createElement(DiagramApp));
+                }
+
+                if (window.Prism) {
+                    window.Prism.highlightAll();
+                }
+            })();
+        </script>
+    </body>
+</html>

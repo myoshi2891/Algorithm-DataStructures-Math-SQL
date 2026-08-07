@@ -1,0 +1,2083 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 9: Palindrome Number | 数値反転比較法による解説</title>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Prism.js (シンタックスハイライト) -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <!-- React 18 / ReactDOM 18 / Babel Standalone -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+        <!-- Mermaid.js（フローチャート動的描画用） -->
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+
+        <!-- Prism.js コア + TypeScript言語コンポーネント + プラグイン -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            code,
+            pre,
+            .font-mono {
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            /* Prism toolbar（コピー ボタン）の見た目を確実に上書きする */
+            div.code-toolbar > .toolbar {
+                opacity: 1 !important;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button,
+            div.code-toolbar > .toolbar .toolbar-item > a,
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 1rem !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+
+            div.code-toolbar > .toolbar .toolbar-item > button:hover {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 10px 28px rgba(20, 32, 70, 0.08) !important;
+                background: linear-gradient(180deg, #e8fff6, #c8f1e1) !important;
+            }
+
+            /* Mermaidが描画したSVGをレスポンシブに収め、中央寄せにする */
+            .mermaid-container svg {
+                max-width: 100%;
+                height: auto;
+                margin: 0 auto;
+                display: block;
+            }
+
+            pre[class*='language-'] {
+                border-radius: 0.75rem !important;
+                font-size: 1rem !important;
+            }
+        </style>
+    </head>
+    <body class="bg-[linear-gradient(180deg,#f0fdf4,#e0f2fe)] min-h-screen">
+        <div id="root" class="max-w-5xl mx-auto px-4 py-8"></div>
+
+        <script>
+            'use strict';
+            const { useState, useEffect, useRef } = React;
+            /* ============================================================
+   ステップデータ
+   各ステップの desc は「何をするか → なぜか → 具体例」の3段構成
+   ============================================================ */
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '入力の検証とエッジケース判定',
+                    desc:
+                        '何をするか：x が負の数かどうか、または 0 以外で末尾が 0 の数かどうかを判定します。' +
+                        'なぜこの操作が必要か：負の数は先頭に「-」が付くため回文になり得ず、末尾が0の数（0自身を除く）は反転すると先頭に0が来てしまい整数として矛盾するため、どちらも即座に false と判定できるからです。' +
+                        '具体的な例：x=-121 なら負の数なので即 false。x=120 なら末尾が0（かつ0自身ではない）なので即 false。x=12321 はどちらにも該当しないため次のステップに進みます。',
+                    visual: 'edge_case_check',
+                },
+                {
+                    step: 2,
+                    title: '作業用変数の初期化',
+                    desc:
+                        '何をするか：original（元の数を保持する変数）に x を代入し、revertedHalf（後半を反転させた値を積み上げる変数）を 0 で初期化します。' +
+                        'なぜこの操作が必要か：この後のループで original の最下位桁を1つずつ取り出して revertedHalf に移していくため、開始時点の状態を用意しておく必要があるからです。' +
+                        '具体的な例：x=12321 のとき、original=12321, revertedHalf=0 からスタートします。',
+                    visual: 'init_vars',
+                },
+                {
+                    step: 3,
+                    title: '最下位の桁を取り出して revertedHalf に追加',
+                    desc:
+                        '何をするか：original % 10（10で割った余り）で original の最下位桁を取り出し、revertedHalf = revertedHalf * 10 + 取り出した桁 という式で revertedHalf の末尾に追加します。' +
+                        'なぜこの操作が必要か：最下位桁から順に取り出して別の変数に積み上げていくと、結果的に元の数の後半部分を「逆順」に並べた数が出来上がるからです。' +
+                        '具体的な例：original=12321 のとき最下位桁は 1。revertedHalf = 0*10+1 = 1 になります。',
+                    visual: 'extract_digit',
+                },
+                {
+                    step: 4,
+                    title: '桁を1つ減らしてループを繰り返す',
+                    desc:
+                        '何をするか：original = Math.trunc(original / 10)（整数除算）で original の最下位桁を切り捨てます。この操作と Step 3 を、original > revertedHalf が成り立つ間繰り返します。' +
+                        'なぜこの操作が必要か：original の桁数と revertedHalf の桁数がちょうど半分ずつ入れ替わったタイミングでループを自然に止めるためです。original の方が大きい間だけループすることで、無駄なく半分の桁数で処理が止まります。' +
+                        '具体的な例：original は 12321→1232→123→12 と減っていき、revertedHalf は 1→12→123 と増えていきます。original(12) が revertedHalf(123) を超えなくなった時点でループが終了します。',
+                    visual: 'loop_progress',
+                },
+                {
+                    step: 5,
+                    title: '最終比較で回文かどうかを判定',
+                    desc:
+                        '何をするか：桁数が偶数なら original === revertedHalf、奇数なら original === Math.trunc(revertedHalf / 10) で比較し、一致すれば回文と判定します。' +
+                        'なぜこの操作が必要か：桁数が奇数の場合、revertedHalf には真ん中の桁が1つ多く含まれてしまうため、10で割って切り捨てることでその余分な桁を取り除いてから比較する必要があるからです。' +
+                        '具体的な例：original=12, revertedHalf=123 のとき、123 を10で割って切り捨てると12になり、original(12) と一致するので true です。',
+                    visual: 'final_compare',
+                },
+            ];
+            /* ============================================================
+   コード表示用の文字列（業務開発版 TypeScript 実装）
+   ============================================================ */
+            const CODE_CONTENT = `/**
+ * 整数 x が回文数（Palindrome Number）かどうかを判定する。
+ *
+ * 「回文数」とは、前から読んでも後ろから読んでも同じ並びになる整数のこと。
+ * 文字列に変換せず、数値の後半部分だけを反転させて前半部分と比較することで
+ * follow-up要件（文字列変換なしでの実装）に対応する。
+ *
+ * @param x - 判定対象の整数。制約: -2**31 <= x <= 2**31 - 1
+ * @returns x が回文数であれば true、そうでなければ false
+ * @throws {TypeError} x が整数でない場合
+ * @throws {RangeError} x が制約範囲外の場合
+ * @complexity Time: O(log10 x), Space: O(1)
+ */
+function isPalindrome(x: number): boolean {
+  // Number.isInteger() で「整数かどうか」を実行時にも確認する。
+  // TypeScriptの number 型は整数・小数を区別しないため、
+  // コンパイル時の型チェックだけでは保証できない。
+  if (!Number.isInteger(x)) {
+    throw new TypeError('x must be an integer');
+  }
+
+  // 32bit符号付き整数の範囲チェック（問題の制約に対応）
+  const INT32_MIN = -(2 ** 31);
+  const INT32_MAX = 2 ** 31 - 1;
+  if (x < INT32_MIN || x > INT32_MAX) {
+    throw new RangeError('x is out of the allowed range');
+  }
+
+  // エッジケース処理:
+  // ・x < 0                     → 先頭に "-" が付くため絶対に回文にならない
+  // ・x % 10 === 0 かつ x !== 0 → 反転すると先頭が 0 になり矛盾するため
+  //                                絶対に回文にならない（0 自身だけは例外）
+  if (x < 0 || (x % 10 === 0 && x !== 0)) {
+    return false;
+  }
+
+  let original: number = x;
+  let revertedHalf: number = 0;
+
+  // original（元の数の前半に相当する残り）と revertedHalf（後半を反転させた数）を、
+  // 桁数がちょうど半分ずつ入れ替わるまで競わせる。
+  while (original > revertedHalf) {
+    // 最下位の桁を取り出し、revertedHalf の末尾に追加する
+    revertedHalf = revertedHalf * 10 + (original % 10);
+
+    // 整数除算で最下位の桁を切り捨てる
+    original = Math.trunc(original / 10);
+  }
+
+  // 桁数が偶数: original と revertedHalf が完全一致
+  // 桁数が奇数: revertedHalf の真ん中の桁が1つ多いので /10 で切り捨てて比較
+  return original === revertedHalf || original === Math.trunc(revertedHalf / 10);
+}`;
+            const CODE_TRACE_CONTENT = `入力: x = 12321
+検証: Number.isInteger(12321) → true、範囲内 → 検証通過
+エッジケース判定: 12321 < 0 ? No / 12321 % 10 === 0 ? No → 通常ケースへ
+
+初期状態: original=12321, revertedHalf=0
+
+Step 1: original(12321) > revertedHalf(0) →
+        revertedHalf = 0*10+1 = 1, original = trunc(12321/10) = 1232
+Step 2: original(1232) > revertedHalf(1) →
+        revertedHalf = 1*10+2 = 12, original = trunc(1232/10) = 123
+Step 3: original(123) > revertedHalf(12) →
+        revertedHalf = 12*10+3 = 123, original = trunc(123/10) = 12
+Step 4: original(12) > revertedHalf(123) ? → No → ループ終了
+
+最終比較: original(12) === revertedHalf(123) ? → false
+          original(12) === trunc(revertedHalf/10)(12) ? → true
+
+出力: true ✅（12321は回文数）`;
+            /* ============================================================
+   StepVisualization：各ステップの状態を数字ボックスで可視化する
+   ============================================================ */
+            function DigitBoxes({ label, digits, colorClass }) {
+                return React.createElement(
+                    'div',
+                    { className: 'flex items-center gap-2 flex-wrap' },
+                    React.createElement(
+                        'span',
+                        { className: 'text-base font-semibold text-slate-500 w-28 shrink-0' },
+                        label,
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'flex gap-1' },
+                        digits.length === 0
+                            ? React.createElement(
+                                  'div',
+                                  {
+                                      className:
+                                          'w-9 h-9 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-300 text-base',
+                                  },
+                                  '空',
+                              )
+                            : digits
+                                  .split('')
+                                  .map((d, i) =>
+                                      React.createElement(
+                                          'div',
+                                          {
+                                              key: i,
+                                              className: [
+                                                  'w-9 h-9 rounded-lg border-2 flex items-center justify-center font-bold font-mono text-base',
+                                                  colorClass,
+                                              ].join(' '),
+                                          },
+                                          d,
+                                      ),
+                                  ),
+                    ),
+                );
+            }
+            function VariablePanel({ children }) {
+                return React.createElement(
+                    'div',
+                    {
+                        className:
+                            'mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-base space-y-1',
+                    },
+                    React.createElement(
+                        'div',
+                        { className: 'text-slate-500 mb-1 font-sans text-base font-semibold' },
+                        '🔍 現在の変数の状態',
+                    ),
+                    children,
+                );
+            }
+            function StepVisualization({ visual }) {
+                if (visual === 'edge_case_check') {
+                    return React.createElement(
+                        'div',
+                        { className: 'mt-4' },
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-1 sm:grid-cols-3 gap-3' },
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'rounded-xl border-2 border-red-300 bg-red-50 p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    { className: 'font-mono font-bold text-red-700' },
+                                    'x = -121',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base text-red-600 mt-1' },
+                                    'x < 0 → ❌ false',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'rounded-xl border-2 border-red-300 bg-red-50 p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    { className: 'font-mono font-bold text-red-700' },
+                                    'x = 120',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base text-red-600 mt-1' },
+                                    '末尾が0 → ❌ false',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'rounded-xl border-2 border-emerald-300 bg-emerald-50 p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    { className: 'font-mono font-bold text-emerald-700' },
+                                    'x = 12321',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base text-emerald-600 mt-1' },
+                                    '該当なし → ✅ 次へ',
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            VariablePanel,
+                            null,
+                            React.createElement(
+                                'div',
+                                { className: 'text-emerald-700' },
+                                'x = 12321',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-sky-700' },
+                                'x < 0 → false',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-amber-700' },
+                                'x % 10 === 0 && x !== 0 → false',
+                            ),
+                        ),
+                    );
+                }
+                if (visual === 'init_vars') {
+                    return React.createElement(
+                        'div',
+                        { className: 'mt-4' },
+                        React.createElement(DigitBoxes, {
+                            label: 'original',
+                            digits: '12321',
+                            colorClass: 'border-sky-400 bg-sky-50 text-sky-800',
+                        }),
+                        React.createElement(
+                            'div',
+                            { className: 'mt-2' },
+                            React.createElement(DigitBoxes, {
+                                label: 'revertedHalf',
+                                digits: '0',
+                                colorClass: 'border-amber-400 bg-amber-50 text-amber-800',
+                            }),
+                        ),
+                        React.createElement(
+                            VariablePanel,
+                            null,
+                            React.createElement(
+                                'div',
+                                { className: 'text-sky-700' },
+                                'original = 12321',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-amber-700' },
+                                'revertedHalf = 0',
+                            ),
+                        ),
+                    );
+                }
+                if (visual === 'extract_digit') {
+                    return React.createElement(
+                        'div',
+                        { className: 'mt-4' },
+                        React.createElement(DigitBoxes, {
+                            label: 'original（取出前）',
+                            digits: '12321',
+                            colorClass: 'border-sky-400 bg-sky-50 text-sky-800',
+                        }),
+                        React.createElement(
+                            'div',
+                            { className: 'text-center text-slate-400 text-base my-2' },
+                            '↓ 最下位桁「1」を revertedHalf へ移動 ↓',
+                        ),
+                        React.createElement(DigitBoxes, {
+                            label: 'revertedHalf（更新後）',
+                            digits: '1',
+                            colorClass: 'border-amber-400 bg-amber-50 text-amber-800',
+                        }),
+                        React.createElement(
+                            VariablePanel,
+                            null,
+                            React.createElement(
+                                'div',
+                                { className: 'text-sky-700' },
+                                'original % 10 → 1',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-amber-700' },
+                                'revertedHalf = 0*10+1 = 1',
+                            ),
+                        ),
+                    );
+                }
+                if (visual === 'loop_progress') {
+                    const rows = [
+                        ['12321', '0', '1232', '1'],
+                        ['1232', '1', '123', '12'],
+                        ['123', '12', '12', '123'],
+                    ];
+                    return React.createElement(
+                        'div',
+                        { className: 'mt-4' },
+                        React.createElement(
+                            'div',
+                            { className: 'overflow-x-auto' },
+                            React.createElement(
+                                'table',
+                                { className: 'w-full text-base font-mono border-collapse' },
+                                React.createElement(
+                                    'thead',
+                                    null,
+                                    React.createElement(
+                                        'tr',
+                                        { className: 'bg-slate-100 text-slate-600' },
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-2 border border-slate-200 text-left' },
+                                            'original（前）',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-2 border border-slate-200 text-left' },
+                                            'revertedHalf（前）',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-2 border border-slate-200 text-left' },
+                                            'original（後）',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-2 border border-slate-200 text-left' },
+                                            'revertedHalf（後）',
+                                        ),
+                                    ),
+                                ),
+                                React.createElement(
+                                    'tbody',
+                                    null,
+                                    rows.map((r, i) =>
+                                        React.createElement(
+                                            'tr',
+                                            { key: i, className: 'odd:bg-white even:bg-slate-50' },
+                                            React.createElement(
+                                                'td',
+                                                {
+                                                    className:
+                                                        'p-2 border border-slate-200 text-sky-700',
+                                                },
+                                                r[0],
+                                            ),
+                                            React.createElement(
+                                                'td',
+                                                {
+                                                    className:
+                                                        'p-2 border border-slate-200 text-amber-700',
+                                                },
+                                                r[1],
+                                            ),
+                                            React.createElement(
+                                                'td',
+                                                {
+                                                    className:
+                                                        'p-2 border border-slate-200 text-sky-700',
+                                                },
+                                                r[2],
+                                            ),
+                                            React.createElement(
+                                                'td',
+                                                {
+                                                    className:
+                                                        'p-2 border border-slate-200 text-amber-700',
+                                                },
+                                                r[3],
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            VariablePanel,
+                            null,
+                            React.createElement(
+                                'div',
+                                { className: 'text-sky-700' },
+                                'original: 12321 → 1232 → 123 → 12',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-amber-700' },
+                                'revertedHalf: 0 → 1 → 12 → 123',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-rose-700' },
+                                'ループ終了条件: original(12) > revertedHalf(123) が false になった',
+                            ),
+                        ),
+                    );
+                }
+                if (visual === 'final_compare') {
+                    return React.createElement(
+                        'div',
+                        { className: 'mt-4' },
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3' },
+                            React.createElement(DigitBoxes, {
+                                label: 'original',
+                                digits: '12',
+                                colorClass: 'border-sky-400 bg-sky-50 text-sky-800',
+                            }),
+                            React.createElement(DigitBoxes, {
+                                label: 'revertedHalf ÷10',
+                                digits: '12',
+                                colorClass: 'border-emerald-400 bg-emerald-50 text-emerald-800',
+                            }),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'mt-3 text-center text-emerald-700 font-bold text-base' },
+                            '12 === 12 → ✅ true（回文数）',
+                        ),
+                        React.createElement(
+                            VariablePanel,
+                            null,
+                            React.createElement(
+                                'div',
+                                { className: 'text-sky-700' },
+                                'original = 12',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-amber-700' },
+                                'revertedHalf = 123 → Math.trunc(123/10) = 12',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'text-emerald-700' },
+                                '判定結果: true',
+                            ),
+                        ),
+                    );
+                }
+                return null;
+            }
+            /* ============================================================
+   DiagramSection：Mermaid.js による処理フローチャート
+   ============================================================ */
+            function DiagramSection() {
+                const mermaidRef = useRef(null);
+                const [renderError, setRenderError] = useState(null);
+                // Mermaid定義。配列 + join("\n") で「1行1宣言」ルールを守りやすくする。
+                const mermaidDefinition = [
+                    'flowchart TD',
+                    '  Start[開始 xを受け取る]',
+                    '  Start --> CheckNeg{xは0より小さいか}',
+                    '  CheckNeg -- はい --> RetFalse1[falseを返す]',
+                    '  CheckNeg -- いいえ --> CheckTrail{xを10で割った余りが0 かつ xが0ではない}',
+                    '  CheckTrail -- はい --> RetFalse2[falseを返す]',
+                    '  CheckTrail -- いいえ --> Init[originalにxを代入し revertedHalfを0にする]',
+                    '  Init --> Loop{originalはrevertedHalfより大きいか}',
+                    '  Loop -- はい --> Extract[最下位桁をrevertedHalfへ追加する]',
+                    '  Extract --> Shrink[originalの最下位桁を切り捨てる]',
+                    '  Shrink --> Loop',
+                    '  Loop -- いいえ --> Compare{originalとrevertedHalfが一致するか}',
+                    '  Compare -- はい --> RetTrue[trueを返す]',
+                    '  Compare -- いいえ --> RetFalse3[falseを返す]',
+                    '  classDef startEnd fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46;',
+                    '  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e;',
+                    '  classDef process fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;',
+                    '  classDef falsePath fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;',
+                    '  classDef truePath fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46;',
+                    '  class Start startEnd',
+                    '  class CheckNeg decision',
+                    '  class CheckTrail decision',
+                    '  class Loop decision',
+                    '  class Compare decision',
+                    '  class Init process',
+                    '  class Extract process',
+                    '  class Shrink process',
+                    '  class RetFalse1 falsePath',
+                    '  class RetFalse2 falsePath',
+                    '  class RetFalse3 falsePath',
+                    '  class RetTrue truePath',
+                    '  linkStyle 1 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 2 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 3 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 4 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 6 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 8 stroke:#a855f7,stroke-width:2px',
+                    '  linkStyle 9 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 10 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 11 stroke:#dc2626,stroke-width:2px',
+                ].join('\n');
+                useEffect(() => {
+                    let cancelled = false;
+                    async function renderDiagram() {
+                        if (!window.mermaid) {
+                            if (!cancelled)
+                                setRenderError('Mermaidライブラリの読み込みに失敗しました。');
+                            return;
+                        }
+                        try {
+                            window.mermaid.initialize({
+                                startOnLoad: false,
+                                securityLevel: 'loose',
+                                fontFamily: 'Inter, sans-serif',
+                            });
+                            const { svg } = await window.mermaid.render(
+                                'mermaid-9-palindrome-flowchart',
+                                mermaidDefinition,
+                            );
+                            if (!cancelled && mermaidRef.current) {
+                                mermaidRef.current.innerHTML = svg;
+                            }
+                        } catch (err) {
+                            if (!cancelled)
+                                setRenderError('フローチャートの描画中にエラーが発生しました。');
+                        }
+                    }
+                    renderDiagram();
+                    return () => {
+                        cancelled = true;
+                    };
+                }, []);
+                return React.createElement(
+                    'section',
+                    { id: 'diagram', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                    React.createElement(
+                        'h2',
+                        {
+                            className:
+                                'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                        },
+                        '処理フローチャート',
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-amber-800 font-semibold text-base mb-2' },
+                            '🗺️ フローチャートの読み方',
+                        ),
+                        React.createElement(
+                            'ul',
+                            { className: 'text-slate-700 text-base space-y-2 list-none' },
+                            React.createElement(
+                                'li',
+                                { className: 'flex items-center gap-2' },
+                                React.createElement(
+                                    'svg',
+                                    { width: '20', height: '16', viewBox: '0 0 20 16' },
+                                    React.createElement('rect', {
+                                        x: '1',
+                                        y: '1',
+                                        width: '18',
+                                        height: '14',
+                                        rx: '4',
+                                        fill: '#d1fae5',
+                                        stroke: '#10b981',
+                                        strokeWidth: '1.5',
+                                    }),
+                                ),
+                                '四角（緑）= 開始ノード・回文と確定した終了ノード',
+                            ),
+                            React.createElement(
+                                'li',
+                                { className: 'flex items-center gap-2' },
+                                React.createElement(
+                                    'svg',
+                                    { width: '20', height: '16', viewBox: '0 0 20 16' },
+                                    React.createElement('rect', {
+                                        x: '1',
+                                        y: '1',
+                                        width: '18',
+                                        height: '14',
+                                        rx: '4',
+                                        fill: '#e0f2fe',
+                                        stroke: '#0284c7',
+                                        strokeWidth: '1.5',
+                                    }),
+                                ),
+                                '四角（青）= 処理ステップ（変数の更新など）',
+                            ),
+                            React.createElement(
+                                'li',
+                                { className: 'flex items-center gap-2' },
+                                React.createElement(
+                                    'svg',
+                                    { width: '20', height: '16', viewBox: '0 0 20 16' },
+                                    React.createElement('polygon', {
+                                        points: '10,1 19,8 10,15 1,8',
+                                        fill: '#fef3c7',
+                                        stroke: '#f59e0b',
+                                        strokeWidth: '1.5',
+                                    }),
+                                ),
+                                'ひし形（黄）= 条件分岐（Yes / No で処理が分かれる）',
+                            ),
+                            React.createElement(
+                                'li',
+                                { className: 'flex items-center gap-2' },
+                                React.createElement(
+                                    'svg',
+                                    { width: '20', height: '16', viewBox: '0 0 20 16' },
+                                    React.createElement('rect', {
+                                        x: '1',
+                                        y: '1',
+                                        width: '18',
+                                        height: '14',
+                                        rx: '4',
+                                        fill: '#fee2e2',
+                                        stroke: '#dc2626',
+                                        strokeWidth: '1.5',
+                                    }),
+                                ),
+                                '四角（赤）= 回文ではないと確定した終了ノード',
+                            ),
+                            React.createElement(
+                                'li',
+                                { className: 'text-slate-600 text-base mt-1' },
+                                '矢印の色：緑＝Yes（はい）の経路、赤＝No（いいえ）の経路、紫＝ループの繰り返し（ループバック）',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 flex flex-col items-center gap-3' },
+                        renderError &&
+                            React.createElement(
+                                'p',
+                                {
+                                    className:
+                                        'text-red-600 text-base bg-red-50 border border-red-200 rounded-lg px-4 py-2',
+                                },
+                                renderError,
+                            ),
+                        React.createElement('div', {
+                            ref: mermaidRef,
+                            className:
+                                'mermaid-container w-full overflow-x-auto flex justify-center',
+                            role: 'img',
+                            'aria-label': 'Palindrome Number flowchart',
+                        }),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 font-semibold text-base mb-2' },
+                            '🔎 入力例 x = 12321 でのフロー追跡',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-600 text-base space-y-1 list-decimal list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                null,
+                                '「開始」ノード → x = 12321 を受け取る',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「xは0より小さいか」→ 12321は正の数なので「いいえ」の経路へ',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「xを10で割った余りが0 かつ xが0ではない」→ 12321 % 10 = 1 なので「いいえ」の経路へ',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「originalにxを代入し revertedHalfを0にする」→ original=12321, revertedHalf=0 に初期化',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「originalはrevertedHalfより大きいか」ループを3回繰り返し、original=12, revertedHalf=123 になった時点で「いいえ」の経路へ',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「originalとrevertedHalfが一致するか」→ 12 と Math.trunc(123/10)=12 が一致するので「はい」の経路へ',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「trueを返す」ノード → 結果 true を返す',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'p',
+                        { className: 'mt-5 text-slate-700 leading-8 text-base' },
+                        'このフローチャートからわかる通り、判定ロジックは大きく分けて「①明らかに回文になり得ないケースを先に弾く」「②数値の後半を反転させながらループする」「③ループ終了後に前半と後半を比較する」の3段階です。 分岐やループの構造が視覚的に整理されていると、コードを読むときに「今どの段階の処理をしているか」を見失いにくくなります。',
+                    ),
+                );
+            }
+            /* ============================================================
+   App：ページ全体のルートコンポーネント
+   ============================================================ */
+            function App() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+                const codeRef = useRef(null);
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+                const handleStepClick = (stepNum) => {
+                    setActiveStep(stepNum);
+                    setIsPlaying(false);
+                };
+                const handlePlay = () => {
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep > stepsData.length) {
+                            setIsPlaying(false);
+                            setActiveStep(1);
+                            return;
+                        }
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+                // Prism.js でコードブロックをハイライトする（DOM描画後に実行する必要がある）
+                useEffect(() => {
+                    if (window.Prism) {
+                        window.Prism.highlightAll();
+                    }
+                }, []);
+                return React.createElement(
+                    React.Fragment,
+                    null,
+                    React.createElement(
+                        'header',
+                        {
+                            id: 'header',
+                            className:
+                                'mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]',
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center gap-3 mb-2' },
+                            React.createElement(
+                                'span',
+                                {
+                                    className:
+                                        'bg-emerald-600 text-white text-base font-bold px-3 py-1 rounded-full',
+                                },
+                                'LeetCode 9',
+                            ),
+                            React.createElement(
+                                'span',
+                                {
+                                    className:
+                                        'bg-sky-500 text-white text-base font-bold px-3 py-1 rounded-full',
+                                },
+                                'Easy',
+                            ),
+                        ),
+                        React.createElement(
+                            'h1',
+                            { className: 'text-[2.4rem] font-extrabold text-teal-900 mb-1 outfit' },
+                            'Palindrome Number',
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-lg text-cyan-700 font-semibold mt-1' },
+                            '数値の後半反転比較法による O(log₁₀ n) 実装',
+                        ),
+                        React.createElement(
+                            'p',
+                            {
+                                className:
+                                    'mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block',
+                            },
+                            '💡 一言で言うと：「整数を数字の並びとして見たとき、前から読んでも後ろから読んでも同じかどうかを判定する問題」',
+                        ),
+                        React.createElement(
+                            'nav',
+                            { className: 'flex flex-wrap gap-3 mt-6' },
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#overview',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                '概要',
+                            ),
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#steps',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                'ステップ解説',
+                            ),
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#code',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                'コード',
+                            ),
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#diagram',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                'フローチャート',
+                            ),
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#complexity',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                '計算量',
+                            ),
+                            React.createElement(
+                                'a',
+                                {
+                                    href: '#glossary',
+                                    className:
+                                        'inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base',
+                                },
+                                '📖 用語集',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'section',
+                        { id: 'overview', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                        React.createElement(
+                            'h2',
+                            {
+                                className:
+                                    'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                            },
+                            'アルゴリズム概要',
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500',
+                            },
+                            React.createElement(
+                                'p',
+                                { className: 'text-emerald-800 font-semibold text-base' },
+                                '💡 この問題を一言で言うと：「整数を数字の並びとして見たとき、前から読んでも後ろから読んでも同じかどうかを判定する問題」です。',
+                            ),
+                            React.createElement(
+                                'p',
+                                { className: 'text-slate-600 text-base mt-2' },
+                                '例えば 121 は前から読んでも後ろから読んでも「1・2・1」なので回文数ですが、123 は後ろから読むと「3・2・1」になってしまうため回文数ではありません。 follow-up（発展課題）として「整数を文字列に変換せずに解けるか」が問われている点が、この問題の学習ポイントです。',
+                            ),
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400',
+                            },
+                            React.createElement(
+                                'p',
+                                { className: 'text-amber-800 font-semibold text-base mb-2' },
+                                '⚠️ なぜ単純な方法では解けないのか',
+                            ),
+                            React.createElement(
+                                'ul',
+                                {
+                                    className:
+                                        'text-slate-600 text-base space-y-1 list-disc list-inside',
+                                },
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    '一番シンプルな方法（',
+                                    React.createElement(
+                                        'code',
+                                        {
+                                            className:
+                                                'bg-slate-100 px-1 rounded font-mono text-base',
+                                        },
+                                        'String(x)',
+                                    ),
+                                    'で文字列に変換して逆順と比較する方法）は実装が簡単ですが、follow-up要件「文字列に変換せずに解けるか」を満たせません。',
+                                ),
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    '負の数や、末尾が0の数（10, 100など）など、見落としやすいエッジケース（境界的な入力）がいくつか存在し、対応を誤ると正しく判定できません。',
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-2 md:grid-cols-4 gap-3 mb-6' },
+                            React.createElement(
+                                'div',
+                                {
+                                    style: { background: '#d1fae5', color: '#065f46' },
+                                    className: 'rounded-xl p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'font-bold text-base font-mono break-all leading-tight',
+                                    },
+                                    'O(log₁₀ n)',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base mt-1' },
+                                    '時間計算量',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                {
+                                    style: { background: '#bfdbfe', color: '#1e40af' },
+                                    className: 'rounded-xl p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'font-bold text-base font-mono break-all leading-tight',
+                                    },
+                                    'O(1)',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base mt-1' },
+                                    '空間計算量',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                {
+                                    style: { background: '#fef3c7', color: '#92400e' },
+                                    className: 'rounded-xl p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'font-bold text-base font-mono break-all leading-tight',
+                                    },
+                                    'Easy',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base mt-1' },
+                                    '難易度',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                {
+                                    style: { background: '#ede9fe', color: '#5b21b6' },
+                                    className: 'rounded-xl p-3 text-center',
+                                },
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'font-bold text-base font-mono break-all leading-tight',
+                                    },
+                                    '半分反転比較',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'text-base mt-1' },
+                                    '使用テクニック',
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-1 md:grid-cols-3 gap-3 mb-4' },
+                            React.createElement(
+                                'div',
+                                { className: 'rounded-xl border border-slate-200 p-4' },
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base font-semibold text-slate-500 mb-1' },
+                                    'Example 1',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-slate-700' },
+                                    'Input: x = 121',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-emerald-700' },
+                                    'Output: true',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base text-slate-500 mt-1' },
+                                    '121は前からも後ろからも「121」なので回文です。',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'rounded-xl border border-slate-200 p-4' },
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base font-semibold text-slate-500 mb-1' },
+                                    'Example 2',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-slate-700' },
+                                    'Input: x = -121',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-red-600' },
+                                    'Output: false',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base text-slate-500 mt-1' },
+                                    '負の符号「-」があるため、逆から読むと一致しません。',
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'rounded-xl border border-slate-200 p-4' },
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base font-semibold text-slate-500 mb-1' },
+                                    'Example 3',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-slate-700' },
+                                    'Input: x = 10',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'font-mono text-base text-red-600' },
+                                    'Output: false',
+                                ),
+                                React.createElement(
+                                    'p',
+                                    { className: 'text-base text-slate-500 mt-1' },
+                                    '逆から読むと「01」となり、先頭の0は数として成立しないため一致しません。',
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-600 text-base leading-7' },
+                            '制約は ',
+                            React.createElement(
+                                'code',
+                                { className: 'bg-slate-100 px-1 rounded font-mono text-base' },
+                                '-2^31 <= x <= 2^31 - 1',
+                            ),
+                            ' なので、桁数は最大でも10桁程度です。 この規模であればどんな方法でも実行時間の心配はほぼありませんが、follow-upに応えるアルゴリズム設計そのものが、この問題の本質的な学びどころです。',
+                        ),
+                    ),
+                    React.createElement(
+                        'section',
+                        { id: 'steps', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                        React.createElement(
+                            'h2',
+                            {
+                                className:
+                                    'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                            },
+                            'ステップバイステップ解説',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2' },
+                            React.createElement(
+                                'div',
+                                null,
+                                React.createElement(
+                                    'h3',
+                                    { className: 'mt-0 mb-4 text-teal-800 text-xl font-semibold' },
+                                    'ステップ一覧',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    { className: 'space-y-2' },
+                                    stepsData.map((step) => {
+                                        const isActive = activeStep === step.step;
+                                        return React.createElement(
+                                            'button',
+                                            {
+                                                key: step.step,
+                                                type: 'button',
+                                                className: [
+                                                    'w-full text-left text-base rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                    'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                    isActive
+                                                        ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                        : '',
+                                                ].join(' '),
+                                                onClick: () => handleStepClick(step.step),
+                                                'aria-label': `ステップ${step.step}: ${step.title}`,
+                                                'aria-current': isActive ? 'step' : undefined,
+                                            },
+                                            React.createElement(
+                                                'div',
+                                                {
+                                                    className: [
+                                                        'font-bold mb-1',
+                                                        isActive
+                                                            ? 'text-emerald-900'
+                                                            : 'text-teal-800',
+                                                    ].join(' '),
+                                                },
+                                                'Step ',
+                                                step.step,
+                                                ': ',
+                                                step.title,
+                                            ),
+                                            React.createElement(
+                                                'div',
+                                                { className: 'text-slate-500 text-base mt-1' },
+                                                step.desc.substring(0, 50),
+                                                step.desc.length > 50 ? '...' : '',
+                                            ),
+                                        );
+                                    }),
+                                ),
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'my-auto' },
+                                activeStep > 1 &&
+                                    React.createElement(
+                                        'div',
+                                        {
+                                            className:
+                                                'mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-base text-slate-500',
+                                        },
+                                        '← 前のステップ（Step ',
+                                        activeStep - 1,
+                                        '）では「',
+                                        stepsData[activeStep - 2]?.title,
+                                        '」を行いました',
+                                    ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]',
+                                    },
+                                    React.createElement(
+                                        'h3',
+                                        { className: 'mt-0 text-teal-800 text-lg font-bold' },
+                                        'Step ',
+                                        currentStepData.step,
+                                        ': ',
+                                        currentStepData.title,
+                                    ),
+                                    React.createElement(
+                                        'p',
+                                        { className: 'text-slate-600 leading-7 text-base mt-2' },
+                                        currentStepData.desc,
+                                    ),
+                                ),
+                                React.createElement(StepVisualization, {
+                                    visual: currentStepData.visual,
+                                }),
+                                React.createElement(
+                                    'div',
+                                    { className: 'flex flex-wrap justify-center gap-2 mt-4' },
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            type: 'button',
+                                            className:
+                                                'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-base',
+                                            onClick: handlePlay,
+                                            disabled: isPlaying,
+                                        },
+                                        '▶ Play',
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            type: 'button',
+                                            className:
+                                                'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                            onClick: () => {
+                                                setActiveStep((s) => Math.max(1, s - 1));
+                                                setIsPlaying(false);
+                                            },
+                                            disabled: activeStep === 1,
+                                        },
+                                        '◀ Prev',
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            type: 'button',
+                                            className:
+                                                'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                            onClick: () => {
+                                                setActiveStep((s) =>
+                                                    Math.min(stepsData.length, s + 1),
+                                                );
+                                                setIsPlaying(false);
+                                            },
+                                            disabled: activeStep === stepsData.length,
+                                        },
+                                        'Next ▶',
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            type: 'button',
+                                            className:
+                                                'px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-base',
+                                            onClick: () => {
+                                                setActiveStep(1);
+                                                setIsPlaying(false);
+                                            },
+                                        },
+                                        '↺ Reset',
+                                    ),
+                                ),
+                                activeStep === stepsData.length &&
+                                    React.createElement(
+                                        'div',
+                                        {
+                                            className:
+                                                'mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-base text-center',
+                                        },
+                                        '🎉 全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。',
+                                    ),
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'section',
+                        { id: 'code', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                        React.createElement(
+                            'h2',
+                            {
+                                className:
+                                    'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                            },
+                            'TypeScript実装',
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200',
+                            },
+                            React.createElement(
+                                'p',
+                                { className: 'text-emerald-800 font-semibold text-base mb-2' },
+                                '📋 このコードの構造（先に全体像を把握しよう）',
+                            ),
+                            React.createElement(
+                                'ol',
+                                {
+                                    className:
+                                        'text-slate-700 text-base space-y-1 list-decimal list-inside',
+                                },
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    '入力が整数かどうか、制約範囲内かどうかを検証する',
+                                ),
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    '負の数・末尾が0の数（0自身を除く）を即座に false と判定する',
+                                ),
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    'original と revertedHalf の2変数を使い、後半部分だけを反転させながらループする',
+                                ),
+                                React.createElement(
+                                    'li',
+                                    null,
+                                    'ループ終了後、桁数の偶奇に応じて前半と後半を比較し、結果を返す',
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'pre',
+                            { className: 'line-numbers' },
+                            React.createElement(
+                                'code',
+                                { className: 'language-typescript' },
+                                CODE_CONTENT,
+                            ),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200' },
+                            React.createElement(
+                                'p',
+                                { className: 'text-sky-800 font-semibold text-base mb-2' },
+                                '▶ 入力例 x = 12321 での動作トレース',
+                            ),
+                            React.createElement(
+                                'pre',
+                                {
+                                    className:
+                                        'text-slate-700 text-base font-mono leading-6 overflow-x-auto whitespace-pre',
+                                },
+                                CODE_TRACE_CONTENT,
+                            ),
+                        ),
+                    ),
+                    React.createElement(DiagramSection, null),
+                    React.createElement(
+                        'section',
+                        { id: 'complexity', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                        React.createElement(
+                            'h2',
+                            {
+                                className:
+                                    'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                            },
+                            '計算量分析',
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200',
+                            },
+                            React.createElement(
+                                'p',
+                                { className: 'text-slate-700 font-semibold text-base mb-2' },
+                                '📖 Big-O 記法の読み方',
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'grid grid-cols-2 md:grid-cols-4 gap-2 text-base' },
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'text-center p-2 rounded-lg bg-emerald-100 text-emerald-800',
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'font-bold font-mono' },
+                                        'O(1)',
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'mt-1' },
+                                        '入力サイズに関わらず',
+                                        React.createElement('br', null),
+                                        '常に一定の速さ',
+                                    ),
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'text-center p-2 rounded-lg bg-sky-100 text-sky-800',
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'font-bold font-mono' },
+                                        'O(log n)',
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'mt-1' },
+                                        '入力が2倍になっても',
+                                        React.createElement('br', null),
+                                        '処理はわずかしか増えない',
+                                    ),
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'text-center p-2 rounded-lg bg-amber-100 text-amber-800',
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'font-bold font-mono' },
+                                        'O(n)',
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'mt-1' },
+                                        '入力が2倍になると',
+                                        React.createElement('br', null),
+                                        '処理も約2倍',
+                                    ),
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'text-center p-2 rounded-lg bg-red-100 text-red-800',
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        { className: 'font-bold font-mono' },
+                                        'O(n²)',
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'mt-1' },
+                                        '入力が2倍になると',
+                                        React.createElement('br', null),
+                                        '処理は約4倍',
+                                    ),
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'overflow-x-auto' },
+                            React.createElement(
+                                'table',
+                                { className: 'w-full text-base border-collapse' },
+                                React.createElement(
+                                    'thead',
+                                    null,
+                                    React.createElement(
+                                        'tr',
+                                        { className: 'bg-slate-100 text-slate-600 text-left' },
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            'アプローチ',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '時間計算量',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '空間計算量',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            'TS実装コスト',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '型安全性',
+                                        ),
+                                        React.createElement(
+                                            'th',
+                                            { className: 'p-3 border border-slate-200' },
+                                            'follow-up対応',
+                                        ),
+                                    ),
+                                ),
+                                React.createElement(
+                                    'tbody',
+                                    null,
+                                    React.createElement(
+                                        'tr',
+                                        { className: 'odd:bg-white even:bg-slate-50' },
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '方法A: 文字列変換 + 反転比較',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(d)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(d)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '低',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '高',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            {
+                                                className:
+                                                    'p-3 border border-slate-200 text-red-600',
+                                            },
+                                            '✗ 不可',
+                                        ),
+                                    ),
+                                    React.createElement(
+                                        'tr',
+                                        { className: 'odd:bg-white even:bg-slate-50' },
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '方法B: 数値全体を反転して比較',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(d)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(1)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '中',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '高',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            {
+                                                className:
+                                                    'p-3 border border-slate-200 text-emerald-600',
+                                            },
+                                            '○ 可能',
+                                        ),
+                                    ),
+                                    React.createElement(
+                                        'tr',
+                                        {
+                                            className:
+                                                'odd:bg-white even:bg-slate-50 bg-emerald-50',
+                                        },
+                                        React.createElement(
+                                            'td',
+                                            {
+                                                className:
+                                                    'p-3 border border-slate-200 font-semibold',
+                                            },
+                                            '方法C: 後半だけ反転（採用）',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(d/2)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200 font-mono' },
+                                            'O(1)',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '中',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            { className: 'p-3 border border-slate-200' },
+                                            '高',
+                                        ),
+                                        React.createElement(
+                                            'td',
+                                            {
+                                                className:
+                                                    'p-3 border border-slate-200 text-emerald-600',
+                                            },
+                                            '○ 可能',
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-500 text-base mt-2' },
+                            '※ d は x の桁数（10進数での桁の数）を表します。',
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200',
+                            },
+                            React.createElement(
+                                'p',
+                                { className: 'text-emerald-800 font-semibold text-base mb-2' },
+                                '🔍 なぜこの計算量になるのか',
+                            ),
+                            React.createElement(
+                                'p',
+                                { className: 'text-slate-700 text-base leading-7' },
+                                '採用した方法Cでは、original が revertedHalf を上回っている間だけループが回ります。1回のループごとに original の桁数は1つ減り、revertedHalf の桁数は1つ増えるため、両者がちょうど半分の桁数で交差した時点でループが自然に停止します。 つまりループ回数は「桁数 d の半分」で済み、時間計算量は O(d/2) ≈ O(log₁₀ x) となります。 使用する変数は original と revertedHalf の2つだけで、桁数に比例して増えるデータ構造（配列や文字列）を一切使わないため、空間計算量は O(1) です。',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'section',
+                        { id: 'glossary', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                        React.createElement(
+                            'h2',
+                            {
+                                className:
+                                    'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                            },
+                            '📖 用語集',
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-500 text-base mb-5' },
+                            'このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'space-y-2' },
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' エッジケース',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '空の入力・最小値・最大値・負の数・末尾が0の数など、通常とは異なる境界的な入力のことです。今回の問題では「負の数」と「末尾が0の数（0自身を除く）」が代表的なエッジケースにあたります。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' オーバーフロー',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '計算結果が、その型が表現できる範囲を超えてしまい、値が壊れてしまう現象です。JavaScript/TypeScriptの number 型は倍精度浮動小数点数で',
+                                    React.createElement(
+                                        'code',
+                                        {
+                                            className:
+                                                'bg-slate-100 px-1 rounded font-mono text-base',
+                                        },
+                                        '2^53 - 1',
+                                    ),
+                                    ' まで整数を正確に表現できるため、この問題の制約範囲（32bit整数）では基本的に心配ありません。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 回文数（かいぶんすう）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '前から読んでも後ろから読んでも同じ並びになる数のことです。例えば 121 や 12321 は回文数ですが、123 は回文数ではありません。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 型ガード（かたガード）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '実行時に値の型を確認し、後続の処理で安全にその型として扱えるようにするチェックのことです。今回の実装では ',
+                                    React.createElement(
+                                        'code',
+                                        {
+                                            className:
+                                                'bg-slate-100 px-1 rounded font-mono text-base',
+                                        },
+                                        'Number.isInteger(x)',
+                                    ),
+                                    ' がこれにあたります。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 型推論（かたすいろん）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '型を明示的に書かなくても、TypeScriptが文脈から自動的に型を判断してくれる機能です。例えば ',
+                                    React.createElement(
+                                        'code',
+                                        {
+                                            className:
+                                                'bg-slate-100 px-1 rounded font-mono text-base',
+                                        },
+                                        'let original = x;',
+                                    ),
+                                    ' と書くだけで、original の型は自動的に number と推論されます。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 空間計算量（くうかんけいさんりょう）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '処理中に使うメモリ量が、入力の大きさに対してどう増えるかの目安です。今回の実装は追加のデータ構造を使わないため O(1)（一定）です。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 時間計算量（じかんけいさんりょう）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '入力の大きさに対して、処理にかかる手間がどう増えるかの目安です。今回の実装では桁数の半分だけループするため O(log₁₀ n) となります。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 整数除算（せいすうじょさん）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '小数点以下を切り捨てた割り算のことです。JavaScript/TypeScriptには専用の演算子がないため、',
+                                    React.createElement(
+                                        'code',
+                                        {
+                                            className:
+                                                'bg-slate-100 px-1 rounded font-mono text-base',
+                                        },
+                                        'Math.trunc(a / b)',
+                                    ),
+                                    ' で代用します。',
+                                ),
+                            ),
+                            React.createElement(
+                                'details',
+                                { className: 'rounded-xl border border-slate-200 overflow-hidden' },
+                                React.createElement(
+                                    'summary',
+                                    {
+                                        className:
+                                            'font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2',
+                                    },
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-emerald-500' },
+                                        '▶',
+                                    ),
+                                    ' 早期終了（そうきしゅうりょう）',
+                                ),
+                                React.createElement(
+                                    'div',
+                                    {
+                                        className:
+                                            'px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200',
+                                    },
+                                    '全データを処理しきる前に、条件を満たした時点でループを打ち切る書き方です。今回の実装では、桁数の半分の時点でループが自然に停止するため、数値全体を反転させる方法よりも演算回数が少なく済みます。',
+                                ),
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'footer',
+                        { className: 'text-center text-slate-400 text-base pb-6' },
+                        'LeetCode 9: Palindrome Number ｜ 数値の後半反転比較法による解説ページ',
+                    ),
+                );
+            }
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(React.createElement(App, null));
+        </script>
+    </body>
+</html>

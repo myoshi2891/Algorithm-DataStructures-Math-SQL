@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LeetCode 141: Linked List Cycle - 亀と兎のアルゴリズムで解説</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <script src="/vendor/react/react.development.js" crossorigin></script>
+        <script
+            src="/vendor/react-dom/react-dom.development.js"
+            crossorigin
+        ></script>
+        <script src="/vendor/babel/babel.min.js"></script>
+        <script src="/vendor/tailwindcss/script.js"></script>
+
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/themes/prism-tomorrow.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="/vendor/prismjs/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <script>
+            window.Prism = window.Prism || {};
+            window.Prism.manual = true; // Reactが描画した後に手動でハイライトするため自動実行を止める
+        </script>
+        <script src="/vendor/prismjs/prism.js"></script>
+        <script src="/vendor/prismjs/components/prism-python.min.js"></script>
+        <script src="/vendor/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="/vendor/prismjs/plugins/toolbar/prism-toolbar.js"></script>
+        <script src="/vendor/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js"></script>
+        <script src="/vendor/mermaid/mermaid.min.js"></script>
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(180deg, #f0fdf4, #e0f2fe);
+            }
+            .outfit {
+                font-family: 'Outfit', sans-serif;
+            }
+            code,
+            pre {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            *:focus-visible {
+                outline: 3px solid #0ea5e9;
+                outline-offset: 2px;
+                border-radius: 4px;
+            }
+
+            @keyframes stepFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(6px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .step-panel-anim {
+                animation: stepFadeIn 0.35s ease;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+                html {
+                    scroll-behavior: auto;
+                }
+            }
+
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 12px !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+
+            pre[class*='language-'] {
+                border-radius: 0.75rem !important;
+                font-size: 0.8rem !important;
+                line-height: 1.7 !important;
+            }
+
+            .mermaid-container svg {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+
+        <script type="text/babel">
+            const { useState, useEffect, useRef } = React;
+
+            /* ============ ヘッダー ============ */
+            function Header() {
+                const navItems = [
+                    { href: '#overview', label: '概要' },
+                    { href: '#steps', label: 'ステップ解説' },
+                    { href: '#code', label: 'コード' },
+                    { href: '#diagram', label: 'フローチャート' },
+                    { href: '#complexity', label: '計算量' },
+                    { href: '#glossary', label: '📖 用語集' },
+                ];
+                return (
+                    <header
+                        id="header"
+                        className="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+                    >
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <span className="bg-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                LeetCode 141
+                            </span>
+                            <span className="bg-sky-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                Easy
+                            </span>
+                        </div>
+                        <h1 className="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1 leading-tight">
+                            Linked List Cycle
+                        </h1>
+                        <p className="text-lg text-cyan-700 font-semibold mt-1">
+                            高速・低速ポインタ法（Floyd's Tortoise and Hare）による O(n) 時間・O(1)
+                            空間の実装
+                        </p>
+
+                        <p className="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-3 inline-block">
+                            💡
+                            一言で言うと：「連結リストをたどっていったとき、同じノードに戻ってきてしまう輪っか（サイクル）があるかを判定する問題」です。
+                        </p>
+
+                        <nav className="flex flex-wrap gap-3 mt-6">
+                            {navItems.map((item) => (
+                                <a
+                                    key={item.href}
+                                    href={item.href}
+                                    className="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-sm"
+                                >
+                                    {item.label}
+                                </a>
+                            ))}
+                        </nav>
+                    </header>
+                );
+            }
+
+            /* ============ 概要 ============ */
+            function Overview() {
+                const metrics = [
+                    { key: 'O(n)', label: '時間計算量', bg: '#d1fae5', fg: '#065f46' },
+                    { key: 'O(1)', label: '空間計算量', bg: '#bfdbfe', fg: '#1e40af' },
+                    { key: 'ListNode', label: '使うデータ構造', bg: '#fef3c7', fg: '#92400e' },
+                    { key: 'Two Pointers', label: '採用テクニック', bg: '#ede9fe', fg: '#5b21b6' },
+                ];
+                const examples = [
+                    {
+                        input: 'head = [3,2,0,-4], pos = 1',
+                        output: 'true',
+                        why: '末尾の -4 が インデックス1（値2）のノードに戻るため、輪っかが存在する。',
+                    },
+                    {
+                        input: 'head = [1,2], pos = 0',
+                        output: 'true',
+                        why: '末尾の 2 が インデックス0（値1）のノードに戻るため、輪っかが存在する。',
+                    },
+                    {
+                        input: 'head = [1], pos = -1',
+                        output: 'false',
+                        why: 'pos = -1 は「どこにも戻らない」ことを意味し、リストはそのまま終端に到達する。',
+                    },
+                ];
+                return (
+                    <section id="overview" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            アルゴリズム概要
+                        </h2>
+
+                        <div className="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                            <p className="text-emerald-800 font-semibold text-base">
+                                💡
+                                この問題を一言で言うと：「連結リストをたどっていったとき、以前に通ったノードにまた戻ってきてしまう輪っかがあるかを判定する問題」です。
+                            </p>
+                            <p className="text-slate-600 text-sm mt-2 leading-6">
+                                連結リスト（＝ノードが{' '}
+                                <code className="bg-white px-1 rounded font-mono text-xs">
+                                    next
+                                </code>{' '}
+                                という矢印でつながった構造）を先頭からたどっていく際、輪っかがあると「終端（None）」にたどり着けません。そこで、有限のステップで確実に判定できる工夫が必要になります。
+                            </p>
+                        </div>
+
+                        <div className="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                            <p className="text-amber-800 font-semibold text-sm mb-2">
+                                ⚠️ なぜ単純な方法では解けないのか
+                            </p>
+                            <ul className="text-slate-600 text-sm space-y-1 list-disc list-inside leading-6">
+                                <li>
+                                    「nextを順番にたどってNoneを待つ」だけの実装だと、サイクルがある場合に永遠に終わらない（無限ループになる）危険がある。
+                                </li>
+                                <li>
+                                    訪問済みノードを配列や集合に記録する方法は正しく動くが、メモリ効率が悪化する（O(n)の追加メモリが必要）。
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                            {metrics.map((m) => (
+                                <div
+                                    key={m.label}
+                                    style={{ background: m.bg, color: m.fg }}
+                                    className="rounded-xl p-3 text-center"
+                                >
+                                    <div className="font-bold text-xs font-mono break-all leading-tight">
+                                        {m.key}
+                                    </div>
+                                    <div className="text-xs mt-1">{m.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <p className="text-slate-700 font-semibold text-sm mb-3">
+                            📥 入出力例と正解の理由
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {examples.map((ex, i) => (
+                                <div
+                                    key={i}
+                                    className="rounded-xl border border-slate-200 p-4 bg-slate-50"
+                                >
+                                    <div className="font-mono text-xs text-slate-600 break-all">
+                                        {ex.input}
+                                    </div>
+                                    <div className="mt-2 font-mono text-sm font-bold text-teal-700">
+                                        出力: {ex.output}
+                                    </div>
+                                    <div className="mt-2 text-xs text-slate-500 leading-5">
+                                        {ex.why}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ============ ステップ可視化 ============ */
+            function StepVisualization({ visualKey }) {
+                const nodeValues = [3, 2, 0, -4];
+                const pointerStateByVisual = {
+                    validate: { slow: null, fast: null, matched: false, finalResult: false },
+                    init: { slow: 0, fast: 0, matched: false, finalResult: false },
+                    iter1: { slow: 1, fast: 2, matched: false, finalResult: false },
+                    iter2: { slow: 2, fast: 1, matched: false, finalResult: false },
+                    iter3: { slow: 3, fast: 3, matched: true, finalResult: false },
+                    result: { slow: 3, fast: 3, matched: true, finalResult: true },
+                };
+                const state = pointerStateByVisual[visualKey] || pointerStateByVisual.validate;
+
+                return (
+                    <div className="mt-4">
+                        <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-6 pt-12 overflow-x-auto">
+                            <div className="flex items-center justify-center gap-1 min-w-[440px]">
+                                {nodeValues.map((val, idx) => {
+                                    const isSlow = state.slow === idx;
+                                    const isFast = state.fast === idx;
+                                    const isBoth = isSlow && isFast;
+                                    return (
+                                        <React.Fragment key={idx}>
+                                            <div className="relative flex flex-col items-center">
+                                                <div className="absolute -top-9 flex flex-col items-center h-8 justify-end w-max">
+                                                    {isBoth && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400 text-amber-900 whitespace-nowrap">
+                                                            🐢🐇 一致！
+                                                        </span>
+                                                    )}
+                                                    {!isBoth && isSlow && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white whitespace-nowrap">
+                                                            🐢 slow
+                                                        </span>
+                                                    )}
+                                                    {!isBoth && isFast && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white whitespace-nowrap">
+                                                            🐇 fast
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div
+                                                    className={[
+                                                        'w-16 h-16 rounded-xl border-2 flex items-center justify-center font-mono font-bold text-lg transition-all duration-500',
+                                                        isBoth
+                                                            ? 'bg-amber-100 border-amber-500 text-amber-900 scale-110 shadow-[0_0_0_4px_rgba(245,158,11,0.25)]'
+                                                            : isSlow
+                                                              ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                                                              : isFast
+                                                                ? 'bg-sky-50 border-sky-500 text-sky-800'
+                                                                : 'bg-white border-slate-300 text-slate-600',
+                                                    ].join(' ')}
+                                                >
+                                                    {val}
+                                                </div>
+                                                <div className="mt-2 text-[11px] text-slate-400 font-mono">
+                                                    idx {idx}
+                                                </div>
+                                            </div>
+                                            {idx < nodeValues.length - 1 && (
+                                                <div className="text-slate-300 text-2xl px-1 select-none">
+                                                    →
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-center">
+                                <svg
+                                    width="260"
+                                    height="40"
+                                    viewBox="0 0 260 40"
+                                    role="img"
+                                    aria-label="cycle back pointer"
+                                >
+                                    <defs>
+                                        <marker
+                                            id="cycle-arrow"
+                                            markerWidth="8"
+                                            markerHeight="8"
+                                            refX="7"
+                                            refY="3"
+                                            orient="auto"
+                                            markerUnits="strokeWidth"
+                                        >
+                                            <path d="M0,0 L0,6 L7,3 z" fill="#a855f7" />
+                                        </marker>
+                                    </defs>
+                                    <path
+                                        d="M 240 5 C 240 35, 20 35, 20 5"
+                                        fill="none"
+                                        stroke="#a855f7"
+                                        strokeWidth="2"
+                                        strokeDasharray="4 3"
+                                        markerEnd="url(#cycle-arrow)"
+                                    />
+                                    <text
+                                        x="130"
+                                        y="24"
+                                        textAnchor="middle"
+                                        fontSize="11"
+                                        fill="#7e22ce"
+                                        fontFamily="monospace"
+                                    >
+                                        -4.next はidx1に戻る（サイクル）
+                                    </text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 p-4 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs leading-6">
+                            <div className="text-slate-400 mb-2 font-sans text-xs font-semibold">
+                                🔍 現在の変数の状態
+                            </div>
+                            <div className="text-emerald-400">
+                                slow ={' '}
+                                {state.slow === null
+                                    ? 'まだ未設定'
+                                    : 'idx ' + state.slow + '（値 ' + nodeValues[state.slow] + '）'}
+                            </div>
+                            <div className="text-sky-400">
+                                fast ={' '}
+                                {state.fast === null
+                                    ? 'まだ未設定'
+                                    : 'idx ' + state.fast + '（値 ' + nodeValues[state.fast] + '）'}
+                            </div>
+                            <div className="text-amber-300 mt-1">
+                                slow is fast →{' '}
+                                {state.slow === null ? '—' : state.matched ? 'True' : 'False'}
+                            </div>
+                            {state.finalResult && (
+                                <div className="text-amber-200 mt-2 font-sans font-bold">
+                                    ✅ 戻り値: True（サイクルを検出）
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            /* ============ ステップ解説セクション ============ */
+            function StepsSection() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+
+                const stepsData = [
+                    {
+                        step: 1,
+                        title: '入力を検証する',
+                        desc:
+                            'まず head が None（空リスト）か、head.next が None（次のノードが存在しない）かを確認します。' +
+                            'なぜなら、head が None または head.next が None の場合は次へ進むポインタ操作ができず、サイクルが存在しないからです。' +
+                            '例）head=[3,2,0,-4] の場合、どちらの条件にも当てはまらないので次のステップへ進みます。',
+                        visual: 'validate',
+                    },
+                    {
+                        step: 2,
+                        title: 'slowとfastを初期化する',
+                        desc:
+                            '遅いポインタ slow と速いポインタ fast を、両方とも head（先頭ノード）で初期化します。' +
+                            'なぜなら、2つのポインタを同じ場所からスタートさせ、進む速さの差だけでサイクルを検出したいからです。' +
+                            '例）slow = 3, fast = 3（どちらも先頭ノードを指す）。',
+                        visual: 'init',
+                    },
+                    {
+                        step: 3,
+                        title: '1周目：slowを1歩・fastを2歩進める',
+                        desc:
+                            'slow を1歩、fast を2歩進めます。' +
+                            'なぜなら、fast が slow より速く進むことで、輪っかの中にいる場合は必ずいつか追いつく性質を利用するからです。' +
+                            '例）slow は 3→2 に、fast は 3→2→0 に進みます。まだ一致しません。',
+                        visual: 'iter1',
+                    },
+                    {
+                        step: 4,
+                        title: '2周目：さらに1歩・2歩進める',
+                        desc:
+                            '再び slow を1歩、fast を2歩進めます。' +
+                            'なぜなら、1回のループでは追いつかないことが多く、輪っかの中を周回するまで繰り返す必要があるからです。' +
+                            '例）slow は 2→0、fast は 0→-4→2（-4 の次はインデックス1の2に戻る）。まだ一致しません。',
+                        visual: 'iter2',
+                    },
+                    {
+                        step: 5,
+                        title: '3周目：追いつく瞬間',
+                        desc:
+                            'もう一度 slow を1歩、fast を2歩進めます。' +
+                            'なぜなら、輪っかの中では速度差1のポインタが必ずいつか同じ場所に重なるからです。' +
+                            '例）slow は 0→-4、fast は 2→0→-4。両方とも -4 のノードを指し、一致します！',
+                        visual: 'iter3',
+                    },
+                    {
+                        step: 6,
+                        title: 'サイクルを検出してTrueを返す',
+                        desc:
+                            'slow is fast が成立したので、サイクルが存在すると判定して True を返します。' +
+                            'なぜなら、輪っかがなければ2つのポインタが同じノードに重なることは起こり得ないため、一致=輪っかの存在の確実な証拠になるからです。' +
+                            '例）今回の入力 [3,2,0,-4] はサイクルを含むため、最終的な出力は True です。',
+                        visual: 'result',
+                    },
+                ];
+
+                useEffect(() => {
+                    if (isPlaying) {
+                        if (activeStep >= stepsData.length) {
+                            timerRef.current = setTimeout(() => {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            }, 1800);
+                        } else {
+                            timerRef.current = setTimeout(() => {
+                                setActiveStep((prev) => prev + 1);
+                            }, 1800);
+                        }
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+
+                const handleStepClick = (n) => {
+                    setActiveStep(n);
+                    setIsPlaying(false);
+                };
+                const handlePlay = () => setIsPlaying(true);
+
+                const currentStepData =
+                    stepsData.find((s) => s.step === activeStep) || stepsData[0];
+
+                return (
+                    <section id="steps" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            ステップバイステップ解説
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2">
+                            <div>
+                                <h3 className="mt-0 mb-4 text-teal-800 text-xl font-semibold">
+                                    ステップ一覧
+                                </h3>
+                                <div className="space-y-2">
+                                    {stepsData.map((step) => {
+                                        const isActive = activeStep === step.step;
+                                        return (
+                                            <button
+                                                key={step.step}
+                                                type="button"
+                                                className={[
+                                                    'w-full text-left text-[0.95rem] rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                                    'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                                    isActive
+                                                        ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                        : '',
+                                                ].join(' ')}
+                                                onClick={() => handleStepClick(step.step)}
+                                                aria-label={
+                                                    'ステップ' + step.step + ': ' + step.title
+                                                }
+                                                aria-current={isActive ? 'step' : undefined}
+                                            >
+                                                <div
+                                                    className={[
+                                                        'font-bold mb-1',
+                                                        isActive
+                                                            ? 'text-emerald-900'
+                                                            : 'text-teal-800',
+                                                    ].join(' ')}
+                                                >
+                                                    Step {step.step}: {step.title}
+                                                </div>
+                                                <div className="text-slate-500 text-sm mt-1">
+                                                    {step.desc.substring(0, 44)}
+                                                    {step.desc.length > 44 ? '...' : ''}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="my-auto">
+                                {activeStep > 1 && (
+                                    <div className="mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-500">
+                                        ← 前のステップ（Step {activeStep - 1}）では「
+                                        {stepsData[activeStep - 2].title}」を行いました
+                                    </div>
+                                )}
+
+                                <div
+                                    key={activeStep}
+                                    className="step-panel-anim rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]"
+                                >
+                                    <h3 className="mt-0 text-teal-800 text-lg font-bold">
+                                        Step {currentStepData.step}: {currentStepData.title}
+                                    </h3>
+                                    <p className="text-slate-600 leading-7 text-sm mt-2">
+                                        {currentStepData.desc}
+                                    </p>
+                                </div>
+
+                                <StepVisualization visualKey={currentStepData.visual} />
+
+                                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                    <button
+                                        type="button"
+                                        className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-sm"
+                                        onClick={handlePlay}
+                                        disabled={isPlaying}
+                                    >
+                                        ▶ Play
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                        onClick={() => {
+                                            setActiveStep((s) => Math.max(1, s - 1));
+                                            setIsPlaying(false);
+                                        }}
+                                        disabled={activeStep === 1}
+                                    >
+                                        ◀ Prev
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-sm"
+                                        onClick={() => {
+                                            setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                            setIsPlaying(false);
+                                        }}
+                                        disabled={activeStep === stepsData.length}
+                                    >
+                                        Next ▶
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-sm"
+                                        onClick={() => {
+                                            setActiveStep(1);
+                                            setIsPlaying(false);
+                                        }}
+                                    >
+                                        ↺ Reset
+                                    </button>
+                                </div>
+
+                                {activeStep === stepsData.length && (
+                                    <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm text-center">
+                                        🎉
+                                        全ステップ完了！下の「コード」セクションで実際の実装を確認してみましょう。
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ============ コードセクション ============ */
+            function CodeSection() {
+                const codeContent = `from __future__ import annotations
+from typing import Optional
+
+
+class ListNode:
+    def __init__(self, x: int) -> None:
+        self.val = x
+        self.next: Optional["ListNode"] = None
+
+
+class Solution:
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        # 基底条件: ノードが0個か1個ならサイクルは作れない
+        if head is None or head.next is None:
+            return False
+
+        # 遅いポインタ(亀)と速いポインタ(兎)を先頭で初期化
+        slow: Optional[ListNode] = head
+        fast: Optional[ListNode] = head
+
+        # fastが2歩先まで進める間だけループを継続
+        while fast is not None and fast.next is not None:
+            slow = slow.next          # 亀は1歩進む
+            fast = fast.next.next     # 兎は2歩進む
+
+            # 同じノードを指していたらサイクル確定
+            if slow is fast:
+                return True
+
+        # ループを抜けた = fastが終端Noneに到達 = サイクルなし
+        return False`;
+
+                useEffect(() => {
+                    if (window.Prism) {
+                        window.Prism.highlightAll();
+                    }
+                }, []);
+
+                return (
+                    <section id="code" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            Python実装
+                        </h2>
+
+                        <div className="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                            <p className="text-emerald-800 font-semibold text-sm mb-2">
+                                📋 このコードの構造（先に全体像を把握しよう）
+                            </p>
+                            <ol className="text-slate-700 text-sm space-y-1 list-decimal list-inside">
+                                <li>
+                                    head が None、または head.next が None（次のノードが存在しない）ならエッジケースとして即座に
+                                    False を返す
+                                </li>
+                                <li>slow・fast を head で初期化する</li>
+                                <li>fast が2歩先まで進める間だけループを繰り返す</li>
+                                <li>slow を1歩、fast を2歩進めて同じノードか判定する</li>
+                                <li>一致すれば True、ループを抜けたら False を返す</li>
+                            </ol>
+                        </div>
+
+                        <pre className="line-numbers">
+                            <code className="language-python">{codeContent}</code>
+                        </pre>
+
+                        <div className="mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                            <p className="text-sky-800 font-semibold text-sm mb-2">
+                                ▶ 入力例 head = [3,2,0,-4]（pos=1）での動作トレース
+                            </p>
+                            <pre className="text-slate-700 text-xs font-mono leading-6 overflow-x-auto whitespace-pre">
+                                {`初期状態: slow = 3, fast = 3
+
+1周目: slow = 2, fast = 0     → slow is fast ? No
+2周目: slow = 0, fast = 2     → slow is fast ? No
+3周目: slow = -4, fast = -4   → slow is fast ? Yes!
+
+出力: True`}
+                            </pre>
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ============ フローチャートセクション ============ */
+            function DiagramSection() {
+                const mermaidRef = useRef(null);
+                const [renderError, setRenderError] = useState(null);
+
+                // Mermaidの図定義。ノードIDは英数字のみ、ラベルに括弧を使わない、
+                // 矢印は --> のみ、1行1エッジ、コメントは行頭%%のみというルールを厳守している。
+                const mermaidDefinition = [
+                    'flowchart TD',
+                    '  Start[Start hasCycle head]',
+                    '  Start --> Base{head is None or head next is None}',
+                    '  Base -- Yes --> RetFalseEmpty[Return False]',
+                    '  Base -- No --> Init[Set slow equals head and fast equals head]',
+                    '  Init --> LoopCond{fast is not None and fast next is not None}',
+                    '  LoopCond -- No --> RetFalseEnd[Return False]',
+                    '  LoopCond -- Yes --> MoveSlow[Move slow one step forward]',
+                    '  MoveSlow --> MoveFast[Move fast two steps forward]',
+                    '  MoveFast --> Check{slow is fast}',
+                    '  Check -- Yes --> RetTrue[Return True]',
+                    '  Check -- No --> LoopCond',
+                    '  classDef startEnd fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46;',
+                    '  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e;',
+                    '  classDef process fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;',
+                    '  classDef falsePath fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;',
+                    '  classDef truePath fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46;',
+                    '  class Start startEnd',
+                    '  class Base decision',
+                    '  class LoopCond decision',
+                    '  class Check decision',
+                    '  class Init process',
+                    '  class MoveSlow process',
+                    '  class MoveFast process',
+                    '  class RetFalseEmpty falsePath',
+                    '  class RetFalseEnd falsePath',
+                    '  class RetTrue truePath',
+                    '  linkStyle 1 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 2 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 4 stroke:#dc2626,stroke-width:2px',
+                    '  linkStyle 5 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 8 stroke:#059669,stroke-width:2px',
+                    '  linkStyle 9 stroke:#a855f7,stroke-width:2px',
+                ].join('\n');
+
+                useEffect(() => {
+                    let cancelled = false;
+
+                    async function renderDiagram() {
+                        if (!window.mermaid) {
+                            if (!cancelled)
+                                setRenderError(
+                                    'Mermaidライブラリの読み込みに失敗しました。ネットワーク設定をご確認ください。',
+                                );
+                            return;
+                        }
+                        try {
+                            window.mermaid.initialize({
+                                startOnLoad: false,
+                                securityLevel: 'strict',
+                                fontFamily: 'Inter, sans-serif',
+                            });
+                            const { svg } = await window.mermaid.render(
+                                'mermaid-cycle-flowchart',
+                                mermaidDefinition,
+                            );
+                            if (!cancelled && mermaidRef.current) {
+                                mermaidRef.current.innerHTML = svg;
+                            }
+                        } catch (err) {
+                            if (!cancelled)
+                                setRenderError('フローチャートの描画中にエラーが発生しました。');
+                        }
+                    }
+
+                    renderDiagram();
+                    return () => {
+                        cancelled = true;
+                    };
+                }, []);
+
+                return (
+                    <section id="diagram" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            処理フローチャート
+                        </h2>
+
+                        <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                            <p className="text-amber-800 font-semibold text-sm mb-3">
+                                🗺️ フローチャートの読み方
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-700">
+                                <div className="flex items-center gap-2">
+                                    <svg width="24" height="16">
+                                        <rect
+                                            x="1"
+                                            y="2"
+                                            width="22"
+                                            height="12"
+                                            rx="2"
+                                            fill="#d1fae5"
+                                            stroke="#10b981"
+                                            strokeWidth="1.5"
+                                        />
+                                    </svg>
+                                    <span>四角（緑）＝ 開始・True確定</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <svg width="24" height="16">
+                                        <rect
+                                            x="1"
+                                            y="2"
+                                            width="22"
+                                            height="12"
+                                            rx="2"
+                                            fill="#e0f2fe"
+                                            stroke="#0284c7"
+                                            strokeWidth="1.5"
+                                        />
+                                    </svg>
+                                    <span>四角（青）＝ 処理ステップ</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <svg width="24" height="16">
+                                        <polygon
+                                            points="12,1 23,8 12,15 1,8"
+                                            fill="#fef3c7"
+                                            stroke="#f59e0b"
+                                            strokeWidth="1.5"
+                                        />
+                                    </svg>
+                                    <span>ひし形（黄）＝ 条件分岐</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-block w-4 h-0.5 bg-emerald-500 mr-1"></span>
+                                    緑＝はい
+                                    <span className="inline-block w-4 h-0.5 bg-red-500 mx-1"></span>
+                                    赤＝いいえ
+                                    <span className="inline-block w-4 h-0.5 bg-purple-500 mx-1"></span>
+                                    紫＝ループ
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-col items-center gap-3">
+                            {renderError && (
+                                <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+                                    {renderError}
+                                </p>
+                            )}
+                            <div
+                                ref={mermaidRef}
+                                className="mermaid-container w-full overflow-x-auto flex justify-center"
+                                role="img"
+                                aria-label="Linked List Cycle flowchart"
+                            ></div>
+                        </div>
+
+                        <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <p className="text-slate-700 font-semibold text-sm mb-2">
+                                🔎 入力例 head = [3,2,0,-4]（pos=1）でのフロー追跡
+                            </p>
+                            <ol className="text-slate-600 text-sm space-y-1 list-decimal list-inside leading-7">
+                                <li>「Start」ノード → head=[3,2,0,-4] を受け取る</li>
+                                <li>
+                                    「head is None or head next is None?」→ いいえなので下へ進む
+                                </li>
+                                <li>
+                                    「Set slow equals head and fast equals head」ノード → slow=3,
+                                    fast=3 にセット
+                                </li>
+                                <li>
+                                    「fast is not None and fast next is not None?」→
+                                    はいなのでループへ
+                                </li>
+                                <li>
+                                    「Move slow」「Move fast」ノード → slow・fastを進め、「slow is
+                                    fast?」で判定を3回繰り返す
+                                </li>
+                                <li>3周目で一致 → 「Return True」で終了</li>
+                            </ol>
+                        </div>
+
+                        <p className="mt-5 text-slate-700 leading-8 text-sm">
+                            <strong className="text-lg text-teal-800">フローの説明：</strong>
+                            <br />
+                            このフローチャートは、上から下へ「入力検証 → 初期化 →
+                            ループ（前進と判定）→
+                            結果を返す」という一本道の処理を表しています。輪っかを表す紫の矢印だけが唯一「後ろに戻る」経路で、これがまさにこのアルゴリズムの核心（輪っかの中を周回して追いつくまで判定を繰り返す部分）です。
+                        </p>
+                    </section>
+                );
+            }
+
+            /* ============ 計算量セクション ============ */
+            function ComplexitySection() {
+                const rows = [
+                    {
+                        name: "Floyd's Tortoise and Hare（本ページで採用）",
+                        time: 'O(n)',
+                        space: 'O(1)',
+                        note: '追加メモリ不要。最も推奨される定番解法。',
+                    },
+                    {
+                        name: 'setで訪問済みノードを記録',
+                        time: 'O(n)',
+                        space: 'O(n)',
+                        note: '実装は直感的だが、ノード数が多いとメモリを消費する。',
+                    },
+                    {
+                        name: 'ノードに訪問フラグを直接書き込む',
+                        time: 'O(n)',
+                        space: 'O(1)',
+                        note: '入力データを破壊するため実務では非推奨。',
+                    },
+                ];
+                return (
+                    <section id="complexity" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            計算量分析
+                        </h2>
+
+                        <div className="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <p className="text-slate-600 font-semibold text-sm mb-3">
+                                📖 Big-O 記法の読み方（入力サイズ n
+                                が大きくなるにつれて処理時間がどう増えるかの目安）
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                <div className="text-center p-3 rounded-lg bg-emerald-100 text-emerald-800">
+                                    <div className="font-bold font-mono text-base mb-1">O(1)</div>
+                                    <div className="leading-5">
+                                        常に一定
+                                        <br />
+                                        <span className="text-emerald-600">例：変数2つだけ</span>
+                                    </div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-sky-100 text-sky-800">
+                                    <div className="font-bold font-mono text-base mb-1">O(n)</div>
+                                    <div className="leading-5">
+                                        入力に比例
+                                        <br />
+                                        <span className="text-sky-600">例：リストを1回走査</span>
+                                    </div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-amber-100 text-amber-800">
+                                    <div className="font-bold font-mono text-base mb-1">
+                                        O(n log n)
+                                    </div>
+                                    <div className="leading-5">
+                                        nより少し多い
+                                        <br />
+                                        <span className="text-amber-600">例：ソート系</span>
+                                    </div>
+                                </div>
+                                <div className="text-center p-3 rounded-lg bg-red-100 text-red-800">
+                                    <div className="font-bold font-mono text-base mb-1">O(n²)</div>
+                                    <div className="leading-5">
+                                        入力の2乗
+                                        <br />
+                                        <span className="text-red-600">例：二重ループ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-100 text-slate-700">
+                                        <th className="text-left p-3 rounded-tl-lg">アプローチ</th>
+                                        <th className="text-left p-3">時間計算量</th>
+                                        <th className="text-left p-3">空間計算量</th>
+                                        <th className="text-left p-3 rounded-tr-lg">備考</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map((r, i) => (
+                                        <tr key={i} className="border-b border-slate-200">
+                                            <td className="p-3 text-slate-700">{r.name}</td>
+                                            <td className="p-3 font-mono text-teal-700 font-bold">
+                                                {r.time}
+                                            </td>
+                                            <td className="p-3 font-mono text-sky-700 font-bold">
+                                                {r.space}
+                                            </td>
+                                            <td className="p-3 text-slate-500 text-xs">{r.note}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                            <p className="text-emerald-800 font-semibold text-sm mb-2">
+                                🔍 なぜこの計算量になるのか
+                            </p>
+                            <p className="text-slate-700 text-sm leading-7">
+                                時間計算量が O(n) になる理由は、輪っかがない場合は fast が最大 n
+                                個のノードを走査して終わり、輪っかがある場合も slow
+                                が輪っかの長さを超える前に必ず fast
+                                と一致するため、走査するノードの延べ数が n
+                                に比例する範囲に収まるからです。 空間計算量が O(1)
+                                になる理由は、slow と fast
+                                という2つの変数（ポインタ）以外に、入力サイズに応じて増えるデータ構造を一切使っていないためです。
+                            </p>
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ============ 用語集 ============ */
+            function Glossary() {
+                const terms = [
+                    {
+                        name: 'オブジェクトの同一性（is演算子）',
+                        desc: '2つの変数が「同じ値かどうか」ではなく「メモリ上の同じオブジェクトを指しているかどうか」を調べる演算子。ノードの比較にはこちらを使うのが適切です。',
+                    },
+                    {
+                        name: '計算量（時間計算量・空間計算量）',
+                        desc: '入力の大きさに対して、処理にかかる手間（時間計算量）や使うメモリ量（空間計算量）がどう増えるかの目安のこと。',
+                    },
+                    {
+                        name: 'サイクル（循環）',
+                        desc: 'リストをたどっていくと、以前に訪れたノードにまた戻ってきてしまう輪っか状の構造のこと。',
+                    },
+                    {
+                        name: '連結リスト（Linked List）',
+                        desc: 'データ（ノード）が next という矢印でつながった構造。配列と違い、途中への挿入・削除が高速です。',
+                    },
+                    {
+                        name: 'ポインタ',
+                        desc: 'ある変数が「別のデータ（ここではノード）を指し示している」状態、またはその変数自体のこと。',
+                    },
+                    {
+                        name: "Floyd's Tortoise and Hare（亀と兎のアルゴリズム）",
+                        desc: '進む速さの異なる2つのポインタ（遅い亀・速い兎）を使ってサイクルを検出する古典的な手法。速度差があるおかげで、輪っかの中では必ずいつか追いつきます。',
+                    },
+                ];
+                return (
+                    <section id="glossary" className="bg-white rounded-2xl p-8 mb-8 shadow">
+                        <h2 className="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200">
+                            📖 用語集
+                        </h2>
+                        <p className="text-slate-500 text-sm mb-5">
+                            このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。
+                        </p>
+                        <div className="space-y-2">
+                            {terms.map((t, i) => (
+                                <details
+                                    key={i}
+                                    className="rounded-xl border border-slate-200 overflow-hidden"
+                                >
+                                    <summary className="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2">
+                                        <span className="text-emerald-500">▶</span> {t.name}
+                                    </summary>
+                                    <div className="px-5 py-3 text-slate-600 text-sm leading-7 border-t border-slate-200">
+                                        {t.desc}
+                                    </div>
+                                </details>
+                            ))}
+                        </div>
+                    </section>
+                );
+            }
+
+            /* ============ フッター ============ */
+            function Footer() {
+                return (
+                    <footer className="text-center text-slate-400 text-xs py-6">
+                        LeetCode 141: Linked List Cycle — 高速・低速ポインタ法の解説ページ
+                    </footer>
+                );
+            }
+
+            /* ============ アプリ本体 ============ */
+            function App() {
+                return (
+                    <div className="max-w-5xl mx-auto px-4 py-8">
+                        <Header />
+                        <Overview />
+                        <StepsSection />
+                        <CodeSection />
+                        <DiagramSection />
+                        <ComplexitySection />
+                        <Glossary />
+                        <Footer />
+                    </div>
+                );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        </script>
+    </body>
+</html>

@@ -40,6 +40,8 @@ class Solution:
             "node_modules/prismjs/themes/prism.css": "prismjs/themes/prism.css",
              # FontAwesome (CSS)
             "node_modules/@fortawesome/fontawesome-free/css/all.min.css": "fontawesome/css/all.min.css",
+            # Mermaid
+            "node_modules/mermaid/dist/mermaid.min.js": "mermaid/mermaid.min.js",
         }
 
         # Directory Mapping for Prism Plugins (since individual files are tedious)
@@ -121,6 +123,8 @@ class Solution:
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.js', r'/vendor/prismjs/plugins/\1/prism-\1.js'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/plugins/([a-zA-Z0-9_-]+)/prism-\1\.min\.css', r'/vendor/prismjs/plugins/\1/prism-\1.css'),
             (r'https://cdn\.jsdelivr\.net/npm/prismjs(?:@[^/]+)?/themes/prism(?:-[a-zA-Z0-9_-]+)?\.min\.css', '/vendor/prismjs/themes/prism.css'),
+            # Mermaid
+            (r'https://cdn\.jsdelivr\.net/npm/mermaid(?:@[^/]+)?/dist/mermaid(?:\.min)?\.js', '/vendor/mermaid/mermaid.min.js'),
         ]
 
         for pattern_str, new in replacements:

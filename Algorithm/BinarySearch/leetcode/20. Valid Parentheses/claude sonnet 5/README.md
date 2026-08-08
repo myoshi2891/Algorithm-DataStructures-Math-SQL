@@ -411,7 +411,7 @@ const CLOSING_BRACKET_LIST: readonly ClosingBracket[] = [')', ']', '}'];
 // 型ガード関数：戻り値の型を `char is OpeningBracket` にすることで、
 // この関数が true を返した後、TypeScript が引数の型を自動的に絞り込んでくれる。
 function isOpeningBracket(char: string): char is OpeningBracket {
-    return char in CLOSING_BRACKETS;
+    return Object.prototype.hasOwnProperty.call(CLOSING_BRACKETS, char);
 }
 
 function isClosingBracket(char: string): char is ClosingBracket {

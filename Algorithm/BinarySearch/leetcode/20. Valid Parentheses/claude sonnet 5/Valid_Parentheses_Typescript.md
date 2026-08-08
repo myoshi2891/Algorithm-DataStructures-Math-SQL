@@ -130,9 +130,9 @@ const CLOSING_BRACKET_LIST: readonly ClosingBracket[] = [')', ']', '}'];
 // この関数が true を返した後、TypeScriptが char の型を
 // 自動的に絞り込んでくれる（型の絞り込み＝Type Narrowing）。
 function isOpeningBracket(char: string): char is OpeningBracket {
-    // Object.prototype.hasOwnProperty を直接呼ぶより、
-    // in 演算子を使う方がシンプルで意図が明確になる
-    return char in CLOSING_BRACKETS;
+    // in 演算子ではなく hasOwnProperty を使い、
+    // プロトタイプ鎖の継承プロパティ（toString等）の誤判定を防ぐ
+    return Object.prototype.hasOwnProperty.call(CLOSING_BRACKETS, char);
 }
 
 // 「閉じ括弧かどうか」を判定する型ガード関数。

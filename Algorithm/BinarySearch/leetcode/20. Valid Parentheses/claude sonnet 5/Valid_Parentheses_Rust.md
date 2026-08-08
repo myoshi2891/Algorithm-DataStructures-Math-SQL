@@ -107,6 +107,8 @@ enum BracketError {
     // 文字列を最後まで読み終えたのに、閉じられていない開き括弧が残っている場合
     // 例: "(()" → 最後に '(' が1つ余る
     UnclosedOpen(char),
+    // 括弧以外の不正な文字が出現した場合
+    InvalidCharacter(char),
 }
 
 // Display トレイト（＝人間が読める文字列に変換する仕組み）を実装しておくと、
@@ -122,6 +124,9 @@ impl std::fmt::Display for BracketError {
             }
             Self::UnclosedOpen(c) => {
                 write!(f, "開き括弧 '{c}' が閉じられないまま入力が終了しました")
+            }
+            Self::InvalidCharacter(c) => {
+                write!(f, "不正な文字 '{c}' が入力されました")
             }
         }
     }
@@ -205,11 +210,8 @@ fn validate_brackets(s: &str) -> Result<(), BracketError> {
                 // ことになるので、次のループへ進む。
             }
 
-            // 制約（constraints）により括弧記号以外の文字は入力されない前提。
-            // それでも match は全パターンを網羅する必要があるため、
-            // 到達しないはずの分岐として unreachable! を置いておく。
-            // これは「起きないはずのバグ」をパニックで検出するための安全弁。
-            _ => unreachable!("制約により括弧文字以外は入力されない"),
+            // 括弧記号以外の文字が入力された場合は不正な文字エラーを返す。
+            _ => return Err(BracketError::InvalidCharacter(c)),
         }
     }
 

@@ -114,26 +114,30 @@ class BracketError extends Error {
 // 代入をしてしまった場合にコンパイルエラーとして検出できる。
 // Map ではなくオブジェクトリテラルを使う理由：
 // キーが3種類だけの固定集合であり、オブジェクトの方が可読性が高いため。
-const CLOSING_BRACKETS: Readonly<Record<string, string>> = {
+type OpeningBracket = '(' | '[' | '{';
+type ClosingBracket = ')' | ']' | '}';
+
+const CLOSING_BRACKETS: Readonly<Record<OpeningBracket, ClosingBracket>> = {
     '(': ')',
     '[': ']',
     '{': '}',
 };
 
+const CLOSING_BRACKET_LIST: readonly ClosingBracket[] = [')', ']', '}'];
+
 // 「開き括弧かどうか」を判定するための型ガード関数。
-// 戻り値の型を `param is '(' | '[' | '{'` にすることで、
-// この関数が true を返した後、TypeScriptが param の型を
+// 戻り値の型を `char is OpeningBracket` にすることで、
+// この関数が true を返した後、TypeScriptが char の型を
 // 自動的に絞り込んでくれる（型の絞り込み＝Type Narrowing）。
-function isOpeningBracket(char: string): char is '(' | '[' | '{' {
+function isOpeningBracket(char: string): char is OpeningBracket {
     // Object.prototype.hasOwnProperty を直接呼ぶより、
     // in 演算子を使う方がシンプルで意図が明確になる
     return char in CLOSING_BRACKETS;
 }
 
 // 「閉じ括弧かどうか」を判定する型ガード関数。
-// CLOSING_BRACKETS の値（Object.values）に含まれるかどうかで判定する。
-function isClosingBracket(char: string): char is ')' | ']' | '}' {
-    return Object.values(CLOSING_BRACKETS).includes(char);
+function isClosingBracket(char: string): char is ClosingBracket {
+    return (CLOSING_BRACKET_LIST as readonly string[]).includes(char);
 }
 
 // ============================================================
@@ -159,12 +163,12 @@ type ValidationResult =
  * @complexity Time: O(n), Space: O(n)
  */
 function validateBrackets(s: string): ValidationResult {
-    // string[] を「後入れ先出し」のスタックとして使う。
+    // OpeningBracket[] を「後入れ先出し」のスタックとして使う。
     // TypeScriptの配列は push/pop がどちらもO(1)であり、
     // Rustの Vec::with_capacity のような事前確保の仕組みはないが、
     // V8エンジン（Node.jsが使うJavaScriptエンジン）が内部的に
     // 効率よくメモリを管理してくれるため、通常は気にしなくてよい。
-    const stack: string[] = [];
+    const stack: OpeningBracket[] = [];
 
     // for...of ループで1文字ずつ走査する。
     // index が必要な場合は entries() を使うことで、

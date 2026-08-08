@@ -397,20 +397,25 @@ class BracketError extends Error {
 // ============================================================
 // Readonly を付けることで「一度定義したら変更されるべきではない」ことを
 // コンパイル時に保証する（うっかり書き換えてしまう事故を防ぐ）。
-const CLOSING_BRACKETS: Readonly<Record<string, string>> = {
+type OpeningBracket = '(' | '[' | '{';
+type ClosingBracket = ')' | ']' | '}';
+
+const CLOSING_BRACKETS: Readonly<Record<OpeningBracket, ClosingBracket>> = {
     '(': ')',
     '[': ']',
     '{': '}',
 };
 
-// 型ガード関数：戻り値の型を `param is '(' | '[' | '{'` にすることで、
+const CLOSING_BRACKET_LIST: readonly ClosingBracket[] = [')', ']', '}'];
+
+// 型ガード関数：戻り値の型を `char is OpeningBracket` にすることで、
 // この関数が true を返した後、TypeScript が引数の型を自動的に絞り込んでくれる。
-function isOpeningBracket(char: string): char is '(' | '[' | '{' {
+function isOpeningBracket(char: string): char is OpeningBracket {
     return char in CLOSING_BRACKETS;
 }
 
-function isClosingBracket(char: string): char is ')' | ']' | '}' {
-    return Object.values(CLOSING_BRACKETS).includes(char);
+function isClosingBracket(char: string): char is ClosingBracket {
+    return (CLOSING_BRACKET_LIST as readonly string[]).includes(char);
 }
 
 // ============================================================
@@ -429,8 +434,8 @@ type ValidationResult =
  * @complexity Time: O(n), Space: O(n)
  */
 function validateBrackets(s: string): ValidationResult {
-    // string[] を「後入れ先出し」のスタックとして使う。
-    const stack: string[] = [];
+    // OpeningBracket[] を「後入れ先出し」のスタックとして使う。
+    const stack: OpeningBracket[] = [];
 
     // for...of + entries() で文字とインデックスを安全に取得する
     // （サロゲートペア文字も1文字として正しく扱える）。
@@ -697,6 +702,8 @@ enum BracketError {
     UnexpectedClose(char),
     // 文字列を読み終えたのに閉じられていない開き括弧が残っている場合
     UnclosedOpen(char),
+    // 括弧以外の不正な文字が出現した場合
+    InvalidCharacter(char),
 }
 
 impl std::fmt::Display for BracketError {
@@ -710,6 +717,9 @@ impl std::fmt::Display for BracketError {
             }
             Self::UnclosedOpen(c) => {
                 write!(f, "開き括弧 '{c}' が閉じられないまま入力が終了しました")
+            }
+            Self::InvalidCharacter(c) => {
+                write!(f, "不正な文字 '{c}' が入力されました")
             }
         }
     }
@@ -762,7 +772,7 @@ fn validate_brackets(s: &str) -> Result<(), BracketError> {
                 }
             }
 
-            _ => unreachable!("制約により括弧文字以外は入力されない"),
+            _ => return Err(BracketError::InvalidCharacter(c)),
         }
     }
 

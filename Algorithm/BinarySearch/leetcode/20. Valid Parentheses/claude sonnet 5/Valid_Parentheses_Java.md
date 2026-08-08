@@ -239,12 +239,13 @@ class Solution {
 > char primitive = boxed; // 自動的にアンボクシングされる
 > ```
 >
-> **応用**：注意が必要なのは、`Character`同士を`==`で比較する場合です。Javaは`-128`〜`127`の範囲の値をキャッシュして使い回すため、この範囲内では`==`がたまたま`true`になりますが、範囲外では異なるオブジェクトとして扱われ`false`になることがあります。
+> **応用**：注意が必要なのは、`Character`同士を`==`で比較する場合です。Javaは`\u0000`〜`\u007f`（0〜127、ASCII文字範囲）の値をキャッシュして使い回すため（※`Integer`の`-128`〜`127`とは範囲が異なります）、この範囲内では`==`がたまたま`true`になりますが、範囲外では異なるオブジェクトとして扱われ`false`になることがあります。そのため、オブジェクト比較では`equals()`を使うか、`char`へアンボクシングして値比較を行う必要があります。
 > ```java
-> Character a = 200;
-> Character b = 200;
-> System.out.println(a == b); // false になりうる（キャッシュ範囲外）
-> System.out.println(a.equals(b)); // true（値の比較）
+> Character a = '\u0080';
+> Character b = '\u0080';
+> System.out.println(a == b); // false（キャッシュ範囲外のため別参照）
+> System.out.println(a.equals(b)); // true（equals による値比較）
+> System.out.println((char)a == (char)b); // true（アンボクシングによる値比較）
 > ```
 >
 > **この問題での使い方**：業務開発版のコードでは`char top = stack.pop();`のように、`pop()`の戻り値（`Character`）を`char`（プリミティブ型）の変数に代入しています。この代入時点でアンボクシングされるため、その後の`top != c`は`Character`同士の参照比較ではなく、確実に値同士の比較になります。この一手間により、括弧記号がキャッシュ範囲内かどうかを気にする必要がなくなります。

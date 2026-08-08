@@ -239,11 +239,12 @@ class Solution {
 > char primitive = boxed; // 自動的にアンボクシングされる
 > ```
 >
-> **応用**：注意が必要なのは、`Character`同士を`==`で比較する場合です。Javaは`\u0000`〜`\u007f`（0〜127、ASCII文字範囲）の値をキャッシュして使い回すため（※`Integer`の`-128`〜`127`とは範囲が異なります）、この範囲内では`==`がたまたま`true`になりますが、範囲外では異なるオブジェクトとして扱われ`false`になることがあります。そのため、オブジェクト比較では`equals()`を使うか、`char`へアンボクシングして値比較を行う必要があります。
+> **応用**：注意が必要なのは、`Character`同士を`==`で比較する場合です。Javaは`\u0000`〜`\u007f`（0〜127、ASCII文字範囲）の値をキャッシュして使い回すため（※`Integer`の`-128`〜`127`とは範囲が異なります）、この範囲内では`==`が常に`true`になりますが、範囲外では参照同一性が保証されず、環境やボクシングのされ方によって`true`または`false`になり得ます。そのため、確実に値を比較するには`equals()`を使うか、`char`へアンボクシングして比較を行う必要があります。
+>
 > ```java
 > Character a = '\u0080';
 > Character b = '\u0080';
-> System.out.println(a == b); // false（キャッシュ範囲外のため別参照）
+> System.out.println(a == b); // true または false（参照同一性が保証されないため依存）
 > System.out.println(a.equals(b)); // true（equals による値比較）
 > System.out.println((char)a == (char)b); // true（アンボクシングによる値比較）
 > ```

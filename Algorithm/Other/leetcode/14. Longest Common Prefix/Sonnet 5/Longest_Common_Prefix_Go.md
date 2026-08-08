@@ -180,7 +180,7 @@ func (s *Solution) LongestCommonPrefixCompetitive(strs []string) string {
 	prefix := strs[0]
 
 	// 2番目以降の文字列を順番にチェックする。
-	// range はインデックスと値の両方を返すが、値（文字列）だけ使うので i は使わない。
+	// 3部構成の for ループ（初期化・条件・更新）を使い、インデックス i で strs[i] にアクセスする。
 	for i := 1; i < len(strs); i++ {
 		current := strs[i]
 
@@ -303,7 +303,7 @@ func (s *Solution) mainAlgorithm(strs []string) string {
 
 - **境界値テスト**（実際のテストコードは別途提供とのことなので、確認すべき代表ケースのみ挙げます）
     - `[]string{"a"}` → 要素1件：`isEdgeCase`が拾って`"a"`をそのまま返す。空スライスの場合との違いに注意（空スライスは`validateInput`でerrorになる）。
-    - `[]string{"", "abc"}` → 空文字列が混じっている：`prefix = ""`になるので1回目のループ内`for`がすぐ`prefix == ""`条件を満たし早期リターンする。空文字列を先頭に置いた場合、`prefix`が最初から空なので、そもそも比較ループに入る前に`""`を返す形になる（`strings.HasPrefix(anything, "")`は常にtrueだが、初期値が空である以上結果も空）。
+    - `[]string{"", "abc"}` → 空文字列が混じっている：先頭要素により `prefix` が `""` から始まり、`strings.HasPrefix(current, "")` は常に `true` となるため、`prefix` を縮めるループに入らず処理が進み、最終的に `""` が返る。
     - `[]string{"abc", "abc", "abc"}` → 全員完全一致：`prefix`は一度も縮まらず`"abc"`のまま返る。
     - `[]string{"dog", "racecar", "car"}` → 先頭文字から不一致：`prefix`が空文字列になるまで縮み`""`が返る。
     - `nil`（`nil`スライス）を渡した場合：`len(nil) == 0`となるため`validateInput`が`errors.New`でエラーを返す。`nil`スライスの場合に`strs[0]`へ直接アクセスするとパニック（インデックス範囲外）になるため、検証を先に行うことがGoでは特に重要。

@@ -1,0 +1,1781 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Valid Parentheses - LeetCode 20 解説（Python / TypeScript / Go / Rust）</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <script src="/vendor/tailwindcss/script.js"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                            mono: ['JetBrains Mono', 'Source Code Pro', 'monospace'],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://unpkg.com/prismjs@1.29.0/themes/prism-tomorrow.css" />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/prismjs@1.29.0/plugins/toolbar/prism-toolbar.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                background: linear-gradient(180deg, #f0fdf4 0%, #e0f2fe 100%);
+            }
+            .outfit {
+                font-family: 'Outfit', 'Inter', sans-serif;
+            }
+
+            /* Mermaid描画結果のレスポンシブ対応・中央寄せ */
+            .mermaid-container svg {
+                max-width: 100%;
+                height: auto;
+                margin: 0 auto;
+                display: block;
+            }
+
+            /* Prism toolbar（コピーボタン）のスタイル上書き。font-sizeは1rem以上を維持する */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 1rem !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+
+            .code-block-container pre {
+                border-radius: 0.75rem;
+            }
+
+            /* Prismのテーマ(prism-tomorrow.css)は、line-height を <pre> と <code> の
+     両方に個別に指定している（同じ詳細度のセレクタで別々に）。
+     このため <pre> だけに line-height を上書きすると、
+     行番号ガター（.line-numbers-rows は <pre> の line-height を継承する）と
+     コード本文（<code> は独自の line-height を保持したまま）が
+     1行ごとに少しずつズレていき、下の行ほど行番号とコードが食い違う。
+     両方に同じ font-size / line-height を明示することで、この2つを完全に同期させる。 */
+            .code-block-container pre,
+            .code-block-container code {
+                font-size: 1rem;
+                line-height: 1.6;
+                font-family: 'JetBrains Mono', 'Source Code Pro', monospace;
+            }
+
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+        </style>
+    </head>
+    <body class="text-slate-800">
+        <div class="max-w-5xl mx-auto px-4 py-8 md:py-12">
+            <!-- ============================================================ -->
+            <!-- 1. ヘッダー (#header) -->
+            <!-- ============================================================ -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <span
+                        class="bg-emerald-600 text-white text-base font-bold px-3 py-1 rounded-full"
+                        >LeetCode 20</span
+                    >
+                    <span class="bg-sky-500 text-white text-base font-bold px-3 py-1 rounded-full"
+                        >Easy</span
+                    >
+                </div>
+                <h1 class="outfit text-[2.4rem] font-extrabold text-teal-900 mb-1">
+                    Valid Parentheses
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    スタックによる括弧対応判定 による O(n) 実装（Python / TypeScript / Go / Rust）
+                </p>
+
+                <p
+                    class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block"
+                >
+                    💡
+                    一言で言うと：「開き括弧と閉じ括弧の対応関係と順序が正しいかどうかを判定する問題」
+                </p>
+
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >コード（4言語）</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >計算量</a
+                    >
+                    <a
+                        href="#comparison"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >言語比較</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ============================================================ -->
+            <!-- 2. アルゴリズム概要 (#overview) -->
+            <!-- ============================================================ -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「開き括弧と閉じ括弧の対応関係と順序が正しいかどうかを判定する問題」です。
+                    </p>
+                    <p class="text-slate-600 text-base mt-2">
+                        <code class="bg-white px-1 rounded font-mono text-base">'('</code>、<code
+                            class="bg-white px-1 rounded font-mono text-base"
+                            >')'</code
+                        >、<code class="bg-white px-1 rounded font-mono text-base">'{'</code>、<code
+                            class="bg-white px-1 rounded font-mono text-base"
+                            >'}'</code
+                        >、<code class="bg-white px-1 rounded font-mono text-base">'['</code>、<code
+                            class="bg-white px-1 rounded font-mono text-base"
+                            >']'</code
+                        >
+                        だけからなる文字列
+                        <code class="bg-white px-1 rounded font-mono text-base">s</code>
+                        が与えられます。すべての開き括弧が正しい種類・正しい順序で閉じられているなら
+                        <code class="bg-white px-1 rounded font-mono text-base">true</code
+                        >、そうでなければ
+                        <code class="bg-white px-1 rounded font-mono text-base">false</code>
+                        を返します。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-base mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-base space-y-1 list-disc list-inside">
+                        <li>
+                            括弧の「数」を数えるだけでは不十分です。開き括弧の数と閉じ括弧の数が一致していても、閉じる<strong>順序</strong>が壊れている入力（例：<code
+                                class="bg-white px-1 rounded font-mono text-base"
+                                >"([)]"</code
+                            >）を見逃してしまいます。
+                        </li>
+                        <li>
+                            閉じ括弧が来たときに「一番最近開かれた、まだ閉じられていない括弧」と比較する必要があり、これには「後入れ先出し」の性質を持つデータ構造（スタック）が必要です。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(n)
+                        </div>
+                        <div class="text-base mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(n)
+                        </div>
+                        <div class="text-base mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            Stack
+                        </div>
+                        <div class="text-base mt-1">採用アプローチ</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            4言語共通
+                        </div>
+                        <div class="text-base mt-1">アルゴリズムの統一度</div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-slate-200 p-5">
+                    <p class="font-semibold text-teal-800 text-base mb-3">📥 入出力例</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
+                        <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                            <div class="font-mono">s = "()[]{}"</div>
+                            <div class="font-mono text-emerald-700 font-bold mt-1">出力: true</div>
+                            <div class="text-slate-500 mt-1">
+                                3種類の括弧がそれぞれ正しい順序で閉じられているため
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+                            <div class="font-mono">s = "([)]"</div>
+                            <div class="font-mono text-red-700 font-bold mt-1">出力: false</div>
+                            <div class="text-slate-500 mt-1">
+                                '(' が閉じられる前に '[' が ')' によって閉じられようとしているため
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 3. ステップバイステップ解説 (#steps) -->
+            <!-- ============================================================ -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-600 text-base mb-2">
+                    ここでは特定の言語に依存せず、「文字列を読みながらスタックを操作する」という処理の流れを、
+                    代表例
+                    <code class="bg-slate-100 px-1 rounded font-mono text-base">s = "([)]"</code>
+                    を使って1ステップずつ確認します。
+                    この考え方は、後の「コード（4言語）」セクションでPython / TypeScript / Go /
+                    Rustのどの実装にも共通する土台になります。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 4. コード例 (#code) -->
+            <!-- ============================================================ -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    実装（Python / TypeScript / Go / Rust）
+                </h2>
+                <p class="text-slate-600 text-base mb-4">
+                    4言語とも「開き括弧が来たら対応する閉じ括弧をスタックに積み、閉じ括弧が来たらスタック最上部と直接比較する」という同じアルゴリズムを採用しています。
+                    タブを切り替えて、それぞれの言語らしい書き方・エラーの扱い方の違いを見比べてみましょう。
+                </p>
+                <div id="code-root"></div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 5. 視覚的図解・フローチャート (#diagram) -->
+            <!-- DiagramSection コンポーネントが <section id="diagram"> ごと描画する -->
+            <!-- ============================================================ -->
+            <div id="diagram-root"></div>
+
+            <!-- ============================================================ -->
+            <!-- 6. 計算量説明 (#complexity) -->
+            <!-- ============================================================ -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-base mb-2">📖 Big-O 記法の読み方</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-base">
+                        <div class="text-center p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono">O(1)</div>
+                            <div class="mt-1">入力サイズに関わらず<br />常に一定の速さ</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono">O(n)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理も約2倍</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono">O(n log n)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理は約2倍強</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono">O(n&sup2;)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理は約4倍</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-base border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="text-left p-3 border border-slate-200">言語</th>
+                                <th class="text-left p-3 border border-slate-200">
+                                    採用アルゴリズム
+                                </th>
+                                <th class="text-left p-3 border border-slate-200">時間計算量</th>
+                                <th class="text-left p-3 border border-slate-200">空間計算量</th>
+                                <th class="text-left p-3 border border-slate-200">実装上の特徴</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-3 border border-slate-200 font-semibold">Python</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200">
+                                    <code class="bg-slate-100 px-1 rounded font-mono">list</code>
+                                    をスタックに、<code class="bg-slate-100 px-1 rounded font-mono"
+                                        >dict</code
+                                    >
+                                    で対応表引き
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    TypeScript
+                                </td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200">
+                                    <code class="bg-slate-100 px-1 rounded font-mono"
+                                        >string[]</code
+                                    >
+                                    をスタックに、<code class="bg-slate-100 px-1 rounded font-mono"
+                                        >readonly</code
+                                    >
+                                    な対応表
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border border-slate-200 font-semibold">Go</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200">
+                                    <code class="bg-slate-100 px-1 rounded font-mono">[]byte</code>
+                                    をプリアロケーション、<code
+                                        class="bg-slate-100 px-1 rounded font-mono"
+                                        >switch</code
+                                    >
+                                    で分岐
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="p-3 border border-slate-200 font-semibold">Rust</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(n)</td>
+                                <td class="p-3 border border-slate-200">
+                                    <code class="bg-slate-100 px-1 rounded font-mono"
+                                        >Vec&lt;char&gt;</code
+                                    >
+                                    を事前確保、<code class="bg-slate-100 px-1 rounded font-mono"
+                                        >Option&lt;char&gt;</code
+                                    >
+                                    で安全に比較
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-base mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-base leading-7">
+                        文字列
+                        <code class="bg-white px-1 rounded font-mono text-base">s</code>
+                        の各文字を1回ずつしか読まないため、時間計算量は文字列長 n に比例する O(n)
+                        になります。
+                        これより速くすることは、各文字を最低1回は確認する必要がある以上、理論上不可能です。
+                        空間計算量については、最悪ケース（全て開き括弧、例：<code
+                            class="bg-white px-1 rounded font-mono text-base"
+                            >"((((("</code
+                        >）ではスタックに全文字が積まれるため O(n) になります。
+                        括弧の出現数だけを数えるO(1)空間のアプローチも存在しますが、順序の検証ができず不正解になるため採用していません。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 7. 言語間比較 (#comparison) -->
+            <!-- ============================================================ -->
+            <section id="comparison" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    言語間比較
+                </h2>
+                <p class="text-slate-600 text-base mb-5">
+                    同じアルゴリズムでも、言語ごとに「メモリの扱い方」や「エラーの表現方法」が異なります。
+                    ここでは4言語の実装を横並びで比較し、それぞれの言語特有の設計判断を振り返ります。
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-base border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="text-left p-3 border border-slate-200">観点</th>
+                                <th class="text-left p-3 border border-slate-200">Python</th>
+                                <th class="text-left p-3 border border-slate-200">TypeScript</th>
+                                <th class="text-left p-3 border border-slate-200">Go</th>
+                                <th class="text-left p-3 border border-slate-200">Rust</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    採用アルゴリズム
+                                </td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                                <td class="p-3 border border-slate-200">スタック法</td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    スタックの実体
+                                </td>
+                                <td class="p-3 border border-slate-200 font-mono">list[str]</td>
+                                <td class="p-3 border border-slate-200 font-mono">string[]</td>
+                                <td class="p-3 border border-slate-200 font-mono">[]byte</td>
+                                <td class="p-3 border border-slate-200 font-mono">
+                                    Vec&lt;char&gt;
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    メモリ確保の特徴
+                                </td>
+                                <td class="p-3 border border-slate-200">動的拡張（償却O(1)）</td>
+                                <td class="p-3 border border-slate-200">
+                                    動的拡張（V8内部最適化）
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    makeでプリアロケーションし再アロケーション回避
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    with_capacityで事前確保し再アロケーション回避
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    エラー表現の方法
+                                </td>
+                                <td class="p-3 border border-slate-200">例外（Exception）</td>
+                                <td class="p-3 border border-slate-200">undefinedの型レベル表現</td>
+                                <td class="p-3 border border-slate-200">
+                                    パニックを避ける範囲チェック
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    Option&lt;T&gt;による安全な比較
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    メモリ管理方式
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    GC（参照カウント+世代別GC）
+                                </td>
+                                <td class="p-3 border border-slate-200">GC（V8のGC）</td>
+                                <td class="p-3 border border-slate-200">GC（並行GC）</td>
+                                <td class="p-3 border border-slate-200">
+                                    所有権システム（GC無し）
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    型安全性の担保方法
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    pylance静的解析+実行時isinstance
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    コンパイル時の構造的型付け+型ガード
+                                </td>
+                                <td class="p-3 border border-slate-200">静的型付け+go vet</td>
+                                <td class="p-3 border border-slate-200">
+                                    コンパイル時の所有権チェック
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-purple-50 border border-purple-200">
+                    <p class="text-purple-800 font-semibold text-base mb-2">相違点の背景</p>
+                    <p class="text-slate-700 text-base leading-7">
+                        Python・TypeScript・GoはいずれもGC（ガベージコレクション、＝使い終わったメモリを自動で回収する仕組み）を持つ言語であり、
+                        メモリの解放タイミングを意識する必要がありません。一方Rustは所有権システム（＝コンパイル時にメモリの管理者を1つに定める仕組み）
+                        でGC無しにメモリ安全性を実現しており、これがエラー表現の違いに最も強く表れています。
+                        Python/TypeScript/Goが「例外」または「安全な値（undefinedやパニック回避チェック）」でエラーを扱うのに対し、
+                        Rustの<code class="bg-white px-1 rounded font-mono text-base"
+                            >Option&lt;T&gt;</code
+                        >は「値があるかないか」を型として持つため、
+                        呼び出し側は必ずどちらのケースかを意識させられます。
+                        本問題はデータ構造・計算量の面で言語ごとの有利不利が生じるタイプの問題ではないため、4言語とも同じスタック法を採用していますが、
+                        対応表の型・エラーの扱い方には各言語のイディオム（＝その言語で自然とされる書き方）がそれぞれ表れています。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 8. 用語集 (#glossary) -->
+            <!-- ============================================================ -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-base mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください（五十音順）。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> イミュータブル
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            一度作られたら中身を変更できない性質のこと。Pythonの<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >str</code
+                            >やTypeScript/JavaScriptの文字列はこの性質を持ちます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> ガベージコレクション（GC）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            使い終わったメモリを自動で回収する仕組み。Python・TypeScript（JavaScript）・Goが持つ機能で、プログラマがメモリ解放のタイミングを意識しなくてよくなります。Rustはこの仕組みを持たず、代わりに所有権システムでメモリを管理します。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 型ガード（TypeScript）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            <code class="bg-slate-100 px-1 rounded font-mono text-base">typeof</code
+                            >や<code class="bg-slate-100 px-1 rounded font-mono text-base">in</code
+                            >演算子などで実行時に値の型を確認し、その情報をもとにTypeScriptの型を絞り込む仕組みです。JavaScriptには無い、TypeScript独自のコンパイル時チェック機能です。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 借用（Rust）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            所有権を渡さずに値を参照する仕組み。<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >&amp;T</code
+                            >（読み取り専用）と<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >&amp;mut T</code
+                            >（書き込み可能）があります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 所有権（Rust）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            値を「誰が管理するか」をコンパイル時に決めるRust独自の仕組み。JavaやPythonのようなガベージコレクタなしで、メモリの安全性をコンパイル時に保証できます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> スタック
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            後入れ先出し（LIFO）の構造を持つデータ構造。お皿の積み重ねのように、最後に積んだものを最初に取り出します。本問題では「まだ閉じられていない開き括弧（に対応する閉じ括弧）」を記録するために使います。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> スライス（Go）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            Goで配列の一部（または全体）を扱うためのデータ構造。<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >[]byte</code
+                            >のように書き、動的にサイズを変えられます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 静的解析
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            プログラムを実行せずに、コードを読むだけでバグや型エラーを検出する手法。Pythonのpylance、TypeScriptのコンパイラ、Goのgo
+                            vet、Rustのclippyがそれぞれ担っています。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 償却計算量（Amortized
+                            Complexity）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            個々の操作は時々遅くなることがあっても、多数回の操作全体で平均すると一定時間で済むという計算量の考え方。Pythonの<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >list.append</code
+                            >の再確保コストはこの考え方で「ならすとO(1)」とみなされます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> パニック（Go / Rust）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            GoやRustで回復不能なエラーが発生した際に起きる強制終了。スライスや配列への範囲外アクセスなどで発生します。本問題のコードでは、範囲外アクセスが起きる前に必ず空チェックを行うことで回避しています。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> プリアロケーション（Go / Rust）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            必要なメモリをあらかじめまとめて確保しておくこと。Goの<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >make([]byte, 0, len(s))</code
+                            >やRustの<code class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >Vec::with_capacity(s.len())</code
+                            >のように書くことで、途中の再確保を防ぎ高速化できます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> Big-O記法
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            入力の大きさに対して、処理にかかる時間やメモリがどう増えるかを表す記法。<code
+                                class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >O(n)</code
+                            >なら「入力が2倍になると処理も約2倍になる」ことを意味します。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> LIFO（Last In, First Out）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            「最後に入れたものを最初に出す」という、スタックの動作原則。本問題の「一番内側の括弧から閉じる」という性質とぴったり一致します。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> readonly（TypeScript）
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            配列やオブジェクトの値を変更できないようにする修飾子。JavaScriptには無い、TypeScript独自のコンパイル時チェック機能で、意図しない書き換えを防ぎます。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <footer class="text-center text-slate-500 text-base py-6">
+                LeetCode 20: Valid Parentheses ― Python / TypeScript / Go / Rust 4言語解説
+            </footer>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- CDN: React / Prism / Mermaid（依存順を厳守） -->
+        <!-- ============================================================ -->
+        <script src="/vendor/react/react.development.js"></script>
+        <script src="/vendor/react-dom/react-dom.development.js"></script>
+
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-core.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-python.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-clike.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-go.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/components/prism-rust.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://unpkg.com/prismjs@1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <script src="/vendor/mermaid/mermaid.min.js"></script>
+
+        <script>
+            'use strict';
+            const { useState, useEffect, useRef } = React;
+            // ============================================================
+            // データ定義: ステップ解説
+            // ============================================================
+            // 入力例 s = "([)]" を一貫して使い、Steps / Code / Diagram の各セクションで
+            // 同じトレースを参照できるようにする。
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '空のスタックを用意する',
+                    desc:
+                        '開き括弧が来るたびに「対応する閉じ括弧」を記録しておくための、空のスタックを用意します。' +
+                        'なぜなら括弧は入れ子になるため、直近に開かれた括弧を最初に照合する必要があり、これはスタックの' +
+                        '「後入れ先出し」という性質とぴったり一致するからです。' +
+                        '例）入力 s = "([)]" に対して、走査を始める前の状態は stack = [] です。',
+                    stack: [],
+                    currentIndex: -1,
+                    currentChar: null,
+                    action: 'start',
+                    note: '走査開始前',
+                },
+                {
+                    step: 2,
+                    title: "1文字目 '(' を読み、対応する閉じ括弧を積む",
+                    desc:
+                        "1文字目の '(' を読み取ります。開き括弧なので、対応する閉じ括弧 ')' をスタックに積みます。" +
+                        'なぜこの操作が必要かというと、あとで閉じ括弧が来たときにスタックの一番上と直接比較するだけで' +
+                        '対応関係を確認できるようにするためです。「期待する文字」をあらかじめ計算しておくことで、' +
+                        '閉じ括弧側の処理をシンプルにできます。' +
+                        "例） c='(' → push(')') → stack=[')']",
+                    stack: [')'],
+                    currentIndex: 0,
+                    currentChar: '(',
+                    action: 'push',
+                    note: "開き括弧 → 対応する閉じ括弧 ')' を積んだ",
+                },
+                {
+                    step: 3,
+                    title: "2文字目 '[' を読み、対応する閉じ括弧を積む",
+                    desc:
+                        "2文字目の '[' を読み取ります。同じく開き括弧なので、対応する閉じ括弧 ']' をスタックに積みます。" +
+                        "なぜなら、この時点では '(' も '[' もまだどちらも閉じられていないため、" +
+                        '両方の「期待する閉じ括弧」を同時にスタックへ保持しておく必要があるからです。' +
+                        "例） c='[' → push(']') → stack=[')', ']']",
+                    stack: [')', ']'],
+                    currentIndex: 1,
+                    currentChar: '[',
+                    action: 'push',
+                    note: "開き括弧 → 対応する閉じ括弧 ']' を積んだ",
+                },
+                {
+                    step: 4,
+                    title: "3文字目 ')' を読み、スタック最上部と比較する",
+                    desc:
+                        "3文字目の ')' を読み取ります。閉じ括弧なので、スタックの最上部を取り出して比較します。" +
+                        'なぜなら、スタックの最上部には「直近に開かれた括弧が期待する閉じ括弧」が積まれているため、' +
+                        'その値と実際に読んだ文字が一致するかどうかで、正しい順序で閉じられているかを判定できるからです。' +
+                        "例） stack.pop() → top=']'。今読んだ文字は ')'。']' と ')' は一致しません。",
+                    stack: [')'],
+                    currentIndex: 2,
+                    currentChar: ')',
+                    action: 'mismatch',
+                    poppedValue: ']',
+                    note: "取り出した ']' と読んだ文字 ')' が不一致",
+                },
+                {
+                    step: 5,
+                    title: '不一致を検出し、判定を確定する',
+                    desc:
+                        "直前のステップで取り出した ']' と実際の文字 ')' が一致しなかったため、" +
+                        '残りの文字を読み進めることなく false を確定して返します。' +
+                        'なぜなら、1つでも対応関係が崩れた時点でこの文字列が無効であることは確定するため、' +
+                        '早期に処理を打ち切ることで無駄な走査を省けるからです。' +
+                        '例） isValid("([)]") の戻り値は false になります。',
+                    stack: [')'],
+                    currentIndex: -1,
+                    currentChar: null,
+                    action: 'result',
+                    result: false,
+                    note: '判定確定',
+                },
+            ];
+            const inputChars = ['(', '[', ')', ']'];
+            // ============================================================
+            // StepVisualization: 現在のステップにおける入力文字列とスタックの状態を表示する
+            // ============================================================
+            function StepVisualization({ data }) {
+                return React.createElement(
+                    'div',
+                    { className: 'mt-4' },
+                    // 入力文字列の可視化（現在読んでいる文字をハイライト）
+                    React.createElement(
+                        'div',
+                        { className: 'mb-4' },
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 text-base font-semibold mb-2' },
+                            '📥 入力文字列 s = "([)]"',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex gap-2' },
+                            inputChars.map((ch, i) => {
+                                const isCurrent = i === data.currentIndex;
+                                return React.createElement(
+                                    'div',
+                                    {
+                                        key: i,
+                                        className: [
+                                            'w-12 h-12 rounded-xl flex items-center justify-center font-mono font-bold text-lg border-2 transition',
+                                            isCurrent
+                                                ? 'bg-amber-200 border-amber-500 text-amber-900 scale-110 shadow'
+                                                : i < data.currentIndex ||
+                                                    (data.currentIndex === -1 &&
+                                                        data.action === 'result')
+                                                  ? 'bg-slate-100 border-slate-300 text-slate-400'
+                                                  : 'bg-white border-slate-200 text-slate-600',
+                                        ].join(' '),
+                                    },
+                                    ch,
+                                );
+                            }),
+                        ),
+                    ),
+                    // スタックの可視化（左が底、右が先頭＝top）
+                    React.createElement(
+                        'div',
+                        { className: 'mb-2' },
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 text-base font-semibold mb-2' },
+                            '📚 スタックの中身（右端が最上部 top）',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'flex items-center gap-2 min-h-[3.5rem]' },
+                            data.stack.length === 0
+                                ? React.createElement(
+                                      'span',
+                                      { className: 'text-slate-400 text-base italic' },
+                                      '空です',
+                                  )
+                                : data.stack.map((ch, i) => {
+                                      const isTop = i === data.stack.length - 1;
+                                      return React.createElement(
+                                          'div',
+                                          {
+                                              key: i,
+                                              className: [
+                                                  'w-12 h-12 rounded-xl flex items-center justify-center font-mono font-bold text-lg border-2',
+                                                  isTop
+                                                      ? 'bg-sky-200 border-sky-500 text-sky-900 shadow'
+                                                      : 'bg-slate-100 border-slate-300 text-slate-500',
+                                              ].join(' '),
+                                          },
+                                          ch,
+                                      );
+                                  }),
+                            data.action === 'mismatch' &&
+                                React.createElement(
+                                    'span',
+                                    { className: 'ml-3 text-base text-red-600 font-semibold' },
+                                    `← 取り出した '${data.poppedValue}' と比較`,
+                                ),
+                        ),
+                    ),
+                    // 変数の状態パネル（必須）
+                    React.createElement(
+                        'div',
+                        {
+                            className:
+                                'mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-base',
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 mb-2 font-sans text-base font-semibold' },
+                            '🔍 現在の変数の状態',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-emerald-700' },
+                            `currentChar = ${data.currentChar === null ? 'null' : "'" + data.currentChar + "'"}`,
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-sky-700' },
+                            `stack = [${data.stack.map((c) => "'" + c + "'").join(', ')}]`,
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-amber-700' },
+                            `action = ${data.action}${data.action === 'result' ? '  →  return ' + data.result : ''}`,
+                        ),
+                    ),
+                    data.action === 'result' &&
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'mt-3 p-3 rounded-xl bg-red-50 border border-red-300 text-red-800 text-base font-semibold text-center',
+                            },
+                            '❌ isValid の戻り値: false（括弧の対応関係が不正なため）',
+                        ),
+                );
+            }
+            // ============================================================
+            // StepsSection: ステップバイステップ解説（再生・前後移動つき）
+            // ============================================================
+            function StepsSection() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+                const currentStepData = stepsData[activeStep - 1];
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+                const handlePlay = () => {
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+                return React.createElement(
+                    'div',
+                    { className: 'grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2' },
+                    // 左カラム：ステップ一覧
+                    React.createElement(
+                        'div',
+                        null,
+                        React.createElement(
+                            'h3',
+                            { className: 'mt-0 mb-4 text-teal-800 text-xl font-semibold' },
+                            'ステップ一覧',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'space-y-2' },
+                            stepsData.map((step) => {
+                                const isActive = activeStep === step.step;
+                                return React.createElement(
+                                    'button',
+                                    {
+                                        key: step.step,
+                                        type: 'button',
+                                        className: [
+                                            'w-full text-left text-base rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                            'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                            isActive
+                                                ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                : '',
+                                        ].join(' '),
+                                        onClick: () => handleStepClick(step.step),
+                                        'aria-current': isActive ? 'step' : undefined,
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        {
+                                            className: [
+                                                'font-bold mb-1',
+                                                isActive ? 'text-emerald-900' : 'text-teal-800',
+                                            ].join(' '),
+                                        },
+                                        `Step ${step.step}: ${step.title}`,
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'text-slate-500 text-base mt-1' },
+                                        step.note,
+                                    ),
+                                );
+                            }),
+                        ),
+                    ),
+                    // 右カラム：現在のステップ詳細
+                    React.createElement(
+                        'div',
+                        { className: 'my-auto' },
+                        activeStep > 1 &&
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-base text-slate-500',
+                                },
+                                `前のステップ（Step ${activeStep - 1}）では「${stepsData[activeStep - 2].title}」を行いました`,
+                            ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]',
+                            },
+                            React.createElement(
+                                'h3',
+                                { className: 'mt-0 text-teal-800 text-lg font-bold' },
+                                `Step ${currentStepData.step}: ${currentStepData.title}`,
+                            ),
+                            React.createElement(
+                                'p',
+                                { className: 'text-slate-600 leading-7 text-base mt-2' },
+                                currentStepData.desc,
+                            ),
+                        ),
+                        React.createElement(StepVisualization, { data: currentStepData }),
+                        React.createElement(
+                            'div',
+                            { className: 'flex flex-wrap justify-center gap-2 mt-4' },
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-base',
+                                    onClick: handlePlay,
+                                    disabled: isPlaying,
+                                },
+                                '再生',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                    onClick: () => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    },
+                                    disabled: activeStep === 1,
+                                },
+                                '前へ',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                    onClick: () => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    },
+                                    disabled: activeStep === stepsData.length,
+                                },
+                                '次へ',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-base',
+                                    onClick: () => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    },
+                                },
+                                'リセット',
+                            ),
+                        ),
+                        activeStep === stepsData.length &&
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-base text-center',
+                                },
+                                '全ステップ完了です。下の「コード」セクションで4言語それぞれの実装を確認してみましょう。',
+                            ),
+                    ),
+                );
+            }
+            // ============================================================
+            // データ定義: 4言語のコード
+            // ============================================================
+            const codeData = [
+                {
+                    id: 'python',
+                    label: 'Python',
+                    prismLang: 'python',
+                    structure: [
+                        '開き括弧 → 対応する閉じ括弧の対応表（dict）を用意する',
+                        'list をスタックとして使い、文字列を1文字ずつ走査する',
+                        '開き括弧なら対応する閉じ括弧をスタックに積む',
+                        '閉じ括弧ならスタックが空でないか確認し、取り出した値と比較する',
+                        '走査後にスタックが空かどうかで最終判定を行う',
+                    ],
+                    code: `class Solution:
+    """LeetCode 20: Valid Parentheses"""
+
+    # 開き括弧 → 対応する閉じ括弧、の対応表。
+    # dict のキー検索は平均O(1)（ハッシュテーブルによる高速アクセス）。
+    _PAIRS: dict[str, str] = {
+        '(': ')',
+        '[': ']',
+        '{': '}',
+    }
+
+    def isValid(self, s: str) -> bool:
+        # list をスタック（後入れ先出し構造）として使う。
+        # append/pop はどちらも末尾操作で（償却）O(1)。
+        stack: list[str] = []
+
+        for char in s:
+            if char in self._PAIRS:
+                # 開き括弧なら、対応する閉じ括弧をあらかじめ積んでおく。
+                # こうすると閉じ括弧側の比較が1回で済む。
+                stack.append(self._PAIRS[char])
+            else:
+                # 閉じ括弧のはず。スタックが空、または
+                # 取り出した値と一致しなければ不正と判定する。
+                if not stack or stack.pop() != char:
+                    return False
+
+        # 全て閉じられていればスタックは空のはず。
+        return not stack`,
+                    trace: `入力: s = "([)]"
+c='(' → 開き括弧 → push(_PAIRS['(']=')') → stack=[')']
+c='[' → 開き括弧 → push(_PAIRS['[']=']') → stack=[')', ']']
+c=')' → 閉じ括弧 → stack.pop() → top=']'
+        ']' != ')' → 不一致 → return False`,
+                    note:
+                        '対応表を dict（辞書）として持つことで、if/elif の連鎖よりも意図が明確かつ高速な判定ができます。' +
+                        'また list.append/pop はどちらも償却O(1)（＝ならすと一定時間で済むという意味）であり、' +
+                        'CPython（最も広く使われるPythonの実装）のC実装によって高速に動作します。' +
+                        '動的型付け言語であるため、pylance等の静的型チェッカーと型ヒントを組み合わせて安全性を補っています。',
+                },
+                {
+                    id: 'typescript',
+                    label: 'TypeScript',
+                    prismLang: 'typescript',
+                    structure: [
+                        '開き括弧 → 対応する閉じ括弧の対応表を readonly な型で定義する',
+                        'string[] をスタックとして使い、文字列を1文字ずつ走査する',
+                        '開き括弧なら対応する閉じ括弧をスタックに積む',
+                        '閉じ括弧なら pop した値と比較する（undefined も自然に false 側へ倒れる）',
+                        '走査後にスタックの長さで最終判定を行う',
+                    ],
+                    code: `// 対応表。readonly を付けることで、一度定義したら変更されるべきではない
+// というこのデータの性質をコンパイル時に保証する。
+const CLOSING_BRACKETS: Readonly<Record<string, string>> = {
+    '(': ')',
+    '[': ']',
+    '{': '}',
+};
+
+function isValid(s: string): boolean {
+    // string[] を「後入れ先出し」のスタックとして使う。
+    const stack: string[] = [];
+
+    for (const char of s) {
+        if (char in CLOSING_BRACKETS) {
+            // 開き括弧なら、対応する閉じ括弧を先に積んでおく。
+            stack.push(CLOSING_BRACKETS[char]);
+        } else {
+            // 閉じ括弧のはず。stack.pop() は空配列に対して
+            // 例外を投げず undefined を返すため、その場合も
+            // 自然に「不一致」として false 側に倒れる。
+            if (stack.pop() !== char) {
+                return false;
+            }
+        }
+    }
+
+    // 全て閉じられていればスタックは空のはず。
+    return stack.length === 0;
+}`,
+                    trace: `入力: s = "([)]"
+char='(' → CLOSING_BRACKETS内 → push(')') → stack=[')']
+char='[' → CLOSING_BRACKETS内 → push(']') → stack=[')', ']']
+char=')' → CLOSING_BRACKETS外 → stack.pop() → top=']'
+           ']' !== ')' → 不一致 → return false`,
+                    note:
+                        'stack.pop() の戻り値は string | undefined 型になります。strict モードでは、この' +
+                        'undefined の可能性を型として意識させられるため、空配列に対する誤ったアクセスを' +
+                        'コンパイル時に検出しやすくなります。今回は !== char という比較の中で undefined も' +
+                        '自然に不一致として扱えるため、追加の分岐なしに安全性を確保できています。',
+                },
+                {
+                    id: 'go',
+                    label: 'Go',
+                    prismLang: 'go',
+                    structure: [
+                        '[]byte をスタックとして使い、make でプリアロケーションする',
+                        '文字列をバイト単位で1文字ずつ走査する',
+                        'switch 文で開き括弧なら対応する閉じ括弧を push する',
+                        '閉じ括弧の場合はスタックが空でないか確認し、末尾と比較する',
+                        '走査後にスタックの長さで最終判定を行う',
+                    ],
+                    code: `func isValid(s string) bool {
+	// []byte をスタックとして使う。make の第3引数で容量を事前確保し、
+	// append による再アロケーション（メモリの取り直し）を防ぐ。
+	stack := make([]byte, 0, len(s))
+
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			// 開き括弧が来たら対応する閉じ括弧を積む。
+			stack = append(stack, ')')
+		case '[':
+			stack = append(stack, ']')
+		case '{':
+			stack = append(stack, '}')
+		default:
+			// 閉じ括弧のはず。スタックが空、または末尾と
+			// 不一致ならパニックさせず false を返す。
+			if len(stack) == 0 || stack[len(stack)-1] != s[i] {
+				return false
+			}
+			stack = stack[:len(stack)-1]
+		}
+	}
+
+	// 全て閉じられていればスタックは空のはず。
+	return len(stack) == 0
+}`,
+                    trace: `入力: s = "([)]"
+i=0, s[0]='(' → push ')' → stack=[')']
+i=1, s[1]='[' → push ']' → stack=[')', ']']
+i=2, s[2]=')' → default節。stack末尾=']' と s[2]=')' を比較
+              ']' != ')' → 不一致 → return false`,
+                    note:
+                        'スライスへの範囲外アクセスはGoではパニック（回復不能なエラーによる強制終了）を' +
+                        '引き起こすため、末尾を読む前に len(stack) == 0 を必ず確認しています。また' +
+                        'make(...,0,len(s)) によるプリアロケーション（必要なメモリをあらかじめまとめて確保' +
+                        'しておくこと）により、最悪ケースでも append の再アロケーションが発生しません。',
+                },
+                {
+                    id: 'rust',
+                    label: 'Rust',
+                    prismLang: 'rust',
+                    structure: [
+                        'Vec<char> をスタックとして使い、with_capacity で事前確保する',
+                        's.chars() で文字列を借用したまま1文字ずつ走査する',
+                        'match 式で開き括弧なら対応する閉じ括弧を push する',
+                        '閉じ括弧の場合は pop した Option<char> を直接 c と比較する',
+                        '走査後に is_empty() で最終判定を行う',
+                    ],
+                    code: `impl Solution {
+    pub fn is_valid(s: String) -> bool {
+        // Vec<char> をスタックとして使う。with_capacity で最悪ケースの
+        // 容量を事前確保し、途中の再アロケーションを防ぐ。
+        let mut stack: Vec<char> = Vec::with_capacity(s.len());
+
+        // s.chars() は s を借用するだけで所有権を奪わないイテレータ。
+        for c in s.chars() {
+            match c {
+                '(' => stack.push(')'),
+                '[' => stack.push(']'),
+                '{' => stack.push('}'),
+                _ => {
+                    // 閉じ括弧のはず。stack.pop() は Option<char> を
+                    // 返すため、空でも panic せず None として扱える。
+                    // Some(c) と直接比較することで一致判定を1行で書ける。
+                    if stack.pop() != Some(c) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // 全て閉じられていればスタックは空のはず。
+        stack.is_empty()
+    }
+}`,
+                    trace: `入力: s = "([)]"
+c='(' → push(')') → stack=[')']
+c='[' → push(']') → stack=[')', ']']
+c=')' → stack.pop() → Some(']')
+        Some(']') != Some(')') → 不一致 → return false`,
+                    note:
+                        'stack.pop() は Option<char>（値があるかないかを型で表現する仕組み）を返すため、' +
+                        'スタックが空でも panic せず None として安全に扱えます。None != Some(c) は自動的に' +
+                        'true になるため、Goのような明示的な空チェックを書かなくても安全性が保証されます。' +
+                        'これは所有権システムを持つRustならではの、コンパイル時に保証される安全性の一例です。',
+                },
+            ];
+            // ============================================================
+            // CodeBlockView: Prism.jsのDOM書き換えをReactの管理外に隔離するコンポーネント
+            // ============================================================
+            function CodeBlockView({ code, prismLang, blockId }) {
+                const containerRef = useRef(null);
+                useEffect(() => {
+                    const container = containerRef.current;
+                    if (!container) return;
+                    // このコンテナの中身は一切Reactに管理させない。
+                    // 言語が切り替わるたびに毎回ゼロから <pre>/<code> を作り直すことで、
+                    // ReactとPrismのDOM操作が衝突しないようにする（失敗パターン9対策）。
+                    container.innerHTML = '';
+                    const pre = document.createElement('pre');
+                    pre.className = 'line-numbers';
+                    const codeEl = document.createElement('code');
+                    codeEl.className = 'language-' + prismLang;
+                    codeEl.textContent = code;
+                    pre.appendChild(codeEl);
+                    container.appendChild(pre);
+                    const w = window;
+                    if (w.Prism) {
+                        w.Prism.highlightElement(codeEl);
+                    }
+                }, [code, prismLang, blockId]);
+                return React.createElement('div', {
+                    ref: containerRef,
+                    className: 'code-block-container',
+                });
+            }
+            // ============================================================
+            // CodeSection: 4言語タブ切り替え式のコード表示
+            // ============================================================
+            function CodeSection() {
+                const [activeLang, setActiveLang] = useState('python');
+                const current = codeData.find((c) => c.id === activeLang);
+                return React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'div',
+                        { className: 'flex flex-wrap gap-2 mb-5' },
+                        codeData.map((c) =>
+                            React.createElement(
+                                'button',
+                                {
+                                    key: c.id,
+                                    type: 'button',
+                                    onClick: () => setActiveLang(c.id),
+                                    className: [
+                                        'px-4 py-2 rounded-lg font-semibold text-base border-2 transition',
+                                        activeLang === c.id
+                                            ? 'bg-[linear-gradient(135deg,#10b981,#059669)] text-white border-emerald-600 shadow'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400',
+                                    ].join(' '),
+                                },
+                                c.label,
+                            ),
+                        ),
+                    ),
+                    // コードの構造
+                    React.createElement(
+                        'div',
+                        {
+                            className:
+                                'mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200',
+                        },
+                        React.createElement(
+                            'p',
+                            { className: 'text-emerald-800 font-semibold text-base mb-2' },
+                            'このコードの構造（先に全体像を把握しよう）',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-700 text-base space-y-1 list-decimal list-inside',
+                            },
+                            current.structure.map((s, i) =>
+                                React.createElement('li', { key: i }, s),
+                            ),
+                        ),
+                    ),
+                    React.createElement(CodeBlockView, {
+                        code: current.code,
+                        prismLang: current.prismLang,
+                        blockId: current.id,
+                    }),
+                    // 動作トレース
+                    React.createElement(
+                        'div',
+                        { className: 'mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-sky-800 font-semibold text-base mb-2' },
+                            '▶ 入力例での動作トレース',
+                        ),
+                        React.createElement(
+                            'pre',
+                            {
+                                className:
+                                    'text-slate-700 text-base font-mono leading-6 overflow-x-auto whitespace-pre',
+                            },
+                            current.trace,
+                        ),
+                    ),
+                    // 言語特有のポイント
+                    React.createElement(
+                        'div',
+                        { className: 'mt-4 p-4 rounded-xl bg-purple-50 border border-purple-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-purple-800 font-semibold text-base mb-2' },
+                            `${current.label} 特有のポイント`,
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 text-base leading-7' },
+                            current.note,
+                        ),
+                    ),
+                );
+            }
+            // ============================================================
+            // DiagramSection: Mermaid.js による処理フローチャート
+            // ============================================================
+            const mermaidDefinition = [
+                'flowchart TD',
+                '  Start[Start isValid with string s]',
+                '  Init[Initialize empty stack]',
+                '  Loop{More characters left}',
+                '  ReadChar[Read next character c]',
+                '  IsOpen{c is an opening bracket}',
+                '  PushClose[Push matching closing bracket]',
+                '  StackEmpty{Stack is empty}',
+                '  Pop[Pop top of stack]',
+                '  Match{Popped value equals c}',
+                '  CheckEmpty{Stack is empty}',
+                '  ReturnTrue[Return true]',
+                '  ReturnFalse[Return false]',
+                '  Start --> Init',
+                '  Init --> Loop',
+                '  Loop -- Yes --> ReadChar',
+                '  ReadChar --> IsOpen',
+                '  IsOpen -- Yes --> PushClose',
+                '  PushClose --> Loop',
+                '  IsOpen -- No --> StackEmpty',
+                '  StackEmpty -- Yes --> ReturnFalse',
+                '  StackEmpty -- No --> Pop',
+                '  Pop --> Match',
+                '  Match -- Yes --> Loop',
+                '  Match -- No --> ReturnFalse',
+                '  Loop -- No --> CheckEmpty',
+                '  CheckEmpty -- Yes --> ReturnTrue',
+                '  CheckEmpty -- No --> ReturnFalse',
+                '  classDef startEnd fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46;',
+                '  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e;',
+                '  classDef process fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;',
+                '  classDef truePath fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46;',
+                '  classDef falsePath fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;',
+                '  class Start startEnd',
+                '  class Init process',
+                '  class ReadChar process',
+                '  class PushClose process',
+                '  class Pop process',
+                '  class Loop decision',
+                '  class IsOpen decision',
+                '  class StackEmpty decision',
+                '  class Match decision',
+                '  class CheckEmpty decision',
+                '  class ReturnTrue truePath',
+                '  class ReturnFalse falsePath',
+                '  linkStyle 5 stroke:#a855f7,stroke-width:2px',
+                '  linkStyle 7 stroke:#dc2626,stroke-width:2px',
+                '  linkStyle 10 stroke:#a855f7,stroke-width:2px',
+                '  linkStyle 11 stroke:#dc2626,stroke-width:2px',
+                '  linkStyle 13 stroke:#059669,stroke-width:2px',
+                '  linkStyle 14 stroke:#dc2626,stroke-width:2px',
+            ].join('\n');
+            function DiagramSection() {
+                const mermaidRef = useRef(null);
+                const [renderError, setRenderError] = useState(null);
+                useEffect(() => {
+                    let cancelled = false;
+                    async function renderDiagram() {
+                        const w = window;
+                        if (!w.mermaid) {
+                            if (!cancelled)
+                                setRenderError('Mermaidライブラリの読み込みに失敗しました。');
+                            return;
+                        }
+                        try {
+                            w.mermaid.initialize({
+                                startOnLoad: false,
+                                securityLevel: 'loose',
+                                fontFamily: 'Inter, sans-serif',
+                            });
+                            const { svg } = await w.mermaid.render(
+                                'mermaid-lc20-flowchart',
+                                mermaidDefinition,
+                            );
+                            if (!cancelled && mermaidRef.current) {
+                                mermaidRef.current.innerHTML = svg;
+                            }
+                        } catch (err) {
+                            if (!cancelled)
+                                setRenderError('フローチャートの描画中にエラーが発生しました。');
+                        }
+                    }
+                    renderDiagram();
+                    return () => {
+                        cancelled = true;
+                    };
+                }, []);
+                return React.createElement(
+                    'section',
+                    { id: 'diagram', className: 'bg-white rounded-2xl p-8 mb-8 shadow' },
+                    React.createElement(
+                        'h2',
+                        {
+                            className:
+                                'outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200',
+                        },
+                        '処理フローチャート',
+                    ),
+                    // フローチャートの読み方
+                    React.createElement(
+                        'div',
+                        { className: 'mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-amber-800 font-semibold text-base mb-2' },
+                            '🗺️ フローチャートの読み方',
+                        ),
+                        React.createElement(
+                            'ul',
+                            {
+                                className:
+                                    'text-slate-700 text-base space-y-1 list-disc list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-2 rounded bg-blue-100 border border-blue-400 mr-1',
+                                }),
+                                '四角（青）= 処理ステップ（文字を読む・スタックに積む など）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 bg-yellow-100 border border-yellow-400 mr-1',
+                                    style: { clipPath: 'polygon(50% 0%,100% 50%,50% 100%,0% 50%)' },
+                                }),
+                                'ひし形（黄）= 条件分岐（はい/いいえ）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 rounded-full bg-emerald-200 border border-emerald-500 mr-1',
+                                }),
+                                '四角（緑）= 開始ノード、または true 確定時の終了処理',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 rounded-full bg-red-200 border border-red-500 mr-1',
+                                }),
+                                '四角（赤）= false 確定時の終了処理',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '矢印の色：緑=true確定、赤=false確定、紫=ループの継続（次の文字へ戻る）',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 flex flex-col items-center gap-3' },
+                        renderError &&
+                            React.createElement(
+                                'p',
+                                {
+                                    className:
+                                        'text-red-600 text-base bg-red-50 border border-red-200 rounded-lg px-4 py-2',
+                                },
+                                renderError,
+                            ),
+                        React.createElement('div', {
+                            ref: mermaidRef,
+                            className:
+                                'mermaid-container w-full overflow-x-auto flex justify-center',
+                            role: 'img',
+                            'aria-label': 'Valid Parentheses flowchart',
+                        }),
+                    ),
+                    // 代表例でのフロー追跡
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 font-semibold text-base mb-2' },
+                            '🔎 入力例 s = "([)]" でのフロー追跡',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-600 text-base space-y-1 list-decimal list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                null,
+                                '「Start」ノード → 入力 s = "([)]" を受け取る',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「Init」ノード → 空のスタックを用意し、「Loop」で文字が残っているか確認',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                "1文字目 '(' と2文字目 '[' → 「IsOpen」が「はい」→ 「PushClose」で対応する閉じ括弧を積んでループへ戻る",
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                "3文字目 ')' → 「IsOpen」が「いいえ」→ 「StackEmpty」は「いいえ」→ 「Pop」で取り出し「Match」を判定",
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                "「Match」が「いいえ」（']' と ')' が不一致）→ 「ReturnFalse」ノードへ到達し、結果 false を返す",
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'p',
+                        { className: 'mt-5 text-slate-700 leading-8 text-base' },
+                        'このフローチャートは、Python / TypeScript / Go / Rust いずれの実装にも共通する「対応する閉じ括弧を' +
+                            'あらかじめ計算してスタックに積み、閉じ括弧が来たら直接比較する」というアルゴリズムの流れを表しています。' +
+                            '各言語での具体的な書き方の違いは、上の「コード（4言語）」セクションと、後述の「言語間比較」セクションで確認できます。',
+                    ),
+                );
+            }
+            // ============================================================
+            // マウント
+            // ============================================================
+            function mountApp(elementId, Component) {
+                const el = document.getElementById(elementId);
+                if (!el) return;
+                const root = ReactDOM.createRoot(el);
+                root.render(React.createElement(Component));
+            }
+            mountApp('steps-root', StepsSection);
+            mountApp('code-root', CodeSection);
+            mountApp('diagram-root', DiagramSection);
+        </script>
+    </body>
+</html>

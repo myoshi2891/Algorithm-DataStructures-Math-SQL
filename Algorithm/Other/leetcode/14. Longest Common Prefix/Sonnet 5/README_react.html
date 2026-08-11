@@ -1,0 +1,1652 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            LeetCode 14: Longest Common Prefix - 水平走査法による解説（Python/TypeScript/Go/Rust）
+        </title>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Prism.js CSS（コアテーマ + line-numbers + toolbar） -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+        />
+
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                font-family: 'Inter', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+                background: linear-gradient(180deg, #f0fdf4 0%, #e0f2fe 100%);
+            }
+            .outfit,
+            code,
+            pre,
+            .font-mono {
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            /* Mermaid描画結果のレスポンシブ対応・中央寄せ */
+            .mermaid-container svg {
+                max-width: 100%;
+                height: auto;
+                margin: 0 auto;
+                display: block;
+            }
+
+            /* Prism.js コピーボタン等のツールバーCSS（!important で確実に上書き） */
+            .code-toolbar > .toolbar .toolbar-item a,
+            .code-toolbar > .toolbar .toolbar-item button,
+            .code-toolbar > .toolbar .toolbar-item span {
+                background: #10b981 !important;
+                color: white !important;
+                border-radius: 6px !important;
+                padding: 3px 10px !important;
+                font-size: 1rem !important;
+                border: none !important;
+                cursor: pointer !important;
+            }
+
+            pre[class*='language-'] {
+                border-radius: 0.75rem !important;
+                font-size: 1rem !important;
+                line-height: 1.6 !important;
+            }
+        </style>
+    </head>
+    <body class="min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 py-8">
+            <!-- ============================================================
+     1. ヘッダー (#header)
+     ============================================================ -->
+            <header
+                id="header"
+                class="mb-8 rounded-2xl p-8 shadow-[0_10px_30px_rgba(16,185,129,0.12)] bg-[linear-gradient(135deg,#d1fae5,#bfdbfe)]"
+            >
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <span
+                        class="bg-emerald-600 text-white text-base font-bold px-3 py-1 rounded-full"
+                        >LeetCode 14</span
+                    >
+                    <span class="bg-sky-500 text-white text-base font-bold px-3 py-1 rounded-full"
+                        >Easy</span
+                    >
+                </div>
+                <h1 class="text-[2.4rem] font-extrabold text-teal-900 mb-1">
+                    Longest Common Prefix
+                </h1>
+                <p class="text-lg text-cyan-700 font-semibold mt-1">
+                    水平走査法（Horizontal Scanning）による O(S) 実装（S = 全文字列の合計文字数）
+                </p>
+
+                <p
+                    class="mt-3 text-base text-teal-800 bg-white/60 rounded-xl px-4 py-2 inline-block"
+                >
+                    一言で言うと：「複数の文字列を先頭から見比べて、全員に共通する最長の接頭辞を取り出す問題」
+                </p>
+
+                <nav class="flex flex-wrap gap-3 mt-6">
+                    <a
+                        href="#overview"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >概要</a
+                    >
+                    <a
+                        href="#steps"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >ステップ解説</a
+                    >
+                    <a
+                        href="#code"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >コード（4言語）</a
+                    >
+                    <a
+                        href="#diagram"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >フローチャート</a
+                    >
+                    <a
+                        href="#complexity"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >計算量</a
+                    >
+                    <a
+                        href="#comparison"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >言語比較</a
+                    >
+                    <a
+                        href="#glossary"
+                        class="inline-block px-4 py-2 font-semibold text-slate-700 no-underline rounded-lg border-2 border-slate-200 bg-white transition hover:shadow-[0_6px_16px_rgba(15,118,110,0.20)] hover:-translate-y-0.5 hover:bg-[linear-gradient(180deg,#e8fff6,#c8f1e1)] hover:border-teal-600 text-base"
+                        >📖 用語集</a
+                    >
+                </nav>
+            </header>
+
+            <!-- ============================================================
+     2. アルゴリズム概要 (#overview)
+     ============================================================ -->
+            <section id="overview" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    アルゴリズム概要
+                </h2>
+
+                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border-l-4 border-emerald-500">
+                    <p class="text-emerald-800 font-semibold text-base">
+                        💡
+                        この問題を一言で言うと：「複数の文字列を先頭から見比べて、全員に共通する最長の接頭辞を取り出す問題」です。
+                    </p>
+                    <p class="text-slate-600 text-base mt-2">
+                        文字列の配列 strs
+                        が与えられたとき、すべての文字列に共通する最長の接頭辞（先頭部分）を返します。
+                        共通する接頭辞が1文字も無ければ、空文字列 "" を返します。
+                    </p>
+                </div>
+
+                <div class="mb-5 p-4 rounded-xl bg-amber-50 border-l-4 border-amber-400">
+                    <p class="text-amber-800 font-semibold text-base mb-2">
+                        ⚠️ なぜ単純な方法では解けないのか
+                    </p>
+                    <ul class="text-slate-600 text-base space-y-1 list-disc list-inside">
+                        <li>
+                            共通接頭辞の長さは、文字列の本数が増えるほど短くなっていく可能性があるため、候補をどう縮めていくかを丁寧に管理する必要があります。
+                        </li>
+                        <li>
+                            空文字列や要素数1件などの境界的な入力（エッジケース）を見落とすと、実装が一見正しく動いているように見えても、特定の入力でだけ誤った結果を返してしまいます。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div
+                        style="background: #d1fae5; color: #065f46"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(S)
+                        </div>
+                        <div class="text-base mt-1">時間計算量</div>
+                    </div>
+                    <div
+                        style="background: #bfdbfe; color: #1e40af"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            O(1)
+                        </div>
+                        <div class="text-base mt-1">空間計算量</div>
+                    </div>
+                    <div
+                        style="background: #fef3c7; color: #92400e"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            最大200件 各200文字
+                        </div>
+                        <div class="text-base mt-1">入力サイズの制約</div>
+                    </div>
+                    <div
+                        style="background: #ede9fe; color: #5b21b6"
+                        class="rounded-xl p-3 text-center"
+                    >
+                        <div class="font-bold text-base font-mono break-all leading-tight">
+                            水平走査
+                        </div>
+                        <div class="text-base mt-1">採用アプローチ</div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-base mb-2">入出力例</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-3 rounded-lg bg-white border border-slate-200">
+                            <p class="text-slate-500 text-base mb-1">例1</p>
+                            <p class="font-mono text-base text-slate-800">
+                                strs = [flower, flow, flight]
+                            </p>
+                            <p class="font-mono text-base text-emerald-700 mt-1">出力: fl</p>
+                            <p class="text-slate-600 text-base mt-2">
+                                なぜ正解か：3つの文字列すべてが f と l
+                                で始まっており、3文字目でそれぞれ o / o / i と分かれるため、
+                                共通しているのは先頭2文字の fl までです。
+                            </p>
+                        </div>
+                        <div class="p-3 rounded-lg bg-white border border-slate-200">
+                            <p class="text-slate-500 text-base mb-1">例2</p>
+                            <p class="font-mono text-base text-slate-800">
+                                strs = [dog, racecar, car]
+                            </p>
+                            <p class="font-mono text-base text-emerald-700 mt-1">
+                                出力: （空文字列）
+                            </p>
+                            <p class="text-slate-600 text-base mt-2">
+                                なぜ正解か：dog, racecar, car
+                                はそもそも先頭の1文字目からすべて異なる（d, r, c）ため、
+                                共通する接頭辞は1文字も存在しません。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================
+     3. ステップバイステップ解説 (#steps) - React
+     ============================================================ -->
+            <section id="steps" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    ステップバイステップ解説
+                </h2>
+                <p class="text-slate-600 text-base mb-4">
+                    代表例 strs = [flower, flow, flight]
+                    を使って、水平走査アルゴリズムがどのように動くかを1ステップずつ確認しましょう。
+                    左のリストからステップを選ぶか、「再生」ボタンで自動的に進めることができます。
+                </p>
+                <div id="steps-root"></div>
+            </section>
+
+            <!-- ============================================================
+     4. コード例 (#code) - React（言語タブ切り替え）
+     ============================================================ -->
+            <section id="code" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    実装（Python / TypeScript / Go / Rust）
+                </h2>
+                <p class="text-slate-600 text-base mb-4">
+                    同じアルゴリズムでも、言語によって書き方や最適化の方向性が変わります。
+                    タブを切り替えて、4言語それぞれの実装・動作トレース・言語特有のポイントを見比べてみましょう。
+                </p>
+                <div id="code-root"></div>
+            </section>
+
+            <!-- ============================================================
+     5. 視覚的図解・フローチャート (#diagram) - React（Mermaid）
+     ============================================================ -->
+            <section id="diagram" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    処理フローチャート
+                </h2>
+                <div id="diagram-root"></div>
+            </section>
+
+            <!-- ============================================================
+     6. 計算量説明 (#complexity)
+     ============================================================ -->
+            <section id="complexity" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    計算量分析
+                </h2>
+
+                <div class="mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="text-slate-700 font-semibold text-base mb-2">📖 Big-O 記法の読み方</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-base">
+                        <div class="text-center p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                            <div class="font-bold font-mono">O(1)</div>
+                            <div class="mt-1">入力サイズに関わらず<br />常に一定の速さ</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-sky-100 text-sky-800">
+                            <div class="font-bold font-mono">O(n)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理も約2倍</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-amber-100 text-amber-800">
+                            <div class="font-bold font-mono">O(S)</div>
+                            <div class="mt-1">全文字数Sに<br />比例して増加</div>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-red-100 text-red-800">
+                            <div class="font-bold font-mono">O(n&sup2;)</div>
+                            <div class="mt-1">入力が2倍になると<br />処理は約4倍</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-base border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="text-left p-3 border border-slate-200">言語</th>
+                                <th class="text-left p-3 border border-slate-200">
+                                    採用アルゴリズム
+                                </th>
+                                <th class="text-left p-3 border border-slate-200">時間計算量</th>
+                                <th class="text-left p-3 border border-slate-200">空間計算量</th>
+                                <th class="text-left p-3 border border-slate-200">候補の縮め方</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="p-3 border border-slate-200 font-semibold">Python</td>
+                                <td class="p-3 border border-slate-200">垂直走査（zip + set）</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(S)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(1)</td>
+                                <td class="p-3 border border-slate-200">
+                                    一致した文字をリストに集め join で結合
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    TypeScript
+                                </td>
+                                <td class="p-3 border border-slate-200">水平走査（startsWith）</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(S)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(1)</td>
+                                <td class="p-3 border border-slate-200">
+                                    slice で新しい文字列に再代入
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="p-3 border border-slate-200 font-semibold">Go</td>
+                                <td class="p-3 border border-slate-200">
+                                    水平走査（strings.HasPrefix）
+                                </td>
+                                <td class="p-3 border border-slate-200 font-mono">O(S)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(1)</td>
+                                <td class="p-3 border border-slate-200">
+                                    スライス式でコピーせず範囲だけ変更
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-emerald-50">
+                                <td class="p-3 border border-slate-200 font-semibold">Rust</td>
+                                <td class="p-3 border border-slate-200">水平走査（starts_with）</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(S)</td>
+                                <td class="p-3 border border-slate-200 font-mono">O(1)</td>
+                                <td class="p-3 border border-slate-200">
+                                    usize の長さのみ更新し文字列は最後に1回だけ生成
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-emerald-800 font-semibold text-base mb-2">
+                        🔍 なぜこの計算量になるのか
+                    </p>
+                    <p class="text-slate-700 text-base leading-7">
+                        どの言語の実装も、最悪の場合で全文字列の全文字を最大1回ずつ調べる構造になっているため、時間計算量は
+                        O(S)（Sは全文字列の合計文字数）です。
+                        空間計算量については、候補の文字列（または候補の長さを表す整数）以外に追加のデータ構造を使わないため、出力用の文字列を除けば
+                        O(1) になります。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============================================================
+     7. 言語間比較 (#comparison)
+     ============================================================ -->
+            <section id="comparison" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    言語間比較
+                </h2>
+                <p class="text-slate-600 text-base mb-5">
+                    同じアルゴリズムでも、言語ごとに「メモリの扱い方」や「エラーの表現方法」が異なります。
+                    ここでは4言語の実装を横並びで比較し、それぞれの言語特有の設計判断を振り返ります。
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-base border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700">
+                                <th class="text-left p-3 border border-slate-200">観点</th>
+                                <th class="text-left p-3 border border-slate-200">Python</th>
+                                <th class="text-left p-3 border border-slate-200">TypeScript</th>
+                                <th class="text-left p-3 border border-slate-200">Go</th>
+                                <th class="text-left p-3 border border-slate-200">Rust</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-sky-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    メモリ確保の特徴
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    join で最後に1回だけ結合
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    slice のたびに新しい文字列
+                                </td>
+                                <td class="p-3 border border-slate-200">スライス式はコピーなし</td>
+                                <td class="p-3 border border-slate-200">
+                                    整数更新のみ、最後に1回だけ確保
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    エラー表現
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    TypeError / ValueError の例外
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    TypeError / RangeError の例外
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    error 戻り値（提出版は省略）
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    Result型が定石だが戻り値固定のため空文字列で表現
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    メモリ管理方式
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    GC（ガベージコレクション）
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    GC（ガベージコレクション）
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    GC（ガベージコレクション）
+                                </td>
+                                <td class="p-3 border border-slate-200">
+                                    所有権システム（GC不要）
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50">
+                                <td class="p-3 border border-slate-200 font-semibold">
+                                    型安全性の担保方法
+                                </td>
+                                <td class="p-3 border border-slate-200">型ヒント + pylance</td>
+                                <td class="p-3 border border-slate-200">readonly + 型ガード</td>
+                                <td class="p-3 border border-slate-200">明示的な型宣言 + go vet</td>
+                                <td class="p-3 border border-slate-200">
+                                    所有権システム + コンパイラチェック
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 p-4 rounded-xl bg-purple-50 border border-purple-200">
+                    <p class="text-purple-800 font-semibold text-base mb-2">相違点の背景</p>
+                    <p class="text-slate-700 text-base leading-7">
+                        Python・TypeScript・GoはGC（ガベージコレクション、＝使い終わったメモリを自動で回収する仕組み）付きの言語であるため、
+                        文字列の縮小操作で新しいオブジェクトが生成されてもGCが後始末をしてくれます。
+                        一方Rustにはガベージコレクタが無く、コンパイル時に所有権を追跡する仕組みがあるため、
+                        「新しい文字列を作らず整数だけを更新する」という、より低レベルなメモリ効率を意識した設計が自然に選ばれます。
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============================================================
+     8. 用語集 (#glossary)
+     ============================================================ -->
+            <section id="glossary" class="bg-white rounded-2xl p-8 mb-8 shadow">
+                <h2
+                    class="outfit text-[1.9rem] font-bold text-cyan-700 mb-4 pb-2 border-b-[3px] border-emerald-200"
+                >
+                    📖 用語集
+                </h2>
+                <p class="text-slate-500 text-base mb-5">
+                    このページで登場した専門用語をまとめました。分からない言葉が出てきたときに参照してください。
+                </p>
+                <div class="space-y-2">
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> イミュータブル
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            一度作成したら内容を変更できない性質のことです。Python・TypeScript（JavaScript）・Go・Rustのいずれの言語でも文字列はイミュータブルであり、
+                            「候補を1文字縮める」処理は実際には新しい範囲を指す文字列（またはスライス）を作り直していることになります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> インデックスエラー
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            配列や文字列の範囲外の要素にアクセスしようとしたときに発生するエラーです。
+                            例えば空の配列に対して strs[0]
+                            にアクセスすると発生する可能性があるため、多くの実装で最初に空配列のチェックを行います。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> エッジケース
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            空の配列・要素数1件・全要素が完全一致など、通常とは異なる境界的な条件の入力のことです。
+                            エッジケースを見落とすと、普通のテストは通るのに特定の入力でだけバグが発生することがあります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 型ヒント
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            関数の引数や戻り値に型を注釈として書く仕組みです。Pythonでは
+                            <code class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >List[str]</code
+                            >
+                            のように書き、pylance（VSCodeの型チェッカー）が実行前に型の誤りを検出できるようにします。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 計算量
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            入力の大きさに対して、処理にかかる手間（時間計算量）や使用するメモリ量（空間計算量）がどう増えるかの目安です。
+                            Big-O記法（O(n) など）で表され、この問題では時間計算量 O(S)、空間計算量
+                            O(1) になります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 借用
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            Rust特有の仕組みで、値の所有権を渡さずにその値を参照することです。
+                            <code class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >&amp;str</code
+                            >
+                            のように書くことで、Vec&lt;String&gt;
+                            の所有権を保持したまま中身を安全に読み取れます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 垂直走査
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            複数の文字列を「同じ位置（インデックス）」ごとに縦方向に比較していく方法です。
+                            Pythonの実装では zip と set
+                            という組み込み関数を組み合わせてこの走査を実現しています。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 水平走査
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            1つの文字列（先頭の文字列）を基準の候補として、他の文字列と丸ごと比較しながら候補を縮めていく方法です。
+                            TypeScript・Go・Rustの実装ではこちらを採用しています。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> スライス
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            文字列や配列の一部分（範囲）だけを、コピーを作らずに参照する操作です。
+                            Go の
+                            <code class="bg-slate-100 px-1 rounded font-mono text-base">s[:i]</code>
+                            や Rust の
+                            <code class="bg-slate-100 px-1 rounded font-mono text-base"
+                                >&amp;s[..n]</code
+                            >
+                            がこれにあたります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 早期終了
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            それ以上調べても答えが変わらないと分かった時点で処理を打ち切ることです。
+                            この問題では候補が空文字列になった時点で、共通接頭辞が無いと確定するため即座に処理を終えます。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> 所有権
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            値を"誰が管理するか"をコンパイル時に決めるRust独自の仕組みです。
+                            ガベージコレクタを使わずにメモリを安全に管理できる一方、値を渡す際に「借用」か「移動」かを意識する必要があります。
+                        </div>
+                    </details>
+
+                    <details class="rounded-xl border border-slate-200 overflow-hidden">
+                        <summary
+                            class="font-semibold text-teal-800 cursor-pointer px-5 py-3 bg-slate-50 hover:bg-emerald-50 transition list-none flex items-center gap-2"
+                        >
+                            <span class="text-emerald-500">▶</span> パニック
+                        </summary>
+                        <div
+                            class="px-5 py-3 text-slate-600 text-base leading-7 border-t border-slate-200"
+                        >
+                            GoやRustで回復不能なエラーが発生した際に起きる強制終了です。
+                            範囲外のインデックスやスライスへアクセスしようとした場合などに発生することがあるため、事前の入力検証が重要になります。
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <footer class="text-center text-slate-500 text-base py-6">
+                LeetCode 14: Longest Common Prefix の解説ページ（Python / TypeScript / Go / Rust
+                実装比較）
+            </footer>
+        </div>
+
+        <!-- ============================================================
+     技術スタック（CDN）
+     ============================================================ -->
+
+        <!-- React 18 / ReactDOM 18 (development) -->
+        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+        <script
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+            crossorigin
+        ></script>
+
+        <!-- Prism.js Core + 各言語コンポーネント + プラグイン -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+        <!-- Mermaid.js（バージョン固定） -->
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+
+        <!-- 事前コンパイル済みのReactコンポーネント（type属性なしの通常scriptとして埋め込み） -->
+        <script>
+            'use strict';
+            const { useState, useEffect, useRef } = React;
+            /* =========================================================
+   共通データ：代表例
+   ========================================================= */
+            const exampleStrs = ['flower', 'flow', 'flight'];
+            const stepsData = [
+                {
+                    step: 1,
+                    title: '先頭の文字列を候補にする',
+                    desc:
+                        '配列の先頭にある文字列を、共通接頭辞（＝全員の先頭部分で一致する文字列）の候補としてそのまま採用します。' +
+                        'なぜなら、共通接頭辞は必ず先頭の文字列自身の一部分になるはずで、先頭の文字列より長い共通接頭辞は存在しえないからです。' +
+                        '例）strs=[flower, flow, flight] のとき、候補 prefix はまず flower からスタートします。',
+                    prefix: 'flower',
+                    compareIndex: -1,
+                },
+                {
+                    step: 2,
+                    title: '2番目の文字列と比較して候補を縮める',
+                    desc:
+                        '候補 prefix が2番目の文字列 flow で始まっているかを確認します。' +
+                        'なぜこの確認が必要かというと、1つでも candidate で始まらない文字列があれば、その時点で candidate は共通接頭辞として失格だからです。' +
+                        '例）flow は flower で始まっていないため、末尾を1文字ずつ削り、flow で始まると確認できるまで候補を flowe から flow まで縮めます。',
+                    prefix: 'flow',
+                    compareIndex: 1,
+                },
+                {
+                    step: 3,
+                    title: '3番目の文字列と比較して候補を縮める',
+                    desc:
+                        '候補 prefix が3番目の文字列 flight で始まっているかを確認します。' +
+                        'なぜまた縮める必要が出てくるかというと、flow は flight の先頭部分と一致しないためです。' +
+                        '例）flow から flo, fl の順に1文字ずつ削っていき、flight が fl で始まると確認できた時点で縮小を止めます。',
+                    prefix: 'fl',
+                    compareIndex: 2,
+                },
+                {
+                    step: 4,
+                    title: 'すべての文字列を確認できたので結果を返す',
+                    desc:
+                        '配列内のすべての文字列との比較が終わったので、その時点の候補 prefix をそのまま結果として返します。' +
+                        'なぜこれで正しいと言えるかというと、候補はここまでの各比較で一度も失格にならず生き残ってきたからです。' +
+                        '例）flower, flow, flight のすべてが fl で始まっているため、最終的な答えは fl になります。',
+                    prefix: 'fl',
+                    compareIndex: -1,
+                },
+            ];
+            function StepVisualization(props) {
+                const { prefix, compareIndex } = props;
+                return React.createElement(
+                    'div',
+                    { className: 'mt-4' },
+                    React.createElement(
+                        'div',
+                        { className: 'flex flex-col gap-2 font-mono text-base' },
+                        exampleStrs.map((s, idx) => {
+                            const isCompareTarget = idx === compareIndex;
+                            const matched = s.indexOf(prefix) === 0;
+                            return React.createElement(
+                                'div',
+                                {
+                                    key: idx,
+                                    className: [
+                                        'flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 border-2',
+                                        isCompareTarget
+                                            ? 'border-sky-400 bg-sky-50'
+                                            : 'border-slate-200 bg-slate-50',
+                                    ].join(' '),
+                                },
+                                React.createElement(
+                                    'span',
+                                    { className: 'text-slate-400 w-6 text-right' },
+                                    idx,
+                                ),
+                                React.createElement(
+                                    'span',
+                                    null,
+                                    React.createElement(
+                                        'span',
+                                        {
+                                            className:
+                                                'bg-emerald-200 text-emerald-900 rounded px-0.5',
+                                        },
+                                        matched
+                                            ? prefix
+                                            : s.slice(0, Math.min(prefix.length, s.length)),
+                                    ),
+                                    React.createElement(
+                                        'span',
+                                        { className: 'text-slate-500' },
+                                        matched
+                                            ? s.slice(prefix.length)
+                                            : s.slice(Math.min(prefix.length, s.length)),
+                                    ),
+                                ),
+                                isCompareTarget &&
+                                    React.createElement(
+                                        'span',
+                                        {
+                                            className: [
+                                                'ml-auto text-base font-sans font-semibold',
+                                                matched ? 'text-emerald-600' : 'text-red-500',
+                                            ].join(' '),
+                                        },
+                                        matched
+                                            ? '一致 現在の候補で始まっている'
+                                            : '不一致 候補を縮める必要がある',
+                                    ),
+                            );
+                        }),
+                    ),
+                    React.createElement(
+                        'div',
+                        {
+                            className:
+                                'mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-base',
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'text-slate-500 mb-2 font-sans text-base font-semibold' },
+                            '現在の変数の状態',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-emerald-700' },
+                            'prefix = "',
+                            prefix,
+                            '"',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-sky-700' },
+                            '比較対象のインデックス i =',
+                            ' ',
+                            compareIndex >= 0 ? compareIndex : 'まだ比較していない、または比較完了',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'text-amber-700' },
+                            'prefix.length = ',
+                            prefix.length,
+                        ),
+                    ),
+                );
+            }
+            function StepsSection() {
+                const [activeStep, setActiveStep] = useState(1);
+                const [isPlaying, setIsPlaying] = useState(false);
+                const timerRef = useRef(null);
+                useEffect(() => {
+                    if (isPlaying) {
+                        timerRef.current = setTimeout(() => {
+                            if (activeStep === stepsData.length) {
+                                setActiveStep(1);
+                                setIsPlaying(false);
+                            } else {
+                                setActiveStep((prev) => prev + 1);
+                            }
+                        }, 1800);
+                    }
+                    return () => {
+                        if (timerRef.current) clearTimeout(timerRef.current);
+                    };
+                }, [isPlaying, activeStep]);
+                const currentStepData = stepsData[activeStep - 1];
+                const handleStepClick = (step) => {
+                    setActiveStep(step);
+                    setIsPlaying(false);
+                };
+                const handlePlay = () => {
+                    setActiveStep(1);
+                    setIsPlaying(true);
+                };
+                return React.createElement(
+                    'div',
+                    { className: 'grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 mt-2' },
+                    React.createElement(
+                        'div',
+                        null,
+                        React.createElement(
+                            'h3',
+                            { className: 'mt-0 mb-4 text-teal-800 text-xl font-semibold' },
+                            'ステップ一覧',
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'space-y-2' },
+                            stepsData.map((step) => {
+                                const isActive = activeStep === step.step;
+                                return React.createElement(
+                                    'button',
+                                    {
+                                        key: step.step,
+                                        type: 'button',
+                                        className: [
+                                            'w-full text-left text-base rounded-xl border-2 transition cursor-pointer px-4 py-4',
+                                            'bg-white border-slate-200 hover:border-emerald-500 hover:translate-x-1',
+                                            isActive
+                                                ? 'bg-[linear-gradient(135deg,#d1fae5,#a7f3d0)] border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.20)]'
+                                                : '',
+                                        ].join(' '),
+                                        onClick: () => handleStepClick(step.step),
+                                        'aria-label': 'ステップ' + step.step + ': ' + step.title,
+                                        'aria-current': isActive ? 'step' : undefined,
+                                    },
+                                    React.createElement(
+                                        'div',
+                                        {
+                                            className: [
+                                                'font-bold mb-1',
+                                                isActive ? 'text-emerald-900' : 'text-teal-800',
+                                            ].join(' '),
+                                        },
+                                        'Step ',
+                                        step.step,
+                                        ': ',
+                                        step.title,
+                                    ),
+                                    React.createElement(
+                                        'div',
+                                        { className: 'text-slate-500 text-base mt-1' },
+                                        step.desc.substring(0, 40),
+                                        step.desc.length > 40 ? '…' : '',
+                                    ),
+                                );
+                            }),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'my-auto' },
+                        activeStep > 1 &&
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'mb-3 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-base text-slate-500',
+                                },
+                                '前のステップ（Step ',
+                                activeStep - 1,
+                                '）では ',
+                                stepsData[activeStep - 2].title,
+                                ' を行いました',
+                            ),
+                        React.createElement(
+                            'div',
+                            {
+                                className:
+                                    'rounded-2xl p-6 border-2 border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#f0f9ff)]',
+                            },
+                            React.createElement(
+                                'h3',
+                                { className: 'mt-0 text-teal-800 text-lg font-bold' },
+                                'Step ',
+                                currentStepData.step,
+                                ': ',
+                                currentStepData.title,
+                            ),
+                            React.createElement(
+                                'p',
+                                { className: 'text-slate-600 leading-7 text-base mt-2' },
+                                currentStepData.desc,
+                            ),
+                        ),
+                        React.createElement(StepVisualization, {
+                            prefix: currentStepData.prefix,
+                            compareIndex: currentStepData.compareIndex,
+                        }),
+                        React.createElement(
+                            'div',
+                            { className: 'flex flex-wrap justify-center gap-2 mt-4' },
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#10b981,#059669)] text-base',
+                                    onClick: handlePlay,
+                                    disabled: isPlaying,
+                                },
+                                '再生',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                    onClick: () => {
+                                        setActiveStep((s) => Math.max(1, s - 1));
+                                        setIsPlaying(false);
+                                    },
+                                    disabled: activeStep === 1,
+                                },
+                                '前へ',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-white transition disabled:opacity-50 shadow hover:-translate-y-0.5 bg-[linear-gradient(135deg,#0ea5e9,#0284c7)] text-base',
+                                    onClick: () => {
+                                        setActiveStep((s) => Math.min(stepsData.length, s + 1));
+                                        setIsPlaying(false);
+                                    },
+                                    disabled: activeStep === stepsData.length,
+                                },
+                                '次へ',
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    className:
+                                        'px-5 py-2.5 rounded-xl font-semibold text-slate-700 transition shadow hover:-translate-y-0.5 bg-white border-2 border-slate-200 text-base',
+                                    onClick: () => {
+                                        setActiveStep(1);
+                                        setIsPlaying(false);
+                                    },
+                                },
+                                'リセット',
+                            ),
+                        ),
+                        activeStep === stepsData.length &&
+                            React.createElement(
+                                'div',
+                                {
+                                    className:
+                                        'mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-base text-center',
+                                },
+                                '全ステップ完了です。下の「コード」セクションで実際の4言語での実装を確認してみましょう。',
+                            ),
+                    ),
+                );
+            }
+            const pythonCode = `from __future__ import annotations
+
+from typing import List
+
+
+class Solution:
+    def longestCommonPrefix(self, strs: List[str]) -> str:
+        # 入力検証：空配列なら共通する接頭辞は定義できないため、空文字列を返す。
+        if not strs:
+            return ""
+
+        # エッジケース：要素が1つだけならそれ自体が唯一の共通接頭辞になる。
+        if len(strs) == 1:
+            return strs[0]
+
+        # 垂直走査：zip(*strs) は複数の文字列を同じ位置ごとに束ねる組み込み関数。
+        # 最短の文字列の長さで自動的に止まるため、範囲チェックを自前で書く必要がない。
+        prefix_chars: List[str] = []
+        for chars in zip(*strs):
+            # set(chars) のサイズが1なら、その位置の文字は全員一致している。
+            if len(set(chars)) == 1:
+                prefix_chars.append(chars[0])
+            else:
+                # 1文字でも異なれば、それ以上は共通しないため打ち切る。
+                break
+
+        # "".join() でリストを1つの文字列に結合して返す。
+        return "".join(prefix_chars)
+`;
+            const typescriptCode = `function longestCommonPrefix(strs: readonly string[]): string {
+    // 型ガード：実行時にも配列・要素の型を確認する二重の安全策。
+    if (!Array.isArray(strs)) {
+        throw new TypeError('strs must be an array of strings');
+    }
+    if (strs.length === 0) {
+        throw new RangeError('strs must contain at least one string');
+    }
+    if (!strs.every((s): s is string => typeof s === 'string')) {
+        throw new TypeError('All elements of strs must be strings');
+    }
+
+    // エッジケース：要素が1つだけならそれ自体が答え。
+    if (strs.length === 1) {
+        return strs[0];
+    }
+
+    // 水平走査：先頭の文字列を候補にして、他の文字列と比較しながら縮めていく。
+    let prefix: string = strs[0];
+
+    for (let i = 1; i < strs.length; i++) {
+        const current: string = strs[i];
+
+        // startsWith は現在の文字列が候補で始まっているかを判定する。
+        while (!current.startsWith(prefix)) {
+            // slice で末尾1文字を除いた新しい候補を作る。
+            prefix = prefix.slice(0, prefix.length - 1);
+
+            // 候補が空になれば共通部分は無いと確定し、即座に返す。
+            if (prefix === '') {
+                return '';
+            }
+        }
+    }
+
+    return prefix;
+}
+`;
+            const goCode = `package main
+
+import "strings"
+
+// longestCommonPrefix は複数の文字列に共通する最長の接頭辞を求める。
+// 先頭の文字列を候補とし、strings.HasPrefix で他の文字列と照合しながら
+// 一致しなければ候補を1文字ずつ縮める（水平走査）。
+func longestCommonPrefix(strs []string) string {
+	// エッジケース：空スライスなら空文字列を返す。
+	if len(strs) == 0 {
+		return ""
+	}
+
+	// 先頭の文字列を候補として仮置きする。
+	prefix := strs[0]
+
+	// 2番目以降の文字列を順にチェックしながら候補を縮めていく。
+	for i := 1; i < len(strs); i++ {
+		current := strs[i]
+
+		for !strings.HasPrefix(current, prefix) {
+			// スライス式で末尾1文字を除いた範囲を指す。新しいコピーは作らない。
+			prefix = prefix[:len(prefix)-1]
+
+			if prefix == "" {
+				return ""
+			}
+		}
+	}
+
+	return prefix
+}
+`;
+            const rustCode = `impl Solution {
+    /// 複数の文字列に共通する最長の接頭辞を求める。
+    /// 先頭の文字列を候補とし、starts_with で他の文字列と照合しながら
+    /// 一致しなければ候補の長さ prefix_len を1ずつ縮める（水平走査）。
+    pub fn longest_common_prefix(strs: Vec<String>) -> String {
+        // エッジケース：空 Vec なら空文字列を返す。
+        if strs.is_empty() {
+            return String::new();
+        }
+
+        // エッジケース：要素が1つならそれ自体が答え。
+        if strs.len() == 1 {
+            return strs[0].clone();
+        }
+
+        // 先頭の文字列を &str として借用し、候補の長さを prefix_len で管理する。
+        let first: &str = strs[0].as_str();
+        let mut prefix_len: usize = first.len();
+
+        // 2番目以降の文字列を順にチェックしながら候補を縮めていく。
+        for s in strs.iter().skip(1) {
+            let current: &str = s.as_str();
+
+            while !current.starts_with(&first[..prefix_len]) {
+                prefix_len -= 1;
+
+                if prefix_len == 0 {
+                    return String::new();
+                }
+            }
+        }
+
+        // 確定した prefix_len 分だけ切り出し、to_string() で String に変換する。
+        first[..prefix_len].to_string()
+    }
+}
+`;
+            const codeData = [
+                {
+                    id: 'python',
+                    label: 'Python',
+                    prismLang: 'python',
+                    structure: [
+                        '空配列かどうかを確認する',
+                        '要素数が1件ならそのまま返す',
+                        'zip(*strs) で同じ位置の文字を束ね、set で全員一致か判定する',
+                        '一致した文字を集めて join で結合して返す',
+                    ],
+                    code: pythonCode,
+                    trace:
+                        '入力: strs = ["flower", "flow", "flight"]\n' +
+                        'Step 1: not strs -> False（空ではない）\n' +
+                        'Step 2: len(strs) == 1 -> False\n' +
+                        'Step 3: zip(*strs) は最短の flow（4文字）で止まる\n' +
+                        '  index0: (f,f,f) -> set サイズ1 -> prefix_chars=[f]\n' +
+                        '  index1: (l,l,l) -> set サイズ1 -> prefix_chars=[f,l]\n' +
+                        '  index2: (o,o,i) -> set サイズ2 -> break\n' +
+                        '結果: join([f,l]) = "fl"',
+                    note: 'Pythonだけ「垂直走査」を採用しています。zip と set という2つの組み込み関数（どちらもC言語で実装され高速）を組み合わせることで、他の3言語より短く簡潔なコードになる点がPythonらしい特徴です。',
+                },
+                {
+                    id: 'typescript',
+                    label: 'TypeScript',
+                    prismLang: 'typescript',
+                    structure: [
+                        '型ガードで配列・要素の型を実行時に確認する',
+                        '要素数が1件ならそのまま返す',
+                        '先頭の文字列を候補にして startsWith で照合する',
+                        '不一致なら候補を slice で1文字ずつ縮める',
+                    ],
+                    code: typescriptCode,
+                    trace:
+                        '入力: strs = ["flower", "flow", "flight"]\n' +
+                        'prefix = "flower"\n' +
+                        'i=1, current="flow": startsWith("flower") -> false\n' +
+                        '  -> "flowe" -> false -> "flow" -> true\n' +
+                        'i=2, current="flight": startsWith("flow") -> false\n' +
+                        '  -> "flo" -> false -> "fl" -> true\n' +
+                        '結果: "fl"',
+                    note: 'readonly な配列と型ガード（s is string）を組み合わせることで、コンパイル時と実行時の両方で安全性を確保しています。JavaScriptには無い、TypeScript独自の静的チェックの恩恵です。',
+                },
+                {
+                    id: 'go',
+                    label: 'Go',
+                    prismLang: 'go',
+                    structure: [
+                        '空スライスなら空文字列を返す',
+                        '先頭の文字列を候補として仮置きする',
+                        'strings.HasPrefix で他の文字列と照合する',
+                        '不一致ならスライス式で候補を1文字ずつ縮める',
+                    ],
+                    code: goCode,
+                    trace:
+                        '入力: strs = []string{"flower", "flow", "flight"}\n' +
+                        'prefix = "flower"\n' +
+                        'i=1, current="flow": HasPrefix(flow, flower) -> false\n' +
+                        '  -> "flowe" -> false -> "flow" -> true\n' +
+                        'i=2, current="flight": HasPrefix(flight, flow) -> false\n' +
+                        '  -> "flo" -> false -> "fl" -> true\n' +
+                        '結果: "fl"',
+                    note: 'Goはエラーを戻り値で返す設計が基本ですが、LeetCode提出用の関数ではシンプルさを優先してエラーハンドリングを省略しています。prefix[:i] というスライス式は新しいバイト列をコピーしないため、追加のメモリ確保がほぼ発生しません。',
+                },
+                {
+                    id: 'rust',
+                    label: 'Rust',
+                    prismLang: 'rust',
+                    structure: [
+                        '空 Vec なら空文字列を返す',
+                        '要素数が1件ならそのまま返す',
+                        '候補の長さ prefix_len を usize で管理する',
+                        'starts_with で照合しながら prefix_len を縮める',
+                        '最後に to_string() で String に変換して返す',
+                    ],
+                    code: rustCode,
+                    trace:
+                        '入力: strs = vec![flower, flow, flight]\n' +
+                        'first = "flower", prefix_len = 6\n' +
+                        's="flow": starts_with(first[..6]) -> false\n' +
+                        '  prefix_len=5 -> "flowe" -> false, prefix_len=4 -> "flow" -> true\n' +
+                        's="flight": starts_with(first[..4]="flow") -> false\n' +
+                        '  prefix_len=3 -> "flo" -> false, prefix_len=2 -> "fl" -> true\n' +
+                        '結果: first[..2].to_string() = "fl"',
+                    note: 'Vec<String> の所有権は関数が受け取りますが、内部処理は &str の借用と usize 整数だけで完結させ、無駄な clone や String の再生成を避けています。所有権システムを持つRust特有の設計判断です。',
+                },
+            ];
+            function CodeBlockView(props) {
+                const containerRef = useRef(null);
+                useEffect(() => {
+                    const container = containerRef.current;
+                    if (!container) return;
+                    // Prism.js（特に toolbar プラグイン）は highlightElement 実行時に
+                    // <pre> を <div class="code-toolbar"> で自動的に包むなど、Reactの知らない
+                    // ところでDOMを直接書き換える。この書き換えとReactの仮想DOMの管理が
+                    // 食い違うと、言語タブを切り替えても表示が更新されない不具合が起きる。
+                    // そこでこのコンテナの中身は一切Reactに管理させず（JSXの子要素を持たせず）、
+                    // useEffect内で毎回ゼロから <pre>/<code> を作り直すことで、
+                    // ReactとPrismのDOM操作が衝突しないようにする。
+                    container.innerHTML = '';
+                    const pre = document.createElement('pre');
+                    pre.className = 'line-numbers';
+                    const codeEl = document.createElement('code');
+                    codeEl.className = 'language-' + props.prismLang;
+                    codeEl.textContent = props.code;
+                    pre.appendChild(codeEl);
+                    container.appendChild(pre);
+                    if (window.Prism) {
+                        window.Prism.highlightElement(codeEl);
+                    }
+                }, [props.code, props.prismLang, props.blockId]);
+                return React.createElement('div', {
+                    ref: containerRef,
+                    className: 'code-block-container',
+                });
+            }
+            function CodeSection() {
+                const [activeLang, setActiveLang] = useState('python');
+                const current = codeData.filter((c) => c.id === activeLang)[0];
+                return React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'div',
+                        { className: 'flex flex-wrap gap-2 mb-5' },
+                        codeData.map((c) =>
+                            React.createElement(
+                                'button',
+                                {
+                                    key: c.id,
+                                    type: 'button',
+                                    onClick: () => setActiveLang(c.id),
+                                    className: [
+                                        'px-4 py-2 rounded-lg font-semibold text-base border-2 transition',
+                                        activeLang === c.id
+                                            ? 'bg-[linear-gradient(135deg,#10b981,#059669)] text-white border-emerald-600 shadow'
+                                            : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400',
+                                    ].join(' '),
+                                },
+                                c.label,
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        {
+                            className:
+                                'mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200',
+                        },
+                        React.createElement(
+                            'p',
+                            { className: 'text-emerald-800 font-semibold text-base mb-2' },
+                            'このコードの構造（先に全体像を把握しよう）',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-700 text-base space-y-1 list-decimal list-inside',
+                            },
+                            current.structure.map((s, i) =>
+                                React.createElement('li', { key: i }, s),
+                            ),
+                        ),
+                    ),
+                    React.createElement(CodeBlockView, {
+                        code: current.code,
+                        prismLang: current.prismLang,
+                        blockId: current.id,
+                    }),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-4 p-4 rounded-xl bg-sky-50 border border-sky-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-sky-800 font-semibold text-base mb-2' },
+                            '入力例 flower flow flight での動作トレース',
+                        ),
+                        React.createElement(
+                            'pre',
+                            {
+                                className:
+                                    'text-slate-700 text-base font-mono leading-6 overflow-x-auto whitespace-pre',
+                            },
+                            current.trace,
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-4 p-4 rounded-xl bg-purple-50 border border-purple-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-purple-800 font-semibold text-base mb-2' },
+                            current.label,
+                            ' 特有のポイント',
+                        ),
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 text-base leading-7' },
+                            current.note,
+                        ),
+                    ),
+                );
+            }
+            /* =========================================================
+   フローチャートセクション（Mermaid）
+   ========================================================= */
+            const mermaidDefinition = [
+                'flowchart TD',
+                '  Start[開始 文字列配列を受け取る]',
+                '  Start --> CheckEmpty{配列は空か}',
+                '  CheckEmpty -- はい --> RetEmpty[空文字列を返す]',
+                '  CheckEmpty -- いいえ --> CheckOne{要素数は1か}',
+                '  CheckOne -- はい --> RetFirst[先頭の文字列を返す]',
+                '  CheckOne -- いいえ --> InitPrefix[先頭の文字列を候補にする]',
+                '  InitPrefix --> Loop{未確認の文字列は残っているか}',
+                '  Loop -- いいえ --> RetPrefix[確定した候補を返す]',
+                '  Loop -- はい --> TakeNext[次の文字列を取り出す]',
+                '  TakeNext --> Match{候補で始まっているか}',
+                '  Match -- はい --> Loop',
+                '  Match -- いいえ --> Shrink[候補を1文字短くする]',
+                '  Shrink --> CheckZero{候補は空になったか}',
+                '  CheckZero -- はい --> RetEmptyTwo[空文字列を返す]',
+                '  CheckZero -- いいえ --> Match',
+                '  classDef startEnd fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46;',
+                '  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e;',
+                '  classDef process fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;',
+                '  classDef falsePath fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;',
+                '  classDef truePath fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46;',
+                '  class Start startEnd',
+                '  class RetPrefix truePath',
+                '  class RetFirst truePath',
+                '  class RetEmpty falsePath',
+                '  class RetEmptyTwo falsePath',
+                '  class CheckEmpty decision',
+                '  class CheckOne decision',
+                '  class Loop decision',
+                '  class Match decision',
+                '  class CheckZero decision',
+                '  class InitPrefix process',
+                '  class TakeNext process',
+                '  class Shrink process',
+            ].join('\n');
+            function DiagramSection() {
+                const mermaidRef = useRef(null);
+                const [renderError, setRenderError] = useState(null);
+                useEffect(() => {
+                    let cancelled = false;
+                    async function renderDiagram() {
+                        if (!window.mermaid) {
+                            if (!cancelled)
+                                setRenderError('Mermaidライブラリの読み込みに失敗しました。');
+                            return;
+                        }
+                        try {
+                            window.mermaid.initialize({
+                                startOnLoad: false,
+                                securityLevel: 'loose',
+                                fontFamily: 'Inter, sans-serif',
+                            });
+                            const result = await window.mermaid.render(
+                                'mermaid-lc14-flowchart',
+                                mermaidDefinition,
+                            );
+                            if (!cancelled && mermaidRef.current) {
+                                mermaidRef.current.innerHTML = result.svg;
+                            }
+                        } catch (err) {
+                            if (!cancelled)
+                                setRenderError('フローチャートの描画中にエラーが発生しました。');
+                        }
+                    }
+                    renderDiagram();
+                    return () => {
+                        cancelled = true;
+                    };
+                }, []);
+                return React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'div',
+                        { className: 'mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-amber-800 font-semibold text-base mb-2' },
+                            'フローチャートの読み方',
+                        ),
+                        React.createElement(
+                            'ul',
+                            {
+                                className:
+                                    'text-slate-700 text-base space-y-1 list-disc list-inside',
+                            },
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 rounded-full bg-emerald-200 border border-emerald-500 mr-1',
+                                }),
+                                '角丸四角（緑）= 開始・成功時の返り値',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-2 rounded bg-sky-100 border border-sky-400 mr-1',
+                                }),
+                                '四角（青）= 候補を作る・縮めるなどの処理ステップ',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 bg-amber-100 border border-amber-400 mr-1',
+                                    style: {
+                                        clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                                    },
+                                }),
+                                'ひし形（黄）= 条件分岐（はい・いいえ）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                React.createElement('span', {
+                                    className:
+                                        'inline-block w-3 h-3 rounded-full bg-red-100 border border-red-400 mr-1',
+                                }),
+                                '四角（赤）= 共通接頭辞が無いと確定したときの返り値',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 flex flex-col items-center gap-3' },
+                        renderError &&
+                            React.createElement(
+                                'p',
+                                {
+                                    className:
+                                        'text-red-600 text-base bg-red-50 border border-red-200 rounded-lg px-4 py-2',
+                                },
+                                renderError,
+                            ),
+                        React.createElement('div', {
+                            ref: mermaidRef,
+                            className:
+                                'mermaid-container w-full overflow-x-auto flex justify-center',
+                            role: 'img',
+                            'aria-label': 'Longest Common Prefix flowchart',
+                        }),
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200' },
+                        React.createElement(
+                            'p',
+                            { className: 'text-slate-700 font-semibold text-base mb-2' },
+                            '入力例 flower flow flight でのフロー追跡',
+                        ),
+                        React.createElement(
+                            'ol',
+                            {
+                                className:
+                                    'text-slate-600 text-base space-y-1 list-decimal list-inside',
+                            },
+                            React.createElement('li', null, '「開始」ノードから strs を受け取る'),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「配列は空か」の判定 → いいえ（3件あるため）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「要素数は1か」の判定 → いいえ（3件あるため）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「先頭の文字列を候補にする」→ prefix は flower になる',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「未確認の文字列は残っているか」→ はい（flow, flight が残っている）',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「次の文字列を取り出す」→ flow を取り出す',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「候補で始まっているか」→ いいえ → 「候補を1文字短くする」を繰り返し、prefix は flow になる',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                'ループへ戻り、flight についても同様に候補を fl まで縮める',
+                            ),
+                            React.createElement(
+                                'li',
+                                null,
+                                '「未確認の文字列は残っているか」→ いいえ → 「確定した候補を返す」で fl を返す',
+                            ),
+                        ),
+                    ),
+                    React.createElement(
+                        'p',
+                        { className: 'mt-5 text-slate-700 leading-8 text-base' },
+                        'このフローチャートから分かるように、このアルゴリズムには2種類の「早期に処理を打ち切る」経路があります。 1つは候補が途中で空文字列になった場合（共通接頭辞が無いと確定）、 もう1つはすべての文字列を確認し終えた場合（候補がそのまま答えとして確定）です。',
+                    ),
+                );
+            }
+            /* =========================================================
+   マウント
+   ========================================================= */
+            const stepsRootEl = document.getElementById('steps-root');
+            if (stepsRootEl) {
+                ReactDOM.createRoot(stepsRootEl).render(React.createElement(StepsSection, null));
+            }
+            const codeRootEl = document.getElementById('code-root');
+            if (codeRootEl) {
+                ReactDOM.createRoot(codeRootEl).render(React.createElement(CodeSection, null));
+            }
+            const diagramRootEl = document.getElementById('diagram-root');
+            if (diagramRootEl) {
+                ReactDOM.createRoot(diagramRootEl).render(
+                    React.createElement(DiagramSection, null),
+                );
+            }
+        </script>
+    </body>
+</html>

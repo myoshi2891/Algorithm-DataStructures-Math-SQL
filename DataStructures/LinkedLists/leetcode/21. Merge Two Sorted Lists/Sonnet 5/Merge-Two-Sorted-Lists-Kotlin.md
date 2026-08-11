@@ -132,9 +132,9 @@ class Solution {
         var tail = dummy
 
         // 引数の list1・list2 は val パラメータであり Kotlin では
-        // 関数の仮引数は暗黙的に val 扱い（再代入不可）だが、
-        // ここではローカルの var として持ち替える必要はなく、
-        // 直接 while 内で条件式として使い続ける。
+        // 関数の仮引数は暗黙的に val 扱い（再代入不可）のため、
+        // ローカルの var（currentList1・currentList2）に保持し、
+        // 後続処理（while ループ内）でポインタを更新できるようにする。
         var currentList1 = list1
         var currentList2 = list2
 
